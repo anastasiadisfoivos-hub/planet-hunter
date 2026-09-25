@@ -1,0 +1,32 @@
+[project]
+name = "skyspectra"
+version = "0.1.0"
+description = "Chemical fingerprints for planet-hunter: NIST line lists, the solar spectrum, host-star abundances and Gaia XP spectra, exoplanet transmission spectra."
+readme = "README.md"
+authors = [
+    { name = "Foivos Anastasiadis", email = "anastasiadis.foivos@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+]
+
+[project.scripts]
+skyspectra = "skyspectra.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 115
+target-version = "py312"
