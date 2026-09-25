@@ -1,0 +1,50 @@
+{
+  "WASP-18": {
+    "cold_s": 20.5,
+    "cached_s": 3.5,
+    "sectors": [
+      105,
+      106
+    ]
+  },
+  "WASP-121": {
+    "cold_s": 19.3,
+    "cached_s": 3.9,
+    "sectors": [
+      87,
+      88
+    ]
+  },
+  "WASP-43": {
+    "cold_s": 22.6,
+    "cached_s": 5.6,
+    "sectors": [
+      89,
+      100
+    ]
+  },
+  "TIC 219707463": {
+    "cold_s": 22.0,
+    "cached_s": 2.9,
+    "sectors": [
+      60,
+      74
+    ]
+  },
+  "TIC 144539611": {
+    "cold_s": 31.6,
+    "cached_s": 4.2,
+    "sectors": [
+      105,
+      106
+    ]
+  },
+  "TIC 231010756": {
+    "cold_s": 25.0,
+    "cached_s": 3.2,
+    "sectors": [
+      68,
+      69
+    ]
+  }
+}
