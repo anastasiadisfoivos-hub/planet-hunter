@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Planet Hunter",
-  description: "Watch patches of sky and see what NASA TESS and Rubin Observatory data detect there.",
+  description: "What is happening in the sky right now: supernovae, flares, comets, bursts and more, each at its real position, with real pictures.",
 };
 
 export const viewport: Viewport = {

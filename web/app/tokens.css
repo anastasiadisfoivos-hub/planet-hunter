@@ -26,10 +26,13 @@
   --supernova: #e8836a;
   --supernova-tint: rgb(232 131 106 / 0.12);
 
-  /* Map-only data colours: hunting grounds (added with the sky map) */
-  --ground-ecliptic: #d9be7c;
-  --ground-bulge: #d98ba6;
-  --ground-high: #b7a5f0;
+  /* Event categories: data colours, always paired with a shape (lib/eventStyle.ts) */
+  --cat-transient: #e8836a;
+  --cat-solar-system: #8fd18a;
+  --cat-sun: #f2c14e;
+  --cat-earth: #7cc4f2;
+  --cat-high-energy: #d98bd8;
+  --cat-other: #a1a6b0;
   --grid: #1f2127;
 
   /* Primary button */

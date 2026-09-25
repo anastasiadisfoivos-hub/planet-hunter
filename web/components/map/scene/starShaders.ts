@@ -3,13 +3,12 @@
 // composer encodes to sRGB on output. Values above 1 are what the bloom pass picks up.
 
 import { noiseGlsl } from "./noise";
-import { MAX_SHADER_WATCHES } from "./shaders";
 
 /**
  * Point sprite: a sharp core plus a soft gaussian halo, sized from apparent magnitude and drawn in
  * device pixels so it stays crisp at any DPR. Additive. Hosts also get:
  *   - a proximity boost (brighter as the camera approaches, never dimmer than from Earth);
- *   - an accent ring for hover, selection and watched hosts;
+ *   - an accent ring for hover and selection;
  *   - a fade for the focused star as it swaps to the close-up sphere.
  */
 export const spriteVertex = /* glsl */ `
@@ -26,10 +25,6 @@ export const spriteVertex = /* glsl */ `
   uniform float uSelectedT;
   uniform float uFocusFade;
   uniform float uRings;
-  uniform vec4 uWatches[${MAX_SHADER_WATCHES}];
-  uniform int uWatchCount;
-  uniform vec4 uDraft;
-  uniform float uDraftOn;
   varying vec3 vColor;
   varying float vI;
   varying float vCore;
@@ -57,14 +52,7 @@ export const spriteVertex = /* glsl */ `
 
     float isHover = step(abs(aIndex - uHover), 0.5) * uHoverT;
     float isSel = step(abs(aIndex - uSelected), 0.5) * uSelectedT;
-    float watched = 0.0;
-    vec3 dir = normalize(position);
-    for (int i = 0; i < ${MAX_SHADER_WATCHES}; i++) {
-      if (i >= uWatchCount) break;
-      if (length(dir - uWatches[i].xyz) < uWatches[i].w) watched = 1.0;
-    }
-    if (uDraftOn > 0.5 && length(dir - uDraft.xyz) < uDraft.w) watched = 1.0;
-    float ringA = max(max(isHover, isSel), watched * 0.55) * uRings;
+    float ringA = max(isHover, isSel) * uRings;
     float ring = core + 5.0;
 
     float fade = 1.0 - step(abs(aIndex - uSelected), 0.5) * uFocusFade;
@@ -74,7 +62,7 @@ export const spriteVertex = /* glsl */ `
     vHalo = halo * uPx;
     vRing = ring * uPx;
     vRingA = ringA * fade;
-    float radius = max(halo * 2.6, ringA > 0.0 ? ring + 1.5 : 0.0);
+    float radius = max(halo * 3.2, ringA > 0.0 ? ring + 1.5 : 0.0);
     vSize = radius * uPx;
     gl_PointSize = 2.0 * vSize;
     if (fade < 0.01) gl_PointSize = 0.0;
@@ -96,7 +84,9 @@ export const spriteFragment = /* glsl */ `
     float r = length(gl_PointCoord * 2.0 - 1.0) * vSize; // device px from centre
     // Sharp core: a disc anti-aliased over one device pixel, never smaller than a pixel.
     float core = 1.0 - smoothstep(max(vCore - 0.5, 0.0), vCore + 0.5, r);
-    float halo = exp(-0.5 * (r * r) / (vHalo * vHalo));
+    // Gaussian halo, windowed to zero before the sprite's edge so a bright star never shows the
+    // point sprite's square boundary.
+    float halo = exp(-0.5 * (r * r) / (vHalo * vHalo)) * (1.0 - smoothstep(vSize * 0.55, vSize * 0.98, r));
     // Hot centre: the core runs white-ish above 1, so bright stars bloom and faint ones do not.
     vec3 c = vColor * (core * (0.55 + 0.9 * vI) + halo * 0.32 * vI);
     float ring = (1.0 - smoothstep(0.0, 1.0, abs(r - vRing))) * vRingA;
@@ -206,13 +196,14 @@ export const coronaFragment = /* glsl */ `
     float r = length(vUv) * uExtent; // in stellar radii
     if (r < 0.98 || r > uExtent) discard;
     float x = r - 1.0;
-    // Fresnel-like: brightest right at the limb, then a tight falloff and a long faint tail.
-    float rim = exp(-x * 14.0);
-    float tail = exp(-x * 2.6) * 0.35;
+    // Fresnel-like: brightest right at the limb, gone by 1.5 stellar radii. No long tail: the sky
+    // around a close-up stays pure black.
+    float rim = exp(-x * 16.0);
+    float inner = exp(-x * 7.0) * 0.3;
     float a = atan(vUv.y, vUv.x);
     float streak = 0.8 + 0.35 * snoise(vec3(cos(a) * 2.2, sin(a) * 2.2, uSeed + uTime * 0.02 - x * 0.6));
-    float edge = 1.0 - smoothstep(uExtent * 0.7, uExtent, r);
-    float I = (rim * 1.3 + tail * streak) * edge * smoothstep(0.98, 1.0, r);
+    float edge = 1.0 - smoothstep(1.3, 1.5, r);
+    float I = (rim * 1.3 + inner * streak) * edge * smoothstep(0.98, 1.0, r);
     gl_FragColor = vec4(uColor * I * uOpacity, 1.0);
   }
 `;

@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { MapData } from "@/lib/data";
-import type { HostIndex } from "@/lib/classify";
+import type { HostIndex } from "@/lib/hosts";
 import { radecToVec } from "@/lib/sky";
 import { bvToTeff } from "@/lib/starColor";
 import { BASE_FOV, displayRadius, linearStarColor, sceneDistance, STAR_R, tokenColor } from "./constants";
@@ -26,9 +26,7 @@ export function createStarUniforms() {
 }
 export type StarUniforms = ReturnType<typeof createStarUniforms>;
 
-type WatchUniformSet = Record<string, { value: unknown }>;
-
-function spriteMaterial(uniforms: Record<string, { value: unknown }>) {
+export function spriteMaterial(uniforms: Record<string, { value: unknown }>) {
   return new THREE.ShaderMaterial({
     vertexShader: spriteVertex,
     fragmentShader: spriteFragment,
@@ -44,7 +42,7 @@ function spriteMaterial(uniforms: Record<string, { value: unknown }>) {
   });
 }
 
-function useSpriteFrame(material: THREE.ShaderMaterial) {
+export function useSpriteFrame(material: THREE.ShaderMaterial) {
   const dpr = useThree((s) => s.viewport.dpr);
   useFrame(({ camera }) => {
     material.uniforms.uPx.value = dpr;
@@ -54,7 +52,7 @@ function useSpriteFrame(material: THREE.ShaderMaterial) {
 }
 
 /** Bright catalogue stars (Yale BSC) on the sky shell. Colour from B-V via Teff. */
-export function CatalogStars({ data, visible, watchUniforms }: { data: MapData; visible: boolean; watchUniforms: WatchUniformSet }) {
+export function CatalogStars({ data, visible }: { data: MapData; visible: boolean }) {
   const geometry = useMemo(() => {
     const st = data.sky.stars;
     const n = st.ra.length;
@@ -79,29 +77,49 @@ export function CatalogStars({ data, visible, watchUniforms }: { data: MapData; 
   const material = useMemo(
     () =>
       spriteMaterial({
-        ...watchUniforms,
         ...createStarUniforms(),
         uMinI: { value: 0.05 },
         uProximity: { value: 0 },
         uRings: { value: 0 },
       }),
-    [watchUniforms],
+    [],
   );
   useSpriteFrame(material);
   return <points geometry={geometry} material={material} frustumCulled={false} visible={visible} renderOrder={0} />;
+}
+
+/**
+ * The Sun at its current RA/Dec, in its real colour (5772 K): a landmark for the Sun-frame events,
+ * whose markers sit around it.
+ */
+export function Sun({ ra, dec }: { ra: number; dec: number }) {
+  const geometry = useMemo(() => {
+    const [x, y, z] = radecToVec(ra, dec);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array([x * STAR_R, y * STAR_R, z * STAR_R]), 3));
+    g.setAttribute("aColor", new THREE.BufferAttribute(new Float32Array(linearStarColor(5772)), 3));
+    // Not the Sun's true -26.7: that would white out the screen. Brightest thing on the map instead.
+    g.setAttribute("aMag", new THREE.BufferAttribute(new Float32Array([-3.2]), 1));
+    g.setAttribute("aIndex", new THREE.BufferAttribute(new Float32Array([-10]), 1));
+    return g;
+  }, [ra, dec]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  const material = useMemo(() => spriteMaterial({ ...createStarUniforms(), uMinI: { value: 1 }, uProximity: { value: 0 }, uRings: { value: 0 } }), []);
+  useSpriteFrame(material);
+  return <points geometry={geometry} material={material} frustumCulled={false} renderOrder={0} />;
 }
 
 /** Planet hosts at their 3D positions. Colour from TIC Teff, size from V magnitude, brighter up close. */
 export function Hosts({
   index,
   trueScale,
-  watchUniforms,
+  visible,
   starUniforms,
   positionsRef,
 }: {
   index: HostIndex;
   trueScale: boolean;
-  watchUniforms: WatchUniformSet;
+  visible: boolean;
   starUniforms: StarUniforms;
   positionsRef: React.RefObject<Float32Array | null>;
 }) {
@@ -136,16 +154,17 @@ export function Hosts({
   }, [geometry, positionsRef]);
 
   const material = useMemo(
-    () => spriteMaterial({ ...watchUniforms, ...starUniforms, uMinI: { value: 0.3 }, uProximity: { value: 1 }, uRings: { value: 1 } }),
-    [watchUniforms, starUniforms],
+    () => spriteMaterial({ ...starUniforms, uMinI: { value: 0.3 }, uProximity: { value: 1 }, uRings: { value: 1 } }),
+    [starUniforms],
   );
   useSpriteFrame(material);
-  return <points geometry={geometry} material={material} frustumCulled={false} renderOrder={2} />;
+  return <points geometry={geometry} material={material} frustumCulled={false} visible={visible} renderOrder={2} />;
 }
 
 const sphereGeometry = new THREE.SphereGeometry(1, 128, 64);
 const quadGeometry = new THREE.PlaneGeometry(2, 2);
-const CORONA_EXTENT = 4;
+/** Corona quad half-size in stellar radii: the glow is gone by 1.5 R, so the sky stays black. */
+const CORONA_EXTENT = 1.6;
 
 /**
  * The focused host up close: an animated surface sphere at the star's real radius (scaled for the

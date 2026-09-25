@@ -3,7 +3,7 @@
 
 import * as THREE from "three";
 import CameraControls from "camera-controls";
-import { flightDuration, flightPose, type Pose, type V3 } from "./flight";
+import { flightDuration, flightPose, type Pose, type V3 } from "./flight.ts";
 
 CameraControls.install({ THREE });
 
@@ -56,7 +56,7 @@ export function applyLimits(rig: Rig) {
 }
 
 /** Fly to a pose. Instant under reduced motion. */
-export function flyTo(rig: Rig, to: Pose, kind: FlightKind) {
+export function flyTo(rig: Rig, to: Pose, kind: FlightKind, now = performance.now()) {
   if (!rig.controls || !rig.camera) return;
   rig.fovTarget = to.fov;
   if (rig.reduced) {
@@ -69,7 +69,7 @@ export function flyTo(rig: Rig, to: Pose, kind: FlightKind) {
   // No limits mid-flight: the path legitimately passes distances outside either end's range.
   rig.controls.minDistance = 0;
   rig.controls.maxDistance = Infinity;
-  rig.flight = { from, to, start: performance.now(), dur: flightDuration(from, to) * 1000, kind };
+  rig.flight = { from, to, start: now, dur: flightDuration(from, to) * 1000, kind };
 }
 
 /** Stop a flight where it is (any user input does this). */

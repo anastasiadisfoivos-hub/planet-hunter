@@ -15,8 +15,10 @@ export function EventImage({ image, variant }: { image: Image; variant: ImageVar
   const d = imageDisplay(image, variant);
   // Cutouts with no listed size are sized from the loaded image, at the same integer scale.
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
-  const width = d.width ?? (d.pixelated && natural ? natural.w * d.scale! : undefined);
-  const height = d.height ?? (d.pixelated && natural ? natural.h * d.scale! : undefined);
+  // Cutouts: exact integer-scaled size. Other pictures: their listed size, so the layout reserves the
+  // right space before the image arrives (CSS then scales it to the panel width).
+  const width = d.width ?? (d.pixelated ? (natural ? natural.w * d.scale! : undefined) : (image.width ?? undefined));
+  const height = d.height ?? (d.pixelated ? (natural ? natural.h * d.scale! : undefined) : (image.height ?? undefined));
   const showCaption = variant === "detail" || d.captionAlwaysVisible;
 
   return (

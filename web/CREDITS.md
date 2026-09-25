@@ -1,5 +1,18 @@
 # Credits and data sources
 
+## Events (DEMO DATA until the live service is connected)
+
+- `public/data/events.mock.json` and `status.mock.json` are **real recorded data**, built by
+  `scripts/build-events-mock.mjs`: the events service (`skyevents.ingest`) run offline on its recorded real week
+  (2026-09-18 to 2026-09-25: Rubin via Fink, ZTF via ALeRCE, TNS, MPC, JPL, CNEOS, NASA DONKI, GCN, IceCube,
+  GraceDB), plus the PICTURES session's 20 real example events and their verified pictures (images/EXAMPLES.md).
+  Each picture's caption, credit and licence come with it and are shown in the app.
+- Rubin alerts heatmap: `public/data/heatmap.rubin-sample.json`, `skysources.heatmap.build_heatmap` run on its
+  recorded real answers (ALeRCE LSST stamp classes and the Fink SSO sample, night of 2026-07-14), HEALPix RING.
+- Earth inset coastlines: Natural Earth 1:110m land (public domain), via the world-atlas package
+  (`scripts/build-land.mjs`).
+- The Sun's position: low-precision solar coordinates from the Astronomical Almanac (`lib/sun.ts`).
+
 ## Real data on the map
 
 - **Rubin survey footprint.** Rubin Observatory scheduler, `rubin_scheduler.scheduler.utils.get_current_footprint`

@@ -146,3 +146,32 @@ export type SkyEvent = {
   images: Image[];
   raw: Record<string, unknown>;
 };
+
+/** Filter categories (mirrors CATEGORIES in events/src/skyevents/models.py). "other" holds "unknown". */
+export const CATEGORIES = {
+  transients: ["supernova", "tidal_disruption_event", "kilonova", "nova", "active_galaxy_flare", "variable_star", "stellar_flare", "microlensing"],
+  solar_system: ["asteroid", "near_earth_object", "comet", "interstellar_object"],
+  sun_space_weather: ["solar_flare", "coronal_mass_ejection", "geomagnetic_storm"],
+  earth_atmosphere: ["fireball"],
+  high_energy: ["gamma_ray_burst", "neutrino", "gravitational_wave"],
+  other: ["unknown"],
+} as const satisfies Record<string, readonly EventType[]>;
+
+export type Category = keyof typeof CATEGORIES;
+
+export const CATEGORY_OF = Object.fromEntries(
+  Object.entries(CATEGORIES).flatMap(([c, ts]) => ts.map((t) => [t, c])),
+) as Record<EventType, Category>;
+
+/** One source's freshness, from the events service's status.json. */
+export type SourceStatus = {
+  source: string;
+  is_live: boolean;
+  /** "live" | "paused" | "unknown" */
+  state?: string;
+  last_event_at: string | null;
+  checked_at: string;
+  events?: number;
+  note?: string | null;
+  error?: string | null;
+};

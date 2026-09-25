@@ -2,31 +2,35 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Crosshair, Hand, Stack, Target } from "@phosphor-icons/react";
-import { Button, DemoTag, Segmented } from "@/components/ui";
-import { indexHosts, type HostIndex } from "@/lib/classify";
+import { Funnel, ListBullets, X } from "@phosphor-icons/react";
+import { Button, DemoTag, Panel } from "@/components/ui";
+import { API_MOCK, clockNow, getAllEvents, getStatus, type Status } from "@/lib/api";
+import type { SkyEvent } from "@/lib/contract";
 import { loadMapData, type MapData } from "@/lib/data";
-import { formatRadius } from "@/lib/sky";
-import { formatPercent } from "@/lib/odds";
+import { applyFilters } from "@/lib/events";
+import { indexHosts, type HostIndex } from "@/lib/hosts";
+import { eventFov, eventTarget } from "@/lib/markers";
 import { starColor } from "@/lib/starColor";
-import type { Forecast } from "@/lib/contract";
-import { StoreProvider, useStore, type Mode } from "@/state/store";
+import { StoreProvider, useStore } from "@/state/store";
 import { hud, view } from "./scene/constants";
-import { Inspector } from "./Inspector";
-import { LayersPanel } from "./LayersPanel";
-import { useForecast, useWatchesApi } from "./useWatches";
+import { EventDetail } from "./EventDetail";
+import { Feed } from "./Feed";
+import { FiltersPanel } from "./FiltersPanel";
+import { StatusBanner } from "./StatusBanner";
 import s from "./map.module.css";
 
 const Scene = dynamic(() => import("./scene/Scene"), { ssr: false, loading: () => null });
 
 const JUMPS: { id: string; label: string; ra: number; dec: number; fov: number }[] = [
+  { id: "home", label: "Orion and Taurus", ra: 75, dec: 8, fov: 60 },
   { id: "orion", label: "Orion Nebula", ra: 83.82, dec: -5.39, fov: 6 },
   { id: "carina", label: "Carina Nebula", ra: 161.26, dec: -59.87, fov: 8 },
   { id: "gc", label: "Galactic centre", ra: 266.42, dec: -29.0, fov: 40 },
-  { id: "lagoon", label: "Lagoon and Trifid", ra: 270.8, dec: -23.7, fov: 5 },
   { id: "lmc", label: "Large Magellanic Cloud", ra: 80.9, dec: -69.76, fov: 16 },
-  { id: "cygnus", label: "Cygnus and the Great Rift", ra: 308, dec: 40, fov: 45 },
+  { id: "cygnus", label: "Cygnus", ra: 308, dec: 40, fov: 45 },
 ];
+
+type Loaded = { map: MapData; events: SkyEvent[]; now: number };
 
 export default function SkyMapApp() {
   return (
@@ -37,14 +41,14 @@ export default function SkyMapApp() {
 }
 
 function SkyMap() {
-  const [data, setData] = useState<MapData | null>(null);
+  const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let live = true;
-    loadMapData()
-      .then((d) => live && setData(d))
+    Promise.all([loadMapData(), getAllEvents(), clockNow()])
+      .then(([map, events, now]) => live && setLoaded({ map, events, now }))
       .catch((e: unknown) => live && setError(e instanceof Error ? e.message : String(e)));
     return () => {
       live = false;
@@ -70,37 +74,28 @@ function SkyMap() {
       </main>
     );
   }
-  if (!data) {
+  if (!loaded) {
     return (
       <main className={s.shell} aria-busy="true">
-        <div className={`${s.layers} ${s.skeletonPanel}`} aria-hidden />
+        <div className={`${s.filters} ${s.skeletonPanel}`} aria-hidden />
         <div className={s.sky}>
           <p className={s.centerNote}>Loading the sky…</p>
         </div>
-        <div className={`${s.inspector} ${s.skeletonPanel}`} aria-hidden />
+        <div className={`${s.side} ${s.skeletonPanel}`} aria-hidden />
         <footer className={s.statusbar} />
       </main>
     );
   }
-  return <Loaded data={data} />;
+  return <MapView {...loaded} />;
 }
 
-const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
-
-/** Name label that follows the hovered planet host (positioned by the scene each frame). */
-function HoverLabel() {
-  const ref = useCallback((el: HTMLDivElement | null) => {
-    hud.hover = el;
-  }, []);
-  return <div ref={ref} className={s.hoverLabel} data-visible="false" aria-hidden />;
-}
-
-/** Key facts for the star in close-up. The surface is procedural; the numbers are catalogue values. */
+/** Key facts for a planet host in close-up. The surface is procedural; the numbers are catalogue values. */
 function StarHud({ data, i }: { data: MapData; i: number }) {
   const h = data.hosts;
   const teff = h.teff[i];
   const rad = h.rad?.[i] ?? 0;
   const pc = h.dist[i];
+  const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
   const [r, g, b] = starColor(teff).map((v) => Math.round(v * 255));
   return (
     <section className={s.starHud} aria-label={`${h.name[i]} close-up`}>
@@ -133,105 +128,108 @@ function StarHud({ data, i }: { data: MapData; i: number }) {
   );
 }
 
-/** Compact label beside the watch being drawn: size, kind, and visit chance. */
-function Readout({ forecast }: { forecast: Forecast | null }) {
-  const { state } = useStore();
-  const d = state.draft;
-  const ref = useCallback((el: HTMLDivElement | null) => {
-    hud.readout = el;
-  }, []);
+/** DOM labels the scene positions each frame. */
+function Labels() {
+  const ref = (key: "hover" | "earth" | "sun") => (el: HTMLElement | null) => {
+    hud[key] = el;
+  };
   return (
-    <div ref={ref} className={s.readout} data-visible="false" hidden={!d} aria-hidden>
-      {d && (
-        <>
-          <span className="mono">{formatRadius(d.sphere.radius_deg)}</span>
-          {d.result.kind === "blocked" ? (
-            <span className={s.readoutBlocked}>Outside Rubin coverage</span>
-          ) : (
-            <>
-              <span>{d.result.kind === "star" ? d.result.name : "Sky"}</span>
-              {forecast && <span className="mono">{formatPercent(forecast.rubin_visit_probability)} visit</span>}
-            </>
-          )}
-        </>
-      )}
-    </div>
+    <>
+      <div ref={ref("hover")} className={s.hoverLabel} data-visible="false" aria-hidden />
+      <div ref={ref("earth")} className={s.landmark} data-visible="false" aria-hidden>
+        Earth
+      </div>
+      <div ref={ref("sun")} className={s.landmark} data-visible="false" aria-hidden>
+        Sun
+      </div>
+    </>
   );
 }
 
-// Only rendered in the browser (data loads client-side), so reading window here is safe.
-function Loaded({ data }: { data: MapData }) {
+type Sheet = "closed" | "filters" | "feed";
+
+function MapView({ map, events, now }: Loaded) {
   const { state, dispatch } = useStore();
-  const index: HostIndex = useMemo(() => indexHosts(data.hosts), [data.hosts]);
-  const [heatMax, setHeatMax] = useState(0);
-  const onHeatMax = useCallback((m: number) => setHeatMax(m), []);
-  const [sheet, setSheet] = useState<"closed" | "layers" | "watch">("closed");
-  const [showFps] = useState(() => new URLSearchParams(window.location.search).has("fps"));
-  const watchesApi = useWatchesApi(data);
-  const { forecast } = useForecast(state.draft && state.draft.result.kind !== "blocked" ? state.draft.sphere : null, state.window);
+  const index: HostIndex = useMemo(() => indexHosts(map.hosts), [map.hosts]);
+  const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const [showFps] = useState(() => params.has("fps"));
+  const [status, setStatus] = useState<Status | null>(null);
+  const [sheet, setSheet] = useState<Sheet>("closed");
+  const shown = useMemo(() => applyFilters(events, state.filters, now), [events, state.filters, now]);
+  const selected = useMemo(() => events.find((e) => e.id === state.selectedEvent) ?? null, [events, state.selectedEvent]);
+
+  useEffect(() => {
+    const ctl = new AbortController();
+    getStatus(ctl.signal)
+      .then(setStatus)
+      .catch(() => setStatus(null));
+    return () => ctl.abort();
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      dispatch({ type: "draft", draft: null });
+      if (e.key !== "Escape" || document.querySelector(":popover-open")) return;
+      dispatch({ type: "selectEvent", id: null });
       dispatch({ type: "selectStar", index: null });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [dispatch]);
 
-  // Test hook for screenshots and debugging: window.__skymap.jumpTo(ra, dec, fov), .select(hostIndex | null).
+  // Test hook for screenshots and debugging.
   useEffect(() => {
     (window as unknown as { __skymap: unknown }).__skymap = {
       jumpTo: (ra: number, dec: number, fov: number) => view.jumpTo?.(ra, dec, fov),
+      selectEvent: (id: string | null) => dispatch({ type: "selectEvent", id }),
+      filters: (patch: object) => dispatch({ type: "filters", patch }),
+      layer: (layer: string, on: boolean) => dispatch({ type: "layer", layer: layer as never, on }),
       select: (i: number | null) => dispatch({ type: "selectStar", index: i }),
       view,
     };
   }, [dispatch]);
 
-  // On phones, open the watch sheet once a drawn watch is released. A picked star does not: the sheet
-  // would cover its close-up, and the close-up HUD already carries the key facts.
-  const draftReleased = !!state.draft && !state.draft.dragging;
-  const [autoOpened, setAutoOpened] = useState(false);
-  if (draftReleased && !autoOpened) {
-    setAutoOpened(true);
-    setSheet("watch");
+  const open = useCallback(
+    (id: string) => {
+      dispatch({ type: "selectEvent", id });
+      setSheet("feed");
+    },
+    [dispatch],
+  );
+
+  const showOnMap = useCallback(
+    (e: SkyEvent) => {
+      const t = eventTarget(e, now);
+      if (!t) return;
+      view.jumpTo?.(t.ra, t.dec, eventFov(e));
+      // On a phone the detail covers the map: close it so the flight is visible. The marker stays selected.
+      setSheet("closed");
+    },
+    [now],
+  );
+
+  // Picking a marker on the map opens its detail (on a phone, as a full sheet).
+  const [seen, setSeen] = useState<string | null>(null);
+  if (state.selectedEvent !== seen) {
+    setSeen(state.selectedEvent);
+    if (state.selectedEvent) setSheet("feed");
   }
-  if (!draftReleased && autoOpened) setAutoOpened(false);
 
   const statusRef = (key: "pointer" | "fov" | "fps") => (el: HTMLElement | null) => {
     hud[key] = el;
   };
-
-  const toggle = (tab: "layers" | "watch") => setSheet((cur) => (cur === tab ? "closed" : tab));
-  const hint =
-    state.mode === "look"
-      ? state.selectedStar !== null
-        ? null
-        : "Drag to look around. Scroll or pinch to zoom. Point at a star to find planet hosts; click one to fly to it."
-      : state.draft
-        ? null
-        : "Drag outward on the sky to draw a watch. A single click draws a 1° watch.";
+  const toggle = (tab: Exclude<Sheet, "closed">) => setSheet((cur) => (cur === tab ? "closed" : tab));
+  const hostHud = state.selectedStar !== null && state.layers.hosts;
 
   return (
-    <main className={s.shell} data-mode={state.mode} data-sheet={sheet}>
-      <h1 className="sr-only">Planet Hunter sky map</h1>
+    <main className={s.shell} data-sheet={sheet} data-detail={selected ? "open" : "closed"}>
+      <h1 className="sr-only">Sky events map</h1>
 
-      <LayersPanel data={data} heatMax={heatMax} />
+      <FiltersPanel data={map} events={events} now={now} />
 
       <div className={s.sky}>
-        <Scene data={data} index={index} showFps={showFps} onHeatMax={onHeatMax} />
+        <Scene data={map} index={index} events={shown} now={now} showFps={showFps} noDetail={params.has("nodetail")} />
 
         <div className={s.toolbar}>
-          <Segmented<Mode>
-            label="What dragging does"
-            value={state.mode}
-            onChange={(mode) => dispatch({ type: "mode", mode })}
-            options={[
-              { value: "look", label: "Look" },
-              { value: "draw", label: "Draw watch" },
-            ]}
-          />
           <label className={s.jump}>
             <span className="sr-only">Jump to</span>
             <select
@@ -251,32 +249,48 @@ function Loaded({ data }: { data: MapData }) {
               ))}
             </select>
           </label>
+          <StatusBanner status={status} now={now} demo={API_MOCK} />
         </div>
 
-        {hint && <p className={s.hint}>{hint}</p>}
-        {state.selectedStar !== null && state.mode === "look" && <StarHud data={data} i={state.selectedStar} />}
-        <Readout forecast={forecast} />
-        <HoverLabel />
+        {hostHud && <StarHud data={map} i={state.selectedStar!} />}
+        <Labels />
       </div>
 
-      <Inspector data={data} index={index} forecast={forecast} watchesApi={watchesApi} />
+      <Panel
+        key={selected ? `event:${selected.id}` : "feed"}
+        as="aside"
+        className={s.side}
+        aria-label={selected ? "Event details" : "Feed"}
+        title={selected ? undefined : "Feed"}
+        actions={
+          selected ? undefined : (
+            <Button variant="quiet" size="sm" className={s.sheetClose} icon={<X size={16} />} aria-label="Close feed" onClick={() => setSheet("closed")} />
+          )
+        }
+        flush
+      >
+        {selected ? (
+          <EventDetail
+            event={selected}
+            now={now}
+            onBack={() => {
+              dispatch({ type: "selectEvent", id: null });
+            }}
+            onShow={showOnMap}
+          />
+        ) : (
+          <Feed now={now} onOpen={open} />
+        )}
+      </Panel>
 
       <nav className={s.sheetTabs} aria-label="Panels">
-        <button aria-pressed={sheet === "layers"} onClick={() => toggle("layers")}>
-          <Stack size={16} aria-hidden />
-          Layers
+        <button aria-pressed={sheet === "filters"} onClick={() => toggle("filters")}>
+          <Funnel size={16} aria-hidden />
+          Filters
         </button>
-        <button aria-pressed={sheet === "watch"} onClick={() => toggle("watch")}>
-          <Target size={16} aria-hidden />
-          Watch <span className="mono">{state.watches.length}</span>
-        </button>
-        <button
-          aria-pressed={state.mode === "draw"}
-          onClick={() => dispatch({ type: "mode", mode: state.mode === "draw" ? "look" : "draw" })}
-          aria-label={state.mode === "draw" ? "Switch to look mode" : "Switch to draw mode"}
-        >
-          {state.mode === "draw" ? <Crosshair size={16} aria-hidden /> : <Hand size={16} aria-hidden />}
-          {state.mode === "draw" ? "Drawing" : "Looking"}
+        <button aria-pressed={sheet === "feed"} onClick={() => toggle("feed")}>
+          <ListBullets size={16} aria-hidden />
+          Feed <span className="mono">{shown.length}</span>
         </button>
       </nav>
 
@@ -290,21 +304,21 @@ function Loaded({ data }: { data: MapData }) {
         <span className={s.statusItem}>
           <span className="label">FOV</span>
           <span className="mono" ref={statusRef("fov")}>
-            55°
+            60°
           </span>
         </span>
-        <span className={`${s.statusItem} ${s.statusWide}`}>
-          <span className="label">Coverage</span>
-          <span className="mono">rubin_scheduler {data.footprint.source_version.split(",")[0].replace("rubin_scheduler ", "")}</span>
+        <span className={s.statusItem}>
+          <span className="label">Showing</span>
+          <span className="mono">
+            {shown.length} {shown.length === 1 ? "event" : "events"}
+          </span>
         </span>
-        <span className={`${s.statusItem} ${s.statusWide}`}>
-          <span className="label">Hosts</span>
-          <span className="mono">{data.hosts.count.toLocaleString("en-US")}</span>
-        </span>
-        <span className={`${s.statusItem} ${s.statusWide}`}>
-          <span className="label">Forecast</span>
-          <DemoTag />
-        </span>
+        {API_MOCK && (
+          <span className={`${s.statusItem} ${s.statusWide}`}>
+            <span className="label">Data</span>
+            <DemoTag />
+          </span>
+        )}
         {showFps && (
           <span className={s.statusItem}>
             <span className="mono" ref={statusRef("fps")} />

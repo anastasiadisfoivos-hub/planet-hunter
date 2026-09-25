@@ -1,8 +1,6 @@
 // Loaders and lookups for the static map data in /public/data and /public/mock.
 
-import { ang2pix_nest } from "@hscmap/healpix";
-import type { Heatmap } from "@/lib/contract";
-import { DEG, galactic } from "./sky";
+import { bakeFootprintField, bakeHeatmapField, packSkyTexture, type HeatmapFile } from "./skyTexture";
 
 export type FootprintFile = {
   source: string;
@@ -39,14 +37,6 @@ export type HostsFile = {
   ref: number[];
 };
 
-/** Rubin tonight tiles. Not part of the shared contract: a web-only demo shape. */
-export type RubinTonight = {
-  generated_at: string;
-  night: string;
-  field_radius_deg: number;
-  tiles: { ra_deg: number; dec_deg: number; band: string; time: string }[];
-};
-
 export type SkyObjectsFile = {
   generated_at: string;
   note: string;
@@ -58,9 +48,10 @@ export type SkyObjectsFile = {
 export type MapData = {
   footprint: Footprint;
   hosts: HostsFile;
-  heatmap: Heatmap;
-  tonight: RubinTonight;
+  heatmap: HeatmapFile & { max: number; total: number };
   sky: SkyObjectsFile;
+  /** Baked equirectangular RGBA for the sky shader (see lib/skyTexture.ts). */
+  skyTexture: Uint8Array;
 };
 
 export function decodeFootprint(fp: FootprintFile): Footprint {
@@ -73,34 +64,6 @@ export function decodeFootprint(fp: FootprintFile): Footprint {
   return { ...fp, codes };
 }
 
-export function footprintLabel(fp: Footprint, raDeg: number, decDeg: number): string {
-  const pix = ang2pix_nest(fp.nside, (90 - decDeg) * DEG, raDeg * DEG);
-  return fp.labels[fp.codes[pix]];
-}
-
-export function inFootprint(fp: Footprint, raDeg: number, decDeg: number): boolean {
-  return footprintLabel(fp, raDeg, decDeg) !== "outside";
-}
-
-/** Plain-language reason a sky trap can't go at this position (only called when outside). */
-export function outsideReason(raDeg: number, decDeg: number): string {
-  if (decDeg > 30) {
-    return "Rubin sits in Chile, 30° south of the equator. This part of the sky never climbs high enough there for the survey to watch it.";
-  }
-  const { b } = galactic(raDeg, decDeg);
-  if (Math.abs(b) < 20) {
-    return "Thick dust in the Milky Way's disc dims this patch, so the survey spends its time elsewhere.";
-  }
-  return "This patch is outside the area Rubin's survey plans to cover, so it won't be watched often enough to catch anything.";
-}
-
-/** Parse "healpix nside=N" from the contract's heatmap.grid. */
-export function heatmapNside(grid: string): number {
-  const m = /nside\s*=\s*(\d+)/.exec(grid);
-  if (!m) throw new Error(`Unrecognised heatmap grid "${grid}"`);
-  return Number(m[1]);
-}
-
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url}: ${res.status}`);
@@ -108,12 +71,21 @@ async function getJson<T>(url: string): Promise<T> {
 }
 
 export async function loadMapData(): Promise<MapData> {
-  const [fp, hosts, heatmap, tonight, sky] = await Promise.all([
+  const [fp, hosts, heatmap, sky] = await Promise.all([
     getJson<FootprintFile>("/data/rubin-footprint.json"),
     getJson<HostsFile>("/data/hosts.json"),
-    getJson<Heatmap>("/mock/heatmap.json"),
-    getJson<RubinTonight>("/mock/rubin-tonight.json"),
+    getJson<HeatmapFile>("/data/heatmap.rubin-sample.json"),
     getJson<SkyObjectsFile>("/data/sky-objects.json"),
   ]);
-  return { footprint: decodeFootprint(fp), hosts, heatmap, tonight, sky };
+  const footprint = decodeFootprint(fp);
+  // Every HEALPix lookup happens here, once, before anything renders.
+  const coverage = bakeFootprintField(footprint.nside, footprint.codes);
+  const heat = bakeHeatmapField(heatmap);
+  return {
+    footprint,
+    hosts,
+    heatmap: { ...heatmap, max: heat.max, total: heat.total },
+    sky,
+    skyTexture: packSkyTexture(coverage, heat.field),
+  };
 }

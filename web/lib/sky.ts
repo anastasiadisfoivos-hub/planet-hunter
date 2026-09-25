@@ -28,7 +28,7 @@ export function dot(a: Vec3, b: Vec3): number {
 
 /** Great-circle separation in degrees between two unit vectors. */
 export function separationDeg(a: Vec3, b: Vec3): number {
-  // atan2 form stays accurate for the 0.05 degree traps, where acos loses precision.
+  // atan2 form stays accurate at arcsecond separations, where acos loses precision.
   const cx = a[1] * b[2] - a[2] * b[1];
   const cy = a[2] * b[0] - a[0] * b[2];
   const cz = a[0] * b[1] - a[1] * b[0];
@@ -58,29 +58,6 @@ export function galactic(raDeg: number, decDeg: number): { l: number; b: number 
   return { l, b: Math.asin(g[2]) / DEG };
 }
 
-const OBLIQUITY = 23.4392911 * DEG;
-
-export function eclipticLatitude(raDeg: number, decDeg: number): number {
-  const [, y, z] = astroVec(raDeg, decDeg);
-  return Math.asin(z * Math.cos(OBLIQUITY) - y * Math.sin(OBLIQUITY)) / DEG;
-}
-
-/** Solid angle of a spherical cap, in square degrees. */
-export function capAreaDeg2(radiusDeg: number): number {
-  return 2 * Math.PI * (1 - Math.cos(radiusDeg * DEG)) * (180 / Math.PI) ** 2;
-}
-
-export type HuntingGround = "solar" | "bulge" | "deep" | null;
-
-/** The layer's three hunting grounds. Order matters: bulge wins over ecliptic where they cross. */
-export function huntingGround(raDeg: number, decDeg: number): HuntingGround {
-  const { l, b } = galactic(raDeg, decDeg);
-  const lw = l > 180 ? l - 360 : l;
-  if (Math.abs(lw) < 20 && Math.abs(b) < 12) return "bulge";
-  if (Math.abs(eclipticLatitude(raDeg, decDeg)) < 10) return "solar";
-  if (Math.abs(b) > 30) return "deep";
-  return null;
-}
 
 export function formatRa(raDeg: number): string {
   const h = raDeg / 15;
@@ -92,9 +69,4 @@ export function formatRa(raDeg: number): string {
 export function formatDec(decDeg: number): string {
   const s = decDeg < 0 ? "-" : "+";
   return `${s}${Math.abs(decDeg).toFixed(1)}°`;
-}
-
-export function formatRadius(r: number): string {
-  if (r < 1) return `${(r * 60).toFixed(r < 0.1 ? 1 : 0)}′`;
-  return `${r.toFixed(r < 3 ? 2 : 1)}°`;
 }

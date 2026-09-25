@@ -5,32 +5,31 @@ import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import CameraControls from "camera-controls";
-import { SPHERE_RADIUS_MAX, SPHERE_RADIUS_MIN, type CatchType, type Sphere } from "@/lib/contract";
+import type { SkyEvent } from "@/lib/contract";
 import type { MapData } from "@/lib/data";
-import { classify, type HostIndex } from "@/lib/classify";
-import { bakeFootprint, bakeHeatmap, bakeTonight, TEX_H, TEX_W } from "@/lib/skyTexture";
-import { formatDec, formatRa, radecToVec, separationDeg, vecToRadec, type Vec3 } from "@/lib/sky";
-import { useStore, type Draft, type Layers, type State, type Watch } from "@/state/store";
-import {
-  bubbleFragment,
-  bubbleVertex,
-  markerFragment,
-  markerVertex,
-  MAX_SHADER_WATCHES,
-  skyFragment,
-  skyVertex,
-} from "./shaders";
-import { BASE_FOV, capUniform, displayRadius, hud, MIN_DIST, MIN_FOV, SKY_R, tokenColor, view, WATCH_D } from "./constants";
+import type { HostIndex } from "@/lib/hosts";
+import { CATEGORY_STYLE, SHAPE_INDEX } from "@/lib/eventStyle";
+import { buildMarkers, type Marker } from "@/lib/markers";
+import { TEX_H, TEX_W } from "@/lib/skyTexture";
+import { formatDec, formatRa, radecToVec, vecToRadec, type Vec3 } from "@/lib/sky";
+import { useStore, type Layers, type State } from "@/state/store";
+import { bubbleVertex, eventFragment, eventVertex, skyFragment, skyVertex } from "./shaders";
+import { BASE_FOV, capUniform, displayRadius, EVENT_R, hud, MIN_DIST, MIN_FOV, SKY_R, tokenColor, view } from "./constants";
 import { QUALITY_DESKTOP, QUALITY_PHONE, SkyBaker } from "./skyBake";
 import { applyLimits, createRig, currentPose, flyTo, interrupt, stepFlight, type Rig } from "./rig";
 import type { Pose, V3 } from "./flight";
-import { CatalogStars, CloseUp, createStarUniforms, Hosts, type StarUniforms } from "./stars";
+import { CatalogStars, CloseUp, createStarUniforms, Hosts, Sun, type StarUniforms } from "./stars";
 
 type SceneProps = {
   data: MapData;
   index: HostIndex;
+  /** Events matching the filters (the map shows exactly what the feed lists). */
+  events: SkyEvent[];
+  /** "Now" for recency and the Sun's position (the recording's end in mock mode). */
+  now: number;
   showFps: boolean;
-  onHeatMax: (max: number) => void;
+  /** Test hook: skip the zoomed detail re-bake, for before/after comparisons. */
+  noDetail?: boolean;
 };
 
 function isPhone() {
@@ -40,78 +39,43 @@ function reducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-const OVERVIEW: Pose = { pos: [84, 30, 118], target: [0, 0, 0], fov: BASE_FOV };
-
 /** The view from Earth toward (ra, dec): stand just behind Earth and look through it. */
-function earthView(ra: number, dec: number, fov: number): Pose {
+export function earthView(ra: number, dec: number, fov: number): Pose {
   const [x, y, z] = radecToVec(ra, dec);
   return { pos: [-x * MIN_DIST, -y * MIN_DIST, -z * MIN_DIST], target: [0, 0, 0], fov: Math.max(MIN_FOV, Math.min(BASE_FOV, fov)) };
 }
 
-/** Uniforms shared by the sky and the hosts so both light up for the same watches. */
-function useWatchUniforms(watches: Watch[], draft: Draft | null) {
-  const u = useMemo(
-    () => ({
-      uWatches: { value: Array.from({ length: MAX_SHADER_WATCHES }, () => new THREE.Vector4()) },
-      uWatchCount: { value: 0 },
-      uDraft: { value: new THREE.Vector4() },
-      uDraftOn: { value: 0 },
-      uDraftBlocked: { value: 0 },
-    }),
-    [],
-  );
-  const invalidate = useThree((s) => s.invalidate);
-  useEffect(() => {
-    const n = Math.min(watches.length, MAX_SHADER_WATCHES);
-    for (let i = 0; i < n; i++) capUniform(watches[i].sphere, u.uWatches.value[i]);
-    u.uWatchCount.value = n;
-    u.uDraftOn.value = draft ? 1 : 0;
-    if (draft) capUniform(draft.sphere, u.uDraft.value);
-    u.uDraftBlocked.value = draft?.result.kind === "blocked" ? 1 : 0;
-    invalidate();
-  }, [watches, draft, u, invalidate]);
-  return u;
-}
-
-type WatchUniforms = ReturnType<typeof useWatchUniforms>;
+/**
+ * Opening view: from Earth toward Taurus, Orion and Gemini. Bright, colourful stars (Betelgeuse,
+ * Rigel, Aldebaran, the Pleiades, Capella, Sirius) and most of the week's events are in frame.
+ */
+const HOME: Pose = earthView(75, 8, BASE_FOV);
 
 function SkyShell({
   data,
   layers,
-  heatType,
-  watchUniforms,
   baker,
   drift,
-  onHeatMax,
+  selected,
 }: {
   data: MapData;
   layers: Layers;
-  heatType: CatchType | "all";
-  watchUniforms: WatchUniforms;
   baker: SkyBaker;
   drift: boolean;
-  onHeatMax: (max: number) => void;
+  selected: SkyEvent | null;
 }) {
   const invalidate = useThree((s) => s.invalidate);
   const gl = useThree((s) => s.gl);
-  const { texture, buf } = useMemo(() => {
-    const buf = new Uint8Array(TEX_W * TEX_H * 4);
-    bakeFootprint(buf, data.footprint);
-    bakeTonight(buf, data.tonight);
-    const texture = new THREE.DataTexture(buf, TEX_W, TEX_H, THREE.RGBAFormat);
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.magFilter = THREE.LinearFilter;
-    texture.minFilter = THREE.LinearFilter;
-    texture.generateMipmaps = false;
-    texture.needsUpdate = true;
-    return { texture, buf };
-  }, [data]);
-
-  useEffect(() => {
-    onHeatMax(bakeHeatmap(buf, data.heatmap, heatType));
-    texture.needsUpdate = true;
-    invalidate();
-  }, [buf, texture, data.heatmap, heatType, onHeatMax, invalidate]);
+  const texture = useMemo(() => {
+    const t = new THREE.DataTexture(data.skyTexture, TEX_W, TEX_H, THREE.RGBAFormat);
+    t.wrapS = THREE.RepeatWrapping;
+    t.magFilter = THREE.LinearFilter;
+    t.minFilter = THREE.LinearFilter;
+    t.generateMipmaps = false;
+    t.needsUpdate = true;
+    return t;
+  }, [data.skyTexture]);
+  useEffect(() => () => texture.dispose(), [texture]);
 
   const material = useMemo(
     () =>
@@ -121,7 +85,6 @@ function SkyShell({
         side: THREE.BackSide,
         depthWrite: false,
         uniforms: {
-          ...watchUniforms,
           uTex: { value: texture },
           uCubeBase: { value: baker.cubeBase.texture },
           uCubeGlow: { value: baker.cubeGlow.texture },
@@ -130,44 +93,44 @@ function SkyShell({
           uDetailVP: { value: baker.detailVP },
           uDetailOn: { value: 0 },
           uBaked: { value: 0 },
-          uArt: { value: 1 },
+          uArt: { value: 0 },
           uTime: { value: 0 },
           uDrift: { value: 0 },
           uZone: { value: 1 },
-          uGrounds: { value: 0 },
           uHeat: { value: 0 },
-          uTonight: { value: 0 },
+          uSel: { value: new THREE.Vector4() },
+          uSelOn: { value: 0 },
           cDeep: { value: tokenColor("--space", "#000000") },
           cGrid: { value: tokenColor("--grid", "#1f2127") },
           cRubin: { value: tokenColor("--rubin", "#6fd6c6") },
-          cSolar: { value: tokenColor("--ground-ecliptic", "#d9be7c") },
-          cBulge: { value: tokenColor("--ground-bulge", "#d98ba6") },
-          cHigh: { value: tokenColor("--ground-high", "#b7a5f0") },
           cAccent: { value: tokenColor("--accent", "#a3b8ff") },
-          cBlocked: { value: tokenColor("--supernova", "#e8836a") },
           cHeatHi: { value: tokenColor("--ink", "#f4f4f5") },
         },
       }),
-    [texture, watchUniforms, baker],
+    [texture, baker],
   );
-
+  useEffect(() => () => material.dispose(), [material]);
 
   useEffect(() => {
-    material.uniforms.uZone.value = layers.zone ? 1 : 0;
-    material.uniforms.uGrounds.value = layers.grounds ? 1 : 0;
-    material.uniforms.uHeat.value = layers.heatmap ? 1 : 0;
-    material.uniforms.uTonight.value = layers.tonight ? 1 : 0;
-    material.uniforms.uArt.value = layers.art ? 1 : 0;
-    material.uniforms.uDrift.value = drift ? 1 : 0;
+    const u = material.uniforms;
+    u.uZone.value = layers.coverage ? 1 : 0;
+    u.uHeat.value = layers.heatmap ? 1 : 0;
+    u.uArt.value = layers.art ? 1 : 0;
+    u.uDrift.value = drift ? 1 : 0;
+    // The selected event's error circle, when it is big enough to see (more than about 1 arcminute).
+    const loc = selected?.location;
+    const on = loc?.frame === "sky" && loc.error_deg > 0.02;
+    u.uSelOn.value = on ? 1 : 0;
+    if (on) capUniform(loc.ra_deg, loc.dec_deg, loc.error_deg, u.uSel.value);
     invalidate();
-  }, [layers, drift, material, invalidate]);
+  }, [layers, drift, selected, material, invalidate]);
 
   useFrame(({ clock }) => {
-    // Bake the illustrated sky progressively, one cube face per frame, only once the layer is switched on.
+    // Bake the illustrated sky progressively, one cube face per frame, only once the layer is on.
     if (layers.art && material.uniforms.uBaked.value < 1) {
       if (baker.bakeStep(gl)) {
         material.uniforms.uBaked.value = 1;
-        view.bakeInfo = { cubeMs: Math.round(baker.lastBakeMs), detailMs: 0, face: baker.quality.face };
+        view.bakeInfo = { cubeMs: Math.round(baker.lastBakeMs), detailMs: 0, detailBakes: 0, face: baker.quality.face };
       }
       invalidate();
     }
@@ -185,6 +148,62 @@ function SkyShell({
   );
 }
 
+/** Uniforms the scene animates for event markers. */
+function createEventUniforms() {
+  return { uHover: { value: -1 }, uHoverT: { value: 0 }, uSelected: { value: -1 }, uDim: { value: 0 } };
+}
+type EventUniforms = ReturnType<typeof createEventUniforms>;
+
+/** One marker per event: category colour and shape, prominence by recency. Always drawn on top. */
+function EventMarkers({ markers, uniforms, positionsRef }: { markers: Marker[]; uniforms: EventUniforms; positionsRef: React.RefObject<Float32Array | null> }) {
+  const dpr = useThree((s) => s.viewport.dpr);
+  const geometry = useMemo(() => {
+    const n = markers.length;
+    const pos = new Float32Array(n * 3);
+    const col = new Float32Array(n * 3);
+    const shape = new Float32Array(n);
+    const rec = new Float32Array(n);
+    const idx = new Float32Array(n);
+    const colors = new Map<string, THREE.Color>();
+    markers.forEach((m, i) => {
+      const [x, y, z] = radecToVec(m.ra, m.dec);
+      pos.set([x * EVENT_R, y * EVENT_R, z * EVENT_R], i * 3);
+      const st = CATEGORY_STYLE[m.category];
+      if (!colors.has(st.token)) colors.set(st.token, tokenColor(st.token, st.fallback));
+      const c = colors.get(st.token)!;
+      col.set([c.r, c.g, c.b], i * 3);
+      shape[i] = SHAPE_INDEX[st.shape];
+      rec[i] = m.recency;
+      idx[i] = i;
+    });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    g.setAttribute("aColor", new THREE.BufferAttribute(col, 3));
+    g.setAttribute("aShape", new THREE.BufferAttribute(shape, 1));
+    g.setAttribute("aRecency", new THREE.BufferAttribute(rec, 1));
+    g.setAttribute("aIndex", new THREE.BufferAttribute(idx, 1));
+    return g;
+  }, [markers]);
+  useEffect(() => {
+    positionsRef.current = geometry.getAttribute("position").array as Float32Array;
+    return () => geometry.dispose();
+  }, [geometry, positionsRef]);
+  const material = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader: eventVertex,
+        fragmentShader: eventFragment,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+        uniforms: { ...uniforms, uPx: { value: 1 }, cAccent: { value: tokenColor("--accent", "#a3b8ff") } },
+      }),
+    [uniforms],
+  );
+  useEffect(() => () => material.dispose(), [material]);
+  material.uniforms.uPx.value = dpr;
+  return <points geometry={geometry} material={material} frustumCulled={false} renderOrder={6} />;
+}
 
 function Earth() {
   const material = useMemo(
@@ -224,78 +243,6 @@ function Earth() {
   );
 }
 
-const bubbleGeometry = new THREE.SphereGeometry(1, 40, 20);
-
-function WatchBubble({ sphere, blocked, faint }: { sphere: Sphere; blocked?: boolean; faint?: boolean }) {
-  const material = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: bubbleVertex,
-        fragmentShader: bubbleFragment,
-        transparent: true,
-        depthWrite: false,
-        uniforms: { uColor: { value: new THREE.Color() }, uOpacity: { value: 1 } },
-      }),
-    [],
-  );
-  useEffect(() => () => material.dispose(), [material]);
-  material.uniforms.uColor.value.copy(tokenColor(blocked ? "--supernova" : "--accent", blocked ? "#e8836a" : "#a3b8ff"));
-  material.uniforms.uOpacity.value = faint ? 0.6 : 1;
-  const [x, y, z] = radecToVec(sphere.ra_deg, sphere.dec_deg);
-  const r = WATCH_D * Math.sin((sphere.radius_deg * Math.PI) / 180);
-  return (
-    <mesh
-      geometry={bubbleGeometry}
-      material={material}
-      position={[x * WATCH_D, y * WATCH_D, z * WATCH_D]}
-      scale={r}
-      renderOrder={4}
-    />
-  );
-}
-
-/** Fixed-pixel-size markers at every watch centre, so even a 3 arcminute watch stays findable. */
-function WatchMarkers({ watches, draft }: { watches: Watch[]; draft: Draft | null }) {
-  const dpr = useThree((s) => s.viewport.dpr);
-  const geometry = useMemo(() => {
-    const list = [
-      ...watches.map((w) => ({ s: w.sphere, b: 0 })),
-      ...(draft ? [{ s: draft.sphere, b: draft.result.kind === "blocked" ? 1 : 0 }] : []),
-    ];
-    const pos = new Float32Array(list.length * 3);
-    const blocked = new Float32Array(list.length);
-    list.forEach((e, i) => {
-      const [x, y, z] = radecToVec(e.s.ra_deg, e.s.dec_deg);
-      pos.set([x * WATCH_D, y * WATCH_D, z * WATCH_D], i * 3);
-      blocked[i] = e.b;
-    });
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    g.setAttribute("aBlocked", new THREE.BufferAttribute(blocked, 1));
-    return g;
-  }, [watches, draft]);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  const material = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: markerVertex,
-        fragmentShader: markerFragment,
-        transparent: true,
-        depthWrite: false,
-        depthTest: false,
-        uniforms: {
-          uPx: { value: 1 },
-          cAccent: { value: tokenColor("--accent", "#a3b8ff") },
-          cBlocked: { value: tokenColor("--supernova", "#e8836a") },
-        },
-      }),
-    [],
-  );
-  material.uniforms.uPx.value = dpr;
-  return <points geometry={geometry} material={material} frustumCulled={false} renderOrder={5} />;
-}
-
-
 function hostPos(positionsRef: React.RefObject<Float32Array | null>, i: number): V3 | null {
   const p = positionsRef.current;
   return p ? [p[i * 3], p[i * 3 + 1], p[i * 3 + 2]] : null;
@@ -303,22 +250,30 @@ function hostPos(positionsRef: React.RefObject<Float32Array | null>, i: number):
 
 /**
  * Owns camera-controls and runs every camera change: fly-to flights, the eased field of view, the
- * close-up focus (enter, switch, leave), the adaptive near plane and hover/selection fades.
+ * host close-up (enter, switch, leave), the adaptive near plane, marker/host highlight fades, and
+ * the zoomed detail re-bake once the view settles.
  */
 function Director({
   rig,
   index,
-  positionsRef,
+  hostPositions,
   starUniforms,
+  eventUniforms,
+  baker,
+  noDetail,
 }: {
   rig: Rig;
   index: HostIndex;
-  positionsRef: React.RefObject<Float32Array | null>;
+  hostPositions: React.RefObject<Float32Array | null>;
   starUniforms: StarUniforms;
+  eventUniforms: EventUniforms;
+  baker: SkyBaker;
+  noDetail: boolean;
 }) {
   const { state } = useStore();
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const gl = useThree((s) => s.gl);
+  const size = useThree((s) => s.size);
   const invalidate = useThree((s) => s.invalidate);
 
   const controls = useMemo(() => {
@@ -335,13 +290,15 @@ function Director({
     c.smoothTime = rig.reduced ? 0 : 0.22;
     c.draggingSmoothTime = rig.reduced ? 0 : 0.1;
     c.restThreshold = 0.0005;
-    c.setLookAt(...OVERVIEW.pos, ...OVERVIEW.target, false);
+    c.setLookAt(...HOME.pos, ...HOME.target, false);
     return c;
   }, [camera, gl, rig.reduced]);
 
   useEffect(() => {
     rig.controls = controls;
     rig.camera = camera;
+    camera.fov = HOME.fov;
+    camera.updateProjectionMatrix();
     const wake = () => invalidate();
     const stop = () => interrupt(rig);
     controls.addEventListener("control", wake);
@@ -357,11 +314,7 @@ function Director({
     };
   }, [controls, camera, rig, invalidate]);
 
-  useEffect(() => {
-    controls.enabled = state.mode === "look";
-  }, [controls, state.mode]);
-
-  // Focus: fly into the selected host, between hosts, or back out when it is closed.
+  // Host close-up: fly into the selected host, between hosts, or back out when it is closed.
   const prevSel = useRef<number | null>(null);
   const stateRef = useRef<State>(state);
   useEffect(() => {
@@ -375,15 +328,15 @@ function Director({
     if (!rig.controls || !rig.camera) return;
     const s = stateRef.current;
     if (sel !== null) {
-      const p = hostPos(positionsRef, sel);
+      const p = hostPos(hostPositions, sel);
       if (!p) return;
       if (prev === null) rig.saved = rig.flight?.kind === "back" ? rig.flight.to : currentPose(rig);
       const R = displayRadius(index.hosts.rad?.[sel] ?? 0);
-      // Arrive from the side the camera is already on, a few stellar radii out.
+      // Arrive from the side the camera is already on, a few stellar radii out. On a portrait screen
+      // the width is the tighter field, so stand further back to keep the whole disc in view.
       const cam = rig.camera.position;
       const dir = new THREE.Vector3(cam.x - p[0], cam.y - p[1], cam.z - p[2]);
       if (dir.lengthSq() < 1e-20) dir.set(0, 0, 1);
-      // On a portrait screen the width is the tighter field, so stand further back to keep the whole disc in view.
       dir.normalize().multiplyScalar(R * 3.6 * Math.max(1, 0.85 / rig.camera.aspect));
       rig.limits = { min: R * 1.25, max: s.trueScale ? 700 : 320 };
       flyTo(rig, { pos: [p[0] + dir.x, p[1] + dir.y, p[2] + dir.z], target: p, fov: BASE_FOV }, "focus");
@@ -393,20 +346,21 @@ function Director({
       rig.limits = { min: 0.3, max: s.trueScale ? 700 : 320 };
       starUniforms.uSelected.value = -1;
       if (rig.flight?.kind === "jump") return;
-      const d = s.draft;
-      const to = d ? earthView(d.sphere.ra_deg, d.sphere.dec_deg, Math.max(3, d.sphere.radius_deg * 12)) : (rig.saved ?? OVERVIEW);
+      const to = rig.saved ?? HOME;
       rig.saved = null;
       flyTo(rig, to, "back");
     }
     invalidate();
-  }, [sel, trueScale, rig, index, positionsRef, starUniforms, invalidate]);
+  }, [sel, trueScale, rig, index, hostPositions, starUniforms, invalidate]);
 
   useEffect(() => {
     if (sel === null) rig.limits = { min: 0.3, max: trueScale ? 700 : 320 };
     if (!rig.flight && rig.controls) applyLimits(rig);
   }, [trueScale, sel, rig]);
 
+  const art = state.layers.art;
   const focusPos = useMemo(() => new THREE.Vector3(), []);
+  const settle = useRef({ quietFor: 0, dirty: true });
   let lastFov = -1;
   useFrame((_, dt) => {
     const step = Math.min(dt, 0.1);
@@ -423,8 +377,8 @@ function Director({
     controls.azimuthRotateSpeed = controls.polarRotateSpeed = 0.5 * (camera.fov / BASE_FOV);
     if (controls.update(step)) busy = true;
 
-    // Near plane follows the focused star, so a 0.1 R☉ dwarf a few radii away is never clipped.
-    const p = sel !== null ? hostPos(positionsRef, sel) : null;
+    // Near plane follows a focused host, so a 0.1 R☉ dwarf a few radii away is never clipped.
+    const p = sel !== null ? hostPos(hostPositions, sel) : null;
     const near = p ? THREE.MathUtils.clamp(camera.position.distanceTo(focusPos.set(...p)) * 0.05, 1e-6, 0.05) : 0.05;
     if (Math.abs(camera.near - near) > near * 0.05) {
       camera.near = near;
@@ -445,74 +399,89 @@ function Director({
       busy = true;
     }
     starUniforms.uSelectedT.value = rig.selectedT;
+    const evGoal = eventUniforms.uHover.value >= 0 ? 1 : 0;
+    if (eventUniforms.uHoverT.value !== evGoal) {
+      eventUniforms.uHoverT.value = rig.reduced ? evGoal : THREE.MathUtils.clamp(eventUniforms.uHoverT.value + (evGoal ? 1 : -1) * (step / 0.12), 0, 1);
+      busy = true;
+    }
 
     if (hud.fov && camera.fov !== lastFov) {
       lastFov = camera.fov;
       hud.fov.textContent = `${camera.fov < 10 ? camera.fov.toFixed(1) : Math.round(camera.fov)}°`;
     }
+
+    // Zoomed detail: once the view has been still for 250 ms, re-bake a sharp patch of the
+    // illustrated sky for exactly this view (only when that layer is on and the field is narrow).
+    const s = settle.current;
+    if (busy) {
+      s.quietFor = 0;
+      s.dirty = true;
+    } else {
+      s.quietFor += step;
+      if (s.dirty && s.quietFor > 0.25) {
+        s.dirty = false;
+        if (art && baker.cubeBase && camera.fov < 25 && !noDetail) {
+          baker.bakeDetail(gl, camera, size.width, size.height);
+          if (view.bakeInfo) {
+            view.bakeInfo.detailMs = Math.round(baker.lastDetailMs * 10) / 10;
+            view.bakeInfo.detailBakes++;
+          }
+        } else {
+          baker.detailOn = false;
+        }
+        invalidate();
+      }
+    }
     if (busy) invalidate();
   }, -1);
+
+  // Switching the illustrated layer on (or resizing) needs a fresh detail patch.
+  useEffect(() => {
+    settle.current.dirty = true;
+    settle.current.quietFor = 0;
+    invalidate();
+  }, [art, size.width, size.height, invalidate]);
 
   return null;
 }
 
 /**
- * All pointer input on the canvas: draw a watch (draw mode), hover and pick a star (look mode),
- * pinch and wheel zoom (both modes), and the pointer's RA/Dec for the status bar.
+ * All pointer input on the canvas: hover and pick an event (or a planet host, with that layer on),
+ * pinch and wheel zoom, and the pointer's RA/Dec for the status bar.
  */
 function Input({
-  data,
   index,
-  positionsRef,
+  markers,
+  eventPositions,
+  hostPositions,
   rig,
-  baker,
+  eventUniforms,
+  onPickEvent,
 }: {
-  data: MapData;
   index: HostIndex;
-  positionsRef: React.RefObject<Float32Array | null>;
+  markers: Marker[];
+  eventPositions: React.RefObject<Float32Array | null>;
+  hostPositions: React.RefObject<Float32Array | null>;
   rig: Rig;
-  baker: SkyBaker;
+  eventUniforms: EventUniforms;
+  onPickEvent: (id: string) => void;
 }) {
   const { state, dispatch } = useStore();
   const gl = useThree((s) => s.gl);
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
-  const size = useThree((s) => s.size);
   const invalidate = useThree((s) => s.invalidate);
-  const modeRef = useRef(state.mode);
-  const artRef = useRef(state.layers.art);
-  const sizeRef = useRef(size);
-  const selRef = useRef(state.selectedStar);
+  const live = useRef({ selStar: state.selectedStar, hosts: state.layers.hosts, markers, onPickEvent });
   useEffect(() => {
-    modeRef.current = state.mode;
-    artRef.current = state.layers.art;
-    sizeRef.current = size;
-    selRef.current = state.selectedStar;
-  }, [state.mode, state.layers.art, size, state.selectedStar]);
+    live.current = { selStar: state.selectedStar, hosts: state.layers.hosts, markers, onPickEvent };
+  }, [state.selectedStar, state.layers.hosts, markers, onPickEvent]);
 
   useEffect(() => {
     const el = gl.domElement;
     const raycaster = new THREE.Raycaster();
     const pointers = new Map<number, { x: number; y: number }>();
-    let drag: { id: number; center: Vec3; x: number; y: number; moved: boolean } | null = null;
     let tap: { x: number; y: number } | null = null;
     let pinch = 0;
-    let raf = 0;
     let hoverRaf = 0;
-    let pending: Sphere | null = null;
-    let detailTimer = 0;
-
-    const scheduleDetail = () => {
-      clearTimeout(detailTimer);
-      detailTimer = window.setTimeout(() => {
-        if (camera.fov < 25 && artRef.current) {
-          baker.bakeDetail(gl, camera, sizeRef.current.width, sizeRef.current.height);
-          if (view.bakeInfo) view.bakeInfo.detailMs = Math.round(baker.lastDetailMs);
-        } else {
-          baker.detailOn = false;
-        }
-        invalidate();
-      }, 260);
-    };
 
     const zoomBy = (f: number) => {
       const c = rig.controls;
@@ -520,7 +489,7 @@ function Input({
       interrupt(rig);
       const smooth = !rig.reduced;
       const dist = c.getSpherical(new THREE.Spherical(), true).radius;
-      if (selRef.current !== null) {
+      if (live.current.selStar !== null) {
         // Close-up: dolly toward the star, down to just above its surface.
         c.dollyTo(THREE.MathUtils.clamp(dist * f, rig.limits.min, rig.limits.max), smooth);
       } else if (f < 1) {
@@ -531,14 +500,20 @@ function Input({
         else c.dollyTo(Math.min(rig.limits.max, dist * f), smooth);
       }
       invalidate();
-      scheduleDetail();
+    };
+
+    view.project = (ra, dec) => {
+      const [x, y, z] = radecToVec(ra, dec);
+      const v = new THREE.Vector3(x * EVENT_R, y * EVENT_R, z * EVENT_R).project(camera);
+      if (v.z > 1) return null;
+      const r = el.getBoundingClientRect();
+      return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
     };
 
     view.jumpTo = (ra, dec, fovDeg) => {
       flyTo(rig, earthView(ra, dec, fovDeg), "jump");
-      if (selRef.current !== null) dispatch({ type: "selectStar", index: null });
+      if (live.current.selStar !== null) dispatch({ type: "selectStar", index: null });
       invalidate();
-      scheduleDetail();
     };
 
     const skyDir = (clientX: number, clientY: number): Vec3 => {
@@ -554,21 +529,8 @@ function Input({
       return [p.x, p.y, p.z];
     };
 
-    const sphereFrom = (center: Vec3, radius: number): Sphere => {
-      const { ra, dec } = vecToRadec(center);
-      const r = Math.min(SPHERE_RADIUS_MAX, Math.max(SPHERE_RADIUS_MIN, radius));
-      return { ra_deg: Number(ra.toFixed(5)), dec_deg: Number(dec.toFixed(5)), radius_deg: Number(r.toFixed(r < 1 ? 3 : 2)) };
-    };
-
-    const flush = (dragging: boolean) => {
-      raf = 0;
-      if (!pending) return;
-      dispatch({ type: "draft", draft: { sphere: pending, result: classify(pending, index, data.footprint), dragging } });
-    };
-
-    /** Nearest host to a screen point within `maxPx`, or -1. */
-    const nearestHost = (clientX: number, clientY: number, maxPx: number) => {
-      const pos = positionsRef.current;
+    /** Nearest point of `pos` to a screen point within `maxPx`, or -1. */
+    const nearest = (pos: Float32Array | null, clientX: number, clientY: number, maxPx: number) => {
       if (!pos) return -1;
       const rect = el.getBoundingClientRect();
       const v = new THREE.Vector3();
@@ -586,12 +548,30 @@ function Input({
       return best;
     };
 
-    const setHover = (i: number) => {
-      if (i === rig.hover) return;
-      if (i >= 0 && rig.hover >= 0) rig.hoverT = 0; // a new star: the ring starts fresh
-      rig.hover = i;
-      el.style.cursor = i >= 0 ? "pointer" : "";
-      if (hud.hover && i >= 0) hud.hover.textContent = index.hosts.name[i];
+    /** Events first (they are on top); hosts only with their layer on. */
+    const pick = (x: number, y: number, px: number): { kind: "event" | "host"; i: number } | null => {
+      const e = nearest(eventPositions.current, x, y, px);
+      if (e >= 0) return { kind: "event", i: e };
+      if (live.current.hosts) {
+        const h = nearest(hostPositions.current, x, y, px);
+        if (h >= 0) return { kind: "host", i: h };
+      }
+      return null;
+    };
+
+    const setHover = (hit: { kind: "event" | "host"; i: number } | null) => {
+      const evI = hit?.kind === "event" ? hit.i : -1;
+      const hoI = hit?.kind === "host" ? hit.i : -1;
+      if (evI === eventUniforms.uHover.value && hoI === rig.hover) return;
+      if (evI >= 0) eventUniforms.uHoverT.value = 0;
+      eventUniforms.uHover.value = evI;
+      if (hoI >= 0 && rig.hover >= 0) rig.hoverT = 0;
+      rig.hover = hoI;
+      el.style.cursor = hit ? "pointer" : "";
+      if (hud.hover) {
+        hud.hover.textContent = evI >= 0 ? live.current.markers[evI].title : hoI >= 0 ? index.hosts.name[hoI] : "";
+        hud.hover.dataset.kind = hit?.kind ?? "";
+      }
       invalidate();
     };
 
@@ -599,23 +579,13 @@ function Input({
       interrupt(rig);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pointers.size === 2) {
-        // Second finger: pinch zoom. Drop any half-drawn watch.
         const [a, b] = [...pointers.values()];
         pinch = Math.hypot(a.x - b.x, a.y - b.y);
-        if (drag) {
-          drag = null;
-          dispatch({ type: "draft", draft: null });
-        }
         tap = null;
         return;
       }
       if (pointers.size > 2 || e.button !== 0) return;
-      if (modeRef.current === "draw") {
-        drag = { id: e.pointerId, center: skyDir(e.clientX, e.clientY), x: e.clientX, y: e.clientY, moved: false };
-        el.setPointerCapture(e.pointerId);
-      } else {
-        tap = { x: e.clientX, y: e.clientY };
-      }
+      tap = { x: e.clientX, y: e.clientY };
     };
 
     const move = (e: PointerEvent) => {
@@ -627,42 +597,29 @@ function Input({
         pinch = dist;
         return;
       }
-      if (e.pointerType === "mouse") {
-        if (hud.pointer) {
-          const { ra, dec } = vecToRadec(skyDir(e.clientX, e.clientY));
-          hud.pointer.textContent = `${formatRa(ra)}  ${formatDec(dec)}`;
-        }
-        if (modeRef.current === "look" && e.buttons === 0 && !hoverRaf) {
-          const x = e.clientX;
-          const y = e.clientY;
-          hoverRaf = requestAnimationFrame(() => {
-            hoverRaf = 0;
-            setHover(nearestHost(x, y, 14));
-          });
-        }
+      if (e.pointerType !== "mouse") return;
+      if (hud.pointer) {
+        const { ra, dec } = vecToRadec(skyDir(e.clientX, e.clientY));
+        hud.pointer.textContent = `${formatRa(ra)}  ${formatDec(dec)}`;
       }
-      if (!drag || e.pointerId !== drag.id) return;
-      if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
-      drag.moved = true;
-      pending = sphereFrom(drag.center, separationDeg(drag.center, skyDir(e.clientX, e.clientY)));
-      if (!raf) raf = requestAnimationFrame(() => flush(true));
+      if (e.buttons === 0 && !hoverRaf) {
+        const x = e.clientX;
+        const y = e.clientY;
+        hoverRaf = requestAnimationFrame(() => {
+          hoverRaf = 0;
+          setHover(pick(x, y, 14));
+        });
+      }
     };
 
     const up = (e: PointerEvent) => {
       pointers.delete(e.pointerId);
       if (pointers.size < 2) pinch = 0;
-      if (drag && e.pointerId === drag.id) {
-        // A tap without a drag places a 1 degree watch, which the inspector's slider can resize.
-        pending = drag.moved ? sphereFrom(drag.center, separationDeg(drag.center, skyDir(e.clientX, e.clientY))) : sphereFrom(drag.center, 1);
-        cancelAnimationFrame(raf);
-        flush(false);
-        drag = null;
-        return;
-      }
       if (tap && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) < 6) {
-        // Picking a host flies to it. A tap on empty sky does nothing, so a stray tap never ends a close-up.
-        const i = nearestHost(e.clientX, e.clientY, e.pointerType === "mouse" ? 14 : 22);
-        if (i >= 0 && i !== selRef.current) dispatch({ type: "selectStar", index: i });
+        // A tap on empty sky does nothing, so a stray tap never closes what you are reading.
+        const hit = pick(e.clientX, e.clientY, e.pointerType === "mouse" ? 14 : 24);
+        if (hit?.kind === "event") live.current.onPickEvent(live.current.markers[hit.i].id);
+        else if (hit?.kind === "host" && hit.i !== live.current.selStar) dispatch({ type: "selectStar", index: hit.i });
       }
       tap = null;
     };
@@ -670,22 +627,14 @@ function Input({
     const cancel = (e: PointerEvent) => {
       pointers.delete(e.pointerId);
       if (pointers.size < 2) pinch = 0;
-      if (drag && e.pointerId === drag.id) {
-        drag = null;
-        dispatch({ type: "draft", draft: null });
-      }
     };
 
-    const leave = () => setHover(-1);
+    const leave = () => setHover(null);
 
     const wheel = (e: WheelEvent) => {
       e.preventDefault();
       zoomBy(Math.exp(Math.max(-60, Math.min(60, e.deltaY)) * 0.004));
     };
-
-    const onRest = () => scheduleDetail();
-    const ctl = rig.controls;
-    ctl?.addEventListener("rest", onRest);
 
     el.addEventListener("pointerdown", down);
     el.addEventListener("pointermove", move);
@@ -694,11 +643,9 @@ function Input({
     el.addEventListener("pointerleave", leave);
     el.addEventListener("wheel", wheel, { passive: false });
     return () => {
-      cancelAnimationFrame(raf);
       cancelAnimationFrame(hoverRaf);
-      clearTimeout(detailTimer);
       view.jumpTo = null;
-      ctl?.removeEventListener("rest", onRest);
+      view.project = null;
       el.removeEventListener("pointerdown", down);
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
@@ -706,71 +653,52 @@ function Input({
       el.removeEventListener("pointerleave", leave);
       el.removeEventListener("wheel", wheel);
     };
-  }, [gl, camera, dispatch, index, data.footprint, positionsRef, rig, baker, invalidate]);
-
-  // Draw mode never hovers.
-  useEffect(() => {
-    if (state.mode === "draw" && rig.hover >= 0) {
-      rig.hover = -1;
-      gl.domElement.style.cursor = "";
-    }
-  }, [state.mode, rig, gl]);
-
-  // Re-bake the zoomed detail patch when the illustrated layer is switched back on.
-  useEffect(() => {
-    if (state.layers.art && camera.fov < 25) {
-      baker.bakeDetail(gl, camera, size.width, size.height);
-      invalidate();
-    }
-  }, [state.layers.art, baker, gl, camera, size.width, size.height, invalidate]);
+  }, [gl, camera, dispatch, index, eventPositions, hostPositions, rig, eventUniforms, invalidate]);
 
   return null;
 }
 
-/** Keeps the hovered host's name label beside it. */
-function HoverAnchor({ rig, positionsRef }: { rig: Rig; positionsRef: React.RefObject<Float32Array | null> }) {
+/** Keeps DOM labels beside what they name: the hovered event or host, Earth and the Sun. */
+function Anchors({
+  rig,
+  eventUniforms,
+  eventPositions,
+  hostPositions,
+  sun,
+}: {
+  rig: Rig;
+  eventUniforms: EventUniforms;
+  eventPositions: React.RefObject<Float32Array | null>;
+  hostPositions: React.RefObject<Float32Array | null>;
+  sun: { ra: number; dec: number };
+}) {
   const v = useMemo(() => new THREE.Vector3(), []);
+  const sunPos = useMemo(() => {
+    const [x, y, z] = radecToVec(sun.ra, sun.dec);
+    return new THREE.Vector3(x * EVENT_R, y * EVENT_R, z * EVENT_R);
+  }, [sun]);
   useFrame(({ camera, size }) => {
-    const el = hud.hover;
-    if (!el) return;
-    const p = rig.hover >= 0 ? hostPos(positionsRef, rig.hover) : null;
-    if (!p) {
-      el.dataset.visible = "false";
-      return;
-    }
-    v.set(...p).project(camera);
-    const x = ((v.x + 1) / 2) * size.width;
-    const y = ((1 - v.y) / 2) * size.height;
-    el.style.transform = `translate(${(x + 14).toFixed(1)}px, ${(y - 10).toFixed(1)}px)`;
-    el.dataset.visible = v.z < 1 ? "true" : "false";
-  });
-  return null;
-}
-
-/** Keeps the floating readout next to the watch being drawn. */
-function ReadoutAnchor() {
-  const v = useMemo(() => new THREE.Vector3(), []);
-  useFrame(({ camera, size }) => {
-    const el = hud.readout;
-    if (!el) return;
-    if (!hud.readoutTarget) {
-      el.dataset.visible = "false";
-      return;
-    }
-    v.copy(hud.readoutTarget).project(camera);
-    const visible = v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05;
-    const x = ((v.x + 1) / 2) * size.width;
-    const y = ((1 - v.y) / 2) * size.height;
-    const cam = camera as THREE.PerspectiveCamera;
-    const dist = cam.position.distanceTo(hud.readoutTarget);
-    const rpx = Math.min((hud.readoutRadius / dist) * (size.height / 2 / Math.tan((cam.fov * Math.PI) / 360)), size.width);
-    const w = el.offsetWidth;
-    let left = x + rpx + 14;
-    if (left + w > size.width - 8) left = x - rpx - 14 - w;
-    left = Math.max(8, Math.min(left, size.width - w - 8));
-    const top = Math.max(56, Math.min(y - el.offsetHeight / 2, size.height - el.offsetHeight - 8));
-    el.style.transform = `translate(${left.toFixed(1)}px, ${top.toFixed(1)}px)`;
-    el.dataset.visible = visible ? "true" : "false";
+    const place = (el: HTMLElement | null, p: THREE.Vector3 | null, dx: number, dy: number, extra = true) => {
+      if (!el) return;
+      if (!p || !extra) {
+        el.dataset.visible = "false";
+        return;
+      }
+      v.copy(p).project(camera);
+      const x = ((v.x + 1) / 2) * size.width;
+      const y = ((1 - v.y) / 2) * size.height;
+      const onScreen = v.z < 1 && Math.abs(v.x) < 1.02 && Math.abs(v.y) < 1.02;
+      el.style.transform = `translate(${(x + dx).toFixed(1)}px, ${(y + dy).toFixed(1)}px)`;
+      el.dataset.visible = onScreen ? "true" : "false";
+    };
+    const ev = eventUniforms.uHover.value;
+    const ep = eventPositions.current;
+    const hp = rig.hover >= 0 ? hostPos(hostPositions, rig.hover) : null;
+    const target = ev >= 0 && ep ? new THREE.Vector3(ep[ev * 3], ep[ev * 3 + 1], ep[ev * 3 + 2]) : hp ? new THREE.Vector3(...hp) : null;
+    place(hud.hover, target, 16, -10);
+    // Earth is only visible once you zoom out past it; say what it is.
+    place(hud.earth, new THREE.Vector3(0, 0.62, 0), -18, -26, camera.position.length() > 4);
+    place(hud.sun, sunPos, 14, 14);
   });
   return null;
 }
@@ -791,14 +719,6 @@ function FpsMeter() {
   return null;
 }
 
-function Invalidator({ deps }: { deps: unknown[] }) {
-  const invalidate = useThree((s) => s.invalidate);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => invalidate(), deps);
-  return null;
-}
-
-
 /** Frame loop: continuous while something animates, on demand otherwise, and stopped while the tab is hidden. */
 function Loop({ want }: { want: "always" | "demand" }) {
   const setFrameloop = useThree((s) => s.setFrameloop);
@@ -811,9 +731,15 @@ function Loop({ want }: { want: "always" | "demand" }) {
   return null;
 }
 
-export default function Scene({ data, index, showFps, onHeatMax }: SceneProps) {
-  const { state } = useStore();
-  const positionsRef = useRef<Float32Array | null>(null);
+function Invalidator({ deps }: { deps: unknown[] }) {
+  const invalidate = useThree((s) => s.invalidate);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => invalidate(), deps);
+  return null;
+}
+
+export default function Scene({ data, index, events, now, showFps, noDetail = false }: SceneProps) {
+  const { state, dispatch } = useStore();
   const phone = useMemo(() => isPhone(), []);
   const reduced = useMemo(() => reducedMotion(), []);
   const rig = useMemo(() => createRig(reduced, BASE_FOV), [reduced]);
@@ -821,33 +747,23 @@ export default function Scene({ data, index, showFps, onHeatMax }: SceneProps) {
   useEffect(() => () => baker.dispose(), [baker]);
   // The nebula layer drifts only on desktop, with motion allowed and the layer on.
   const drift = !phone && !reduced && state.layers.art;
-  // The focused star's surface is alive unless motion is reduced; then it is a still image.
+  // A focused host's surface is alive unless motion is reduced; then it is a still image.
   const living = state.selectedStar !== null && !reduced;
-
-  useEffect(() => {
-    if (state.draft) {
-      const s = state.draft.sphere;
-      const [x, y, z] = radecToVec(s.ra_deg, s.dec_deg);
-      hud.readoutTarget = new THREE.Vector3(x * WATCH_D, y * WATCH_D, z * WATCH_D);
-      hud.readoutRadius = WATCH_D * Math.sin((s.radius_deg * Math.PI) / 180);
-    } else {
-      hud.readoutTarget = null;
-    }
-  }, [state.draft]);
 
   return (
     <Canvas
       dpr={[1, 2]}
       frameloop="demand"
-      camera={{ fov: BASE_FOV, near: 0.05, far: 5000, position: OVERVIEW.pos }}
+      camera={{ fov: BASE_FOV, near: 0.05, far: 5000, position: HOME.pos }}
       gl={{ antialias: false, powerPreference: "high-performance" }}
       onCreated={({ gl }) => gl.setClearColor(tokenColor("--space", "#000000"))}
       aria-hidden="true"
     >
       <Loop want={showFps || drift || living ? "always" : "demand"} />
-      <SceneContent data={data} index={index} onHeatMax={onHeatMax} positionsRef={positionsRef} baker={baker} drift={drift} rig={rig} phone={phone} />
+      <SceneContent data={data} index={index} events={events} now={now} baker={baker} drift={drift} rig={rig} phone={phone} noDetail={noDetail} dispatch={dispatch} />
       <EffectComposer multisampling={phone ? 0 : 4}>
-        <Bloom mipmapBlur luminanceThreshold={0.85} luminanceSmoothing={0.25} intensity={0.9} radius={0.7} resolutionScale={phone ? 0.5 : 1} />
+        {/* Threshold above everything but star cores and the close-up star: the sky itself never glows. */}
+        <Bloom mipmapBlur luminanceThreshold={1.0} luminanceSmoothing={0.12} intensity={0.75} radius={0.45} levels={phone ? 5 : 6} resolutionScale={phone ? 0.5 : 1} />
       </EffectComposer>
       {showFps && <FpsMeter />}
     </Canvas>
@@ -857,52 +773,64 @@ export default function Scene({ data, index, showFps, onHeatMax }: SceneProps) {
 function SceneContent({
   data,
   index,
-  onHeatMax,
-  positionsRef,
+  events,
+  now,
   baker,
   drift,
   rig,
   phone,
+  noDetail,
+  dispatch,
 }: {
   data: MapData;
   index: HostIndex;
-  onHeatMax: (max: number) => void;
-  positionsRef: React.RefObject<Float32Array | null>;
+  events: SkyEvent[];
+  now: number;
   baker: SkyBaker;
   drift: boolean;
   rig: Rig;
   phone: boolean;
+  noDetail: boolean;
+  dispatch: ReturnType<typeof useStore>["dispatch"];
 }) {
   const { state } = useStore();
-  const watchUniforms = useWatchUniforms(state.watches, state.draft);
+  const hostPositions = useRef<Float32Array | null>(null);
+  const eventPositions = useRef<Float32Array | null>(null);
   const starUniforms = useMemo(() => createStarUniforms(), []);
-  const draft = state.draft;
+  const eventUniforms = useMemo(() => createEventUniforms(), []);
+  const { markers, sun } = useMemo(() => buildMarkers(events, now), [events, now]);
+  const selected = useMemo(() => events.find((e) => e.id === state.selectedEvent) ?? null, [events, state.selectedEvent]);
+
+  // Feed hover and the selection highlight their markers; others dim a little while one is selected.
+  useEffect(() => {
+    const idOf = (id: string | null) => (id ? markers.findIndex((m) => m.id === id) : -1);
+    eventUniforms.uSelected.value = idOf(state.selectedEvent);
+    eventUniforms.uDim.value = state.selectedEvent && idOf(state.selectedEvent) >= 0 ? 1 : 0;
+    const h = idOf(state.hoverEvent);
+    if (h >= 0) {
+      eventUniforms.uHover.value = h;
+      if (hud.hover) hud.hover.textContent = markers[h].title;
+      eventUniforms.uHoverT.value = rig.reduced ? 1 : 0;
+    } else if (state.hoverEvent === null && eventUniforms.uHover.value >= 0) {
+      eventUniforms.uHover.value = -1;
+    }
+  }, [markers, state.selectedEvent, state.hoverEvent, eventUniforms, rig.reduced]);
+
+  const onPickEvent = useMemo(() => (id: string) => dispatch({ type: "selectEvent", id }), [dispatch]);
 
   return (
     <>
-      <Director rig={rig} index={index} positionsRef={positionsRef} starUniforms={starUniforms} />
-      <SkyShell
-        data={data}
-        layers={state.layers}
-        heatType={state.heatType}
-        watchUniforms={watchUniforms}
-        baker={baker}
-        drift={drift}
-        onHeatMax={onHeatMax}
-      />
-      <CatalogStars data={data} visible={state.layers.stars} watchUniforms={watchUniforms} />
-      <Hosts index={index} trueScale={state.trueScale} watchUniforms={watchUniforms} starUniforms={starUniforms} positionsRef={positionsRef} />
-      <CloseUp index={index} selected={state.selectedStar} positionsRef={positionsRef} starUniforms={starUniforms} rig={rig} octaves={phone ? 2 : 4} />
+      <Director rig={rig} index={index} hostPositions={hostPositions} starUniforms={starUniforms} eventUniforms={eventUniforms} baker={baker} noDetail={noDetail} />
+      <SkyShell data={data} layers={state.layers} baker={baker} drift={drift} selected={selected} />
+      <CatalogStars data={data} visible={state.layers.stars} />
+      <Sun ra={sun.ra} dec={sun.dec} />
+      <Hosts index={index} trueScale={state.trueScale} visible={state.layers.hosts} starUniforms={starUniforms} positionsRef={hostPositions} />
+      <CloseUp index={index} selected={state.selectedStar} positionsRef={hostPositions} starUniforms={starUniforms} rig={rig} octaves={phone ? 2 : 4} />
       <Earth />
-      {state.watches.map((w) => (
-        <WatchBubble key={w.id} sphere={w.sphere} faint />
-      ))}
-      {draft && <WatchBubble sphere={draft.sphere} blocked={draft.result.kind === "blocked"} />}
-      <WatchMarkers watches={state.watches} draft={draft} />
-      <Input data={data} index={index} positionsRef={positionsRef} rig={rig} baker={baker} />
-      <ReadoutAnchor />
-      <HoverAnchor rig={rig} positionsRef={positionsRef} />
-      <Invalidator deps={[state.draft, state.selectedStar, state.watches, state.mode, state.layers.stars]} />
+      <EventMarkers markers={markers} uniforms={eventUniforms} positionsRef={eventPositions} />
+      <Input index={index} markers={markers} eventPositions={eventPositions} hostPositions={hostPositions} rig={rig} eventUniforms={eventUniforms} onPickEvent={onPickEvent} />
+      <Anchors rig={rig} eventUniforms={eventUniforms} eventPositions={eventPositions} hostPositions={hostPositions} sun={sun} />
+      <Invalidator deps={[state.selectedEvent, state.hoverEvent, state.selectedStar, state.layers, markers]} />
     </>
   );
 }

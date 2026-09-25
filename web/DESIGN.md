@@ -3,12 +3,13 @@
 This file is authoritative for everything under `web/`. If a skill, library default or habit conflicts with it,
 this file wins.
 
-**Direction:** a pristine, modern exploration tool. Think instrument or observatory software, **not a game**.
+**Direction:** a phenomena spotter: what is happening in the sky, each event at its real position, filterable,
+with real pictures. Think instrument or observatory software, **not a game**: no watches, points or scores.
 The UI is quiet and exact, with flat surfaces and hairlines. Data carries the colour; chrome stays neutral.
 
 Tokens live in `app/tokens.css` as CSS custom properties. Components use tokens, never raw hex.
 Shared primitives live in `components/ui/`. This file, `app/tokens.css`, `app/layout.tsx`, `app/globals.css`,
-`components/ui/*` and `lib/api.ts` are **owned by the SKYMAP session**; other sessions request changes through
+`components/ui/*` and `lib/api.ts` are **owned by the SPOTMAP session** (formerly SKYMAP); other sessions request changes through
 the project owner.
 
 ## Colour
@@ -20,17 +21,17 @@ Dark only.
 | `--bg` | `#09090B` | app background |
 | `--bg-deep` | `#050506` | charts |
 | `--space` | `#000000` | the 3D sky: pure black space |
-| `--raised` | `#111214` | panels, inspectors, popovers |
+| `--raised` | `#111214` | panels, sheets, popovers |
 | `--hairline` | `#1C1D21` | dividers and panel borders |
 | `--control-border` | `#26282D` | inputs, segmented controls, ghost buttons |
 | `--ink` | `#F4F4F5` | primary text; the primary button fill |
 | `--ink-secondary` | `#A1A6B0` | secondary text |
 | `--ink-muted` | `#8B909A` | labels, helper text |
 | `--ink-faint` | `#737883` | disabled text, tertiary meta (large or non-essential text only) |
-| `--accent` | `#A3B8FF` | **the one accent**: watches, selection, focus, and the hover/selection ring on planet hosts |
+| `--accent` | `#A3B8FF` | **the one accent**: selection, hover, focus, the selected event's error circle |
 | `--rubin` | `#6FD6C6` | Rubin coverage (data colour) |
 | `--supernova` | `#E8836A` | supernova detections (data colour); also used for blocking notices |
-| `--ground-ecliptic` / `--ground-bulge` / `--ground-high` | `#D9BE7C` / `#D98BA6` / `#B7A5F0` | map "hunting grounds" layer only (data colours) |
+| `--cat-transient` / `--cat-solar-system` / `--cat-sun` / `--cat-earth` / `--cat-high-energy` / `--cat-other` | `#E8836A` / `#8FD18A` / `#F2C14E` / `#7CC4F2` / `#D98BD8` / `#A1A6B0` | event categories (data colours). **Always paired with a shape**: ring, diamond, square, triangle, plus, dot (`lib/eventStyle.ts`); never colour alone |
 | `--grid` | `#1F2127` | the faint RA/Dec grid on the sky |
 
 Rules:
@@ -88,16 +89,21 @@ Rules:
   positions and sizes from public catalogues (see `CREDITS.md`). They form one optional layer, "Milky Way & nebulae",
   **off by default**, with the note "Shapes are illustrations; positions are real." A drawn nebula is never labelled
   as a photo. Rubin coverage stays a subtle optional overlay.
-- Data (catalogue stars, planet hosts, Rubin coverage, watches) always draws on top and must stay
-  readable over the brightest part of the band.
+- Event markers always draw on top, with a thin black halo so they stay readable over bright stars and the
+  Milky Way. Recent events are larger and brighter; a selected event dims the others and shows its error circle.
+- Sun-frame events sit around the Sun's current position (computed client-side); the Sun itself is drawn in its
+  real colour. Earth-frame events (fireballs, storms) are not on the sky: they get an Earth inset in the detail.
+- **Black means black.** The background is `#000` at all times, including behind a close-up: the corona is gone
+  by 1.5 stellar radii and the bloom threshold only catches star cores. No haze, fog or tint.
 
 ## Words
 
-- Say **watch**, not trap. Say **detection**, not catch. Say **Analyze**, not hunt. The results page is **Discoveries**.
-- API paths keep their contract names (`/traps`, `/hunt`). Only the UI copy changes.
-- Never write "new planet" or "discovered". A type is a best guess and always carries its confidence:
-  "Likely supernova, 72%".
-- Explore mode has no points, scores, payouts or leaderboards anywhere.
+- Say **event**, never catch, trap or detection. There are no watches, forecasts, points or scores anywhere.
+- Never write "new planet" or "discovered". Confidence is always shown with its basis: "72%, machine guess".
+- Pictures keep their caption and credit visible. A sky-context photo is an archive image taken years before the
+  event: say so ("The event itself is not in it"). A `forecast_map` is labelled as a forecast, never a photo.
+- Paused sources are stated plainly: "Rubin hasn't sent alerts since 14 Jul."
+- Dates: "14 Jul", "19 Sep 2026, 18:17 UTC". Times are UTC.
 - Mock data shows a visible `DEMO DATA` tag.
 - No em dashes in UI copy.
 
@@ -105,15 +111,17 @@ Rules:
 
 ```
 ┌──────────┬──────────────────────────────────┬──────────────┐
-│ Layers   │                                  │ New watch    │
-│ 248px    │   3D sky (bg-deep, faint RA/Dec  │ inspector    │
-│          │   grid)                          │ 360px        │
+│ Filters  │ Jump to · status banner · About  │ Feed         │
+│ + map    │                                  │ (or Detail)  │
+│ layers   │   3D sky (--space, faint grid)   │ 360px        │
+│ 248px    │                                  │              │
 ├──────────┴──────────────────────────────────┴──────────────┤
-│ status bar 36px: coordinates under pointer, FOV, data dates │
+│ status bar 36px: pointer RA/Dec, FOV, events shown, DEMO    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-Below 900px, the side panels become bottom sheets over the full-width sky, and the status bar stays.
+Below 900px the sky is full screen; Filters and Feed are bottom sheets; an open event is a full sheet, and
+"Show on map" closes it so the flight is visible. The status banner collapses into its "About the data" button.
 
 ## Accessibility
 
@@ -128,3 +136,6 @@ Below 900px, the side panels become bottom sheets over the full-width sky, and t
 - The skill's default is the Motion library; we use CSS transitions.
 - The skill says light and dark modes are mandatory; this project is dark only.
 - The skill targets landing pages (its §13); this is an app surface, so only its anti-slop, a11y and type rules apply.
+- The skill bans pure `#000`; the sky is pure black by the project owner's decision ("black means black").
+  Panels stay on the off-black tokens.
+- The skill limits uppercase eyebrows; mono uppercase labels are this system's label style (Type, above).

@@ -1,15 +1,6 @@
-// GLSL for the sky shell, catalogue stars, planet hosts, watch bubbles and markers.
-// Watches are passed as vec4(direction.xyz, chord radius) where chord = 2 sin(radius / 2):
-// comparing chord lengths stays precise down to the 0.05 degree minimum, where cosines do not.
-
-export const MAX_SHADER_WATCHES = 8;
-
-const WATCH_UNIFORMS = /* glsl */ `
-  uniform vec4 uWatches[${MAX_SHADER_WATCHES}];
-  uniform int uWatchCount;
-  uniform vec4 uDraft;
-  uniform float uDraftOn;
-`;
+// GLSL for the sky shell (grid, Rubin coverage, heatmap, the selected event's error circle),
+// Earth, and the event markers. Caps are vec4(direction.xyz, chord) with chord = 2 sin(radius / 2):
+// comparing chord lengths stays precise at tiny radii, where cosines do not.
 
 export const skyVertex = /* glsl */ `
   varying vec3 vDir;
@@ -33,33 +24,18 @@ export const skyFragment = /* glsl */ `
   uniform float uTime;
   uniform float uDrift;
   uniform float uZone;
-  uniform float uGrounds;
   uniform float uHeat;
-  uniform float uTonight;
-  uniform float uDraftBlocked;
+  uniform vec4 uSel;
+  uniform float uSelOn;
   uniform vec3 cDeep;
   uniform vec3 cGrid;
   uniform vec3 cRubin;
-  uniform vec3 cSolar;
-  uniform vec3 cBulge;
-  uniform vec3 cHigh;
   uniform vec3 cAccent;
-  uniform vec3 cBlocked;
   uniform vec3 cHeatHi;
-  ${WATCH_UNIFORMS}
   varying vec3 vDir;
 
   const float PI = 3.14159265359;
   const float DEG = 0.01745329252;
-  const float EPS = 0.40909280422; // obliquity of the ecliptic, J2000
-
-  float capFill(vec3 d, vec4 cap, float fw) {
-    return 1.0 - smoothstep(cap.w - fw, cap.w, length(d - cap.xyz));
-  }
-  float capRing(vec3 d, vec4 cap, float fw) {
-    float ch = length(d - cap.xyz);
-    return 1.0 - smoothstep(fw * 0.5, fw * 1.4, abs(ch - cap.w));
-  }
 
   void main() {
     vec3 d = normalize(vDir);
@@ -67,16 +43,6 @@ export const skyFragment = /* glsl */ `
     float ra = atan(-d.z, d.x);
     if (ra < 0.0) ra += 2.0 * PI;
     vec4 t = texture2D(uTex, vec2(ra / (2.0 * PI), dec / PI + 0.5));
-
-    vec3 a = vec3(d.x, -d.z, d.y);
-    vec3 g = a * mat3(
-      -0.0548755604, -0.8734370902, -0.4838350155,
-       0.4941094279, -0.44482963,    0.7469822445,
-      -0.867666149,  -0.1980763734,  0.4559837762
-    );
-    float b = asin(clamp(g.z, -1.0, 1.0));
-    float l = atan(g.y, g.x);
-    float eclLat = asin(clamp(a.z * cos(EPS) - a.y * sin(EPS), -1.0, 1.0));
 
     vec3 col = cDeep;
 
@@ -110,120 +76,30 @@ export const skyFragment = /* glsl */ `
     float equator = 1.0 - smoothstep(0.0, fwDec, abs(dec));
     col = mix(col, cGrid, max(max(decLine, raLine) * 0.6, equator) * 0.9);
 
-    // Hunting grounds. The bulge wins where it crosses the ecliptic band.
-    if (uGrounds > 0.5) {
-      float bd = abs(b) / DEG;
-      float ld = abs(l) / DEG;
-      float el = abs(eclLat) / DEG;
-      float bulge = (1.0 - smoothstep(19.0, 20.0, ld)) * (1.0 - smoothstep(11.5, 12.5, bd));
-      float solar = (1.0 - smoothstep(9.5, 10.5, el)) * (1.0 - bulge);
-      float high = smoothstep(29.5, 30.5, bd);
-      col = mix(col, cBulge, bulge * 0.16);
-      col = mix(col, cSolar, solar * 0.13);
-      col = mix(col, cHigh, high * 0.07);
-      float fwE = fwidth(eclLat);
-      col = mix(col, cSolar, (1.0 - smoothstep(0.0, fwE * 1.5, abs(eclLat))) * 0.55);
-    }
-
-    // Rubin coverage: a light fill plus a crisp rim where the texture channel crosses 0.5.
+    // Rubin coverage: the texture holds a blurred inside/outside field, so its 0.5 contour is a smooth
+    // curve. Draw that contour as an anti-aliased hairline plus a very light fill.
     float z = t.r;
-    float rim = clamp(z * (1.0 - z) * 4.0, 0.0, 1.0);
-    col = mix(col, cRubin, uZone * (0.07 * z + 0.55 * rim));
+    float fwz = max(fwidth(z), 1e-4);
+    float rim = 1.0 - smoothstep(0.0, fwz * 1.3, abs(z - 0.5));
+    float fill = smoothstep(0.35, 0.65, z);
+    col = mix(col, cRubin, uZone * (0.045 * fill + 0.5 * rim));
 
-    // Heatmap.
+    // Rubin alerts heatmap.
     float h = t.g;
     col = mix(col, mix(cRubin, cHeatHi, h), uHeat * smoothstep(0.02, 1.0, h) * 0.8);
 
-    // Rubin tonight fields.
-    float tb = t.b;
-    float tr = clamp(tb * (1.0 - tb) * 4.0, 0.0, 1.0);
-    col = mix(col, cHeatHi, uTonight * (0.08 * tb + 0.7 * tr));
-
-    // Watches.
-    for (int i = 0; i < ${MAX_SHADER_WATCHES}; i++) {
-      if (i >= uWatchCount) break;
-      float fw = fwidth(length(d - uWatches[i].xyz));
-      col = mix(col, cAccent, capFill(d, uWatches[i], fw) * 0.1 + capRing(d, uWatches[i], fw) * 0.9);
-    }
-
-    // The watch being drawn.
-    if (uDraftOn > 0.5) {
-      vec3 dc = mix(cAccent, cBlocked, uDraftBlocked);
-      float fw = fwidth(length(d - uDraft.xyz));
-      col = mix(col, dc, capFill(d, uDraft, fw) * 0.14 + capRing(d, uDraft, fw));
+    // The selected event's error circle.
+    if (uSelOn > 0.5) {
+      float ch = length(d - uSel.xyz);
+      float fw = fwidth(ch);
+      float ring = 1.0 - smoothstep(fw * 0.5, fw * 1.4, abs(ch - uSel.w));
+      float inside = 1.0 - smoothstep(uSel.w - fw, uSel.w, ch);
+      col = mix(col, cAccent, inside * 0.08 + ring * 0.85);
     }
 
     // Every layer above was tuned as display values. The bloom composer encodes to sRGB on output, so
-    // decode once here: overlays keep exactly their tuned (subtle) strength on the black sky.
+    // decode once here: overlays keep their tuned (subtle) strength on the black sky.
     gl_FragColor = vec4(pow(col, vec3(2.2)), 1.0);
-  }
-`;
-
-/** Planet hosts: 3D positions, drawn in the accent colour. */
-export const hostVertex = /* glsl */ `
-  attribute float aSize;
-  uniform float uPx;
-  ${WATCH_UNIFORMS}
-  varying float vHi;
-  void main() {
-    vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    gl_Position = projectionMatrix * mv;
-    vec3 dir = normalize(position);
-    float hi = 0.0;
-    for (int i = 0; i < ${MAX_SHADER_WATCHES}; i++) {
-      if (i >= uWatchCount) break;
-      if (length(dir - uWatches[i].xyz) < uWatches[i].w) hi = 1.0;
-    }
-    if (uDraftOn > 0.5 && length(dir - uDraft.xyz) < uDraft.w) hi = 1.0;
-    float size = clamp((1.6 + aSize * 0.45) * 150.0 / max(-mv.z, 1.0), 2.4, 7.0);
-    gl_PointSize = (size + hi * 3.0) * uPx;
-    vHi = hi;
-  }
-`;
-
-export const hostFragment = /* glsl */ `
-  precision mediump float;
-  uniform vec3 cAccent;
-  varying float vHi;
-  void main() {
-    vec2 p = gl_PointCoord * 2.0 - 1.0;
-    float r = length(p);
-    if (r > 1.0) discard;
-    // A small dark halo keeps hosts readable over the brightest part of the Milky Way.
-    float disc = 1.0 - smoothstep(0.55, 0.7, r);
-    float halo = (1.0 - smoothstep(0.7, 1.0, r)) * (1.0 - disc);
-    vec3 col = mix(cAccent, vec3(1.0), vHi * 0.6);
-    gl_FragColor = vec4(col * disc, max(disc, halo * 0.55));
-  }
-`;
-
-/** Bright catalogue stars, painted on the sky sphere for orientation. */
-export const starVertex = /* glsl */ `
-  attribute float aMag;
-  attribute vec3 aColor;
-  uniform float uPx;
-  uniform float uFovScale;
-  varying vec3 vColor;
-  varying float vA;
-  void main() {
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    float s = clamp(5.4 - 0.72 * aMag, 1.1, 5.5) * uFovScale;
-    gl_PointSize = s * uPx;
-    vColor = aColor;
-    vA = clamp(1.25 - aMag * 0.14, 0.3, 1.0);
-  }
-`;
-
-export const starFragment = /* glsl */ `
-  precision mediump float;
-  varying vec3 vColor;
-  varying float vA;
-  void main() {
-    vec2 p = gl_PointCoord * 2.0 - 1.0;
-    float r2 = dot(p, p);
-    if (r2 > 1.0) discard;
-    float a = exp(-r2 * 4.0) * vA;
-    gl_FragColor = vec4(vColor * a, a);
   }
 `;
 
@@ -238,41 +114,94 @@ export const bubbleVertex = /* glsl */ `
   }
 `;
 
-export const bubbleFragment = /* glsl */ `
-  precision mediump float;
-  uniform vec3 uColor;
-  uniform float uOpacity;
-  varying vec3 vN;
-  varying vec3 vV;
-  void main() {
-    float f = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), 2.5);
-    gl_FragColor = vec4(uColor, (0.03 + 0.4 * f) * uOpacity);
-  }
-`;
-
-export const markerVertex = /* glsl */ `
+/**
+ * Event markers: one point per event, the shape and colour of its category. Recent events are
+ * larger and brighter. Hover and selection add an accent ring. Drawn in device pixels, on top.
+ */
+export const eventVertex = /* glsl */ `
+  attribute vec3 aColor;
+  attribute float aShape;
+  attribute float aRecency;
+  attribute float aIndex;
   uniform float uPx;
-  attribute float aBlocked;
-  varying float vBlocked;
+  uniform float uHover;
+  uniform float uHoverT;
+  uniform float uSelected;
+  uniform float uDim;
+  varying vec3 vColor;
+  varying float vShape;
+  varying float vA;
+  varying float vRing;
+  varying float vSize;
+  varying float vMark;
   void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = 20.0 * uPx;
-    vBlocked = aBlocked;
+    float hov = step(abs(aIndex - uHover), 0.5) * uHoverT;
+    float sel = step(abs(aIndex - uSelected), 0.5);
+    float ring = max(hov, sel);
+    // 11 px for a 30-day-old event, 17 px for one from the last hours.
+    float mark = mix(11.0, 17.0, (aRecency - 0.35) / 0.65) + 3.0 * ring;
+    vMark = mark * uPx;
+    vSize = (mark + 12.0) * uPx;
+    gl_PointSize = vSize;
+    vColor = aColor;
+    vShape = aShape;
+    vA = mix(0.55, 1.0, (aRecency - 0.35) / 0.65) * mix(1.0, 0.35, uDim * (1.0 - ring));
+    vRing = ring;
   }
 `;
 
-export const markerFragment = /* glsl */ `
-  precision mediump float;
+export const eventFragment = /* glsl */ `
+  precision highp float;
   uniform vec3 cAccent;
-  uniform vec3 cBlocked;
-  varying float vBlocked;
+  varying vec3 vColor;
+  varying float vShape;
+  varying float vA;
+  varying float vRing;
+  varying float vSize;
+  varying float vMark;
+
+  // Signed distances in device pixels (negative inside).
+  float sdCircle(vec2 p, float r) { return length(p) - r; }
+  float sdBox(vec2 p, float r) { vec2 q = abs(p) - vec2(r); return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0); }
+  float sdDiamond(vec2 p, float r) { return (abs(p.x) + abs(p.y) - r) * 0.7071; }
+  // Equilateral triangle (Inigo Quilez), pointing up.
+  float sdTriangle(vec2 p, float r) {
+    const float k = 1.7320508;
+    p.x = abs(p.x) - r;
+    p.y = p.y + r / k;
+    if (p.x + k * p.y > 0.0) p = vec2(p.x - k * p.y, -k * p.x - p.y) / 2.0;
+    p.x -= clamp(p.x, -2.0 * r, 0.0);
+    return -length(p) * sign(p.y);
+  }
+  float sdPlus(vec2 p, float r, float w) {
+    p = abs(p);
+    return min(max(p.x - r, p.y - w), max(p.x - w, p.y - r));
+  }
+
   void main() {
-    vec2 p = gl_PointCoord * 2.0 - 1.0;
-    // Four short ticks around the centre: findable at any zoom, even when the cap itself is sub-pixel.
-    float r = length(p);
-    float tick = step(0.45, r) * step(r, 0.95) * (step(abs(p.x), 0.05) + step(abs(p.y), 0.05));
-    float a = min(tick, 1.0);
-    if (a < 0.01) discard;
-    gl_FragColor = vec4(mix(cAccent, cBlocked, vBlocked), a);
+    vec2 p = (gl_PointCoord * 2.0 - 1.0) * vSize * 0.5;
+    p.y = -p.y;
+    float r = vMark * 0.5;
+    float line = 1.6 * (vSize / (vMark + 12.0)); // 1.6 CSS px stroke
+    float d;
+    int s = int(vShape + 0.5);
+    if (s == 0) d = abs(sdCircle(p, r - line)) - line * 0.5;          // ring
+    else if (s == 1) d = abs(sdDiamond(p, r)) - line * 0.5;           // diamond outline
+    else if (s == 2) d = abs(sdBox(p, r * 0.78)) - line * 0.5;        // square outline
+    else if (s == 3) d = abs(sdTriangle(p, r * 0.9)) - line * 0.5;    // triangle outline
+    else if (s == 4) d = sdPlus(p, r, line * 0.6);                   // plus
+    else d = sdCircle(p, r * 0.32);                                  // dot
+    // A filled centre point for the outline shapes, so position reads at a glance.
+    float centre = s == 4 || s == 5 ? 1e9 : sdCircle(p, line * 0.8);
+    float shape = 1.0 - smoothstep(-0.5, 0.5, min(d, centre));
+    // A black halo keeps markers legible over bright stars and the Milky Way.
+    float halo = 1.0 - smoothstep(-0.5, 1.5, min(d, centre) - line * 1.2);
+    float ringD = abs(length(p) - (r + line * 2.6)) - line * 0.5;
+    float ring = (1.0 - smoothstep(-0.5, 0.5, ringD)) * vRing;
+    vec3 col = vColor * shape * vA + cAccent * ring;
+    float a = max(max(shape * vA, ring), halo * 0.6 * vA);
+    if (a < 0.003) discard;
+    gl_FragColor = vec4(col, a);
   }
 `;

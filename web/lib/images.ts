@@ -47,7 +47,7 @@ export function imageDisplay(img: Image, variant: ImageVariant): ImageDisplay {
     width: cutout && img.width !== null ? img.width * scale! : null,
     height: cutout && img.height !== null ? img.height * scale! : null,
     label: forecast ? "Forecast" : null,
-    note: forecast ? "Model forecast map, not a photo." : context ? "Archive image from before this event." : null,
+    note: forecast ? "Model forecast map, not a photo." : context ? "Archive photo, taken years before this event. The event itself is not in it." : null,
     caption: img.caption,
     captionAlwaysVisible: context,
   };
