@@ -1,92 +1,115 @@
-"""The only interfaces the API uses to reach pipeline/, sources/ and forecast/, plus storage.
+"""The only interfaces the API uses to reach pipeline/ (Analyze a star) and its database.
 
-Real modules plug in through thin adapters (see api/adapters/real.py). Fakes live in api/fakes/.
-All IDs must follow contracts/CONVENTIONS.md.
+Real modules plug in through api/adapters/real.py; fakes live in api/fakes/. Events arrive
+through `python -m api.ingest`, not through a port: the web requests only ever read the table.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from contextlib import AbstractContextManager
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Protocol
+from typing import Any, Literal, Protocol
 
-from api.contract import Discovery, Forecast, Sphere
-from api.models import JobRecord, JobStatus, JobStep, TrapRecord
+from api.models import Analysis, JobRecord, JobStatus, JobStep, StarInfo, StoredAnalysis
 
 
-class AlertSource(Protocol):
-    """sources/: Rubin alerts grouped per object.
+class StarAnalyzer(Protocol):
+    """pipeline/: TESS light-curve search for one star."""
 
-    IDs: rubin:obj:<diaObjectId> or rubin:ss:<ssObjectId>.
-    """
-
-    def alerts_in_sphere(self, sphere: Sphere, since: datetime, until: datetime) -> list[Discovery]:
-        """Objects with at least one alert in [since, until) inside the sphere."""
+    def resolve(self, name: str) -> StarInfo:
+        """A star name to its TIC entry. Raises LookupError if no star has that name."""
         ...
-
-
-class StarHunter(Protocol):
-    """pipeline/: TESS light-curve hunt for one star."""
 
     def latest_data_marker(self, tic_id: int) -> str | None:
         """Opaque marker (e.g. "sector-74") that changes when new TESS data exists.
 
-        None means the star has no TESS data.
+        None means the star has no usable TESS light curve. Raises if MAST can't be reached.
         """
         ...
 
-    def hunt(self, tic_id: int, progress: Callable[[str], None]) -> list[Discovery]:
-        """Run the hunt (20-60 s). Signals carry raw.period_days, flares raw.peak_btjd."""
+    def analyze(self, tic_id: int, progress: Callable[[str], None]) -> Analysis:
+        """Run the search (20-60 s on a full CPU). Raises LookupError if there is no light curve."""
         ...
 
 
-class Forecaster(Protocol):
-    """forecast/: what a sphere is likely to catch in a window."""
+@dataclass
+class EventRow:
+    """One events-table row: the filter columns plus the stored Event itself."""
 
-    def forecast(self, sphere: Sphere, start: datetime, end: datetime) -> Forecast: ...
+    id: str
+    type: str
+    category: str
+    frame: str
+    observed_at: datetime
+    ra_deg: float | None
+    dec_deg: float | None
+    confidence: float
+    has_images: bool
+    from_latest_observed_window: bool
+    sources: list[str]
+    record: dict[str, Any]
+    source_hash: str  # the event as fetched, before pictures
+    content_hash: str  # the stored record
+    images_checked_at: datetime
+    updated_at: datetime
+
+
+@dataclass
+class EventMeta:
+    source_hash: str
+    content_hash: str
+    images_checked_at: datetime
+    images: list[dict[str, Any]]
+
+
+@dataclass
+class EventQuery:
+    types: list[str] = field(default_factory=list)
+    categories: list[str] = field(default_factory=list)
+    since: datetime | None = None
+    until: datetime | None = None
+    sources: list[str] = field(default_factory=list)
+    frame: str | None = None
+    region: tuple[float, float, float] | None = None  # ra, dec, radius (deg)
+    min_confidence: float | None = None
+    has_images: bool | None = None
+    include_latest_window: bool = False
+    before: tuple[datetime, str] | None = None  # cursor: (observed_at, id) of the last row seen
+    limit: int = 50
+
+
+Upserted = Literal["created", "updated", "unchanged"]
 
 
 class Storage(Protocol):
     def atomic(self) -> AbstractContextManager[None]: ...
+    def close(self) -> None: ...
 
-    # traps
-    def create_trap(self, trap: TrapRecord) -> None: ...
-    def get_trap(self, trap_id: str) -> TrapRecord | None: ...
-    def list_traps(self, player_id: str) -> list[TrapRecord]: ...
-    def count_traps(self, player_id: str) -> int: ...
-    def iter_traps(self) -> Iterator[TrapRecord]: ...
-    def delete_trap(self, player_id: str, trap_id: str) -> bool: ...
-    def set_trap_checked(
-        self, trap_id: str, *, last_checked_at: datetime | None = None, marker: str | None = None
-    ) -> None: ...
+    # events
+    def event_meta(self, ids: list[str]) -> dict[str, EventMeta]: ...
+    def upsert_event(self, row: EventRow) -> Upserted: ...
+    def prune_events(self, observed_before: datetime) -> int: ...
+    def query_events(self, q: EventQuery) -> list[tuple[dict[str, Any], datetime]]: ...
+    def get_event(self, event_id: str) -> dict[str, Any] | None: ...
+    def count_events(self) -> int: ...
+    def put_status(self, key: str, record: dict[str, Any], at: datetime) -> None: ...
+    def get_status(self) -> dict[str, dict[str, Any]]: ...
 
-    # discoveries and catches
-    def get_discovery(self, discovery_id: str) -> Discovery | None: ...
-    def put_discovery(self, d: Discovery) -> None: ...
-    def discoveries_with_prefix(self, prefix: str) -> list[Discovery]: ...
-    def add_catch(
-        self, player_id: str, discovery_id: str, trap_id: str | None, caught_at: datetime
-    ) -> bool: ...
-    def has_catch(self, player_id: str, discovery_id: str) -> bool: ...
-    def list_catches(
-        self, player_id: str, limit: int, before: tuple[str, str] | None
-    ) -> list[tuple[Discovery, str]]: ...
-    def count_catches(self) -> int: ...
+    # analyze a star
+    def get_star_analysis(self, tic_id: int) -> StoredAnalysis | None: ...
+    def put_star_analysis(self, rec: StoredAnalysis) -> None: ...
+    def touch_star_analysis(self, tic_id: int, at: datetime) -> None: ...
+    def get_star_name(self, key: str) -> int | None: ...
+    def put_star_name(self, key: str, tic_id: int, at: datetime) -> None: ...
 
     # jobs
     def create_job(self, job: JobRecord) -> None: ...
     def get_job(self, job_id: str) -> JobRecord | None: ...
     def set_job_status(
-        self,
-        job_id: str,
-        status: JobStatus,
-        *,
-        at: datetime,
-        result_ids: list[str] | None = None,
-        error: str | None = None,
+        self, job_id: str, status: JobStatus, *, at: datetime, error: str | None = None
     ) -> None: ...
     def append_job_step(self, job_id: str, step: JobStep) -> None: ...
     def queue_position(self, job_id: str) -> int | None: ...
-    def count_pending_jobs(self, player_id: str) -> int: ...
     def fail_unfinished_jobs(self, reason: str, at: datetime) -> int: ...

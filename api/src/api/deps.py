@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import math
-import uuid
 from collections.abc import Callable
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import Depends, Header, HTTPException, Request
+from fastapi import Depends, HTTPException, Request
 
-from api.jobs import HuntQueue
+from api.jobs import AnalyzeQueue
 from api.ratelimit import RateLimiter
 from api.settings import Settings
 from api.wiring import Services
@@ -21,51 +20,43 @@ def settings(request: Request) -> Settings:
     return request.app.state.settings
 
 
-def hunt_queue(request: Request) -> HuntQueue:
-    return request.app.state.hunt_queue
+def analyze_queue(request: Request) -> AnalyzeQueue:
+    return request.app.state.analyze_queue
 
 
-def player_id(x_player_id: Annotated[str | None, Header()] = None) -> str:
-    if not x_player_id:
-        raise HTTPException(400, "Missing X-Player-Id header (a random UUID).")
-    try:
-        return str(uuid.UUID(x_player_id.strip()))
-    except ValueError:
-        raise HTTPException(400, "X-Player-Id must be a UUID.") from None
+def client_ip(request: Request, hops: int) -> str:
+    """The caller's IP. Behind `hops` trusted proxies, each appends the address it saw to
+    X-Forwarded-For, so the entry `hops` from the right is the one no client can forge."""
+    if hops > 0:
+        forwarded = [
+            p.strip() for p in request.headers.get("x-forwarded-for", "").split(",") if p.strip()
+        ]
+        if len(forwarded) >= hops:
+            return forwarded[-hops]
+    return request.client.host if request.client else "unknown"
 
 
-def _check(limiter: RateLimiter, bucket: str, key: str, per_minute: int) -> None:
-    wait = limiter.hit(bucket, key, per_minute)
-    if wait > 0:
-        raise HTTPException(
-            429,
-            "Too many requests, slow down a little.",
-            headers={"Retry-After": str(max(1, math.ceil(wait)))},
-        )
+def rate_limited(bucket: Literal["read", "analyze"]) -> Callable:
+    """Per-IP token bucket; `analyze` has its own, much smaller one (reads stay available)."""
 
-
-def rate_limited(extra: str | None = None) -> Callable:
-    """Per-player limit for every route, a per-IP backstop, and an optional per-route bucket."""
-
-    def dep(
-        request: Request,
-        pid: Annotated[str, Depends(player_id)],
-        cfg: Annotated[Settings, Depends(settings)],
-    ) -> str:
+    def dep(request: Request, cfg: Annotated[Settings, Depends(settings)]) -> str:
         limiter: RateLimiter = request.app.state.limiter
-        ip = request.client.host if request.client else "unknown"
-        _check(limiter, "ip", ip, cfg.rate_ip_per_min)
-        _check(limiter, "all", pid, cfg.rate_all_per_min)
-        if extra == "trap_create":
-            _check(limiter, extra, pid, cfg.rate_trap_create_per_min)
-        elif extra == "hunt":
-            _check(limiter, extra, pid, cfg.rate_hunt_per_min)
-        return pid
+        ip = client_ip(request, cfg.trusted_proxy_hops)
+        per_min = cfg.rate_analyze_per_min if bucket == "analyze" else cfg.rate_read_per_min
+        wait = limiter.hit(bucket, ip, per_min)
+        if wait > 0:
+            raise HTTPException(
+                429,
+                "Too many requests, slow down a little.",
+                headers={"Retry-After": str(max(1, math.ceil(wait)))},
+            )
+        return ip
 
     return dep
 
 
-Player = Annotated[str, Depends(rate_limited())]
+Reader = Annotated[str, Depends(rate_limited("read"))]
+Analyzer = Annotated[str, Depends(rate_limited("analyze"))]
 ServicesDep = Annotated[Services, Depends(services)]
 SettingsDep = Annotated[Settings, Depends(settings)]
-QueueDep = Annotated[HuntQueue, Depends(hunt_queue)]
+QueueDep = Annotated[AnalyzeQueue, Depends(analyze_queue)]

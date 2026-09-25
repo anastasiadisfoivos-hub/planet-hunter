@@ -1,39 +1,54 @@
+"""Per-IP limits (analyze much tighter than reads), proxies, CORS."""
+
 from __future__ import annotations
 
 from api.ratelimit import RateLimiter
-from tests.conftest import SKY, TIC, player
+from tests.conftest import TIC
 
 
-def test_trap_create_limit_per_player(make_client, alice, bob, clock):
-    client = make_client(rate_trap_create_per_min=2)
-    for _ in range(2):
-        assert client.post("/traps", json={"sphere": SKY}, headers=alice).status_code == 201
-    r = client.post("/traps", json={"sphere": SKY}, headers=alice)
-    assert r.status_code == 429
-    assert int(r.headers["Retry-After"]) >= 1
-    # Other players and other routes are unaffected.
-    assert client.post("/traps", json={"sphere": SKY}, headers=bob).status_code == 201
-    assert client.get("/traps", headers=alice).status_code == 200
-    clock.t += 30  # refills one token at 2/min
-    assert client.post("/traps", json={"sphere": SKY}, headers=alice).status_code == 201
+def test_analyze_is_tighter_than_reads(make_client, clock):
+    client = make_client(rate_analyze_per_min=2, rate_read_per_min=5)
+    assert client.post("/analyze", json={"tic_id": TIC}).status_code == 202
+    assert client.post("/analyze", json={"tic_id": TIC}).status_code == 202
+    r = client.post("/analyze", json={"tic_id": TIC})
+    assert r.status_code == 429 and int(r.headers["Retry-After"]) >= 1
+    # Reads have their own bucket.
+    assert [client.get("/events").status_code for _ in range(6)] == [200] * 5 + [429]
+    clock.t += 30  # refills one analyze token at 2/min
+    assert client.post("/analyze", json={"tic_id": TIC}).status_code in (200, 202)
 
 
-def test_hunt_limit(make_client, alice):
-    client = make_client(rate_hunt_per_min=1)
-    assert client.post("/hunt", json={"star": {"tic_id": TIC}}, headers=alice).status_code == 202
-    assert client.post("/hunt", json={"star": {"tic_id": TIC}}, headers=alice).status_code == 429
+def test_limits_are_per_ip_behind_a_trusted_proxy(make_client):
+    client = make_client(rate_read_per_min=2, trusted_proxy_hops=1)
+
+    def get(xff):
+        return client.get("/status", headers={"X-Forwarded-For": xff}).status_code
+
+    assert [get("1.1.1.1"), get("1.1.1.1"), get("1.1.1.1")] == [200, 200, 429]
+    assert get("2.2.2.2") == 200
+    # A client can prepend anything; only the entry the proxy added counts.
+    assert get("9.9.9.9, 1.1.1.1") == 429
 
 
-def test_overall_limit_per_player(make_client, alice):
-    client = make_client(rate_all_per_min=3)
-    codes = [client.get("/traps", headers=alice).status_code for _ in range(4)]
-    assert codes == [200, 200, 200, 429]
+def test_forwarded_for_is_ignored_without_trusted_proxy(make_client):
+    client = make_client(rate_read_per_min=2)
+    codes = [client.get("/status", headers={"X-Forwarded-For": f"10.0.0.{i}"}).status_code
+             for i in range(3)]  # fmt: skip
+    assert codes == [200, 200, 429]
 
 
-def test_ip_backstop_stops_uuid_rotation(make_client):
-    client = make_client(rate_ip_per_min=5)
-    codes = [client.get("/traps", headers=player()).status_code for _ in range(6)]
-    assert codes[-1] == 429
+def test_cors_for_the_web_origin(make_client):
+    client = make_client(web_origins=("https://spotter.example",))
+    pre = client.options(
+        "/analyze",
+        headers={"Origin": "https://spotter.example", "Access-Control-Request-Method": "POST"},
+    )
+    assert pre.status_code == 200
+    assert pre.headers["access-control-allow-origin"] == "https://spotter.example"
+    ok = client.get("/events", headers={"Origin": "https://spotter.example"})
+    assert ok.headers["access-control-allow-origin"] == "https://spotter.example"
+    other = client.get("/events", headers={"Origin": "https://evil.example"})
+    assert "access-control-allow-origin" not in other.headers
 
 
 def test_bucket_math():

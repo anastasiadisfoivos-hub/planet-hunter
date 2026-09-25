@@ -4,7 +4,6 @@ import os
 import shutil
 import subprocess
 import time
-import uuid
 from collections.abc import Iterator
 from dataclasses import replace
 
@@ -13,16 +12,12 @@ from fastapi.testclient import TestClient
 
 from api import honesty
 from api.app import create_app
-from api.fakes.forecast import FakeForecaster
-from api.fakes.rubin import FakeAlertSource
-from api.fakes.tess import FakeStarHunter
+from api.fakes.tess import FakeAnalyzer
 from api.ratelimit import RateLimiter
 from api.settings import Settings
 from api.storage.sqlite import SqliteStorage
 from api.wiring import Services
 
-# A patch of sky where the fake Rubin source reliably has objects.
-SKY = {"ra_deg": 150.0, "dec_deg": -20.0, "radius_deg": 3.0}
 TIC = 25155310
 
 
@@ -35,7 +30,7 @@ class FakeClock:
 
 
 class HonestClient(TestClient):
-    """Fails the test if any JSON response breaks the contract's honesty rule."""
+    """Fails the test if any JSON response breaks the honesty rule."""
 
     def request(self, *args, **kwargs):
         response = super().request(*args, **kwargs)
@@ -49,7 +44,8 @@ class HonestClient(TestClient):
 # narrows it. Postgres comes from PH_TEST_DATABASE_URL (a throwaway database: tests wipe it), or
 # else a disposable `postgres:16` Docker container started for the session.
 BACKENDS = [b.strip() for b in os.environ.get("PH_TEST_BACKENDS", "sqlite,postgres").split(",")]
-TABLES = "traps, discoveries, catches, jobs"
+TABLES = "events, event_sources, ingest_status, star_analyses, star_names, analyze_jobs"
+OLD_TABLES = "traps, discoveries, catches, jobs"
 
 
 def _start_postgres_container() -> tuple[str, str]:
@@ -94,7 +90,7 @@ def pg_url() -> Iterator[str]:
                     raise
                 time.sleep(0.2)
         with psycopg.connect(url, autocommit=True) as conn:
-            conn.execute(f"DROP TABLE IF EXISTS {TABLES}, schema_migrations CASCADE")
+            conn.execute(f"DROP TABLE IF EXISTS {TABLES}, {OLD_TABLES}, schema_migrations CASCADE")
         yield url
     finally:
         if cid:
@@ -138,17 +134,13 @@ def storage(backend, request):
 
 @pytest.fixture
 def services(storage) -> Services:
-    return Services(
-        storage=storage,
-        alerts=FakeAlertSource(),
-        hunter=FakeStarHunter(),
-        forecaster=FakeForecaster(),
-    )
+    return Services(storage=storage, analyzer=FakeAnalyzer())
 
 
 @pytest.fixture
 def settings() -> Settings:
-    return Settings(db_path=":memory:")
+    # Generous limits here; tests/test_ratelimit.py checks the real ones.
+    return Settings(db_path=":memory:", rate_read_per_min=10_000, rate_analyze_per_min=10_000)
 
 
 @pytest.fixture
@@ -173,28 +165,15 @@ def make_client(services, settings, clock):
 
 
 @pytest.fixture
-def client(make_client) -> Iterator[HonestClient]:
+def client(make_client) -> HonestClient:
     return make_client()
 
 
-def player() -> dict[str, str]:
-    return {"X-Player-Id": str(uuid.uuid4())}
-
-
-@pytest.fixture
-def alice() -> dict[str, str]:
-    return player()
-
-
-@pytest.fixture
-def bob() -> dict[str, str]:
-    return player()
-
-
-def wait_job(client: TestClient, job_id: str, headers: dict, timeout: float = 10.0) -> dict:
+def wait_job(client: TestClient, job_id: str, timeout: float = 10.0) -> dict:
     deadline = time.monotonic() + timeout
+    body: dict = {}
     while time.monotonic() < deadline:
-        body = client.get(f"/jobs/{job_id}", headers=headers).json()
+        body = client.get(f"/jobs/{job_id}").json()
         if body["status"] in ("done", "failed"):
             return body
         time.sleep(0.01)

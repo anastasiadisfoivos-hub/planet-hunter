@@ -8,9 +8,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.jobs import HuntQueue
+from api.jobs import AnalyzeQueue
 from api.ratelimit import RateLimiter
-from api.routes import discoveries, forecast, hunt, traps
+from api.routes import analyze, events
 from api.settings import Settings
 from api.timeutil import utcnow
 from api.wiring import Services, build_services
@@ -23,7 +23,9 @@ def create_app(
 ) -> FastAPI:
     settings = settings or Settings.from_env()
     services = services or build_services(settings)
-    queue = HuntQueue(services, settings.max_concurrent_hunts, settings.hunt_timeout_s)
+    queue = AnalyzeQueue(
+        services, settings.max_concurrent_hunts, settings.hunt_timeout_s, settings.max_queued_jobs
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -35,20 +37,27 @@ def create_app(
         yield
         await queue.stop()
 
-    app = FastAPI(title="planet-hunter traps API", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(
+        title="planet-hunter phenomena spotter API",
+        version="0.2.0",
+        description="Live sky events with real pictures, and Analyze a star (NASA TESS).",
+        lifespan=lifespan,
+    )
     app.state.settings = settings
     app.state.services = services
-    app.state.hunt_queue = queue
+    app.state.analyze_queue = queue
     app.state.limiter = limiter or RateLimiter()
-    if settings.cors_origins:
+    if settings.web_origins:
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=list(settings.cors_origins),
-            allow_methods=["GET", "POST", "DELETE"],
-            allow_headers=["X-Player-Id", "Content-Type"],
+            allow_origins=list(settings.web_origins),
+            allow_methods=["GET", "POST"],
+            allow_headers=["Content-Type"],
+            expose_headers=["Retry-After"],
+            max_age=3600,
         )
-    for module in (traps, forecast, hunt, discoveries):
-        app.include_router(module.router)
+    app.include_router(events.router)
+    app.include_router(analyze.router)
 
     @app.get("/healthz", tags=["meta"])
     def healthz() -> dict:

@@ -1,64 +1,44 @@
-"""SQLite implementation of the Storage port (stdlib sqlite3, one connection, one lock)."""
+"""SQLite implementation of the Storage port (stdlib sqlite3, one connection, one lock).
+
+Local dev and tests. Schema: migrations/sqlite/NNNN_*.sql, the twins of the Postgres files, applied
+in order once each and recorded in schema_migrations.
+"""
 
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
+from importlib import resources
+from typing import Any
 
-from api.contract import Discovery, Sphere, StarTarget
-from api.models import JobRecord, JobStatus, JobStep, TrapRecord
+from api.models import JobRecord, JobStatus, JobStep, StoredAnalysis
+from api.ports import EventMeta, EventQuery, EventRow, Upserted
+from api.storage.events_sql import build_query
 from api.timeutil import iso, parse
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS traps (
-    id TEXT PRIMARY KEY,
-    player_id TEXT NOT NULL,
-    kind TEXT NOT NULL CHECK (kind IN ('sky', 'star')),
-    ra_deg REAL, dec_deg REAL, radius_deg REAL,
-    tic_id INTEGER,
-    created_at TEXT NOT NULL,
-    last_checked_at TEXT,
-    last_tess_marker TEXT
-);
-CREATE INDEX IF NOT EXISTS traps_player ON traps (player_id, created_at);
 
-CREATE TABLE IF NOT EXISTS discoveries (
-    id TEXT PRIMARY KEY,
-    source TEXT NOT NULL,
-    type TEXT NOT NULL,
-    detected_at TEXT NOT NULL,
-    record TEXT NOT NULL
-);
+def sep_deg(ra1: float, dec1: float, ra2: float, dec2: float) -> float | None:
+    """Great-circle distance in degrees (haversine); same formula as Postgres' ph_sep_deg."""
+    if None in (ra1, dec1, ra2, dec2):
+        return None
+    r1, d1, r2, d2 = map(math.radians, (ra1, dec1, ra2, dec2))
+    h = math.sin((d2 - d1) / 2) ** 2 + math.cos(d1) * math.cos(d2) * math.sin((r2 - r1) / 2) ** 2
+    return math.degrees(2 * math.asin(min(1.0, math.sqrt(h))))
 
-CREATE TABLE IF NOT EXISTS catches (
-    player_id TEXT NOT NULL,
-    discovery_id TEXT NOT NULL REFERENCES discoveries (id),
-    trap_id TEXT,
-    caught_at TEXT NOT NULL,
-    PRIMARY KEY (player_id, discovery_id)
-);
-CREATE INDEX IF NOT EXISTS catches_newest ON catches (player_id, caught_at DESC, discovery_id DESC);
 
-CREATE TABLE IF NOT EXISTS jobs (
-    seq INTEGER PRIMARY KEY AUTOINCREMENT,
-    id TEXT NOT NULL UNIQUE,
-    player_id TEXT NOT NULL,
-    trap_id TEXT,
-    tic_id INTEGER NOT NULL,
-    status TEXT NOT NULL,
-    steps TEXT NOT NULL DEFAULT '[]',
-    result_ids TEXT NOT NULL DEFAULT '[]',
-    error TEXT,
-    created_at TEXT NOT NULL,
-    started_at TEXT,
-    finished_at TEXT
-);
-CREATE INDEX IF NOT EXISTS jobs_status ON jobs (status, seq);
-"""
+def migration_files() -> list[tuple[str, str]]:
+    folder = resources.files("api.storage").joinpath("migrations").joinpath("sqlite")
+    files = sorted(f for f in folder.iterdir() if f.name.endswith(".sql"))
+    return [(f.name.removesuffix(".sql"), f.read_text()) for f in files]
+
+
+def _dump(obj: Any) -> str:
+    return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
 class SqliteStorage:
@@ -68,9 +48,29 @@ class SqliteStorage:
         self._lock = threading.RLock()
         self._depth = 0
         self._conn.execute("PRAGMA busy_timeout = 5000")
+        self._conn.execute("PRAGMA foreign_keys = ON")
         if path != ":memory:":
             self._conn.execute("PRAGMA journal_mode = WAL")
-        self._conn.executescript(SCHEMA)
+        self._conn.create_function("ph_sep_deg", 4, sep_deg, deterministic=True)
+        self.migrate()
+
+    def migrate(self) -> list[str]:
+        applied = []
+        with self._lock:
+            self._conn.execute(
+                "CREATE TABLE IF NOT EXISTS schema_migrations"
+                " (version TEXT PRIMARY KEY, applied_at TEXT NOT NULL)"
+            )
+            done = {r[0] for r in self._conn.execute("SELECT version FROM schema_migrations")}
+            for version, sql in migration_files():
+                if version in done:
+                    continue
+                self._conn.executescript(
+                    f"BEGIN;\n{sql}\nINSERT INTO schema_migrations VALUES"
+                    f" ('{version}', strftime('%Y-%m-%dT%H:%M:%fZ'));\nCOMMIT;"
+                )
+                applied.append(version)
+        return applied
 
     def close(self) -> None:
         self._conn.close()
@@ -95,160 +95,170 @@ class SqliteStorage:
                 if outer:
                     self._conn.execute("COMMIT")
 
-    def _exec(self, sql: str, params: tuple | dict = ()) -> sqlite3.Cursor:
+    def _exec(self, sql: str, params: tuple | list = ()) -> sqlite3.Cursor:
         with self._lock:
             return self._conn.execute(sql, params)
 
-    def _all(self, sql: str, params: tuple | dict = ()) -> list[sqlite3.Row]:
+    def _all(self, sql: str, params: tuple | list = ()) -> list[sqlite3.Row]:
         with self._lock:
             return self._conn.execute(sql, params).fetchall()
 
-    def _one(self, sql: str, params: tuple | dict = ()) -> sqlite3.Row | None:
+    def _one(self, sql: str, params: tuple | list = ()) -> sqlite3.Row | None:
         with self._lock:
             return self._conn.execute(sql, params).fetchone()
 
-    # traps ---------------------------------------------------------------
+    # events ----------------------------------------------------------------------------
 
-    @staticmethod
-    def _trap(row: sqlite3.Row) -> TrapRecord:
-        sphere = star = None
-        if row["kind"] == "sky":
-            sphere = Sphere(
-                ra_deg=row["ra_deg"], dec_deg=row["dec_deg"], radius_deg=row["radius_deg"]
+    def event_meta(self, ids: list[str]) -> dict[str, EventMeta]:
+        out: dict[str, EventMeta] = {}
+        for start in range(0, len(ids), 500):
+            chunk = ids[start : start + 500]
+            rows = self._all(
+                "SELECT id, source_hash, content_hash, images_checked_at,"
+                " json_extract(record, '$.images') AS images FROM events"
+                f" WHERE id IN ({', '.join('?' * len(chunk))})",
+                chunk,
             )
-        else:
-            star = StarTarget(tic_id=row["tic_id"])
-        return TrapRecord(
-            id=row["id"],
-            player_id=row["player_id"],
-            kind=row["kind"],
-            sphere=sphere,
-            star=star,
-            created_at=parse(row["created_at"]),
-            last_checked_at=parse(row["last_checked_at"]),
-            last_tess_marker=row["last_tess_marker"],
+            for r in rows:
+                out[r["id"]] = EventMeta(
+                    source_hash=r["source_hash"],
+                    content_hash=r["content_hash"],
+                    images_checked_at=parse(r["images_checked_at"]),
+                    images=json.loads(r["images"] or "[]"),
+                )
+        return out
+
+    def upsert_event(self, row: EventRow) -> Upserted:
+        with self.atomic():
+            old = self._one(
+                "SELECT content_hash, images_checked_at FROM events WHERE id = ?", (row.id,)
+            )
+            if old is not None and old["content_hash"] == row.content_hash:
+                if parse(old["images_checked_at"]) < row.images_checked_at:
+                    self._exec(
+                        "UPDATE events SET images_checked_at = ? WHERE id = ?",
+                        (iso(row.images_checked_at), row.id),
+                    )
+                return "unchanged"
+            values = (
+                row.type,
+                row.category,
+                row.frame,
+                iso(row.observed_at),
+                row.ra_deg,
+                row.dec_deg,
+                row.confidence,
+                int(row.has_images),
+                int(row.from_latest_observed_window),
+                _dump(row.record),
+                row.source_hash,
+                row.content_hash,
+                iso(row.images_checked_at),
+                iso(row.updated_at),
+            )
+            if old is None:
+                self._exec(
+                    "INSERT INTO events (type, category, frame, observed_at, ra_deg, dec_deg,"
+                    " confidence, has_images, from_latest_observed_window, record, source_hash,"
+                    " content_hash, images_checked_at, updated_at, id)"
+                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (*values, row.id),
+                )
+            else:
+                self._exec(
+                    "UPDATE events SET type = ?, category = ?, frame = ?, observed_at = ?,"
+                    " ra_deg = ?, dec_deg = ?, confidence = ?, has_images = ?,"
+                    " from_latest_observed_window = ?, record = ?, source_hash = ?,"
+                    " content_hash = ?, images_checked_at = ?, updated_at = ? WHERE id = ?",
+                    (*values, row.id),
+                )
+                self._exec("DELETE FROM event_sources WHERE event_id = ?", (row.id,))
+            for source in sorted(set(row.sources)):
+                self._exec("INSERT INTO event_sources VALUES (?, ?)", (row.id, source))
+        return "created" if old is None else "updated"
+
+    def prune_events(self, observed_before: datetime) -> int:
+        cur = self._exec("DELETE FROM events WHERE observed_at < ?", (iso(observed_before),))
+        return cur.rowcount
+
+    def query_events(self, q: EventQuery) -> list[tuple[dict[str, Any], datetime]]:
+        sql, params = build_query(q, "?", iso)
+        return [(json.loads(r[0]), parse(r[1])) for r in self._all(sql, params)]
+
+    def get_event(self, event_id: str) -> dict[str, Any] | None:
+        row = self._one("SELECT record FROM events WHERE id = ?", (event_id,))
+        return json.loads(row[0]) if row else None
+
+    def count_events(self) -> int:
+        return self._one("SELECT COUNT(*) FROM events")[0]
+
+    def put_status(self, key: str, record: dict[str, Any], at: datetime) -> None:
+        self._exec(
+            "INSERT INTO ingest_status (key, record, updated_at) VALUES (?, ?, ?)"
+            " ON CONFLICT (key) DO UPDATE SET record = excluded.record,"
+            " updated_at = excluded.updated_at",
+            (key, _dump(record), iso(at)),
         )
 
-    def create_trap(self, trap: TrapRecord) -> None:
-        s, t = trap.sphere, trap.star
+    def get_status(self) -> dict[str, dict[str, Any]]:
+        return {r[0]: json.loads(r[1]) for r in self._all("SELECT key, record FROM ingest_status")}
+
+    # analyze a star ----------------------------------------------------------------------
+
+    def get_star_analysis(self, tic_id: int) -> StoredAnalysis | None:
+        row = self._one("SELECT * FROM star_analyses WHERE tic_id = ?", (tic_id,))
+        if row is None:
+            return None
+        return StoredAnalysis(
+            tic_id=row["tic_id"],
+            data_marker=row["data_marker"],
+            analyzed_at=parse(row["analyzed_at"]),
+            marker_checked_at=parse(row["marker_checked_at"]),
+            analysis=json.loads(row["result"]),
+        )
+
+    def put_star_analysis(self, rec: StoredAnalysis) -> None:
         self._exec(
-            "INSERT INTO traps (id, player_id, kind, ra_deg, dec_deg, radius_deg, tic_id,"
-            " created_at, last_checked_at, last_tess_marker) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            "INSERT INTO star_analyses"
+            " (tic_id, data_marker, analyzed_at, marker_checked_at, result)"
+            " VALUES (?,?,?,?,?) ON CONFLICT (tic_id) DO UPDATE SET"
+            " data_marker = excluded.data_marker, analyzed_at = excluded.analyzed_at,"
+            " marker_checked_at = excluded.marker_checked_at, result = excluded.result",
             (
-                trap.id,
-                trap.player_id,
-                trap.kind,
-                s.ra_deg if s else None,
-                s.dec_deg if s else None,
-                s.radius_deg if s else None,
-                t.tic_id if t else None,
-                iso(trap.created_at),
-                iso(trap.last_checked_at) if trap.last_checked_at else None,
-                trap.last_tess_marker,
+                rec.tic_id,
+                rec.data_marker,
+                iso(rec.analyzed_at),
+                iso(rec.marker_checked_at),
+                rec.analysis.model_dump_json(),
             ),
         )
 
-    def get_trap(self, trap_id: str) -> TrapRecord | None:
-        row = self._one("SELECT * FROM traps WHERE id = ?", (trap_id,))
-        return self._trap(row) if row else None
-
-    def list_traps(self, player_id: str) -> list[TrapRecord]:
-        rows = self._all(
-            "SELECT * FROM traps WHERE player_id = ? ORDER BY created_at DESC, id", (player_id,)
-        )
-        return [self._trap(r) for r in rows]
-
-    def count_traps(self, player_id: str) -> int:
-        return self._one("SELECT COUNT(*) FROM traps WHERE player_id = ?", (player_id,))[0]
-
-    def iter_traps(self) -> Iterator[TrapRecord]:
-        rows = self._all("SELECT * FROM traps ORDER BY created_at, id")
-        return iter([self._trap(r) for r in rows])
-
-    def delete_trap(self, player_id: str, trap_id: str) -> bool:
-        cur = self._exec("DELETE FROM traps WHERE id = ? AND player_id = ?", (trap_id, player_id))
-        return cur.rowcount > 0
-
-    def set_trap_checked(
-        self, trap_id: str, *, last_checked_at: datetime | None = None, marker: str | None = None
-    ) -> None:
-        if last_checked_at is not None:
-            self._exec(
-                "UPDATE traps SET last_checked_at = ? WHERE id = ?", (iso(last_checked_at), trap_id)
-            )
-        if marker is not None:
-            self._exec("UPDATE traps SET last_tess_marker = ? WHERE id = ?", (marker, trap_id))
-
-    # discoveries and catches ----------------------------------------------
-
-    def get_discovery(self, discovery_id: str) -> Discovery | None:
-        row = self._one("SELECT record FROM discoveries WHERE id = ?", (discovery_id,))
-        return Discovery.model_validate_json(row["record"]) if row else None
-
-    def put_discovery(self, d: Discovery) -> None:
+    def touch_star_analysis(self, tic_id: int, at: datetime) -> None:
         self._exec(
-            "INSERT INTO discoveries (id, source, type, detected_at, record) VALUES (?,?,?,?,?)"
-            " ON CONFLICT (id) DO UPDATE SET source = excluded.source, type = excluded.type,"
-            " detected_at = excluded.detected_at, record = excluded.record",
-            (d.id, d.source, d.type.value, iso(d.detected_at), d.model_dump_json()),
+            "UPDATE star_analyses SET marker_checked_at = ? WHERE tic_id = ?", (iso(at), tic_id)
         )
 
-    def discoveries_with_prefix(self, prefix: str) -> list[Discovery]:
-        escaped = prefix.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-        rows = self._all(
-            "SELECT record FROM discoveries WHERE id LIKE ? ESCAPE '\\' ORDER BY id",
-            (escaped + "%",),
+    def get_star_name(self, key: str) -> int | None:
+        row = self._one("SELECT tic_id FROM star_names WHERE name_key = ?", (key,))
+        return row[0] if row else None
+
+    def put_star_name(self, key: str, tic_id: int, at: datetime) -> None:
+        self._exec(
+            "INSERT INTO star_names VALUES (?, ?, ?) ON CONFLICT (name_key) DO UPDATE SET"
+            " tic_id = excluded.tic_id, resolved_at = excluded.resolved_at",
+            (key, tic_id, iso(at)),
         )
-        return [Discovery.model_validate_json(r["record"]) for r in rows]
 
-    def add_catch(
-        self, player_id: str, discovery_id: str, trap_id: str | None, caught_at: datetime
-    ) -> bool:
-        cur = self._exec(
-            "INSERT OR IGNORE INTO catches (player_id, discovery_id, trap_id, caught_at)"
-            " VALUES (?,?,?,?)",
-            (player_id, discovery_id, trap_id, iso(caught_at)),
-        )
-        return cur.rowcount > 0
-
-    def has_catch(self, player_id: str, discovery_id: str) -> bool:
-        row = self._one(
-            "SELECT 1 FROM catches WHERE player_id = ? AND discovery_id = ?",
-            (player_id, discovery_id),
-        )
-        return row is not None
-
-    def list_catches(
-        self, player_id: str, limit: int, before: tuple[str, str] | None
-    ) -> list[tuple[Discovery, str]]:
-        sql = (
-            "SELECT d.record, c.caught_at FROM catches c JOIN discoveries d"
-            " ON d.id = c.discovery_id WHERE c.player_id = ?"
-        )
-        params: list = [player_id]
-        if before is not None:
-            sql += " AND (c.caught_at < ? OR (c.caught_at = ? AND c.discovery_id < ?))"
-            params += [before[0], before[0], before[1]]
-        sql += " ORDER BY c.caught_at DESC, c.discovery_id DESC LIMIT ?"
-        params.append(limit)
-        rows = self._all(sql, tuple(params))
-        return [(Discovery.model_validate_json(r["record"]), r["caught_at"]) for r in rows]
-
-    def count_catches(self) -> int:
-        return self._one("SELECT COUNT(*) FROM catches")[0]
-
-    # jobs -------------------------------------------------------------------
+    # jobs --------------------------------------------------------------------------------
 
     @staticmethod
     def _job(row: sqlite3.Row) -> JobRecord:
         return JobRecord(
             id=row["id"],
-            player_id=row["player_id"],
-            trap_id=row["trap_id"],
             tic_id=row["tic_id"],
             status=row["status"],
+            data_marker=row["data_marker"],
             steps=json.loads(row["steps"]),
-            result_ids=json.loads(row["result_ids"]),
             error=row["error"],
             created_at=parse(row["created_at"]),
             started_at=parse(row["started_at"]),
@@ -257,68 +267,50 @@ class SqliteStorage:
 
     def create_job(self, job: JobRecord) -> None:
         self._exec(
-            "INSERT INTO jobs (id, player_id, trap_id, tic_id, status, steps, created_at)"
-            " VALUES (?,?,?,?,?,?,?)",
+            "INSERT INTO analyze_jobs (id, tic_id, status, data_marker, steps, created_at)"
+            " VALUES (?,?,?,?,?,?)",
             (
                 job.id,
-                job.player_id,
-                job.trap_id,
                 job.tic_id,
                 job.status,
-                json.dumps([s.model_dump(mode="json") for s in job.steps]),
+                job.data_marker,
+                _dump([s.model_dump(mode="json") for s in job.steps]),
                 iso(job.created_at),
             ),
         )
 
     def get_job(self, job_id: str) -> JobRecord | None:
-        row = self._one("SELECT * FROM jobs WHERE id = ?", (job_id,))
+        row = self._one("SELECT * FROM analyze_jobs WHERE id = ?", (job_id,))
         return self._job(row) if row else None
 
     def set_job_status(
-        self,
-        job_id: str,
-        status: JobStatus,
-        *,
-        at: datetime,
-        result_ids: list[str] | None = None,
-        error: str | None = None,
+        self, job_id: str, status: JobStatus, *, at: datetime, error: str | None = None
     ) -> None:
         column = "started_at" if status == "running" else "finished_at"
-        with self.atomic():
-            self._exec(
-                f"UPDATE jobs SET status = ?, {column} = ?, error = COALESCE(?, error)"
-                " WHERE id = ?",
-                (status, iso(at), error, job_id),
-            )
-            if result_ids is not None:
-                self._exec(
-                    "UPDATE jobs SET result_ids = ? WHERE id = ?", (json.dumps(result_ids), job_id)
-                )
+        self._exec(
+            f"UPDATE analyze_jobs SET status = ?, {column} = ?, error = COALESCE(?, error)"
+            " WHERE id = ?",
+            (status, iso(at), error, job_id),
+        )
 
     def append_job_step(self, job_id: str, step: JobStep) -> None:
         self._exec(
-            "UPDATE jobs SET steps = json_insert(steps, '$[#]', json(?)) WHERE id = ?",
+            "UPDATE analyze_jobs SET steps = json_insert(steps, '$[#]', json(?)) WHERE id = ?",
             (step.model_dump_json(), job_id),
         )
 
     def queue_position(self, job_id: str) -> int | None:
-        row = self._one("SELECT seq, status FROM jobs WHERE id = ?", (job_id,))
+        row = self._one("SELECT seq, status FROM analyze_jobs WHERE id = ?", (job_id,))
         if row is None or row["status"] != "queued":
             return None
         ahead = self._one(
-            "SELECT COUNT(*) FROM jobs WHERE status = 'queued' AND seq < ?", (row["seq"],)
+            "SELECT COUNT(*) FROM analyze_jobs WHERE status = 'queued' AND seq < ?", (row["seq"],)
         )[0]
         return ahead + 1
 
-    def count_pending_jobs(self, player_id: str) -> int:
-        return self._one(
-            "SELECT COUNT(*) FROM jobs WHERE player_id = ? AND status IN ('queued', 'running')",
-            (player_id,),
-        )[0]
-
     def fail_unfinished_jobs(self, reason: str, at: datetime) -> int:
         cur = self._exec(
-            "UPDATE jobs SET status = 'failed', error = ?, finished_at = ?"
+            "UPDATE analyze_jobs SET status = 'failed', error = ?, finished_at = ?"
             " WHERE status IN ('queued', 'running')",
             (reason, iso(at)),
         )

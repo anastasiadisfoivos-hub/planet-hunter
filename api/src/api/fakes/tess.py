@@ -1,4 +1,4 @@
-"""Fake TESS hunter: deterministic signals per TIC, controllable from tests."""
+"""Fake TESS analyzer: deterministic results per TIC and data marker, controllable from tests."""
 
 from __future__ import annotations
 
@@ -7,45 +7,60 @@ import random
 import threading
 import time
 from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
 
-from api.contract import CatchType, Cutouts, Discovery, LightCurve, Link
-
-BTJD_EPOCH = datetime(2014, 12, 8, 12, tzinfo=UTC)  # BTJD 0 = JD 2457000.0
+from api.analysis import describe
+from api.known_systems import BY_KEY, NAME_OF, name_key
+from api.models import Analysis, Check, Flare, FoldedCurve, Link, Sector, Signal, StarInfo
 
 STEPS = (
-    "downloading TESS light curve",
-    "cleaning and detrending",
+    "looking up the star",
+    "downloading TESS light curves",
     "searching for repeating dips",
     "checking for flares",
-    "vetting candidates",
 )
 
 
-def btjd_to_datetime(btjd: float) -> datetime:
-    return BTJD_EPOCH + timedelta(days=btjd)
-
-
-class FakeStarHunter:
-    """`markers[tic]` sets the data marker; `gate` (if set) blocks every hunt until released."""
+class FakeAnalyzer:
+    """`markers[tic]` sets the data marker (None: no TESS data); `marker_down` makes the marker
+    check raise; `gate` (if set) blocks every analysis until released."""
 
     def __init__(self, step_delay_s: float = 0.0, seed: int = 0):
         self.step_delay_s = step_delay_s
         self.seed = seed
         self.markers: dict[int, str | None] = {}
+        self.marker_down = False
         self.gate: threading.Event | None = None
         self.fail_for: set[int] = set()
+        self.extra_text = ""  # appended to explanations (honesty tests)
         self.hunt_calls: list[int] = []
+        self.marker_calls: list[int] = []
+        self.resolve_calls: list[str] = []
         self._lock = threading.Lock()
         self.running = 0
         self.max_running_seen = 0
 
+    def resolve(self, name: str) -> StarInfo:
+        self.resolve_calls.append(name)
+        key = name_key(name)
+        if key in BY_KEY:
+            return StarInfo(tic_id=BY_KEY[key], name=name)
+        if key.startswith("fakestar") and key[8:].isdigit():
+            return StarInfo(tic_id=int(key[8:]), name=name)
+        raise LookupError(f"could not resolve {name!r} to a TIC star")
+
     def latest_data_marker(self, tic_id: int) -> str | None:
+        with self._lock:
+            self.marker_calls.append(tic_id)
+        if self.marker_down:
+            raise ConnectionError("MAST did not answer")
+        return self._marker(tic_id)
+
+    def _marker(self, tic_id: int) -> str | None:
         if tic_id in self.markers:
             return self.markers[tic_id]
         return f"sector-{random.Random(f'{self.seed}:m:{tic_id}').randint(1, 80)}"
 
-    def hunt(self, tic_id: int, progress: Callable[[str], None]) -> list[Discovery]:
+    def analyze(self, tic_id: int, progress: Callable[[str], None]) -> Analysis:
         with self._lock:
             self.hunt_calls.append(tic_id)
             self.running += 1
@@ -58,79 +73,76 @@ class FakeStarHunter:
                 if self.step_delay_s:
                     time.sleep(self.step_delay_s)
             if tic_id in self.fail_for:
-                raise RuntimeError(f"no usable light curve for TIC {tic_id}")
-            return self._results(tic_id)
+                raise LookupError(f"no usable light curve for TIC {tic_id}")
+            marker = self._marker(tic_id) or "none"
+            return self._result(tic_id, marker)
         finally:
             with self._lock:
                 self.running -= 1
 
-    def _results(self, tic_id: int) -> list[Discovery]:
+    def _result(self, tic_id: int, marker: str) -> Analysis:
         rng = random.Random(f"{self.seed}:star:{tic_id}")
-        marker = self.latest_data_marker(tic_id) or "none"
         jitter = random.Random(f"{self.seed}:jitter:{tic_id}:{marker}")
-        ra, dec = rng.uniform(0, 360), math.degrees(math.asin(rng.uniform(-1, 1)))
-        out: list[Discovery] = []
+        sector = int(marker.split("-")[-1]) if marker.startswith("sector-") else 1
+        links = [
+            Link(
+                label="ExoFOP-TESS target page",
+                url=f"https://exofop.ipac.caltech.edu/tess/target.php?id={tic_id}",
+            )
+        ]
+        signals = []
         for n in range(1, rng.randint(1, 2) + 1):
             period = round(rng.uniform(0.8, 20.0) * (1 + jitter.uniform(-0.003, 0.003)), 5)
-            kind = CatchType.planet_candidate if rng.random() < 0.6 else CatchType.eclipsing_binary
-            conf = round(rng.uniform(0.3, 0.9), 2)
-            t0 = round(rng.uniform(1400, 3000), 4)
-            out.append(
-                self._disc(
-                    tic_id,
-                    f"tess:{tic_id}:sig:{n}",
-                    kind,
-                    conf,
-                    ra,
-                    dec,
-                    t0,
-                    {"fake": True, "period_days": period, "t0_btjd": t0, "marker": marker},
-                    f"Best guess: {kind.value.replace('_', ' ')} (confidence {conf:.2f}). "
-                    f"The star dims by a small amount every {period:.3f} days. "
-                    "It needs follow-up before anyone can say what it is.",
+            kind = "planet_candidate" if rng.random() < 0.6 else "eclipsing_binary"
+            depth = rng.uniform(0.001, 0.02)
+            phase = [round(-0.5 + (i + 0.5) / 1000, 5) for i in range(1000)]
+            flux = [round(1 - depth if abs(p) < 0.02 else 1.0, 6) for p in phase]
+            signals.append(
+                Signal(
+                    id=f"tess:{tic_id}:sig:{n}",
+                    type=kind,
+                    confidence=round(rng.uniform(0.3, 0.9), 2),
+                    period_days=period,
+                    t0_btjd=round(rng.uniform(1400, 3000), 4),
+                    duration_hours=round(rng.uniform(1, 5), 2),
+                    depth_ppm=round(depth * 1e6, 1),
+                    snr=round(rng.uniform(8, 80), 1),
+                    n_transits=rng.randint(3, 30),
+                    known_status="unchecked",
+                    explanation=(
+                        f"Best guess: {kind.replace('_', ' ')}. The star dims by a small amount "
+                        f"every {period:.3f} days.{self.extra_text}"
+                    ),
+                    checks=[Check(name="snr", passed=True, reason="The dips stand out clearly.")],
+                    links=links,
+                    folded=FoldedCurve(phase=phase, flux=flux),
                 )
             )
+        flares = []
         if rng.random() < 0.5:
             peak = round(rng.uniform(1400, 3000), 3)
-            out.append(
-                self._disc(
-                    tic_id,
-                    f"tess:{tic_id}:flare:{peak:.2f}",
-                    CatchType.flare,
-                    0.8,
-                    ra,
-                    dec,
-                    peak,
-                    {"fake": True, "peak_btjd": peak, "marker": marker},
-                    "Best guess: flare (confidence 0.80). The star brightened sharply "
-                    "for a few minutes and then faded back.",
+            flares.append(
+                Flare(
+                    id=f"tess:{tic_id}:flare:{peak:.2f}",
+                    peak_btjd=peak,
+                    peak_at="2024-01-01T00:00:00Z",
+                    amplitude=0.01,
+                    confidence=0.8,
+                    explanation="Best guess: a stellar flare. The star brightened sharply.",
                 )
             )
-        return out
-
-    @staticmethod
-    def _disc(tic, did, kind, conf, ra, dec, btjd, raw, text) -> Discovery:
-        times = [btjd + i * 0.02 for i in range(200)]
-        flux = [1.0 - (0.01 if 90 <= i < 100 else 0.0) for i in range(200)]
-        return Discovery(
-            id=did,
-            type=kind,
-            confidence=conf,
-            source="tess",
-            origin="fake-tess-hunt",
-            ra_deg=round(ra, 6),
-            dec_deg=round(dec, 6),
-            detected_at=btjd_to_datetime(btjd),
-            name_if_known=f"TIC {tic}",
-            known_status="unchecked",
-            cutouts=Cutouts(),
-            light_curve=LightCurve(time_btjd=times, flux=flux),
-            explanation=text,
-            links=[
-                Link(
-                    label="ExoFOP page for this star",
-                    url=f"https://exofop.ipac.caltech.edu/tess/target.php?id={tic}",
-                )
-            ],
-            raw=raw,
+        ra, dec = rng.uniform(0, 360), math.degrees(math.asin(rng.uniform(-1, 1)))
+        sectors = [Sector(sector=sector, author="SPOC", exptime=120.0)]
+        star = StarInfo(
+            tic_id=tic_id, name=NAME_OF.get(tic_id), ra_deg=round(ra, 5), dec_deg=round(dec, 5)
+        )
+        return Analysis(
+            star=star,
+            sectors=sectors,
+            signals=signals,
+            flares=flares,
+            flares_found=len(flares),
+            signals_examined=len(signals),
+            summary=describe(star, sectors, signals, len(flares)),
+            links=links,
         )

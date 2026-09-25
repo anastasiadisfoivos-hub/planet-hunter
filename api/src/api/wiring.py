@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
-from api.ports import AlertSource, Forecaster, StarHunter, Storage
+from api.ports import StarAnalyzer, Storage
 from api.settings import Settings
 from api.storage.sqlite import SqliteStorage
 
@@ -12,9 +12,7 @@ from api.storage.sqlite import SqliteStorage
 @dataclass
 class Services:
     storage: Storage
-    alerts: AlertSource
-    hunter: StarHunter
-    forecaster: Forecaster
+    analyzer: StarAnalyzer
 
 
 def build_storage(settings: Settings) -> Storage:
@@ -31,27 +29,27 @@ def build_storage(settings: Settings) -> Storage:
     return SqliteStorage(settings.db_path)
 
 
-def build_services(settings: Settings) -> Services:
-    storage = build_storage(settings)
-    if settings.adapters == "real":
-        from api.adapters import real
+def storage_from_cli(db: str | None, database_url: str | None) -> Storage:
+    """For the CLIs: --database-url, else --db, else the environment."""
+    settings = Settings.from_env()
+    if database_url:
+        settings = replace(settings, database_url=database_url)
+    elif db:
+        settings = replace(settings, database_url=None, db_path=db)
+    return build_storage(settings)
 
-        return Services(
-            storage=storage,
-            alerts=real.alert_source(),
-            hunter=real.star_hunter(),
-            forecaster=real.forecaster(),
-        )
+
+def build_analyzer(settings: Settings) -> StarAnalyzer:
+    if settings.adapters == "real":
+        from api.adapters.real import PipelineAnalyzer
+
+        return PipelineAnalyzer()
     if settings.adapters != "fake":
         raise ValueError(f"PH_ADAPTERS must be 'fake' or 'real', got {settings.adapters!r}")
+    from api.fakes.tess import FakeAnalyzer
 
-    from api.fakes.forecast import FakeForecaster
-    from api.fakes.rubin import FakeAlertSource
-    from api.fakes.tess import FakeStarHunter
+    return FakeAnalyzer()
 
-    return Services(
-        storage=storage,
-        alerts=FakeAlertSource(),
-        hunter=FakeStarHunter(),
-        forecaster=FakeForecaster(),
-    )
+
+def build_services(settings: Settings) -> Services:
+    return Services(storage=build_storage(settings), analyzer=build_analyzer(settings))
