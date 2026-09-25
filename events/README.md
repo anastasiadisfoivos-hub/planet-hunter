@@ -2,14 +2,15 @@
 
 What is happening in the sky right now, as one list of **Events**: supernovae and other
 transients, new near-Earth objects and comets, solar flares, CMEs and geomagnetic storms,
-fireballs, gamma-ray bursts, neutrinos and gravitational waves. Python 3.12, `uv`. Free sources
-only, no logins, no API keys.
+fireballs, gamma-ray bursts, neutrinos and gravitational waves, each with a real distance or 3D
+position where one exists. Python 3.12, `uv`. Free sources only, no logins, no API keys.
 
 ```sh
 uv sync
 uv run events-ingest --since 7d --out events.json   # also writes status.json next to it
 uv run pytest                                       # offline, replays recorded real responses
 uv run python scripts/record_fixtures.py            # re-record fixtures (network)
+uv run python scripts/record_fixtures.py distances  # only the distance lookups, on top of live_week
 ```
 
 ```python
@@ -107,6 +108,51 @@ The merged event keeps the best member's id, type, title and summary. "Best" mea
 - all images;
 - `raw.sources` with every member's link, and `raw.merged_ids`.
 
+## Distances and 3D positions
+
+After de-duplication every sky event gets a real distance where one exists, and every
+Solar-System object a real 3D position. Both are optional fields of the sky `Location`, so
+records without them stay valid:
+
+```
+distance:  {pc, pc_low, pc_high, redshift, basis: parallax|redshift|gw_estimate|catalogue|unknown}
+ephemeris: {helio_xyz_au: [x, y, z], earth_distance_au, sun_distance_au, epoch}
+```
+
+Solar-System objects carry `ephemeris`; every other sky event carries `distance` (basis
+`unknown`, all numbers null, when nothing measured it), and so does a Solar-System object whose
+position could not be computed. Sun- and Earth-frame events get neither.
+`raw.distance_from` says where each value came from (e.g. "GCN Circular 45740: ...").
+
+| type | how | basis |
+|---|---|---|
+| comet, interstellar object (JPL) | [Horizons](https://ssd-api.jpl.nasa.gov/doc/horizons.html) vectors at `observed_at`: Sun-centred, ecliptic J2000, geometric | ephemeris |
+| NEOCP / PCCP objects (MPC) | Horizons doesn't know temporary designations, so [JPL Scout](https://ssd-api.jpl.nasa.gov/doc/scout.html)'s 50 sampled orbits, each moved to `observed_at` with two-body Kepler motion; the median position, with the 16-84% Earth-distance spread in `raw.ephemeris_spread` | ephemeris |
+| supernova, TDE, kilonova, AGN flare, `unknown` (position ≤ 2″) | the transient's own TNS redshift → `redshift`; else TNS host-galaxy redshift, else a SIMBAD galaxy/AGN/QSO with a redshift within 2″ → `catalogue` | redshift, catalogue |
+| nova | as above (a nova in another galaxy), else Gaia as below | redshift, catalogue, parallax |
+| variable star, stellar flare, microlensing | nearest Gaia DR3 source within 1.5″, distance = 1000 / parallax, only if parallax/error > 5; a weaker match is named in `raw.distance_note` | parallax |
+| gamma-ray burst (and Einstein Probe transients) | the redshift a GCN Circular reports (spectroscopic first; from the subject's "z = …", else the body's "redshift (of) z = …") | redshift |
+| gravitational wave | the GraceDB sky map's DISTMEAN ± DISTSTD → `pc`, `pc_low`, `pc_high` | gw_estimate |
+| neutrino | nothing measures it | unknown |
+
+- **Cosmology**: redshift → luminosity distance in astropy's `Planck18`, the same kind of
+  distance a gravitational-wave sky map gives. Redshift distances carry no bounds.
+- **Parallax**: bounds are 1000 / (parallax ± error). Gaia's small parallax zero-point is not
+  corrected.
+- **Earth**: `earth_distance_au` uses ERFA's Earth position (it agrees with Horizons to
+  3·10⁻⁸ au); the Kepler step agrees with Horizons to 2·10⁻⁶ au after 30 days. Both are tested
+  against recorded Horizons answers.
+- **Why not ALeRCE host data**: ALeRCE's public ZTF API has no host-galaxy or redshift endpoint,
+  so SIMBAD is the host catalogue.
+- **Cost**: TNS objects with a redshift first seen from 90 days before the oldest candidate
+  (500 per request, at most 6 requests, 5 s apart), SIMBAD and Gaia in batches of 50 cones per
+  ADQL query, one Horizons or Scout request per Solar-System object, and only the redshift
+  circulars of each burst. About a minute for a week. Ephemerides and TAP answers are cached
+  (past epochs never change).
+
+A failing lookup leaves its events at `unknown` and is named in `status.json` under
+`distances.lookups`; it never stops the feed.
+
 ## query(filters)
 
 `types`, `categories` (`transients`, `solar_system`, `sun_space_weather`, `earth_atmosphere`,
@@ -120,7 +166,10 @@ merged event matches any member), `frame` (`sky`/`sun`/`earth`), `region`
 - `events.json`: `{generated_at, since, until, count, events: [Event]}`.
 - `status.json`: `{generated_at, window, events_before_dedup, events, events_in_window, sources: {name: {state:
   live|paused|unknown, live, last_event_at, events, events_fetched, error, live_within_hours,
-  ...}}}`. `events` counts only events observed inside the requested window. `events_fetched`
+  distance: {sky_events, with_distance, share}, ...}}, distances: {cosmology, lookups, by_type:
+  {type: {events, with_distance, share, basis: {basis: count}}}}}`. `distance.share` is the share
+  of a source's sky events (a merged event counts for every member) with a distance or an
+  ephemeris; `null` for sources with no sky events. `events` counts only events observed inside the requested window. `events_fetched`
   also counts older ones: a paused source's latest nights, or TNS/JPL lookbacks. The top-level
   `events_in_window` does the same after de-duplication. Rubin adds
   `window`, `last_scheduled_visit_at` and a `note` while it is paused.

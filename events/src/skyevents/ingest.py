@@ -1,4 +1,4 @@
-"""Run every adapter, de-duplicate, and describe each source's health for status.json."""
+"""Run every adapter, de-duplicate, add distances, and describe each source's health for status.json."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from typing import Any
 
 from .adapters import ADAPTERS
 from .dedup import dedup
+from .distance import coverage_by_source, enrich
 from .models import Event
 from .util import as_utc, iso
 
@@ -29,6 +30,13 @@ def ingest(
 
     events = [e for r in results.values() for e in r[0]]
     merged = dedup(events)
+    try:
+        distances = enrich(merged)
+    except Exception as exc:  # noqa: BLE001 - distances are extra; the feed still goes out
+        log.warning("distance enrichment failed: %s", exc)
+        distances = {"error": str(exc)[:300]}
+    for name, cov in coverage_by_source(merged, names).items():
+        results[name][1]["distance"] = cov
     status = {
         "generated_at": iso(now),
         "window": {"since": iso(since), "until": iso(until)},
@@ -36,6 +44,7 @@ def ingest(
         "events": len(merged),
         "events_in_window": sum(since <= as_utc(e["observed_at"]) <= until for e in merged),
         "sources": {n: results[n][1] for n in names},
+        "distances": distances,
     }
     return merged, status
 

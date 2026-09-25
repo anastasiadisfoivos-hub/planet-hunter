@@ -12,7 +12,7 @@ from recording import install_replay, meta
 
 from skyevents.adapters import ADAPTERS
 from skyevents.ingest import ingest
-from skyevents.models import CATEGORY_OF, EVENT_TYPES
+from skyevents.models import CATEGORIES, CATEGORY_OF, DISTANCE_BASES, EVENT_TYPES
 from skyevents.query import query
 
 M = meta("live_week")
@@ -26,7 +26,7 @@ def week(tmp_path_factory):
     with pytest.MonkeyPatch.context() as mp:
         mp.setenv("SKYSOURCES_CACHE", str(tmp_path_factory.mktemp("cache")))
         mp.setattr(httpx.Client, "send", lambda *a, **k: (_ for _ in ()).throw(AssertionError("network")))
-        install_replay(mp, "live_week")
+        install_replay(mp, "live_week", "distances_week")
         events, status = ingest(SINCE, UNTIL, now=NOW)
     return events, status
 
@@ -78,7 +78,8 @@ def test_contract_values(week):
         assert e["brightness_mag"] is None or -30 < e["brightness_mag"] < 35
         loc = e["location"]
         if loc["frame"] == "sky":
-            assert set(loc) == {"frame", "ra_deg", "dec_deg", "error_deg"}
+            assert {"frame", "ra_deg", "dec_deg", "error_deg"} <= set(loc) <= {
+                "frame", "ra_deg", "dec_deg", "error_deg", "distance", "ephemeris"}
             assert 0 <= loc["ra_deg"] < 360 and -90 <= loc["dec_deg"] <= 90 and loc["error_deg"] > 0
         elif loc["frame"] == "earth":
             assert set(loc) == {"frame", "lat_deg", "lon_deg", "alt_km"}
@@ -161,3 +162,98 @@ def test_rubin_latest_nights_are_flagged_and_query_since_drops_them(week):
     toggle = query({"sources": ["rubin"], "limit": 1000}, events)
     toggle += query({"sources": ["rubin"], "limit": 1000, "offset": 1000}, events)  # paging
     assert len(toggle) == len(rubin) and all(e["observed_at"] < "2026-07-15" for e in toggle)
+
+
+# ------------------------------------------------------------------ distances
+
+
+def _sky(events):
+    return [e for e in events if e["location"]["frame"] == "sky"]
+
+
+def test_every_sky_event_has_a_distance_or_an_ephemeris(week):
+    events, _ = week
+    for e in _sky(events):
+        loc = e["location"]
+        if e["type"] in CATEGORIES["solar_system"]:
+            assert "ephemeris" in loc and "distance" not in loc, e["id"]
+        else:
+            assert "distance" in loc and "ephemeris" not in loc, e["id"]
+    for e in events:
+        if e["location"]["frame"] != "sky":
+            assert "distance" not in e["location"] and "ephemeris" not in e["location"]
+
+
+def test_distance_values_are_consistent(week):
+    events, _ = week
+    for e in _sky(events):
+        d = e["location"].get("distance")
+        if not d:
+            continue
+        assert list(d) == ["pc", "pc_low", "pc_high", "redshift", "basis"] and d["basis"] in DISTANCE_BASES
+        if d["basis"] == "unknown":
+            assert d == {"pc": None, "pc_low": None, "pc_high": None, "redshift": None, "basis": "unknown"}
+            continue
+        assert d["pc"] > 0 and e["raw"]["distance_from"]
+        if d["pc_low"] is not None:
+            assert d["pc_low"] <= d["pc"] <= d["pc_high"]
+        if d["basis"] in ("redshift", "catalogue"):
+            assert d["redshift"] > 0 and d["pc"] > 1e5  # beyond the Milky Way
+        if d["basis"] == "parallax":
+            assert e["raw"]["distance_from"].startswith("Gaia DR3") and d["pc"] < 1e5
+            plx, err = (float(x) for x in re.findall(r"([\d.]+)(?: ±| mas)", e["raw"]["distance_from"]))
+            assert plx / err > 5
+    assert all(e["location"]["distance"]["basis"] == "unknown" for e in events if e["type"] == "neutrino")
+
+
+def test_solar_system_positions(week):
+    events, _ = week
+    ss = [e for e in _sky(events) if e["type"] in CATEGORIES["solar_system"]]
+    assert len(ss) == 39
+    for e in ss:
+        eph = e["location"]["ephemeris"]
+        assert list(eph) == ["helio_xyz_au", "earth_distance_au", "sun_distance_au", "epoch"]
+        assert eph["epoch"] == e["observed_at"]  # at the observation, not at ingest time
+        assert sum(c * c for c in eph["helio_xyz_au"]) ** 0.5 == pytest.approx(eph["sun_distance_au"], abs=1e-6)
+        assert 0 < eph["earth_distance_au"] < 60 and 0.05 < eph["sun_distance_au"] < 60
+        # the Earth-object-Sun triangle closes
+        assert abs(eph["sun_distance_au"] - eph["earth_distance_au"]) <= 1.02
+    by_id = {e["id"]: e for e in ss}
+    assert by_id["jpl:P/2026_R1"]["raw"]["distance_from"] == "JPL Horizons vectors for 2026 R1"
+    neo = [e for e in ss if e["source"] == "mpc"]
+    assert all(e["raw"]["ephemeris_spread"]["orbits"] == 50 for e in neo)
+
+
+def test_one_real_example_per_basis(week):
+    events, _ = week
+    by_id = {e["id"]: e for e in events}
+    sn = by_id["tns:2026abvs"]["location"]["distance"]
+    assert (sn["basis"], sn["redshift"], sn["pc"]) == ("redshift", 0.029, pytest.approx(1.3132e8))
+    grb = by_id["gcn:GRB_260924A"]
+    assert grb["location"]["distance"]["redshift"] == 3.51 and grb["raw"]["distance_from"].startswith("GCN Circular 45740")
+    ep = by_id["gcn:GRB_260920B"]  # GRB 260920B = EP260920b; the VLT spectrum's circular wins
+    assert ep["location"]["distance"]["redshift"] == 3.582
+    cat = by_id["ztf:ZTF26abwqnbk"]
+    assert cat["location"]["distance"]["basis"] == "catalogue" and cat["raw"]["distance_from"].startswith("SIMBAD LEDA 1471594")
+    star = by_id["rubin:170059273359851523"]["location"]["distance"]
+    assert star["basis"] == "parallax" and star["pc"] == pytest.approx(779.0, abs=0.5)
+    comet = by_id["mpc:A11H8ut"]["location"]["ephemeris"]
+    assert comet["sun_distance_au"] == pytest.approx(4.806, abs=1e-3)
+
+
+def test_status_reports_distance_coverage(week):
+    events, status = week
+    d = status["distances"]
+    assert d["cosmology"].startswith("Planck18")
+    assert all(v["ok"] for v in d["lookups"].values()), d["lookups"]
+    assert d["by_type"]["near_earth_object"]["share"] == 1.0
+    assert d["by_type"]["neutrino"] == {"events": 1, "with_distance": 0, "share": 0.0, "basis": {"unknown": 1}}
+    s = status["sources"]
+    assert s["mpc"]["distance"]["share"] == 1.0 and s["tns"]["distance"]["share"] > 0.9
+    assert s["donki"]["distance"] == {"sky_events": 0, "with_distance": 0, "share": None}
+    for name, st in s.items():
+        cov = st["distance"]
+        assert cov["with_distance"] <= cov["sky_events"], name
+    assert sum(v["with_distance"] for v in d["by_type"].values()) == sum(
+        e["location"]["frame"] == "sky" and ("ephemeris" in e["location"] or e["location"]["distance"]["pc"] is not None)
+        for e in events)

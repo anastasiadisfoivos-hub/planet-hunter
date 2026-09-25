@@ -78,7 +78,9 @@ def alert_to_event(alert: dict) -> Event | None:
     ev = alert.get("event") or {}
     if not ev.get("skymap"):
         return None
-    ra, dec, area90 = skymap_summary(base64.b64decode(ev["skymap"]))
+    fits_bytes = base64.b64decode(ev["skymap"])
+    ra, dec, area90 = skymap_summary(fits_bytes)
+    dist = skymap_distance(fits_bytes)
     cls = ev.get("classification") or {}
     kinds = {k: v for k, v in cls.items() if k != "Terrestrial"}
     likely = max(kinds, key=kinds.get) if kinds else None
@@ -120,6 +122,7 @@ def alert_to_event(alert: dict) -> Event | None:
             "area90_deg2": round(area90, 1),
             "pipeline": ev.get("pipeline"),
             "group": ev.get("group"),
+            "distance_mpc": dist,
         },
     )
 
@@ -141,6 +144,17 @@ def confidence_from(ev: dict) -> tuple[float, str]:
         rate = f"one false alarm per {years:,.0f} years" if years >= 1 else f"{per_year:.1f} false alarms per year"
         return 1.0 / (1.0 + per_year), f"estimated from the false-alarm rate ({rate})"
     return 0.5, "a default of 0.5 (neither a probability nor a false-alarm rate was published)"
+
+
+def skymap_distance(fits_bytes: bytes) -> dict | None:
+    """The sky map's all-sky luminosity distance, {mean, std} in Mpc (header DISTMEAN, DISTSTD).
+    None when the map has no distance (unmodelled burst searches publish none)."""
+    meta = Table.read(io.BytesIO(fits_bytes), format="fits").meta
+    mean, std = meta.get("DISTMEAN"), meta.get("DISTSTD")
+    if mean is None or not math.isfinite(float(mean)) or float(mean) <= 0:
+        return None
+    std = float(std) if std is not None and math.isfinite(float(std)) else None
+    return {"mean": round(float(mean), 1), "std": None if std is None else round(std, 1)}
 
 
 def skymap_summary(fits_bytes: bytes) -> tuple[float, float, float]:

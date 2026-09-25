@@ -185,8 +185,29 @@ def _event(names: frozenset[str], circs: list[dict], date: datetime) -> Event | 
             "circulars": [int(c["circularId"]) for c in circs][:20],
             "position_from_circular": int(from_id),
             "time_precision": "second" if when else "day",
+            # Circulars whose subject reports a redshift, best first; distance lookup reads them.
+            "redshift_circulars": redshift_circulars(circs),
         },
     )
+
+
+def redshift_subject_rank(subject: str) -> int | None:
+    """Circulars that report a redshift, best first (spectroscopic, other, photometric); None if
+    the subject doesn't claim one."""
+    s = subject.lower()
+    if "redshift" not in s:
+        return None
+    if "photometric" in s:
+        return 2
+    return 0 if "spectroscop" in s else 1
+
+
+def redshift_circulars(circs: list[dict], limit: int = 3) -> list[dict]:
+    ranked = [
+        {"id": int(c["circularId"]), "subject": c["subject"][:160], "rank": r}
+        for c in circs if (r := redshift_subject_rank(c["subject"])) is not None
+    ]
+    return sorted(ranked, key=lambda c: (c["rank"], c["id"]))[:limit]
 
 
 def parse_positions(body: str) -> list[tuple[float, float, float]]:

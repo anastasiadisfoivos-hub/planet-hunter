@@ -20,17 +20,25 @@ HTTP_DIR = FIXTURES / "http"
 
 
 @contextmanager
-def recording(name: str, meta: dict | None = None):
-    """Run live, saving every response under fixtures/http/<name>.json."""
+def recording(name: str, meta: dict | None = None, replay_from: tuple[str, ...] = ()):
+    """Run live, saving every response under fixtures/http/<name>.json. Requests already recorded
+    in the `replay_from` fixtures are answered from them and not saved again, so a new fixture
+    can hold only what a new step adds on top of an old recording."""
     store: dict[str, dict] = {}
+    old: dict[str, str] = {}
+    for n in replay_from:
+        old.update({k: v["text"] for k, v in json.loads((HTTP_DIR / f"{n}.json").read_text())["responses"].items()})
     lock = threading.Lock()
     orig = http.CachedClient.request_text
 
     def req(self, method, url, *, params=None, json_body=None, data=None, ttl=3600.0):
-        text = orig(self, method, url, params=params, json_body=json_body, data=data, ttl=0)
         key = http._cache_key(method, url, params, json_body, data)
+        if key in old:
+            return old[key]
+        text = orig(self, method, url, params=params, json_body=json_body, data=data, ttl=0)
         with lock:
-            store[key] = {"method": method, "url": url, "params": params, "json": json_body, "text": text}
+            store[key] = {"method": method, "url": url, "params": params, "json": json_body, "data": data,
+                          "text": text}
         return text
 
     http.CachedClient.request_text = req

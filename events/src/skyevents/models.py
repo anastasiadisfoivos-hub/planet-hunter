@@ -3,7 +3,7 @@ without changing the contract."""
 
 from __future__ import annotations
 
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, NotRequired, TypedDict
 
 EventType = Literal[
     "supernova",
@@ -35,11 +35,41 @@ ImageKind = Literal[
 ConfidenceBasis = Literal["official_report", "catalogue_match", "machine_guess"]
 
 
+DistanceBasis = Literal["parallax", "redshift", "gw_estimate", "catalogue", "unknown"]
+DISTANCE_BASES: tuple[str, ...] = DistanceBasis.__args__  # type: ignore[attr-defined]
+
+
+class Distance(TypedDict):
+    """How far away, in parsecs. pc_low/pc_high bound the estimate when the source gives one.
+    Redshift distances are luminosity distances in Planck18 (astropy), the same kind of distance
+    a gravitational-wave sky map publishes. basis "unknown" means nothing measured it."""
+
+    pc: float | None
+    pc_low: float | None
+    pc_high: float | None
+    redshift: float | None
+    basis: DistanceBasis
+
+
+class Ephemeris(TypedDict):
+    """Where a Solar-System object was at `epoch`: heliocentric, ecliptic J2000, geometric (no
+    light-time correction), in au."""
+
+    helio_xyz_au: list[float]  # [x, y, z]
+    earth_distance_au: float
+    sun_distance_au: float
+    epoch: str  # ISO 8601 UTC
+
+
 class SkyLocation(TypedDict):
     frame: Literal["sky"]
     ra_deg: float
     dec_deg: float
     error_deg: float
+    # Optional, added after ingest (records without them stay valid). Solar-System objects carry
+    # `ephemeris`; every other sky event (or one whose ephemeris failed) carries `distance`.
+    distance: NotRequired[Distance]
+    ephemeris: NotRequired[Ephemeris]
 
 
 class SunLocation(TypedDict):

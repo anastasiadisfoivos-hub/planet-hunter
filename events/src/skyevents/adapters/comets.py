@@ -145,6 +145,7 @@ def to_event(r: dict, ra: float, dec: float, tmag: float | None, epoch: datetime
         raw={
             "names": [r["full_name"], (f"{r['prefix']}/" if r.get("prefix") else "") + r["pdes"]],
             "designation": r["full_name"],
+            "pdes": r["pdes"],
             "first_obs": first,
             "last_obs": r.get("last_obs"),
             "eccentricity": e,
