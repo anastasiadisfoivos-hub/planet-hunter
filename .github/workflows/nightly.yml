@@ -1,0 +1,115 @@
+name: nightly
+
+# Two jobs, each OFF until its repo variable is set to "true"
+# (Settings -> Secrets and variables -> Actions -> Variables). See deploy/SETUP.md.
+#   PH_NIGHTLY_ENABLED  -> `python -m api.nightly` against the hosted database
+#   PH_HEATMAP_ENABLED  -> sources' heatmap build, published to the `heatmap-data` branch
+# A manual run (Actions tab -> nightly -> Run workflow) ignores the switches, and by default
+# the API checker runs in --dry-run.
+
+on:
+  schedule:
+    - cron: "17 9 * * *" # 09:17 UTC daily: after the night in Chile, before Europe wakes up
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "api.nightly: count only, write nothing"
+        type: boolean
+        default: true
+      nights:
+        description: "heatmap window in nights"
+        type: number
+        default: 3
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  traps:
+    name: api.nightly
+    if: >-
+      (github.event_name == 'schedule' && vars.PH_NIGHTLY_ENABLED == 'true') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check prerequisites
+        run: |
+          [ -f api/pyproject.toml ] || { echo "::error::api/ is not on this branch yet"; exit 1; }
+      - uses: docker/setup-buildx-action@v4
+      - name: Build API image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: deploy/Dockerfile
+          load: true
+          tags: planet-hunter-api:nightly
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Run nightly checker
+        env:
+          PH_ADAPTERS: ${{ vars.PH_ADAPTERS || 'fake' }}
+          PH_DATABASE_URL: ${{ secrets.PH_DATABASE_URL }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '--dry-run' || '' }}
+        run: |
+          if [ -z "$PH_DATABASE_URL" ]; then
+            echo "::warning::PH_DATABASE_URL secret is not set: running against a throwaway SQLite file."
+          fi
+          docker run --rm \
+            -e PH_ADAPTERS -e PH_DATABASE_URL \
+            -e PH_DB_PATH=/data/traps.db \
+            planet-hunter-api:nightly \
+            python -m api.nightly $DRY_RUN | tee nightly-summary.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-summary
+          path: nightly-summary.json
+          if-no-files-found: ignore
+
+  heatmap:
+    name: heatmap build
+    if: >-
+      (github.event_name == 'schedule' && vars.PH_HEATMAP_ENABLED == 'true') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write # to push heatmap.json to the heatmap-data branch
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check prerequisites
+        run: |
+          [ -f sources/pyproject.toml ] || { echo "::error::sources/ is not on this branch yet"; exit 1; }
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: sources/uv.lock
+      - name: Build heatmap.json
+        working-directory: sources
+        env:
+          NIGHTS: ${{ inputs.nights || 3 }}
+        run: |
+          uv python install 3.12
+          uv run python -m skysources.heatmap --nights "$NIGHTS" --until latest --out "$GITHUB_WORKSPACE/heatmap.json"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: heatmap
+          path: heatmap.json
+      - name: Publish to the heatmap-data branch
+        # Served at https://raw.githubusercontent.com/<owner>/<repo>/heatmap-data/heatmap.json
+        run: |
+          tmp=$(mktemp -d)
+          cp heatmap.json "$tmp/"
+          cd "$tmp"
+          git init -q -b heatmap-data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add heatmap.json
+          git commit -q -m "heatmap $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" heatmap-data

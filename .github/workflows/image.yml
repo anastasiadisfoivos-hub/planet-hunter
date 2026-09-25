@@ -1,0 +1,83 @@
+name: image
+
+# Builds the API image with the TESS cache pre-warmed for the "Known systems" stars, pushes it to
+# GitHub Container Registry and asks Render to redeploy it. Because the cache is inside the image,
+# it survives Render Free's disk wipes, so those stars open without downloading anything.
+#
+# Runs nightly and on every push to main, once the repo variable PH_IMAGE_ENABLED is "true".
+# A manual run (Actions tab -> image -> Run workflow) always runs.
+# Optional:
+#   variable PH_PREWARM_STARS          comma-separated, default below
+#   secret   RENDER_DEPLOY_HOOK_URL    Render -> service -> Settings -> Deploy Hook
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "47 8 * * *" # 08:47 UTC daily, before nightly.yml
+  workflow_dispatch:
+
+concurrency:
+  group: image
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/planet-hunter-api
+  PREWARM_STARS: ${{ vars.PH_PREWARM_STARS || 'WASP-18,WASP-121,WASP-43,TOI-700' }}
+
+jobs:
+  image:
+    if: vars.PH_IMAGE_ENABLED == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check prerequisites
+        run: |
+          [ -f api/pyproject.toml ] || { echo "::error::api/ is not on this branch yet"; exit 1; }
+          echo "STAMP=$(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Build and push (cache pre-warmed)
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: deploy/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          build-args: |
+            PREWARM_STARS=${{ env.PREWARM_STARS }}
+            PREWARM_STAMP=${{ env.STAMP }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Check the pre-warmed stars hunt offline
+        run: |
+          docker run --rm --network none --entrypoint python "${IMAGE}:latest" -W ignore -c "
+          import sys, time
+          from hunter import hunt
+          for s in sys.argv[1].split(','):
+              t = time.time(); d = hunt(s); print(f'{s}: {len(d)} detections in {time.time() - t:.0f}s from cache')
+          " "$PREWARM_STARS"
+      - name: Redeploy on Render
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::notice::RENDER_DEPLOY_HOOK_URL is not set: image pushed, Render not redeployed."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK" -o /dev/null && echo "Render deploy triggered"
