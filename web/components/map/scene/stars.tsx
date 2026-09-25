@@ -36,6 +36,7 @@ export function spriteMaterial(uniforms: Record<string, { value: unknown }>) {
     uniforms: {
       uPx: { value: 1 },
       uFovScale: { value: 1 },
+      uBright: { value: 1 },
       cAccent: { value: tokenColor("--accent", "#a3b8ff") },
       ...uniforms,
     },
@@ -52,17 +53,31 @@ export function useSpriteFrame(material: THREE.ShaderMaterial) {
 }
 
 /** Bright catalogue stars (Yale BSC) on the sky shell. Colour from B-V via Teff. */
-export function CatalogStars({ data, visible }: { data: MapData; visible: boolean }) {
+export function CatalogStars({
+  data,
+  visible,
+  dim,
+  uniforms,
+  positionsRef,
+}: {
+  data: MapData;
+  visible: boolean;
+  dim: boolean;
+  /** Hover and selection rings (every visible star is clickable). */
+  uniforms: StarUniforms;
+  positionsRef: React.RefObject<Float32Array | null>;
+}) {
   const geometry = useMemo(() => {
     const st = data.sky.stars;
     const n = st.ra.length;
     const pos = new Float32Array(n * 3);
     const col = new Float32Array(n * 3);
     const mag = new Float32Array(n);
-    const idx = new Float32Array(n).fill(-10);
+    const idx = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const [x, y, z] = radecToVec(st.ra[i], st.dec[i]);
       pos.set([x * STAR_R, y * STAR_R, z * STAR_R], i * 3);
+      idx[i] = i;
       col.set(linearStarColor(Number.isFinite(st.bv[i]) ? bvToTeff(st.bv[i]) : 0), i * 3);
       mag[i] = st.mag[i];
     }
@@ -73,18 +88,22 @@ export function CatalogStars({ data, visible }: { data: MapData; visible: boolea
     g.setAttribute("aIndex", new THREE.BufferAttribute(idx, 1));
     return g;
   }, [data.sky.stars]);
-  useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(() => {
+    positionsRef.current = geometry.getAttribute("position").array as Float32Array;
+    return () => geometry.dispose();
+  }, [geometry, positionsRef]);
   const material = useMemo(
     () =>
       spriteMaterial({
-        ...createStarUniforms(),
+        ...uniforms,
         uMinI: { value: 0.05 },
         uProximity: { value: 0 },
-        uRings: { value: 0 },
+        uRings: { value: 1 },
       }),
-    [],
+    [uniforms],
   );
   useSpriteFrame(material);
+  material.uniforms.uBright.value = dim ? 0.5 : 1;
   return <points geometry={geometry} material={material} frustumCulled={false} visible={visible} renderOrder={0} />;
 }
 
@@ -114,12 +133,14 @@ export function Hosts({
   index,
   trueScale,
   visible,
+  dim,
   starUniforms,
   positionsRef,
 }: {
   index: HostIndex;
   trueScale: boolean;
   visible: boolean;
+  dim: boolean;
   starUniforms: StarUniforms;
   positionsRef: React.RefObject<Float32Array | null>;
 }) {
@@ -158,6 +179,8 @@ export function Hosts({
     [starUniforms],
   );
   useSpriteFrame(material);
+  // The caller turns dimming off for a host close-up: that star is what you are looking at.
+  material.uniforms.uBright.value = dim ? 0.5 : 1;
   return <points geometry={geometry} material={material} frustumCulled={false} visible={visible} renderOrder={2} />;
 }
 

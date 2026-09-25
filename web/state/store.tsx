@@ -8,13 +8,18 @@ export type Layers = {
   coverage: boolean;
   /** Yale Bright Star Catalogue, for orientation. */
   stars: boolean;
-  /** Known planet hosts in 3D (off by default; a decision about this layer is pending). */
+  /** Stars at half brightness, so event markers are the brightest things on screen. */
+  dimStars: boolean;
+  /** Known planet hosts, at their distances in 3D. Every star is clickable and can be analyzed. */
   hosts: boolean;
   /** One recorded night of Rubin alerts, binned on the sky. */
   heatmap: boolean;
   /** Procedural Milky Way and nebulae. */
   art: boolean;
 };
+
+/** A selected star: a planet host (hosts.json index) or a bright catalogue star (sky-objects index). */
+export type StarRef = { kind: "host" | "bright"; i: number };
 
 export type State = {
   layers: Layers;
@@ -24,8 +29,8 @@ export type State = {
   selectedEvent: string | null;
   /** The event whose feed row is under the pointer (its marker is highlighted). */
   hoverEvent: string | null;
-  /** A planet host in close-up (only with the hosts layer on). */
-  selectedStar: number | null;
+  /** The star in the star panel. A planet host also gets the 3D close-up. */
+  selectedStar: StarRef | null;
 };
 
 export type Action =
@@ -35,10 +40,10 @@ export type Action =
   | { type: "resetFilters" }
   | { type: "selectEvent"; id: string | null }
   | { type: "hoverEvent"; id: string | null }
-  | { type: "selectStar"; index: number | null };
+  | { type: "selectStar"; star: StarRef | null };
 
 export const initialState: State = {
-  layers: { coverage: true, stars: true, hosts: false, heatmap: false, art: false },
+  layers: { coverage: true, stars: true, dimStars: true, hosts: true, heatmap: false, art: false },
   trueScale: false,
   filters: DEFAULT_FILTERS,
   selectedEvent: null,
@@ -50,8 +55,9 @@ export function reducer(state: State, a: Action): State {
   switch (a.type) {
     case "layer": {
       const layers = { ...state.layers, [a.layer]: a.on };
-      // Hiding the hosts ends any host close-up.
-      return { ...state, layers, selectedStar: a.layer === "hosts" && !a.on ? null : state.selectedStar };
+      // Hiding a star layer closes a star selected from it.
+      const hidden = !a.on && ((a.layer === "hosts" && state.selectedStar?.kind === "host") || (a.layer === "stars" && state.selectedStar?.kind === "bright"));
+      return { ...state, layers, selectedStar: hidden ? null : state.selectedStar };
     }
     case "trueScale":
       return { ...state, trueScale: a.on };
@@ -64,7 +70,7 @@ export function reducer(state: State, a: Action): State {
     case "hoverEvent":
       return state.hoverEvent === a.id ? state : { ...state, hoverEvent: a.id };
     case "selectStar":
-      return { ...state, selectedStar: a.index, selectedEvent: a.index !== null ? null : state.selectedEvent };
+      return { ...state, selectedStar: a.star, selectedEvent: a.star !== null ? null : state.selectedEvent };
   }
 }
 

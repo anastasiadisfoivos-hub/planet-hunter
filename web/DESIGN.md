@@ -4,7 +4,8 @@ This file is authoritative for everything under `web/`. If a skill, library defa
 this file wins.
 
 **Direction:** a phenomena spotter: what is happening in the sky, each event at its real position, filterable,
-with real pictures. Think instrument or observatory software, **not a game**: no watches, points or scores.
+with real pictures, plus every star clickable and analyzable. Think instrument or observatory software, **not a
+game**: no watches, points or scores.
 The UI is quiet and exact, with flat surfaces and hairlines. Data carries the colour; chrome stays neutral.
 
 Tokens live in `app/tokens.css` as CSS custom properties. Components use tokens, never raw hex.
@@ -65,8 +66,9 @@ Rules:
   close-up are **flights**: one eased (ease-in-out) timeline of 1.2 to 2 s that pulls back, turns toward the
   destination, then glides in. Any pointer or wheel input stops a flight where it is.
 - Hover and selection rings on the sky fade in under 150ms.
-- The focused star's surface evolves slowly (convection). That is the only thing in the product that loops.
-- Under `prefers-reduced-motion`: flights are instant cuts, no inertia, no drift, and the surface is a still image.
+- Two things loop: the focused star's surface (slow convection), and a gentle pulse on events observed in the last
+  24 hours (a ring that grows and fades every 2.4 s). A running analysis step shows a spinner.
+- Under `prefers-reduced-motion`: flights are instant cuts, no inertia, no drift, no pulse, no spinner, and the surface is a still image.
 - The illustrated sky's nebula layer may drift very slightly (under 0.1°). This is off under reduced motion and on
   phones.
 - Animation pauses while the tab is hidden.
@@ -89,8 +91,13 @@ Rules:
   positions and sizes from public catalogues (see `CREDITS.md`). They form one optional layer, "Milky Way & nebulae",
   **off by default**, with the note "Shapes are illustrations; positions are real." A drawn nebula is never labelled
   as a photo. Rubin coverage stays a subtle optional overlay.
-- Event markers always draw on top, with a thin black halo so they stay readable over bright stars and the
-  Milky Way. Recent events are larger and brighter; a selected event dims the others and shows its error circle.
+- **Events pop.** Markers are 14 to 20 px at any field of view, with a 2.4 px stroke, a soft halo in their category
+  colour and a thin black separation, drawn above the stars. "Dim stars" (on by default) draws stars at half
+  brightness, so events are the brightest things on screen. A selected event dims the others and shows its error circle.
+- **Every visible star is clickable**: planet hosts (3D, with the close-up) and bright catalogue stars (centred from
+  Earth). Hover shows its name. The star panel says where each number comes from; estimated values (a bright
+  star's temperature from B−V, its radius from brightness and temperature) are marked as estimates.
+- If both star layers are off, a small hint says so, with a one-click "Show stars".
 - Sun-frame events sit around the Sun's current position (computed client-side); the Sun itself is drawn in its
   real colour. Earth-frame events (fireballs, storms) are not on the sky: they get an Earth inset in the detail.
 - **Black means black.** The background is `#000` at all times, including behind a close-up: the corona is gone
@@ -99,11 +106,13 @@ Rules:
 ## Words
 
 - Say **event**, never catch, trap or detection. There are no watches, forecasts, points or scores anywhere.
+- The star action is **Analyze this star**. A result is "Planet candidate", never "new planet", with its confidence.
 - Never write "new planet" or "discovered". Confidence is always shown with its basis: "72%, machine guess".
 - Pictures keep their caption and credit visible. A sky-context photo is an archive image taken years before the
   event: say so ("The event itself is not in it"). A `forecast_map` is labelled as a forecast, never a photo.
 - Paused sources are stated plainly: "Rubin hasn't sent alerts since 14 Jul."
-- Dates: "14 Jul", "19 Sep 2026, 18:17 UTC". Times are UTC.
+- Dates: "14 Jul", "19 Sep 2026, 18:17 UTC". Times are UTC. Relative times come from `observed_at` only. When a
+  source publishes no report time (`raw.reported_at_known === false`), say "Report time not published".
 - Mock data shows a visible `DEMO DATA` tag.
 - No em dashes in UI copy.
 

@@ -72,6 +72,8 @@ export const spriteVertex = /* glsl */ `
 export const spriteFragment = /* glsl */ `
   precision highp float;
   uniform vec3 cAccent;
+  /** 1 normally; 0.5 with "Dim stars" on, so event markers are the brightest things on screen. */
+  uniform float uBright;
   varying vec3 vColor;
   varying float vI;
   varying float vCore;
@@ -88,7 +90,7 @@ export const spriteFragment = /* glsl */ `
     // point sprite's square boundary.
     float halo = exp(-0.5 * (r * r) / (vHalo * vHalo)) * (1.0 - smoothstep(vSize * 0.55, vSize * 0.98, r));
     // Hot centre: the core runs white-ish above 1, so bright stars bloom and faint ones do not.
-    vec3 c = vColor * (core * (0.55 + 0.9 * vI) + halo * 0.32 * vI);
+    vec3 c = vColor * (core * (0.55 + 0.9 * vI) + halo * 0.32 * vI) * uBright;
     float ring = (1.0 - smoothstep(0.0, 1.0, abs(r - vRing))) * vRingA;
     c += cAccent * ring * 0.85;
     if (max(max(c.r, c.g), c.b) < 0.002) discard;

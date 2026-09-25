@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "data:events": "node scripts/build-events-mock.mjs",
     "data:land": "node scripts/build-land.mjs",
-    "data:colors": "node scripts/build-star-colors.mjs"
+    "data:colors": "node scripts/build-star-colors.mjs",
+    "data:bright": "node scripts/build-bright-stars.mjs"
   },
   "dependencies": {
     "@hscmap/healpix": "^1.4.12",

@@ -97,3 +97,31 @@ test("the mock: real events, every category, all contract-shaped", () => {
   const now = Date.parse(meta.recorded_until);
   assert.ok(applyFilters(events, DEFAULT_FILTERS, now).length >= 25, "the default 7 days is not empty");
 });
+
+test("mock times: nothing observed after it was reported, or after the mock clock", () => {
+  const { meta, events } = JSON.parse(readFileSync(new URL("../public/data/events.mock.json", import.meta.url), "utf8"));
+  const clock = Date.parse(meta.recorded_until);
+  for (const e of events as SkyEvent[]) {
+    assert.ok(Date.parse(e.observed_at) <= Date.parse(e.reported_at), `${e.id}: observed ${e.observed_at} after reported ${e.reported_at}`);
+    assert.ok(Date.parse(e.observed_at) <= clock, `${e.id}: observed ${e.observed_at} after the mock clock ${meta.recorded_until}`);
+    assert.ok(Date.parse(e.reported_at) <= clock, `${e.id}: reported ${e.reported_at} after the mock clock`);
+  }
+});
+
+test("mock times: no event is stamped with a load or ingest time", () => {
+  const { meta, events } = JSON.parse(readFileSync(new URL("../public/data/events.mock.json", import.meta.url), "utf8"));
+  const clock = Date.parse(meta.recorded_until);
+  // The recording ran 2026-09-25 16:00 to 16:07 UTC. A real observation can land there, but not three
+  // at the same minute from JPL: that was the Horizons position epoch (fixed in build-events-mock.mjs).
+  const stamped = (events as SkyEvent[]).filter((e) => Math.abs(Date.parse(e.observed_at) - clock) < 10 * 60000);
+  assert.deepEqual(stamped.map((e) => e.id), []);
+  const jpl = (events as SkyEvent[]).filter((e) => e.source === "jpl");
+  for (const e of jpl) assert.ok(e.observed_at.endsWith("T00:00:00Z"), `${e.id}: JPL observed_at is a last-observation date`);
+});
+
+test("sources that publish no report time are flagged", () => {
+  const { events } = JSON.parse(readFileSync(new URL("../public/data/events.mock.json", import.meta.url), "utf8"));
+  for (const e of events as SkyEvent[]) {
+    if (["cneos", "tns", "jpl"].includes(e.source)) assert.equal(e.raw.reported_at_known, false, e.id);
+  }
+});

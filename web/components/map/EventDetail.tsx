@@ -111,7 +111,11 @@ export function EventDetail({ event: e, now, onBack, onShow }: { event: SkyEvent
         items={[
           { label: "Observed", value: formatUtc(e.observed_at), mono: true, hint: formatAgo(e.observed_at, now), wide: true },
           { label: "Confidence", value: formatPercent(e.confidence), mono: true, hint: BASIS_LABEL[e.confidence_basis] },
-          e.brightness_mag != null ? { label: "Brightness", value: `${e.brightness_mag.toFixed(1)} mag`, mono: true } : { label: "Reported", value: formatAgo(e.reported_at, now), mono: true },
+          e.brightness_mag != null
+            ? { label: "Brightness", value: `${e.brightness_mag.toFixed(1)} mag`, mono: true }
+            : e.raw?.reported_at_known === false
+              ? { label: "Reported", value: "Report time not published", mono: false }
+              : { label: "Reported", value: formatAgo(e.reported_at, now), mono: true },
           { ...w },
         ]}
       />

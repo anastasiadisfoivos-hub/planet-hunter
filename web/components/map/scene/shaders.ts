@@ -115,51 +115,61 @@ export const bubbleVertex = /* glsl */ `
 `;
 
 /**
- * Event markers: one point per event, the shape and colour of its category. Recent events are
- * larger and brighter. Hover and selection add an accent ring. Drawn in device pixels, on top.
+ * Event markers: one point per event, the shape and colour of its category, 14 to 20 px on screen at
+ * any field of view (recent events larger and brighter), a thick stroke, a soft halo in the category
+ * colour, and a slow expanding pulse for events under 24 hours old. Hover and selection add an accent
+ * ring. Drawn in device pixels, above the stars.
  */
 export const eventVertex = /* glsl */ `
   attribute vec3 aColor;
   attribute float aShape;
   attribute float aRecency;
+  attribute float aFresh;
   attribute float aIndex;
   uniform float uPx;
   uniform float uHover;
   uniform float uHoverT;
   uniform float uSelected;
   uniform float uDim;
+  uniform float uTime;
+  uniform float uPulse;
   varying vec3 vColor;
   varying float vShape;
   varying float vA;
   varying float vRing;
   varying float vSize;
   varying float vMark;
+  varying float vPulse;
   void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     float hov = step(abs(aIndex - uHover), 0.5) * uHoverT;
     float sel = step(abs(aIndex - uSelected), 0.5);
     float ring = max(hov, sel);
-    // 11 px for a 30-day-old event, 17 px for one from the last hours.
-    float mark = mix(11.0, 17.0, (aRecency - 0.35) / 0.65) + 3.0 * ring;
+    float rec = clamp((aRecency - 0.35) / 0.65, 0.0, 1.0);
+    float mark = mix(14.0, 20.0, rec) + 3.0 * ring;
     vMark = mark * uPx;
-    vSize = (mark + 12.0) * uPx;
+    vSize = (mark + 34.0) * uPx; // room for the halo and the pulse
     gl_PointSize = vSize;
     vColor = aColor;
     vShape = aShape;
-    vA = mix(0.55, 1.0, (aRecency - 0.35) / 0.65) * mix(1.0, 0.35, uDim * (1.0 - ring));
+    vA = mix(0.75, 1.0, rec) * mix(1.0, 0.4, uDim * (1.0 - ring));
     vRing = ring;
+    // Pulse phase 0..1 over 2.4 s, offset per event so fresh markers do not throb in unison.
+    vPulse = aFresh * uPulse > 0.5 ? fract(uTime / 2.4 + aIndex * 0.37) : -1.0;
   }
 `;
 
 export const eventFragment = /* glsl */ `
   precision highp float;
   uniform vec3 cAccent;
+  uniform float uPx;
   varying vec3 vColor;
   varying float vShape;
   varying float vA;
   varying float vRing;
   varying float vSize;
   varying float vMark;
+  varying float vPulse;
 
   // Signed distances in device pixels (negative inside).
   float sdCircle(vec2 p, float r) { return length(p) - r; }
@@ -183,25 +193,34 @@ export const eventFragment = /* glsl */ `
     vec2 p = (gl_PointCoord * 2.0 - 1.0) * vSize * 0.5;
     p.y = -p.y;
     float r = vMark * 0.5;
-    float line = 1.6 * (vSize / (vMark + 12.0)); // 1.6 CSS px stroke
+    float line = 2.4 * uPx; // 2.4 CSS px stroke
     float d;
     int s = int(vShape + 0.5);
-    if (s == 0) d = abs(sdCircle(p, r - line)) - line * 0.5;          // ring
-    else if (s == 1) d = abs(sdDiamond(p, r)) - line * 0.5;           // diamond outline
-    else if (s == 2) d = abs(sdBox(p, r * 0.78)) - line * 0.5;        // square outline
-    else if (s == 3) d = abs(sdTriangle(p, r * 0.9)) - line * 0.5;    // triangle outline
-    else if (s == 4) d = sdPlus(p, r, line * 0.6);                   // plus
-    else d = sdCircle(p, r * 0.32);                                  // dot
-    // A filled centre point for the outline shapes, so position reads at a glance.
-    float centre = s == 4 || s == 5 ? 1e9 : sdCircle(p, line * 0.8);
-    float shape = 1.0 - smoothstep(-0.5, 0.5, min(d, centre));
-    // A black halo keeps markers legible over bright stars and the Milky Way.
-    float halo = 1.0 - smoothstep(-0.5, 1.5, min(d, centre) - line * 1.2);
-    float ringD = abs(length(p) - (r + line * 2.6)) - line * 0.5;
+    if (s == 0) d = abs(sdCircle(p, r - line * 0.5)) - line * 0.5;   // ring
+    else if (s == 1) d = abs(sdDiamond(p, r)) - line * 0.5;          // diamond outline
+    else if (s == 2) d = abs(sdBox(p, r * 0.8)) - line * 0.5;        // square outline
+    else if (s == 3) d = abs(sdTriangle(p, r * 0.9)) - line * 0.5;   // triangle outline
+    else if (s == 4) d = sdPlus(p, r, line * 0.55);                  // plus
+    else d = sdCircle(p, r * 0.36);                                  // dot
+    // A filled centre point for the outline shapes, so the exact position reads at a glance.
+    float centre = s == 4 || s == 5 ? 1e9 : sdCircle(p, line * 0.7);
+    float dd = min(d, centre);
+    float shape = 1.0 - smoothstep(-0.5, 0.5, dd);
+    // Soft halo in the category colour, over a thin black separation from whatever is behind.
+    float sigma = 4.0 * uPx;
+    float glow = exp(-0.5 * pow(max(dd, 0.0) / sigma, 2.0)) * (1.0 - shape);
+    float sep = 1.0 - smoothstep(0.0, 1.5 * uPx, dd);
+    // Pulse: a ring that grows from the marker and fades out.
+    float pulse = 0.0;
+    if (vPulse >= 0.0) {
+      float pr = r + vPulse * 14.0 * uPx;
+      pulse = (1.0 - smoothstep(-0.8, 0.8, abs(length(p) - pr) - 0.75 * uPx)) * (1.0 - vPulse) * 0.7;
+    }
+    float ringD = abs(length(p) - (r + line * 2.2)) - line * 0.45;
     float ring = (1.0 - smoothstep(-0.5, 0.5, ringD)) * vRing;
-    vec3 col = vColor * shape * vA + cAccent * ring;
-    float a = max(max(shape * vA, ring), halo * 0.6 * vA);
+    vec3 col = vColor * (shape + glow * 0.45 + pulse) * vA + cAccent * ring;
+    float a = max(max(shape * vA, ring), max(sep * 0.7 * vA, max(glow * 0.45, pulse) * vA));
     if (a < 0.003) discard;
-    gl_FragColor = vec4(col, a);
+    gl_FragColor = vec4(col / max(a, 1e-3), a);
   }
 `;

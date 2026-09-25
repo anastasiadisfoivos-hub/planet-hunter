@@ -29,6 +29,8 @@ export type HostsFile = {
   dec: number[];
   dist: number[];
   npl: number[];
+  /** Known planet names per host (NASA Exoplanet Archive pl_name). */
+  planets: string[][];
   teff: number[];
   /** Stellar radius in solar radii; 0 when not listed. */
   rad: number[];
@@ -45,11 +47,25 @@ export type SkyObjectsFile = {
   stars: { ra: number[]; dec: number[]; mag: number[]; bv: number[] };
 };
 
+/** Names and distances for the bright catalogue stars, index-aligned with SkyObjectsFile.stars. */
+export type BrightStarsFile = {
+  source: string;
+  name: string[];
+  /** Parsecs (Hipparcos, via HYG); 0 when unknown. */
+  dist: number[];
+  /** Solar luminosities (HYG); 0 when unknown. */
+  lum: number[];
+  hip: number[];
+  /** hosts.json index of the same star, or -1. */
+  host: number[];
+};
+
 export type MapData = {
   footprint: Footprint;
   hosts: HostsFile;
   heatmap: HeatmapFile & { max: number; total: number };
   sky: SkyObjectsFile;
+  bright: BrightStarsFile;
   /** Baked equirectangular RGBA for the sky shader (see lib/skyTexture.ts). */
   skyTexture: Uint8Array;
 };
@@ -71,11 +87,12 @@ async function getJson<T>(url: string): Promise<T> {
 }
 
 export async function loadMapData(): Promise<MapData> {
-  const [fp, hosts, heatmap, sky] = await Promise.all([
+  const [fp, hosts, heatmap, sky, bright] = await Promise.all([
     getJson<FootprintFile>("/data/rubin-footprint.json"),
     getJson<HostsFile>("/data/hosts.json"),
     getJson<HeatmapFile>("/data/heatmap.rubin-sample.json"),
     getJson<SkyObjectsFile>("/data/sky-objects.json"),
+    getJson<BrightStarsFile>("/data/bright-stars.json"),
   ]);
   const footprint = decodeFootprint(fp);
   // Every HEALPix lookup happens here, once, before anything renders.
@@ -86,6 +103,7 @@ export async function loadMapData(): Promise<MapData> {
     hosts,
     heatmap: { ...heatmap, max: heat.max, total: heat.total },
     sky,
+    bright,
     skyTexture: packSkyTexture(coverage, heat.field),
   };
 }

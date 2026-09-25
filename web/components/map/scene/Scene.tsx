@@ -12,7 +12,7 @@ import { CATEGORY_STYLE, SHAPE_INDEX } from "@/lib/eventStyle";
 import { buildMarkers, type Marker } from "@/lib/markers";
 import { TEX_H, TEX_W } from "@/lib/skyTexture";
 import { formatDec, formatRa, radecToVec, vecToRadec, type Vec3 } from "@/lib/sky";
-import { useStore, type Layers, type State } from "@/state/store";
+import { useStore, type Layers, type StarRef, type State } from "@/state/store";
 import { bubbleVertex, eventFragment, eventVertex, skyFragment, skyVertex } from "./shaders";
 import { BASE_FOV, capUniform, displayRadius, EVENT_R, hud, MIN_DIST, MIN_FOV, SKY_R, tokenColor, view } from "./constants";
 import { QUALITY_DESKTOP, QUALITY_PHONE, SkyBaker } from "./skyBake";
@@ -150,7 +150,7 @@ function SkyShell({
 
 /** Uniforms the scene animates for event markers. */
 function createEventUniforms() {
-  return { uHover: { value: -1 }, uHoverT: { value: 0 }, uSelected: { value: -1 }, uDim: { value: 0 } };
+  return { uHover: { value: -1 }, uHoverT: { value: 0 }, uSelected: { value: -1 }, uDim: { value: 0 }, uTime: { value: 0 }, uPulse: { value: 0 } };
 }
 type EventUniforms = ReturnType<typeof createEventUniforms>;
 
@@ -163,6 +163,7 @@ function EventMarkers({ markers, uniforms, positionsRef }: { markers: Marker[]; 
     const col = new Float32Array(n * 3);
     const shape = new Float32Array(n);
     const rec = new Float32Array(n);
+    const fresh = new Float32Array(n);
     const idx = new Float32Array(n);
     const colors = new Map<string, THREE.Color>();
     markers.forEach((m, i) => {
@@ -174,6 +175,7 @@ function EventMarkers({ markers, uniforms, positionsRef }: { markers: Marker[]; 
       col.set([c.r, c.g, c.b], i * 3);
       shape[i] = SHAPE_INDEX[st.shape];
       rec[i] = m.recency;
+      fresh[i] = m.fresh ? 1 : 0;
       idx[i] = i;
     });
     const g = new THREE.BufferGeometry();
@@ -181,6 +183,7 @@ function EventMarkers({ markers, uniforms, positionsRef }: { markers: Marker[]; 
     g.setAttribute("aColor", new THREE.BufferAttribute(col, 3));
     g.setAttribute("aShape", new THREE.BufferAttribute(shape, 1));
     g.setAttribute("aRecency", new THREE.BufferAttribute(rec, 1));
+    g.setAttribute("aFresh", new THREE.BufferAttribute(fresh, 1));
     g.setAttribute("aIndex", new THREE.BufferAttribute(idx, 1));
     return g;
   }, [markers]);
@@ -256,6 +259,7 @@ function hostPos(positionsRef: React.RefObject<Float32Array | null>, i: number):
 function Director({
   rig,
   index,
+  data,
   hostPositions,
   starUniforms,
   eventUniforms,
@@ -264,6 +268,7 @@ function Director({
 }: {
   rig: Rig;
   index: HostIndex;
+  data: MapData;
   hostPositions: React.RefObject<Float32Array | null>;
   starUniforms: StarUniforms;
   eventUniforms: EventUniforms;
@@ -320,7 +325,9 @@ function Director({
   useEffect(() => {
     stateRef.current = state;
   });
-  const sel = state.selectedStar;
+  // Host close-up for planet hosts; bright catalogue stars are centred from Earth (they have no 3D place).
+  const sel = state.selectedStar?.kind === "host" ? state.selectedStar.i : null;
+  const selBright = state.selectedStar?.kind === "bright" ? state.selectedStar.i : null;
   const trueScale = state.trueScale;
   useEffect(() => {
     const prev = prevSel.current;
@@ -354,6 +361,12 @@ function Director({
   }, [sel, trueScale, rig, index, hostPositions, starUniforms, invalidate]);
 
   useEffect(() => {
+    if (selBright === null || !rig.controls) return;
+    flyTo(rig, earthView(data.sky.stars.ra[selBright], data.sky.stars.dec[selBright], 12), "jump");
+    invalidate();
+  }, [selBright, rig, data.sky.stars, invalidate]);
+
+  useEffect(() => {
     if (sel === null) rig.limits = { min: 0.3, max: trueScale ? 700 : 320 };
     if (!rig.flight && rig.controls) applyLimits(rig);
   }, [trueScale, sel, rig]);
@@ -365,6 +378,9 @@ function Director({
   useFrame((_, dt) => {
     const step = Math.min(dt, 0.1);
     if (!rig.reduced) rig.time += step;
+    // Fresh-event pulse: runs on the same clock; none under reduced motion.
+    eventUniforms.uTime.value = rig.time;
+    eventUniforms.uPulse.value = rig.reduced ? 0 : 1;
     let busy = stepFlight(rig, performance.now());
 
     // Ease the field of view toward its target (zooming past Earth narrows the field).
@@ -451,17 +467,23 @@ function Director({
  */
 function Input({
   index,
+  data,
   markers,
   eventPositions,
   hostPositions,
+  brightPositions,
+  brightUniforms,
   rig,
   eventUniforms,
   onPickEvent,
 }: {
   index: HostIndex;
+  data: MapData;
   markers: Marker[];
   eventPositions: React.RefObject<Float32Array | null>;
   hostPositions: React.RefObject<Float32Array | null>;
+  brightPositions: React.RefObject<Float32Array | null>;
+  brightUniforms: StarUniforms;
   rig: Rig;
   eventUniforms: EventUniforms;
   onPickEvent: (id: string) => void;
@@ -470,10 +492,10 @@ function Input({
   const gl = useThree((s) => s.gl);
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const invalidate = useThree((s) => s.invalidate);
-  const live = useRef({ selStar: state.selectedStar, hosts: state.layers.hosts, markers, onPickEvent });
+  const live = useRef({ selStar: state.selectedStar, hosts: state.layers.hosts, stars: state.layers.stars, markers, onPickEvent });
   useEffect(() => {
-    live.current = { selStar: state.selectedStar, hosts: state.layers.hosts, markers, onPickEvent };
-  }, [state.selectedStar, state.layers.hosts, markers, onPickEvent]);
+    live.current = { selStar: state.selectedStar, hosts: state.layers.hosts, stars: state.layers.stars, markers, onPickEvent };
+  }, [state.selectedStar, state.layers.hosts, state.layers.stars, markers, onPickEvent]);
 
   useEffect(() => {
     const el = gl.domElement;
@@ -489,7 +511,7 @@ function Input({
       interrupt(rig);
       const smooth = !rig.reduced;
       const dist = c.getSpherical(new THREE.Spherical(), true).radius;
-      if (live.current.selStar !== null) {
+      if (live.current.selStar?.kind === "host") {
         // Close-up: dolly toward the star, down to just above its surface.
         c.dollyTo(THREE.MathUtils.clamp(dist * f, rig.limits.min, rig.limits.max), smooth);
       } else if (f < 1) {
@@ -512,7 +534,7 @@ function Input({
 
     view.jumpTo = (ra, dec, fovDeg) => {
       flyTo(rig, earthView(ra, dec, fovDeg), "jump");
-      if (live.current.selStar !== null) dispatch({ type: "selectStar", index: null });
+      if (live.current.selStar !== null) dispatch({ type: "selectStar", star: null });
       invalidate();
     };
 
@@ -549,27 +571,42 @@ function Input({
     };
 
     /** Events first (they are on top); hosts only with their layer on. */
-    const pick = (x: number, y: number, px: number): { kind: "event" | "host"; i: number } | null => {
+    type Hit = { kind: "event" | "host" | "bright"; i: number };
+    /** Events first (drawn on top), then planet hosts, then bright stars: every visible star is clickable. */
+    const pick = (x: number, y: number, px: number): Hit | null => {
       const e = nearest(eventPositions.current, x, y, px);
       if (e >= 0) return { kind: "event", i: e };
       if (live.current.hosts) {
         const h = nearest(hostPositions.current, x, y, px);
         if (h >= 0) return { kind: "host", i: h };
       }
+      if (live.current.stars) {
+        const b = nearest(brightPositions.current, x, y, px);
+        if (b >= 0) {
+          // A bright star that is also a planet host opens as the host (with its close-up).
+          const h = data.bright.host[b];
+          return h >= 0 && live.current.hosts ? { kind: "host", i: h } : { kind: "bright", i: b };
+        }
+      }
       return null;
     };
 
-    const setHover = (hit: { kind: "event" | "host"; i: number } | null) => {
+    const setHover = (hit: Hit | null) => {
       const evI = hit?.kind === "event" ? hit.i : -1;
       const hoI = hit?.kind === "host" ? hit.i : -1;
-      if (evI === eventUniforms.uHover.value && hoI === rig.hover) return;
+      const brI = hit?.kind === "bright" ? hit.i : -1;
+      if (evI === eventUniforms.uHover.value && hoI === rig.hover && brI === rig.hoverBright) return;
+      rig.hoverBright = brI;
+      brightUniforms.uHover.value = brI;
+      brightUniforms.uHoverT.value = brI >= 0 ? 1 : 0;
       if (evI >= 0) eventUniforms.uHoverT.value = 0;
       eventUniforms.uHover.value = evI;
       if (hoI >= 0 && rig.hover >= 0) rig.hoverT = 0;
       rig.hover = hoI;
       el.style.cursor = hit ? "pointer" : "";
       if (hud.hover) {
-        hud.hover.textContent = evI >= 0 ? live.current.markers[evI].title : hoI >= 0 ? index.hosts.name[hoI] : "";
+        hud.hover.textContent =
+          evI >= 0 ? live.current.markers[evI].title : hoI >= 0 ? index.hosts.name[hoI] : brI >= 0 ? data.bright.name[brI] || "Unnamed star" : "";
         hud.hover.dataset.kind = hit?.kind ?? "";
       }
       invalidate();
@@ -619,7 +656,11 @@ function Input({
         // A tap on empty sky does nothing, so a stray tap never closes what you are reading.
         const hit = pick(e.clientX, e.clientY, e.pointerType === "mouse" ? 14 : 24);
         if (hit?.kind === "event") live.current.onPickEvent(live.current.markers[hit.i].id);
-        else if (hit?.kind === "host" && hit.i !== live.current.selStar) dispatch({ type: "selectStar", index: hit.i });
+        else if (hit) {
+          const star: StarRef = { kind: hit.kind === "host" ? "host" : "bright", i: hit.i };
+          const cur = live.current.selStar;
+          if (!cur || cur.kind !== star.kind || cur.i !== star.i) dispatch({ type: "selectStar", star });
+        }
       }
       tap = null;
     };
@@ -653,7 +694,7 @@ function Input({
       el.removeEventListener("pointerleave", leave);
       el.removeEventListener("wheel", wheel);
     };
-  }, [gl, camera, dispatch, index, eventPositions, hostPositions, rig, eventUniforms, invalidate]);
+  }, [gl, camera, dispatch, index, data, eventPositions, hostPositions, brightPositions, brightUniforms, rig, eventUniforms, invalidate]);
 
   return null;
 }
@@ -664,12 +705,14 @@ function Anchors({
   eventUniforms,
   eventPositions,
   hostPositions,
+  brightPositions,
   sun,
 }: {
   rig: Rig;
   eventUniforms: EventUniforms;
   eventPositions: React.RefObject<Float32Array | null>;
   hostPositions: React.RefObject<Float32Array | null>;
+  brightPositions: React.RefObject<Float32Array | null>;
   sun: { ra: number; dec: number };
 }) {
   const v = useMemo(() => new THREE.Vector3(), []);
@@ -693,7 +736,7 @@ function Anchors({
     };
     const ev = eventUniforms.uHover.value;
     const ep = eventPositions.current;
-    const hp = rig.hover >= 0 ? hostPos(hostPositions, rig.hover) : null;
+    const hp = rig.hover >= 0 ? hostPos(hostPositions, rig.hover) : rig.hoverBright >= 0 ? hostPos(brightPositions, rig.hoverBright) : null;
     const target = ev >= 0 && ep ? new THREE.Vector3(ep[ev * 3], ep[ev * 3 + 1], ep[ev * 3 + 2]) : hp ? new THREE.Vector3(...hp) : null;
     place(hud.hover, target, 16, -10);
     // Earth is only visible once you zoom out past it; say what it is.
@@ -748,7 +791,9 @@ export default function Scene({ data, index, events, now, showFps, noDetail = fa
   // The nebula layer drifts only on desktop, with motion allowed and the layer on.
   const drift = !phone && !reduced && state.layers.art;
   // A focused host's surface is alive unless motion is reduced; then it is a still image.
-  const living = state.selectedStar !== null && !reduced;
+  const living = state.selectedStar?.kind === "host" && !reduced;
+  // Events from the last 24 hours pulse, which needs a running frame loop (not under reduced motion).
+  const pulsing = !reduced && events.some((e) => e.location.frame !== "earth" && now - Date.parse(e.observed_at) < 24 * 3600_000);
 
   return (
     <Canvas
@@ -759,7 +804,7 @@ export default function Scene({ data, index, events, now, showFps, noDetail = fa
       onCreated={({ gl }) => gl.setClearColor(tokenColor("--space", "#000000"))}
       aria-hidden="true"
     >
-      <Loop want={showFps || drift || living ? "always" : "demand"} />
+      <Loop want={showFps || drift || living || pulsing ? "always" : "demand"} />
       <SceneContent data={data} index={index} events={events} now={now} baker={baker} drift={drift} rig={rig} phone={phone} noDetail={noDetail} dispatch={dispatch} />
       <EffectComposer multisampling={phone ? 0 : 4}>
         {/* Threshold above everything but star cores and the close-up star: the sky itself never glows. */}
@@ -796,6 +841,8 @@ function SceneContent({
   const { state } = useStore();
   const hostPositions = useRef<Float32Array | null>(null);
   const eventPositions = useRef<Float32Array | null>(null);
+  const brightPositions = useRef<Float32Array | null>(null);
+  const brightUniforms = useMemo(() => createStarUniforms(), []);
   const starUniforms = useMemo(() => createStarUniforms(), []);
   const eventUniforms = useMemo(() => createEventUniforms(), []);
   const { markers, sun } = useMemo(() => buildMarkers(events, now), [events, now]);
@@ -816,20 +863,27 @@ function SceneContent({
     }
   }, [markers, state.selectedEvent, state.hoverEvent, eventUniforms, rig.reduced]);
 
+  // The selected bright star gets the accent ring.
+  useEffect(() => {
+    const b = state.selectedStar?.kind === "bright" ? state.selectedStar.i : -1;
+    brightUniforms.uSelected.value = b;
+    brightUniforms.uSelectedT.value = b >= 0 ? 1 : 0;
+  }, [state.selectedStar, brightUniforms]);
+
   const onPickEvent = useMemo(() => (id: string) => dispatch({ type: "selectEvent", id }), [dispatch]);
 
   return (
     <>
-      <Director rig={rig} index={index} hostPositions={hostPositions} starUniforms={starUniforms} eventUniforms={eventUniforms} baker={baker} noDetail={noDetail} />
+      <Director rig={rig} index={index} data={data} hostPositions={hostPositions} starUniforms={starUniforms} eventUniforms={eventUniforms} baker={baker} noDetail={noDetail} />
       <SkyShell data={data} layers={state.layers} baker={baker} drift={drift} selected={selected} />
-      <CatalogStars data={data} visible={state.layers.stars} />
+      <CatalogStars data={data} visible={state.layers.stars} dim={state.layers.dimStars} uniforms={brightUniforms} positionsRef={brightPositions} />
       <Sun ra={sun.ra} dec={sun.dec} />
-      <Hosts index={index} trueScale={state.trueScale} visible={state.layers.hosts} starUniforms={starUniforms} positionsRef={hostPositions} />
-      <CloseUp index={index} selected={state.selectedStar} positionsRef={hostPositions} starUniforms={starUniforms} rig={rig} octaves={phone ? 2 : 4} />
+      <Hosts index={index} trueScale={state.trueScale} visible={state.layers.hosts} dim={state.layers.dimStars && state.selectedStar?.kind !== "host"} starUniforms={starUniforms} positionsRef={hostPositions} />
+      <CloseUp index={index} selected={state.selectedStar?.kind === "host" ? state.selectedStar.i : null} positionsRef={hostPositions} starUniforms={starUniforms} rig={rig} octaves={phone ? 2 : 4} />
       <Earth />
       <EventMarkers markers={markers} uniforms={eventUniforms} positionsRef={eventPositions} />
-      <Input index={index} markers={markers} eventPositions={eventPositions} hostPositions={hostPositions} rig={rig} eventUniforms={eventUniforms} onPickEvent={onPickEvent} />
-      <Anchors rig={rig} eventUniforms={eventUniforms} eventPositions={eventPositions} hostPositions={hostPositions} sun={sun} />
+      <Input index={index} data={data} markers={markers} eventPositions={eventPositions} hostPositions={hostPositions} brightPositions={brightPositions} brightUniforms={brightUniforms} rig={rig} eventUniforms={eventUniforms} onPickEvent={onPickEvent} />
+      <Anchors rig={rig} eventUniforms={eventUniforms} eventPositions={eventPositions} hostPositions={hostPositions} brightPositions={brightPositions} sun={sun} />
       <Invalidator deps={[state.selectedEvent, state.hoverEvent, state.selectedStar, state.layers, markers]} />
     </>
   );

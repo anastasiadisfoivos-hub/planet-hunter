@@ -19,6 +19,13 @@
   border-width: 0 1px 0 0;
 }
 
+/* The filter list is longer than the screen: it scrolls, fades at the bottom edge so it is clear there
+   is more, and ends with room to spare above the status bar. */
+.filters > div:last-child {
+  padding-bottom: var(--s-12);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent);
+}
+
 .side {
   grid-area: side;
   border-radius: 0;
@@ -377,6 +384,129 @@
   margin: 0;
   font-size: var(--text-12);
   color: var(--ink-muted);
+}
+
+.starsOff {
+  position: absolute;
+  z-index: var(--z-panel);
+  left: 50%;
+  bottom: var(--s-4);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-1) var(--s-1) var(--s-1) var(--s-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  color: var(--ink-secondary);
+  font-size: var(--text-13);
+  white-space: nowrap;
+}
+
+/* ---------- star panel: analysis ---------- */
+
+.analyze {
+  display: grid;
+  gap: var(--s-3);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--hairline);
+}
+
+.analyze > button {
+  justify-self: start;
+}
+
+.steps {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-13);
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--ink-muted);
+}
+
+.steps li[data-state="running"] {
+  color: var(--ink);
+}
+
+.steps li[data-state="done"] {
+  color: var(--ink-secondary);
+}
+
+.steps li[data-state="done"] svg {
+  color: var(--accent);
+}
+
+.spin {
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
+
+.result {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.result > button {
+  justify-self: start;
+}
+
+.resultItem {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+}
+
+.linkList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-12);
+}
+
+.linkList a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-secondary);
+}
+
+.plot {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+}
+
+.plot img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-control);
+  background: var(--ink);
 }
 
 /* ---------- filters panel ---------- */

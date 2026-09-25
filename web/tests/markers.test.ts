@@ -36,3 +36,10 @@ test("Sun events sit on the Sun's current position, fanned out within 1.2 degree
   const single = buildMarkers([events[0]], NOW);
   assert.ok(separationDeg(radecToVec(single.markers[0].ra, single.markers[0].dec), radecToVec(sun.ra, sun.dec)) < 1e-9);
 });
+
+test("fresh (pulsing) means observed in the last 24 hours", () => {
+  const mk = (observed_at: string) =>
+    buildMarkers([{ ...base, id: observed_at, type: "supernova", observed_at, location: { frame: "sky", ra_deg: 1, dec_deg: 1, error_deg: 0 } }], NOW).markers[0];
+  assert.equal(mk("2026-09-25T10:00:00Z").fresh, true);
+  assert.equal(mk("2026-09-24T15:00:00Z").fresh, false);
+});

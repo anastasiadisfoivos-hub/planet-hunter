@@ -12,6 +12,14 @@
 - Earth inset coastlines: Natural Earth 1:110m land (public domain), via the world-atlas package
   (`scripts/build-land.mjs`).
 - The Sun's position: low-precision solar coordinates from the Astronomical Almanac (`lib/sun.ts`).
+- JPL objects' observation dates: JPL Small-Body Database (SBDB) orbit `last_obs`, queried 2026-09-25 and pinned in
+  `scripts/build-events-mock.mjs` (the example fixture carried the Horizons position epoch instead).
+- Bright-star names, Hipparcos distances and luminosities: HYG database v4.1 (astronexus, CC BY-SA 4.0,
+  https://github.com/astronexus/HYG-Database), matched by position to the Yale BSC (`scripts/build-bright-stars.mjs`).
+  IAU proper names come through HYG. Bright-star radii are estimates from luminosity and temperature.
+- Planet names per host: NASA Exoplanet Archive `pl_name` (`scripts/build-hosts.mjs`).
+- "Analyze this star" demo: the analysis pipeline's stored real result for WASP-18 (TIC 100100827, TESS sectors
+  105 and 106, SPOC), `pipeline/reports/wasp-18`, with its folded light-curve plot.
 
 ## Real data on the map
 

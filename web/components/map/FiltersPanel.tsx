@@ -227,6 +227,9 @@ export function FiltersPanel({ data, events, now }: { data: MapData; events: Sky
             <LayerSwitch layer="stars" label="Bright stars">
               <p>Naked-eye stars, coloured by temperature, for finding your way.</p>
             </LayerSwitch>
+            <LayerSwitch layer="dimStars" label="Dim stars">
+              <p>Stars at half brightness, so events stand out.</p>
+            </LayerSwitch>
             <LayerSwitch layer="heatmap" label="Rubin alerts heatmap">
               <div className={s.ramp} aria-hidden>
                 <span className="mono">0</span>

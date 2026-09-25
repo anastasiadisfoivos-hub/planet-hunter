@@ -7,7 +7,19 @@ import { CATEGORY_OF, type Category, type SkyEvent } from "./contract.ts";
 import { recency } from "./events.ts";
 import { sunRaDec } from "./sun.ts";
 
-export type Marker = { id: string; title: string; ra: number; dec: number; category: Category; recency: number; onSun: boolean };
+export type Marker = {
+  id: string;
+  title: string;
+  ra: number;
+  dec: number;
+  category: Category;
+  recency: number;
+  /** Observed in the last 24 hours: the marker pulses (unless motion is reduced). */
+  fresh: boolean;
+  onSun: boolean;
+};
+
+const DAY = 24 * 3600_000;
 
 export const SUN_FAN_DEG = 1.2;
 
@@ -16,7 +28,8 @@ export function buildMarkers(events: SkyEvent[], now: number): { markers: Marker
   const onSun = events.filter((e) => e.location.frame === "sun").sort((a, b) => b.observed_at.localeCompare(a.observed_at));
   const markers: Marker[] = [];
   for (const e of events) {
-    const base = { id: e.id, title: e.title, category: CATEGORY_OF[e.type], recency: recency(e.observed_at, now) };
+    const age = now - Date.parse(e.observed_at);
+    const base = { id: e.id, title: e.title, category: CATEGORY_OF[e.type], recency: recency(e.observed_at, now), fresh: age >= 0 && age < DAY };
     if (e.location.frame === "sky") {
       markers.push({ ...base, ra: e.location.ra_deg, dec: e.location.dec_deg, onSun: false });
     } else if (e.location.frame === "sun") {

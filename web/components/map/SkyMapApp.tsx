@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Funnel, ListBullets, X } from "@phosphor-icons/react";
+import { Funnel, ListBullets, Star, X } from "@phosphor-icons/react";
 import { Button, DemoTag, Panel } from "@/components/ui";
 import { API_MOCK, clockNow, getAllEvents, getStatus, type Status } from "@/lib/api";
 import type { SkyEvent } from "@/lib/contract";
@@ -16,6 +16,7 @@ import { hud, view } from "./scene/constants";
 import { EventDetail } from "./EventDetail";
 import { Feed } from "./Feed";
 import { FiltersPanel } from "./FiltersPanel";
+import { StarDetail } from "./StarDetail";
 import { StatusBanner } from "./StatusBanner";
 import s from "./map.module.css";
 
@@ -170,7 +171,7 @@ function MapView({ map, events, now }: Loaded) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || document.querySelector(":popover-open")) return;
       dispatch({ type: "selectEvent", id: null });
-      dispatch({ type: "selectStar", index: null });
+      dispatch({ type: "selectStar", star: null });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -183,7 +184,7 @@ function MapView({ map, events, now }: Loaded) {
       selectEvent: (id: string | null) => dispatch({ type: "selectEvent", id }),
       filters: (patch: object) => dispatch({ type: "filters", patch }),
       layer: (layer: string, on: boolean) => dispatch({ type: "layer", layer: layer as never, on }),
-      select: (i: number | null) => dispatch({ type: "selectStar", index: i }),
+      select: (i: number | null, kind: "host" | "bright" = "host") => dispatch({ type: "selectStar", star: i === null ? null : { kind, i } }),
       view,
     };
   }, [dispatch]);
@@ -207,21 +208,24 @@ function MapView({ map, events, now }: Loaded) {
     [now],
   );
 
-  // Picking a marker on the map opens its detail (on a phone, as a full sheet).
+  // Picking a marker or a star on the map opens its panel (on a phone, as a full sheet).
+  const selKey = state.selectedEvent ?? (state.selectedStar ? `${state.selectedStar.kind}:${state.selectedStar.i}` : null);
   const [seen, setSeen] = useState<string | null>(null);
-  if (state.selectedEvent !== seen) {
-    setSeen(state.selectedEvent);
-    if (state.selectedEvent) setSheet("feed");
+  if (selKey !== seen) {
+    setSeen(selKey);
+    if (selKey) setSheet("feed");
   }
 
   const statusRef = (key: "pointer" | "fov" | "fps") => (el: HTMLElement | null) => {
     hud[key] = el;
   };
   const toggle = (tab: Exclude<Sheet, "closed">) => setSheet((cur) => (cur === tab ? "closed" : tab));
-  const hostHud = state.selectedStar !== null && state.layers.hosts;
+  const hostHud = state.selectedStar?.kind === "host" && state.layers.hosts;
+  const star = state.selectedStar;
+  const starsOff = !state.layers.stars && !state.layers.hosts;
 
   return (
-    <main className={s.shell} data-sheet={sheet} data-detail={selected ? "open" : "closed"}>
+    <main className={s.shell} data-sheet={sheet} data-detail={selected || star ? "open" : "closed"}>
       <h1 className="sr-only">Sky events map</h1>
 
       <FiltersPanel data={map} events={events} now={now} />
@@ -252,18 +256,33 @@ function MapView({ map, events, now }: Loaded) {
           <StatusBanner status={status} now={now} demo={API_MOCK} />
         </div>
 
-        {hostHud && <StarHud data={map} i={state.selectedStar!} />}
+        {hostHud && <StarHud data={map} i={state.selectedStar!.i} />}
+        {starsOff && (
+          <div className={s.starsOff} role="status">
+            <span>All star layers are off</span>
+            <Button
+              size="sm"
+              icon={<Star size={14} />}
+              onClick={() => {
+                dispatch({ type: "layer", layer: "stars", on: true });
+                dispatch({ type: "layer", layer: "hosts", on: true });
+              }}
+            >
+              Show stars
+            </Button>
+          </div>
+        )}
         <Labels />
       </div>
 
       <Panel
-        key={selected ? `event:${selected.id}` : "feed"}
+        key={selected ? `event:${selected.id}` : star ? `star:${star.kind}:${star.i}` : "feed"}
         as="aside"
         className={s.side}
-        aria-label={selected ? "Event details" : "Feed"}
-        title={selected ? undefined : "Feed"}
+        aria-label={selected ? "Event details" : star ? "Star details" : "Feed"}
+        title={selected || star ? undefined : "Feed"}
         actions={
-          selected ? undefined : (
+          selected || star ? undefined : (
             <Button variant="quiet" size="sm" className={s.sheetClose} icon={<X size={16} />} aria-label="Close feed" onClick={() => setSheet("closed")} />
           )
         }
@@ -278,6 +297,8 @@ function MapView({ map, events, now }: Loaded) {
             }}
             onShow={showOnMap}
           />
+        ) : star ? (
+          <StarDetail data={map} star={star} onBack={() => dispatch({ type: "selectStar", star: null })} />
         ) : (
           <Feed now={now} onOpen={open} />
         )}

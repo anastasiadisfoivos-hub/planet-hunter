@@ -22,13 +22,16 @@ export type Rig = {
   reduced: boolean;
   /** Distance limits for the current mode, applied when no flight is running. */
   limits: { min: number; max: number };
+  /** Hovered planet host (hosts.json index), or -1. */
   hover: number;
   hoverT: number;
+  /** Hovered bright catalogue star (sky-objects index), or -1. */
+  hoverBright: number;
   selectedT: number;
 };
 
 export function createRig(reduced: boolean, fov: number): Rig {
-  return { controls: null, camera: null, flight: null, fovTarget: fov, saved: null, time: 0, reduced, limits: { min: 0.3, max: 320 }, hover: -1, hoverT: 0, selectedT: 0 };
+  return { controls: null, camera: null, flight: null, fovTarget: fov, saved: null, time: 0, reduced, limits: { min: 0.3, max: 320 }, hover: -1, hoverT: 0, hoverBright: -1, selectedT: 0 };
 }
 
 const tv = new THREE.Vector3();
