@@ -1,0 +1,42 @@
+[project]
+name = "skyevents"
+version = "0.1.0"
+description = "What is happening in the sky right now: transients, solar-system newcomers, space weather, fireballs and high-energy alerts as one Event feed."
+readme = "README.md"
+authors = [
+    { name = "Foivos Anastasiadis", email = "anastasiadis.foivos@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "astropy>=8.0.1",
+    "astropy-healpix>=2.0.1",
+    "httpx>=0.28.1",
+    "numpy>=2.5.3",
+    "skysources",
+]
+
+[project.scripts]
+events-ingest = "skyevents.cli:main"
+
+[tool.uv.sources]
+skysources = { path = "../sources", editable = true }
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+ignore = ["FURB162"]  # explicit "Z" -> "+00:00" reads clearer, as in sources/
