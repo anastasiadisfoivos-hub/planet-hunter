@@ -11,7 +11,7 @@ from skypictures.models import EVENT_TYPES, IMAGE_KINDS
 EVENTS = json.loads((FIXTURES / "example_events.json").read_text())
 EXPECTED = json.loads((FIXTURES / "example_pictures.json").read_text())["pictures"]
 BY_TYPE = {e["type"]: e for e in EVENTS}
-REQUIRED = {"url", "kind", "caption", "credit", "license", "width", "height"}
+REQUIRED = {"url", "thumb_url", "kind", "caption", "credit", "license", "width", "height"}
 
 
 def test_one_real_example_per_event_type():
@@ -32,7 +32,7 @@ def test_every_image_follows_the_contract(event):
         assert img["kind"] in IMAGE_KINDS
         assert img["caption"].strip() and img["credit"].strip() and img["license"].strip()
         assert isinstance(img["width"], int) and isinstance(img["height"], int)
-        assert img["url"].startswith("https://")
+        assert img["url"].startswith("https://") and img["thumb_url"].startswith("https://")
 
 
 def test_what_each_frame_gets():
@@ -47,7 +47,7 @@ def test_what_each_frame_gets():
     assert kinds["solar_flare"] == ["solar"]
     assert kinds["coronal_mass_ejection"] == ["solar", "solar"]
     assert kinds["fireball"] == []
-    assert kinds["geomagnetic_storm"] == []  # older than SWPC's 24-hour archive: no image rather than a wrong one
+    assert kinds["geomagnetic_storm"] == []  # older than 24 h: NOAA's "latest" map would be the wrong time
 
 
 def test_rubin_and_ztf_cutouts_both_exercised():
@@ -95,3 +95,25 @@ def test_one_failing_source_keeps_the_others(replay, monkeypatch):
     assert [i["kind"] for i in got] == ["sky_context"]
     assert "Fink down" in stats.provider_errors[0]
     assert cutouts  # imported module still intact
+
+
+def test_thumbnails_are_smaller_renderings_of_the_same_picture():
+    for imgs in EXPECTED.values():
+        for i in imgs:
+            if i["kind"] == "sky_context":
+                assert i["thumb_url"] == i["url"].replace("width=800&height=800", "width=256&height=256")
+            elif "sdo.gsfc.nasa.gov" in i["url"]:
+                assert i["thumb_url"] == i["url"].replace("_1024_", "_512_")
+            elif "helioviewer" in i["url"]:
+                assert i["thumb_url"] == i["url"].replace("width=1024&height=1024", "width=256&height=256")
+            else:  # Fink cutouts are already thumbnail-sized
+                assert i["thumb_url"] == i["url"]
+
+
+def test_failed_thumbnail_falls_back_to_full_image(replay, monkeypatch):
+    replay("examples")
+    recorded = net.Net.probe
+    monkeypatch.setattr(net.Net, "probe", lambda self, url: net.Probe(False, 500, reason="HTTP 500")
+                        if "width=256" in url else recorded(self, url))
+    [ctx] = pictures_for(BY_TYPE["kilonova"])
+    assert ctx["thumb_url"] == ctx["url"]

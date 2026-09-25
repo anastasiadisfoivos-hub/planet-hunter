@@ -1,4 +1,5 @@
 {
+ "now": "2026-09-25T16:27:57Z",
  "event": {
   "id": "test:storm",
   "type": "geomagnetic_storm",
@@ -6,12 +7,12 @@
   "summary": "",
   "source": "test",
   "source_url": "",
-  "observed_at": "2026-09-25T15:55:40Z",
+  "observed_at": "2026-09-25T14:27:57Z",
   "reported_at": "",
   "location": {
    "frame": "earth",
-   "lat_deg": 64.8,
-   "lon_deg": -147.7,
+   "lat_deg": null,
+   "lon_deg": null,
    "alt_km": null
   },
   "confidence": 1.0,
@@ -22,9 +23,20 @@
  },
  "pictures": [
   {
-   "url": "https://services.swpc.noaa.gov/images/animations/ovation/north/aurora_N_2026-09-25_1555.jpg",
-   "kind": "sky_context",
-   "caption": "NOAA OVATION aurora forecast for the northern hemisphere, model run 2026-09-25 15:55 UTC (the time it forecasts, printed on the map, is 30-90 min later): where aurora is likely, green to red = 10% to 90% chance. A model map, not a photograph.",
+   "thumb_url": "https://services.swpc.noaa.gov/images/aurora-forecast-northern-hemisphere.jpg",
+   "url": "https://services.swpc.noaa.gov/images/aurora-forecast-northern-hemisphere.jpg",
+   "kind": "forecast_map",
+   "caption": "NOAA aurora forecast, latest (model): northern hemisphere. A model map of where aurora is likely now (green to red = 10% to 90% chance), refreshed every few minutes; not a photograph.",
+   "credit": "NOAA Space Weather Prediction Center, OVATION aurora model",
+   "license": "Public domain (U.S. Government work, 17 U.S.C. \u00a7105); credit NOAA SWPC",
+   "width": 800,
+   "height": 800
+  },
+  {
+   "thumb_url": "https://services.swpc.noaa.gov/images/aurora-forecast-southern-hemisphere.jpg",
+   "url": "https://services.swpc.noaa.gov/images/aurora-forecast-southern-hemisphere.jpg",
+   "kind": "forecast_map",
+   "caption": "NOAA aurora forecast, latest (model): southern hemisphere. A model map of where aurora is likely now (green to red = 10% to 90% chance), refreshed every few minutes; not a photograph.",
    "credit": "NOAA Space Weather Prediction Center, OVATION aurora model",
    "license": "Public domain (U.S. Government work, 17 U.S.C. \u00a7105); credit NOAA SWPC",
    "width": 800,

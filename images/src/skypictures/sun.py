@@ -22,7 +22,8 @@ log = logging.getLogger(__name__)
 SDO_BROWSE = "https://sdo.gsfc.nasa.gov/assets/img/browse"
 HELIOVIEWER = "https://api.helioviewer.org/v2"
 FULL_PX = 1024
-THUMB_PX = 512
+THUMB_PX = 512     # SDO browse sizes: 512 / 1024 / 2048 / 4096
+HV_THUMB_PX = 256  # Helioviewer renders any size
 SDO_MAX_GAP = timedelta(hours=2)
 HV_MAX_GAP = timedelta(hours=6)
 LASCO_DELAY = timedelta(minutes=30)  # a CME needs ~30 min to climb into LASCO C2's field of view
@@ -172,14 +173,15 @@ def solar_images(event: Event) -> list[Image]:
     hit = sdo_nearest(t, wl)
     if hit:
         it, stem = hit
-        url, c = sdo_url(stem, wl), credits.SDO
+        url, thumb, c = sdo_url(stem, wl), sdo_url(stem, wl, THUMB_PX), credits.SDO
     else:
         hv = helioviewer_nearest(t, wl)
-        it, url, c = (hv[0], helioviewer_url(hv[1]), credits.SDO_HELIOVIEWER) if hv else (None, "", None)
+        it, url, thumb, c = ((hv[0], helioviewer_url(hv[1]), helioviewer_url(hv[1], HV_THUMB_PX),
+                              credits.SDO_HELIOVIEWER) if hv else (None, "", None, None))
     if it is not None and c is not None:
         caption = (f"NASA SDO/AIA {wl} Å image of the whole Sun, {_fmt(it)}, {_gap(it, t, label)} "
                    f"of this {what}. {WHY.get(wl, '')}.{region}")
-        out.append(Image(url=url, kind="solar", caption=caption.strip(), credit=c.credit, license=c.license,
+        out.append(Image(url=url, thumb_url=thumb, kind="solar", caption=caption.strip(), credit=c.credit, license=c.license,
                          width=FULL_PX, height=FULL_PX))
 
     if etype == "coronal_mass_ejection":
@@ -191,7 +193,8 @@ def solar_images(event: Event) -> list[Image]:
             caption = (f"SOHO {instrument} coronagraph image, {_fmt(it)}, {_gap(it, t, label)} of this CME: the "
                        f"outer corona out to {reach} solar radii. The dark disk is the occulter blocking the "
                        "bright Sun; a CME seen by LASCO shows as a bright cloud moving outward.")
-            out.append(Image(url=helioviewer_url(image_id), kind="solar", caption=caption,
+            out.append(Image(url=helioviewer_url(image_id), thumb_url=helioviewer_url(image_id, HV_THUMB_PX),
+                             kind="solar", caption=caption,
                              credit=credits.LASCO.credit, license=credits.LASCO.license,
                              width=FULL_PX, height=FULL_PX))
             break

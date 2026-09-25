@@ -28,7 +28,8 @@ EventType = Literal[
 ]
 
 ImageKind = Literal[
-    "cutout_reference", "cutout_new", "cutout_difference", "sky_context", "solar", "light_curve"
+    "cutout_reference", "cutout_new", "cutout_difference", "sky_context", "solar", "light_curve",
+    "forecast_map",
 ]
 IMAGE_KINDS: tuple[str, ...] = ImageKind.__args__  # type: ignore[attr-defined]
 EVENT_TYPES: tuple[str, ...] = EventType.__args__  # type: ignore[attr-defined]
@@ -57,6 +58,7 @@ Location = SkyLocation | SunLocation | EarthLocation
 
 class Image(TypedDict):
     url: str
+    thumb_url: str | None
     kind: ImageKind
     caption: str
     credit: str

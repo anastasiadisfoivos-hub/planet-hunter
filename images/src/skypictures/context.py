@@ -151,5 +151,6 @@ def sky_context(event: Event) -> list[Image]:
         parts.append(f"The true position lies within about {_angle(err)} of the centre.")
 
     c = survey.credit
-    return [Image(url=hips2fits_url(survey.hips_id, ra, dec, fov), kind="sky_context", caption=" ".join(parts),
+    return [Image(url=hips2fits_url(survey.hips_id, ra, dec, fov),
+                  thumb_url=hips2fits_url(survey.hips_id, ra, dec, fov, THUMB_PX), kind="sky_context", caption=" ".join(parts),
                   credit=c.credit, license=c.license, width=FULL_PX, height=FULL_PX)]

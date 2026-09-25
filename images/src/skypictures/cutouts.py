@@ -139,7 +139,8 @@ def ztf_cutouts(event: Event) -> list[Image]:
 
 def _image(endpoint: str, ids: dict, fink_kind: str, kind: str, caption: str, c: credits.Credit) -> Image:
     q = urlencode({**ids, "kind": fink_kind, "output-format": "PNG"})
-    return Image(url=f"{endpoint}?{q}", kind=kind, caption=caption, credit=c.credit, license=c.license,
+    # Fink cutouts are 30-63 px: already thumbnail-sized, so the thumbnail is the image itself.
+    return Image(url=f"{endpoint}?{q}", thumb_url=f"{endpoint}?{q}", kind=kind, caption=caption, credit=c.credit, license=c.license,
                  width=None, height=None)  # type: ignore[typeddict-item]
 
 

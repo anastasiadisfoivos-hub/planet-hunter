@@ -159,13 +159,6 @@ class Net:
         _write_json(path, {"at": time.time(), "url": url, "probe": probe.to_json()})
         return probe
 
-    def download(self, url: str) -> tuple[str, bytes]:
-        """(content type, bytes) of an image, for re-hosting."""
-        status, ctype, body = self._fetch(url, None)
-        if status != 200:
-            raise FetchError(f"{urlsplit(url).netloc}: HTTP {status}")
-        return ctype, body
-
 
 def _write_json(path: Path, doc: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)

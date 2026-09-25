@@ -30,9 +30,8 @@ sys.path.insert(0, str(ROOT / "tests"))
 
 from recording import FIXTURES, recording
 
-from skypictures import Stats, pictures_for, thumbnail_url
+from skypictures import Stats, pictures_for
 from skypictures.cutouts import LSST_API, ZTF_API
-from skypictures.net import get_net
 
 UA = {"User-Agent": "planet-hunter-skypictures/0.1 (examples)"}
 http = httpx.Client(timeout=180, headers=UA, follow_redirects=True)
@@ -278,8 +277,8 @@ def write_report(events: list[dict], pictures: dict[str, list[dict]], stats: dic
             lines.append("_No pictures (see README: what each type gets)._")
         for img in imgs:
             size = f"{img['width']}×{img['height']}" if img["width"] else "?"
-            thumb = thumbnail_url(img["url"])
-            t = f" · [thumb]({thumb})" if thumb != img["url"] else ""
+            thumb = img["thumb_url"]
+            t = f" · [thumb]({thumb})" if thumb and thumb != img["url"] else " · thumb: same image"
             lines.append(f"- **{img['kind']}** {size} [image]({img['url']}){t}  ")
             lines.append(f"  {img['caption']}  ")
             lines.append(f"  _Credit:_ {img['credit']} · _Licence:_ {img['license']}")
@@ -306,10 +305,9 @@ def main() -> None:
             for ev in events:
                 s = Stats()
                 pictures[ev["id"]] = pictures_for(ev, stats=s)
-                for img in pictures[ev["id"]]:
-                    thumb = thumbnail_url(img["url"])
-                    if thumb != img["url"] and not get_net().probe(thumb).ok:
-                        thumb_failures.append(thumb)
+                # validate() falls back to the full URL when a separate thumbnail fails its check
+                thumb_failures += [i["url"] for i in pictures[ev["id"]] if i["thumb_url"] == i["url"]
+                                   and "fink-portal" not in i["url"]]
                 dropped_by_event[ev["id"]] = s.dropped
                 total.candidates += s.candidates
                 total.dropped += s.dropped

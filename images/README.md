@@ -2,16 +2,17 @@
 
 Real pictures for planet-hunter's sky events. Given an `Event` (SHARED EVENT CONTRACT,
 [models.py](src/skypictures/models.py)) it returns `list[Image]`: survey cutouts, a colour
-picture of that exact patch of sky, the Sun at the time of a flare, or NOAA's aurora map.
+picture of that exact patch of sky, the Sun at the time of a flare, or NOAA's aurora forecast map.
+Each `Image` carries `url` (full size) and `thumb_url` (a smaller rendering from the same source, or
+the same URL when the source has only one size; `null` only on images from elsewhere that lack one).
 Nothing is generated or painted. Every image has a credit, a licence and a caption that says
 what it shows. Python 3.12, `uv`, no logins or API keys.
 
 ```python
-from skypictures import pictures_for, thumbnail_url
+from skypictures import pictures_for
 
 images = pictures_for(event)        # checked: dead, non-image and blank URLs dropped
 images = pictures_for(event, check=False)   # no network for the checks (width/height = None)
-thumbnail_url(images[0]["url"])     # smaller rendering from the same source
 ```
 
 ```sh
@@ -19,23 +20,18 @@ uv sync
 uv run pytest                                            # offline, replays recorded real answers
 uv run skypictures events.json -o site/events.json       # enrich every event; prints dead-link stats
 uv run --group examples python scripts/examples.py       # rebuild the 20 real examples (network)
-uv run python scripts/record_noaa.py                     # re-record the aurora-map fixture (network)
+uv run python scripts/record_noaa.py                     # re-record the aurora-map checks (network)
 ```
 
 The CLI accepts a JSON list of events, or an object with an `events` list (other keys are kept).
-Images already on an event are kept, re-checked and de-duplicated. It writes:
-
-- `<out>.json`: the events with `images` filled.
-- `<out>.thumbs.json`: `{full url: thumbnail url}`. The contract's `Image` has a single `url`,
-  so thumbnails are kept in this separate file rather than adding a field.
-- `pictures-cache/`: local copies of images whose source deletes them within a day (see below).
-  `--rehost-dir` / `--rehost-base` set where they go and the URL the site serves them at.
+Images already on an event are kept, re-checked and de-duplicated. Nothing is downloaded for
+re-hosting: every image links to its source (the site's host keeps no disk).
 
 [EXAMPLES.md](EXAMPLES.md) has one real event per type with every image URL, caption and credit.
 
 ## What each event type gets
 
-Display order: `sky_context` (the colour picture comes first), `solar`, then `cutout_reference`
+Display order: `sky_context` (the colour picture comes first), `solar`, `forecast_map`, then `cutout_reference`
 → `cutout_new` → `cutout_difference` (before, after, what changed).
 
 | Frame | Types | Pictures |
@@ -44,7 +40,7 @@ Display order: `sky_context` (the colour picture comes first), `solar`, then `cu
 | sky | near_earth_object, comet, interstellar_object, gamma_ray_burst, neutrino, gravitational_wave | colour sky context (wider, or sized to the error region); cutouts too if a survey ID is present |
 | sun | solar_flare | SDO/AIA 131 Å at the flare peak (or reported time), with the reported region described |
 | sun | coronal_mass_ejection | SDO/AIA 193 Å, plus SOHO LASCO C2 (else C3) from 0–3 h after the reported time |
-| earth | geomagnetic_storm | NOAA OVATION aurora forecast map for the matching hemisphere, only if one exists within 30 min of the event |
+| earth | geomagnetic_storm | `forecast_map`: NOAA's latest aurora forecast for the matching hemisphere (both if no latitude), only while the storm is ongoing / began in the last 24 h |
 | earth | fireball | nothing: CNEOS reports have no imagery, and none is made up |
 
 ### Survey cutouts (Fink)
@@ -82,13 +78,15 @@ thumbnail 256 px. The image is centred on the event, and the caption gives the p
 - Regions like `N14E90` (from `raw.sourceLocation`, as DONKI gives it, or found in `raw` / `summary`)
   are put in plain words in the caption: "on the left (east) edge of the disk, 14° north of the equator".
 
-### Aurora maps (NOAA SWPC), and re-hosting
+### Aurora maps (NOAA SWPC)
 
-SWPC keeps time-stamped OVATION frames (`/images/animations/ovation/{north,south}/aurora_N_YYYY-MM-DD_HHMM.jpg`)
-for only about 24 hours. A link to one would die the next day, so **the CLI copies these into
-`pictures-cache/`** and points the image there. This is the only re-hosting. Every other source
-allows hot-linking and is linked directly. A storm older than the archive gets no image:
-`latest.jpg` would show a different time.
+The stable "latest" images NOAA's [product page](https://www.swpc.noaa.gov/products/aurora-30-minute-forecast)
+uses: `https://services.swpc.noaa.gov/images/aurora-forecast-{northern,southern}-hemisphere.jpg`
+(800 px, one size, so `thumb_url` = `url`). Kind `forecast_map`, caption "NOAA aurora forecast,
+latest (model): …, not a photograph". The picture behind the URL refreshes every few minutes, so it
+is only attached while it can still describe the storm: ongoing or begun within the last 24 h.
+Older storms get none. (SWPC's time-stamped frames are deleted after about a day, and re-hosting is
+not an option, so there is no way to show a past storm's map.)
 
 ## Dead links
 
@@ -121,9 +119,9 @@ commercial, confirm DSS terms with STScI or drop DSS2 from `context.PREFERENCE`.
 
 ## Tests
 
-`uv run pytest`: 86 tests, no network. `tests/conftest.py` blocks `httpx`, and every answer is
+`uv run pytest`: 88 tests, no network. `tests/conftest.py` blocks `httpx`, and every answer is
 replayed from `tests/fixtures/http/*.json` (recorded by the scripts above). They cover the 20 real
 examples replayed end to end, contract shape, ID extraction, survey footprint choice, blank /
 error / truncated image rejection on real bytes, SDO/Helioviewer/LASCO timing rules, region
-wording, NOAA hemisphere and re-hosting, and the CLI (list and wrapped input, existing images,
-`--no-check`).
+wording, the NOAA 24-hour rule and hemispheres, thumbnails and their fallback, and the CLI (list
+and wrapped input, existing images, `--no-check`).

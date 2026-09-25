@@ -1,6 +1,6 @@
 # Real examples, one per event type
 
-Recorded 2026-09-25T16:16:32Z. Candidates checked: 46, dropped as dead or blank: 0 (0.0%).
+Recorded 2026-09-25T16:29:08Z. Candidates checked: 46, dropped as dead or blank: 0 (0.0%).
 
 ## supernova: SN 2026qrh (TNS SN Ia)
 `rubin:obj:170587117894238279`, observed 2026-07-14T10:02:59Z, source [Rubin/LSST via Fink](https://lsst.fink-portal.org/170587117894238279)
@@ -8,13 +8,13 @@ Recorded 2026-09-25T16:16:32Z. Candidates checked: 46, dropped as dead or blank:
 - **sky_context** 800×800 [image](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.0416667&projection=TAN&coordsys=icrs&ra=64.185359&dec=-48.943232&format=jpg) · [thumb](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=256&height=256&fov=0.0416667&projection=TAN&coordsys=icrs&ra=64.185359&dec=-48.943232&format=jpg)  
   DESI Legacy Surveys DR10 colour image of a 2.5′ square of sky around this supernova. Crosshair: the supernova is at the exact centre, RA 64.18536°, Dec -48.94323°. Archival picture taken between 2013 and 2021, before this event, so it shows the field where the supernova happened, not the supernova itself.  
   _Credit:_ DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits · _Licence:_ Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)
-- **cutout_reference** 42×42 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304334200861&kind=Template&output-format=PNG)  
+- **cutout_reference** 42×42 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304334200861&kind=Template&output-format=PNG) · thumb: same image  
   Rubin reference image: the few arcseconds of sky around the source before the event, stacked from earlier Rubin exposures.  
   _Credit:_ NSF–DOE Vera C. Rubin Observatory / LSST; cutout served by the Fink broker · _Licence:_ World-public Rubin alert data, no proprietary period; credit Rubin Observatory and Fink
-- **cutout_new** 42×42 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304334200861&kind=Science&output-format=PNG)  
+- **cutout_new** 42×42 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304334200861&kind=Science&output-format=PNG) · thumb: same image  
   Rubin science image (i band, 2026-07-14 10:02 UTC): the same patch of sky at the moment of this alert (diaSource 170666304334200861).  
   _Credit:_ NSF–DOE Vera C. Rubin Observatory / LSST; cutout served by the Fink broker · _Licence:_ World-public Rubin alert data, no proprietary period; credit Rubin Observatory and Fink
-- **cutout_difference** 42×42 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304334200861&kind=Difference&output-format=PNG)  
+- **cutout_difference** 42×42 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304334200861&kind=Difference&output-format=PNG) · thumb: same image  
   Rubin difference image: the new light only (science minus reference). The spot at the centre is what changed.  
   _Credit:_ NSF–DOE Vera C. Rubin Observatory / LSST; cutout served by the Fink broker · _Licence:_ World-public Rubin alert data, no proprietary period; credit Rubin Observatory and Fink
 
@@ -24,13 +24,13 @@ Recorded 2026-09-25T16:16:32Z. Candidates checked: 46, dropped as dead or blank:
 - **sky_context** 800×800 [image](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.025&projection=TAN&coordsys=icrs&ra=5.986808&dec=-14.423146&format=jpg) · [thumb](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=256&height=256&fov=0.025&projection=TAN&coordsys=icrs&ra=5.986808&dec=-14.423146&format=jpg)  
   DESI Legacy Surveys DR10 colour image of a 1.5′ square of sky around this tidal disruption event. Crosshair: the tidal disruption event is at the exact centre, RA 5.98681°, Dec -14.42315°. Archival picture taken between 2013 and 2021, before this event, so it shows the field where the tidal disruption event happened, not the tidal disruption event itself.  
   _Credit:_ DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits · _Licence:_ Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)
-- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF22abegjtx&candid=3551357696315015003&kind=Template&output-format=PNG)  
+- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF22abegjtx&candid=3551357696315015003&kind=Template&output-format=PNG) · thumb: same image  
   ZTF reference image: about 1′ of sky around the source before the event, stacked from earlier ZTF exposures.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF22abegjtx&candid=3551357696315015003&kind=Science&output-format=PNG)  
+- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF22abegjtx&candid=3551357696315015003&kind=Science&output-format=PNG) · thumb: same image  
   ZTF science image (g band, 2026-09-22 08:35 UTC): the same patch of sky in alert 3551357696315015003 for ZTF22abegjtx.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF22abegjtx&candid=3551357696315015003&kind=Difference&output-format=PNG)  
+- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF22abegjtx&candid=3551357696315015003&kind=Difference&output-format=PNG) · thumb: same image  
   ZTF difference image: the new light only (science minus reference). The spot at the centre is what changed.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
 
@@ -47,13 +47,13 @@ Recorded 2026-09-25T16:16:32Z. Candidates checked: 46, dropped as dead or blank:
 - **sky_context** 800×800 [image](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=800&height=800&fov=0.05&projection=TAN&coordsys=icrs&ra=288.630704&dec=12.064897&format=jpg) · [thumb](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=256&height=256&fov=0.05&projection=TAN&coordsys=icrs&ra=288.630704&dec=12.064897&format=jpg)  
   Pan-STARRS1 colour image of a 3′ square of sky around this nova. Crosshair: the nova is at the exact centre, RA 288.63070°, Dec +12.06490°. Archival picture taken between 2010 and 2014, before this event, so it shows the field where the nova happened, not the nova itself.  
   _Credit:_ Pan-STARRS1 DR1 (PS1 Science Consortium, via MAST/STScI), colour HiPS by CDS; cut with CDS hips2fits · _Licence:_ PS1 public data release, acknowledgement required; HiPS ODbL-1.0 (CDS)
-- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abemjfk&candid=3552206234615015015&kind=Template&output-format=PNG)  
+- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abemjfk&candid=3552206234615015015&kind=Template&output-format=PNG) · thumb: same image  
   ZTF reference image: about 1′ of sky around the source before the event, stacked from earlier ZTF exposures.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abemjfk&candid=3552206234615015015&kind=Science&output-format=PNG)  
+- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abemjfk&candid=3552206234615015015&kind=Science&output-format=PNG) · thumb: same image  
   ZTF science image (g band, 2026-09-23 04:56 UTC): the same patch of sky in alert 3552206234615015015 for ZTF26abemjfk.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abemjfk&candid=3552206234615015015&kind=Difference&output-format=PNG)  
+- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abemjfk&candid=3552206234615015015&kind=Difference&output-format=PNG) · thumb: same image  
   ZTF difference image: the new light only (science minus reference). The spot at the centre is what changed.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
 
@@ -63,13 +63,13 @@ Recorded 2026-09-25T16:16:32Z. Candidates checked: 46, dropped as dead or blank:
 - **sky_context** 800×800 [image](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.025&projection=TAN&coordsys=icrs&ra=13.694810&dec=-24.924762&format=jpg) · [thumb](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=256&height=256&fov=0.025&projection=TAN&coordsys=icrs&ra=13.694810&dec=-24.924762&format=jpg)  
   DESI Legacy Surveys DR10 colour image of a 1.5′ square of sky around this flaring galaxy nucleus. Crosshair: the flaring galaxy nucleus is at the exact centre, RA 13.69481°, Dec -24.92476°. Archival picture taken between 2013 and 2021, before this event, so it shows the field where the flaring galaxy nucleus happened, not the flaring galaxy nucleus itself.  
   _Credit:_ DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits · _Licence:_ Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)
-- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18abuvchc&candid=3552412262815015007&kind=Template&output-format=PNG)  
+- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18abuvchc&candid=3552412262815015007&kind=Template&output-format=PNG) · thumb: same image  
   ZTF reference image: about 1′ of sky around the source before the event, stacked from earlier ZTF exposures.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18abuvchc&candid=3552412262815015007&kind=Science&output-format=PNG)  
+- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18abuvchc&candid=3552412262815015007&kind=Science&output-format=PNG) · thumb: same image  
   ZTF science image (g band, 2026-09-23 09:53 UTC): the same patch of sky in alert 3552412262815015007 for ZTF18abuvchc.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18abuvchc&candid=3552412262815015007&kind=Difference&output-format=PNG)  
+- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18abuvchc&candid=3552412262815015007&kind=Difference&output-format=PNG) · thumb: same image  
   ZTF difference image: the new light only (science minus reference). The spot at the centre is what changed.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
 
@@ -79,13 +79,13 @@ Recorded 2026-09-25T16:16:32Z. Candidates checked: 46, dropped as dead or blank:
 - **sky_context** 800×800 [image](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.025&projection=TAN&coordsys=icrs&ra=147.485149&dec=24.502176&format=jpg) · [thumb](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=256&height=256&fov=0.025&projection=TAN&coordsys=icrs&ra=147.485149&dec=24.502176&format=jpg)  
   DESI Legacy Surveys DR10 colour image of a 1.5′ square of sky around this variable star. Crosshair: the variable star is at the exact centre, RA 147.48515°, Dec +24.50218°. Archival picture taken between 2013 and 2021; the star at the centre is shown as it was then, not during this event.  
   _Credit:_ DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits · _Licence:_ Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)
-- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aahouhg&candid=2810523641915010082&kind=Template&output-format=PNG)  
+- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aahouhg&candid=2810523641915010082&kind=Template&output-format=PNG) · thumb: same image  
   ZTF reference image: about 1′ of sky around the source before the event, stacked from earlier ZTF exposures.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aahouhg&candid=2810523641915010082&kind=Science&output-format=PNG)  
+- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aahouhg&candid=2810523641915010082&kind=Science&output-format=PNG) · thumb: same image  
   ZTF science image (r band, 2024-09-11 12:34 UTC): the same patch of sky in alert 2810523641915010082 for ZTF18aahouhg.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aahouhg&candid=2810523641915010082&kind=Difference&output-format=PNG)  
+- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aahouhg&candid=2810523641915010082&kind=Difference&output-format=PNG) · thumb: same image  
   ZTF difference image: the new light only (science minus reference). The spot at the centre is what changed.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
 
@@ -95,13 +95,13 @@ Recorded 2026-09-25T16:16:32Z. Candidates checked: 46, dropped as dead or blank:
 - **sky_context** 800×800 [image](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=800&height=800&fov=0.025&projection=TAN&coordsys=icrs&ra=82.952867&dec=13.092216&format=jpg) · [thumb](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=256&height=256&fov=0.025&projection=TAN&coordsys=icrs&ra=82.952867&dec=13.092216&format=jpg)  
   Pan-STARRS1 colour image of a 1.5′ square of sky around this flaring star. Crosshair: the flaring star is at the exact centre, RA 82.95287°, Dec +13.09222°. Archival picture taken between 2010 and 2014; the star at the centre is shown as it was then, not during this event.  
   _Credit:_ Pan-STARRS1 DR1 (PS1 Science Consortium, via MAST/STScI), colour HiPS by CDS; cut with CDS hips2fits · _Licence:_ PS1 public data release, acknowledgement required; HiPS ODbL-1.0 (CDS)
-- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aaaaljy&candid=3545483374415015014&kind=Template&output-format=PNG)  
+- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aaaaljy&candid=3545483374415015014&kind=Template&output-format=PNG) · thumb: same image  
   ZTF reference image: about 1′ of sky around the source before the event, stacked from earlier ZTF exposures.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aaaaljy&candid=3545483374415015014&kind=Science&output-format=PNG)  
+- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aaaaljy&candid=3545483374415015014&kind=Science&output-format=PNG) · thumb: same image  
   ZTF science image (r band, 2026-09-16 11:36 UTC): the same patch of sky in alert 3545483374415015014 for ZTF18aaaaljy.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aaaaljy&candid=3545483374415015014&kind=Difference&output-format=PNG)  
+- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF18aaaaljy&candid=3545483374415015014&kind=Difference&output-format=PNG) · thumb: same image  
   ZTF difference image: the new light only (science minus reference). The spot at the centre is what changed.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
 
@@ -111,13 +111,13 @@ Recorded 2026-09-25T16:16:32Z. Candidates checked: 46, dropped as dead or blank:
 - **sky_context** 800×800 [image](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.025&projection=TAN&coordsys=icrs&ra=309.282937&dec=-11.345592&format=jpg) · [thumb](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=256&height=256&fov=0.025&projection=TAN&coordsys=icrs&ra=309.282937&dec=-11.345592&format=jpg)  
   DESI Legacy Surveys DR10 colour image of a 1.5′ square of sky around this microlensing event. Crosshair: the microlensing event is at the exact centre, RA 309.28294°, Dec -11.34559°. Archival picture taken between 2013 and 2021; the star at the centre is shown as it was then, not during this event.  
   _Credit:_ DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits · _Licence:_ Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)
-- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF25abdfzfi&candid=3548210722215015026&kind=Template&output-format=PNG)  
+- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF25abdfzfi&candid=3548210722215015026&kind=Template&output-format=PNG) · thumb: same image  
   ZTF reference image: about 1′ of sky around the source before the event, stacked from earlier ZTF exposures.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF25abdfzfi&candid=3548210722215015026&kind=Science&output-format=PNG)  
+- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF25abdfzfi&candid=3548210722215015026&kind=Science&output-format=PNG) · thumb: same image  
   ZTF science image (r band, 2026-09-19 05:03 UTC): the same patch of sky in alert 3548210722215015026 for ZTF25abdfzfi.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF25abdfzfi&candid=3548210722215015026&kind=Difference&output-format=PNG)  
+- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF25abdfzfi&candid=3548210722215015026&kind=Difference&output-format=PNG) · thumb: same image  
   ZTF difference image: the new light only (science minus reference). The spot at the centre is what changed.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
 
@@ -127,13 +127,13 @@ Recorded 2026-09-25T16:16:32Z. Candidates checked: 46, dropped as dead or blank:
 - **sky_context** 800×800 [image](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.333333&projection=TAN&coordsys=icrs&ra=37.735278&dec=9.452927&format=jpg) · [thumb](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=256&height=256&fov=0.333333&projection=TAN&coordsys=icrs&ra=37.735278&dec=9.452927&format=jpg)  
   DESI Legacy Surveys DR10 colour image of a 20′ square of sky around this asteroid. Crosshair: the asteroid is at the exact centre, RA 37.73528°, Dec +9.45293°. The asteroid itself is not in this picture: the survey was taken between 2013 and 2021, and these are the background stars at its position on 2026-09-23.  
   _Credit:_ DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits · _Licence:_ Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)
-- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abxaktw&candid=3552339060415015010&kind=Template&output-format=PNG)  
+- **cutout_reference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abxaktw&candid=3552339060415015010&kind=Template&output-format=PNG) · thumb: same image  
   ZTF reference image: about 1′ of sky around the source before the event, stacked from earlier ZTF exposures.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abxaktw&candid=3552339060415015010&kind=Science&output-format=PNG)  
+- **cutout_new** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abxaktw&candid=3552339060415015010&kind=Science&output-format=PNG) · thumb: same image  
   ZTF science image (r band, 2026-09-23 08:08 UTC): the same patch of sky in alert 3552339060415015010 for ZTF26abxaktw.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
-- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abxaktw&candid=3552339060415015010&kind=Difference&output-format=PNG)  
+- **cutout_difference** 63×63 [image](https://api.ztf.fink-portal.org/api/v1/cutouts?objectId=ZTF26abxaktw&candid=3552339060415015010&kind=Difference&output-format=PNG) · thumb: same image  
   ZTF difference image: the new light only (science minus reference). The spot at the centre is what changed.  
   _Credit:_ Zwicky Transient Facility (Caltech / Palomar Observatory); cutout served by the Fink broker · _Licence:_ ZTF public alert stream: public data; credit ZTF and Fink
 
@@ -212,12 +212,12 @@ _No pictures (see README: what each type gets)._
 - **sky_context** 800×800 [image](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.0333333&projection=TAN&coordsys=icrs&ra=62.733894&dec=-46.825459&format=jpg) · [thumb](https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=256&height=256&fov=0.0333333&projection=TAN&coordsys=icrs&ra=62.733894&dec=-46.825459&format=jpg)  
   DESI Legacy Surveys DR10 colour image of a 2′ square of sky around this event. Crosshair: the event is at the exact centre, RA 62.73389°, Dec -46.82546°. Archival picture taken between 2013 and 2021, before this event, so it shows the field where the event happened, not the event itself.  
   _Credit:_ DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits · _Licence:_ Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)
-- **cutout_reference** 30×30 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304427524110&kind=Template&output-format=PNG)  
+- **cutout_reference** 30×30 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304427524110&kind=Template&output-format=PNG) · thumb: same image  
   Rubin reference image: the few arcseconds of sky around the source before the event, stacked from earlier Rubin exposures.  
   _Credit:_ NSF–DOE Vera C. Rubin Observatory / LSST; cutout served by the Fink broker · _Licence:_ World-public Rubin alert data, no proprietary period; credit Rubin Observatory and Fink
-- **cutout_new** 30×30 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304427524110&kind=Science&output-format=PNG)  
+- **cutout_new** 30×30 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304427524110&kind=Science&output-format=PNG) · thumb: same image  
   Rubin science image (i band, 2026-07-14 10:03 UTC): the same patch of sky at the moment of this alert (diaSource 170666304427524110).  
   _Credit:_ NSF–DOE Vera C. Rubin Observatory / LSST; cutout served by the Fink broker · _Licence:_ World-public Rubin alert data, no proprietary period; credit Rubin Observatory and Fink
-- **cutout_difference** 30×30 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304427524110&kind=Difference&output-format=PNG)  
+- **cutout_difference** 30×30 [image](https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304427524110&kind=Difference&output-format=PNG) · thumb: same image  
   Rubin difference image: the new light only (science minus reference). The spot at the centre is what changed.  
   _Credit:_ NSF–DOE Vera C. Rubin Observatory / LSST; cutout served by the Fink broker · _Licence:_ World-public Rubin alert data, no proprietary period; credit Rubin Observatory and Fink

@@ -76,27 +76,44 @@ def test_region_found_in_summary_when_raw_lacks_it():
 
 # -- Earth ----------------------------------------------------------------------------------------
 
-def test_fireball_gets_nothing(monkeypatch):
+def at(iso):
+    return lambda: datetime.fromisoformat(iso)
+
+
+def test_fireball_gets_nothing():
     assert pictures_for(EVENTS["fireball"], check=False) == []
 
 
-def test_old_storm_gets_nothing_rather_than_a_wrong_time(replay):
-    replay("examples")
-    assert earth.earth_images(EVENTS["geomagnetic_storm"]) == []
+def test_old_storm_gets_nothing_rather_than_a_wrong_time():
+    assert earth.earth_images(EVENTS["geomagnetic_storm"]) == []  # 2026-08-08, far beyond 24 h
 
 
-def test_recent_storm_gets_the_matching_ovation_frame(replay):
+def test_current_storm_gets_noaa_latest_maps(replay, monkeypatch):
     replay("noaa")
+    monkeypatch.setattr(earth, "_now", at(NOAA["now"]))
     got = pictures_for(NOAA["event"])
     assert got == NOAA["pictures"]
-    [img] = got
-    assert img["url"].startswith(earth.OVATION + "/north/aurora_N_")
-    assert "not a photograph" in img["caption"] and "Public domain" in img["license"]
-    assert img["url"].startswith(earth.EPHEMERAL_PREFIXES)
+    assert [i["url"] for i in got] == [earth.LATEST["north"], earth.LATEST["south"]]
+    for img in got:
+        assert img["kind"] == "forecast_map"
+        assert img["caption"].startswith("NOAA aurora forecast, latest (model)")
+        assert "not a photograph" in img["caption"] and "Public domain" in img["license"]
+        assert img["thumb_url"] == img["url"]
 
 
-def test_hemisphere_follows_latitude():
+def test_24_hour_limit(monkeypatch):
+    storm = {**NOAA["event"], "observed_at": "2026-09-25T00:00:00Z"}
+    monkeypatch.setattr(earth, "_now", at("2026-09-25T23:59:00Z"))
+    assert earth.is_current(storm)
+    monkeypatch.setattr(earth, "_now", at("2026-09-26T00:01:00Z"))
+    assert not earth.is_current(storm) and earth.earth_images(storm) == []
+    monkeypatch.setattr(earth, "_now", at("2026-09-24T23:00:00Z"))  # forecast start ahead: ongoing
+    assert earth.is_current(storm)
+
+
+def test_hemisphere_follows_latitude(monkeypatch):
+    monkeypatch.setattr(earth, "_now", at(NOAA["now"]))
     south = {**NOAA["event"], "location": {"frame": "earth", "lat_deg": -45.0, "lon_deg": 170.0, "alt_km": None}}
-    unknown = {**NOAA["event"], "location": {"frame": "earth", "lat_deg": None, "lon_deg": None, "alt_km": None}}
-    assert earth._hemispheres(south) == ["south"]
-    assert earth._hemispheres(unknown) == ["north", "south"]
+    [img] = earth.earth_images(south)
+    assert img["url"] == earth.LATEST["south"]
+    assert earth._hemispheres(NOAA["event"]) == ["north", "south"]  # no latitude given: both
