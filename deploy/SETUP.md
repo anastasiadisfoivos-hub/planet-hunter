@@ -76,6 +76,12 @@ CLI yourself. Tokens never go into the repo or the chat.
    - web/ adds sign-in with supabase-js (SKYMAP session).
 4. For real data rather than fakes, `api/src/api/adapters/real.py` must be wired to the siblings
    (TRAPS). Until then keep `PH_ADAPTERS=fake`.
+5. **Instant "Known systems"** (decided: stored results, re-hunt only on a new data marker):
+   - api/ implements requirements **R1–R5** in [HOSTING.md](HOSTING.md#making-known-systems-instant-requirement-for-api-traps-session):
+     a `star_hunts` table, hunt jobs reusing stored results, nightly sharing them,
+     `python -m api.precompute`, and tests;
+   - deploy/ then adds the `api.precompute` step to `image.yml`, before the Render deploy hook.
+   - Until then, "Known systems" skip their downloads but still take ~1–2 min on Render.
 
 ## 1. Supabase: database + accounts (FREE, no card)
 
@@ -221,8 +227,8 @@ Repo → **Settings** → **Secrets and variables** → **Actions**.
 1. `curl https://planet-hunter-api.onrender.com/healthz` gives `{"ok":true}`.
 2. Open `https://planet-hunter.vercel.app`:
    - sign up with an e-mail + password;
-   - open a "Known systems" star. Nothing gets downloaded, but at 0.1 CPU it still takes ~1–2 min
-     (see HOSTING.md, "Making Known systems instant");
+   - open a "Known systems" star. Once R1–R5 are in, it returns at once; before that it takes
+     ~1–2 min;
    - place a sky watch.
 3. Browser devtools → Network: no CORS errors. If there are, fix `PH_CORS_ORIGINS`.
 4. Actions tab: `ci`, `image` and `nightly` are green on `main`.
@@ -232,7 +238,9 @@ Repo → **Settings** → **Secrets and variables** → **Actions**.
 - **api/ (TRAPS):**
   - Postgres `Storage` using `PH_DATABASE_URL` through the session pooler;
   - verifying Supabase JWTs with `SUPABASE_JWKS_URL`;
-  - real adapters.
+  - real adapters;
+  - stored hunt results + `api.precompute` for "Known systems": requirements R1–R5 in HOSTING.md.
+    New env var `PH_MARKER_TTL_S` (default 21600) goes on Render once it exists.
 - **web/ (SKYMAP):**
   - sign-in with supabase-js, reading `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`;
   - read the heatmap from `NEXT_PUBLIC_HEATMAP_URL` (raw.githubusercontent.com sends

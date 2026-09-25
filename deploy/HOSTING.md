@@ -152,7 +152,7 @@ card-free option.
 | Render Free | 512 MB RAM | One hunt peaks at ~280 MB, which fits. Keep concurrency at 1. |
 | Render Free | 750 h/month for the workspace | One always-on service would use 720–744 h. Sleeping keeps it well under. Never add a second free service to the same workspace. |
 | Render Free | Bandwidth over the free allowance suspends the service for the rest of the month (no card, so no bill) | Serve heatmap.json and static files from GitHub / Vercel, not from the API. |
-| Render Free | Hunts are slow (0.1 CPU) | The "Known systems" stars ship with their data cached in the image (`image.yml`). That removes the downloads, but the computation still takes 52–124 s at 0.1 CPU, so they are **not instant**. For instant results, the finished hunt results must be stored ahead of time (see below). |
+| Render Free | Hunts are slow (0.1 CPU) | Stored results are served, and re-hunts happen only on new TESS data. "Known systems" are pre-computed at deploy time (requirement R1–R5 below; api/ work). The image's pre-warmed cache makes re-hunts skip downloads, but they still take 52–124 s. |
 | Supabase Free | **Paused after 1 week without database activity**, which takes the site down | `nightly.yml` queries the database daily, once `PH_NIGHTLY_ENABLED=true`. The warning e-mail goes to Foivos. |
 | Supabase Free | 500 MB database, 5 GB egress | Plenty for traps + catches + accounts. The `raw` blobs are the thing to watch. |
 | Supabase Free | Built-in email: 2/hour, team addresses only | Turn off "Confirm email", or add a free SMTP (see above). |
@@ -160,17 +160,104 @@ card-free option.
 | Vercel Hobby | Non-commercial only | No ads, no paid features. |
 | GitHub Actions | Scheduled workflows are disabled after 60 days without repo activity [19] | Any push re-enables them; or click "Enable workflow". |
 
-## Making "Known systems" instant
+## Making "Known systems" instant: requirement for api/ (TRAPS session)
 
-A warm download cache halves the wait; it doesn't remove it. The CPU work is what's left.
-Instant means serving results computed ahead of time. Two ways, neither in deploy's area:
+**Decision (2026-09-25, Foivos): option b.**
+- api/ serves stored hunt results from Postgres and re-hunts a star only when
+  `latest_data_marker()` changes.
+- The "Known systems" stars are pre-computed at build/deploy time, so they're instant from launch.
 
-1. **Nightly publishes the results.** `image.yml` already runs the four hunts in CI, on full CPU.
-   It could also write each star's `[Discovery]` list (contract shape) to the `heatmap-data`
-   branch, next to heatmap.json, and web/ could show them directly. That needs a small web/ change.
-2. **The API returns stored results.** If a star was hunted recently, the API returns the stored
-   Discoveries from Postgres and only re-hunts when `latest_data_marker` changes. That is api/'s
-   call, and needs the Postgres storage first.
+Why: a warm download cache still leaves 52–124 s of CPU work per star on Render Free (measured
+above). deploy/'s image pre-warm stays as it is; it covers the re-hunt after new data arrives.
+
+Today, `HuntQueue._run` (api/src/api/jobs.py) calls `hunter.hunt()` on every job. The marker is
+only saved per trap (`traps.last_tess_marker`).
+
+### R1. Storage: one hunt result per star
+
+- Add a table to both SQLite and Postgres storage:
+
+  ```sql
+  star_hunts (
+    tic_id        INTEGER PRIMARY KEY,
+    data_marker   TEXT,          -- latest_data_marker() at hunt time; NULL if unknown
+    hunted_at     TEXT NOT NULL, -- ISO UTC
+    marker_checked_at TEXT NOT NULL,
+    discovery_ids TEXT NOT NULL  -- JSON list of final Discovery ids (after assign_tess_ids)
+  )
+  ```
+- Add Storage port methods `get_star_hunt(tic_id)`, `put_star_hunt(record)` and
+  `touch_star_hunt_marker(tic_id, at)`.
+- The Discoveries themselves stay in `discoveries`, as today.
+
+### R2. Hunt jobs reuse stored results
+
+In `HuntQueue._run`:
+
+1. `rec = storage.get_star_hunt(tic)`.
+2. If `rec` exists and `now - rec.marker_checked_at < PH_MARKER_TTL_S` (new setting, default
+   `21600` = 6 h), use it **without any network call**.
+3. Otherwise call `latest_data_marker(tic)`:
+   - It **equals** `rec.data_marker`: touch `marker_checked_at` and use `rec`.
+   - It returns **None** (MAST unreachable) and `rec` exists: use `rec` (stale is better than
+     failing). Add the job step `"data check unavailable: showing stored result"`.
+   - **Different, or no `rec`**: run `hunter.hunt()` as today, then `put_star_hunt` with the new
+     marker and the final IDs, in the same transaction as `ingest_hunt`.
+4. **Using `rec`** means:
+   - load its Discoveries;
+   - `ingest()` them for this player/trap, so catches, the one-catch-per-player rule and trap
+     markers work exactly as for a fresh hunt;
+   - add the job step `"stored result (data <marker>)"`;
+   - mark the job `done`.
+   There must be no `hunter.hunt()` call and nothing waiting on the hunt semaphore: a cached job
+   finishes within the web's first poll. It may skip the queue entirely.
+
+### R3. Nightly uses the same record
+
+- `api.nightly`: for star traps, compare against `star_hunts.data_marker`, so each star is
+  re-hunted **once** per new marker, however many players watch it.
+- Players whose trap marker is behind get catches from the stored record.
+- Keep the per-trap `last_tess_marker` update as today.
+
+### R4. Pre-compute CLI, run at build/deploy time
+
+- Add `python -m api.precompute [--stars 100100827,22529346,36734222,150428135] [--force]`:
+  - hunts each TIC with the configured adapters (`PH_ADAPTERS=real`);
+  - writes `discoveries` + `star_hunts` (no player, no catches);
+  - skips any star whose stored marker equals `latest_data_marker()`, unless `--force`;
+  - exits non-zero if any star fails;
+  - prints a JSON summary like `api.nightly`.
+- The default star list is the "Known systems":
+
+  | Star | TIC |
+  |---|---|
+  | WASP-18 | 100100827 |
+  | WASP-121 | 22529346 |
+  | WASP-43 | 36734222 |
+  | TOI-700 | 150428135 |
+
+  I checked these against the TIC lookups cached in the pre-warmed image. Keep the list in one
+  place (e.g. `api/src/api/known_systems.py`) so web/ can mirror it.
+- **Where it runs:** in GitHub Actions `image.yml`, on full CPU, right after the image build.
+  - Command: `docker run -e PH_ADAPTERS=real -e PH_DATABASE_URL <image> python -m api.precompute`,
+    with `PH_DATABASE_URL` from the repo secret.
+  - It runs before the Render deploy hook, so the stars are in Postgres before the new API
+    serves traffic.
+  - **deploy/ adds that step once `api.precompute` exists**; the step checks
+    `python -c "import api.precompute"` first.
+
+### R5. Tests (fakes, in `api/tests/`)
+
+- A second hunt of the same TIC with an unchanged marker makes **zero** `FakeStarHunter.hunt`
+  calls, and the job is `done` with the same Discovery IDs.
+- A changed marker re-hunts and replaces the `star_hunts` row. Re-hunted signals keep their IDs
+  through `assign_tess_ids`.
+- A `None` marker with a stored record serves the stored result. With no stored record, it hunts.
+- Within `PH_MARKER_TTL_S`, `latest_data_marker` isn't called at all.
+- `api.precompute` is idempotent: a second run skips every star. `--force` re-hunts.
+- A cached result still creates exactly one catch per player, and passes the honesty checks
+  (`HonestClient`).
+- `tests/test_ports_conformance.py` covers the new Storage methods for SQLite and Postgres.
 
 ## What's missing before data survives a restart
 
