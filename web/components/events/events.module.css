@@ -1,0 +1,60 @@
+.figure {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  min-width: 0;
+}
+
+.frame {
+  position: relative;
+  justify-self: start;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--space);
+}
+
+.frame img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Survey cutouts are 30 to 63 px: scale by whole pixels, never smooth them into mush. */
+.pixelated {
+  image-rendering: pixelated;
+}
+
+.fit {
+  width: 100%;
+  object-fit: contain;
+}
+
+.figure[data-variant="row"] .fit {
+  width: 96px;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.label {
+  position: absolute;
+  top: var(--s-1);
+  left: var(--s-1);
+  background: var(--bg);
+}
+
+.caption {
+  display: grid;
+  gap: 2px;
+  font-size: var(--text-12);
+  color: var(--ink-secondary);
+}
+
+.note {
+  color: var(--ink-muted);
+}
+
+.credit {
+  color: var(--ink-muted);
+}
