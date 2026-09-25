@@ -864,3 +864,20 @@
     border-color: var(--ink-faint);
   }
 }
+
+/* Lines made by Earth's atmosphere, drawn apart from the star's own lines. */
+.telluric line {
+  stroke: var(--ink-muted);
+  stroke-width: 1;
+}
+
+.telluric text {
+  font-family: var(--font-sans);
+  font-size: var(--text-12);
+  font-style: italic;
+  fill: var(--ink-muted);
+}
+
+.telluric[data-active="true"] text {
+  fill: var(--ink);
+}

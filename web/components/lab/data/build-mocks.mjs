@@ -79,8 +79,9 @@ write(
     [589.59, "Na", "D1", 0.7, 0.18],
     [616.22, "Ca", "", 0.3, 0.12],
     [656.28, "H", "C (H-alpha)", 0.7, 0.45],
-    [686.7, "O", "B (oxygen in Earth's air)", 0.55, 0.6],
-    [759.4, "O", "A (oxygen in Earth's air)", 0.7, 1],
+    // Telluric: oxygen in Earth's air, not the Sun.
+    [686.7, "O2", "B", 0.55, 0.6],
+    [759.4, "O2", "A", 0.7, 1],
   ];
   const wl = [];
   const flux = [];

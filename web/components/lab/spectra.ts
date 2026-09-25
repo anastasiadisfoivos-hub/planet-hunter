@@ -28,6 +28,34 @@ export type Atmosphere = {
   source: string;
 };
 
+/**
+ * Absorption bands made by Earth's own atmosphere (telluric), not by the star. Oxygen: the
+ * Fraunhofer A and B bands; water vapour around 720, 820 and 940 nm.
+ */
+export const TELLURIC_BANDS: { from: number; to: number; species: "O2" | "H2O" }[] = [
+  { from: 686, to: 695, species: "O2" },
+  { from: 759, to: 771, species: "O2" },
+  { from: 716, to: 735, species: "H2O" },
+  { from: 810, to: 840, species: "H2O" },
+  { from: 890, to: 990, species: "H2O" },
+];
+
+const plain = (sym: string) => sym.replace(/[₀-₉]/g, (c) => String(c.charCodeAt(0) - 0x2080));
+
+/**
+ * The molecule in Earth's air that made a line in a star's spectrum, or null for a line from the
+ * star itself. Recognised by its species (O2, H2O), by a label that says so, or by an oxygen line
+ * sitting in one of the oxygen bands.
+ */
+export function telluricSpecies(line: { nm: number; element: string; label?: string }): "O2" | "H2O" | null {
+  const el = plain(line.element).trim();
+  if (el === "O2" || el === "H2O") return el;
+  const band = TELLURIC_BANDS.find((b) => line.nm >= b.from && line.nm <= b.to);
+  if (/earth|telluric|atmospher/i.test(line.label ?? "")) return band?.species ?? (el === "H" ? "H2O" : "O2");
+  if (el === "O" && band?.species === "O2") return "O2";
+  return null;
+}
+
 export type Loaded<T> = { data: T; demo: boolean };
 
 const REAL = "/data/spectra/";

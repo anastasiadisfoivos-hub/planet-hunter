@@ -16,6 +16,7 @@ import {
   loadSpectra,
   speciesName,
   sunPath,
+  telluricSpecies,
   type Abundances,
   type Atmosphere,
   type ElementLines,
@@ -247,7 +248,19 @@ function SunChart({ sun }: { sun: SunSpectrum }) {
     setHover(best);
   };
 
-  const labelled = sun.lines.filter((l, i, a) => i === 0 || Math.abs(x(l.nm) - x(a[i - 1].nm)) > (narrow ? 22 : 16));
+  const solar = sun.lines.filter((l) => !telluricSpecies(l));
+  const earth = sun.lines.filter((l) => telluricSpecies(l));
+  const labelled = solar.filter((l, i, a) => i === 0 || Math.abs(x(l.nm) - x(a[i - 1].nm)) > (narrow ? 22 : 16));
+  /** Where a line's dip bottoms out, so an Earth's-air label can sit just under it. */
+  const dipY = (nm: number) => {
+    let min = Infinity;
+    sun.wavelength_nm.forEach((v, i) => {
+      if (Math.abs(v - nm) <= 3 && sun.flux[i] < min) min = sun.flux[i];
+    });
+    return y(Number.isFinite(min) ? min : maxF);
+  };
+  const hoverEarth = hover ? telluricSpecies(hover) : null;
+  const solarNames = [...new Set(solar.map((l) => elementName(l.element)))];
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <svg
@@ -255,7 +268,7 @@ function SunChart({ sun }: { sun: SunSpectrum }) {
         width={w}
         height={h}
         role="img"
-        aria-label={`The Sun's spectrum from ${sun.wavelength_nm[0]} to ${sun.wavelength_nm.at(-1)} nm, with dark lines from ${[...new Set(sun.lines.map((l) => elementName(l.element)))].join(", ")}.`}
+        aria-label={`The Sun's spectrum from ${sun.wavelength_nm[0]} to ${sun.wavelength_nm.at(-1)} nm, with dark lines from ${solarNames.join(", ")}${earth.length ? `, plus ${earth.length} lines from oxygen or water in Earth's air` : ""}.`}
         onPointerMove={onMove}
         onPointerDown={onMove}
         onPointerLeave={() => setHover(null)}
@@ -271,20 +284,56 @@ function SunChart({ sun }: { sun: SunSpectrum }) {
             {l.element}
           </text>
         ))}
+        {/* Earth's air: dashed guide and a label under the dip, never in the row of solar elements. */}
+        {earth.map((l, i) => {
+          const sp = telluricSpecies(l)!;
+          const lx = x(l.nm);
+          const ly = Math.min(h - m.b - 6, dipY(l.nm) + 16 + (narrow && i % 2 ? 14 : 0));
+          const anchor = lx > w - m.r - 60 ? "end" : lx < m.l + 60 ? "start" : "middle";
+          return (
+            <g key={l.nm} className={s.telluric} data-active={hover?.nm === l.nm}>
+              <line x1={lx} x2={lx} y1={m.t - 22} y2={ly - 12} strokeDasharray="2 3" />
+              <text x={lx} y={ly} textAnchor={anchor}>
+                {sp === "O2" ? "O₂" : "H₂O"}: Earth&apos;s air
+              </text>
+            </g>
+          );
+        })}
         {hover && <line x1={x(hover.nm)} x2={x(hover.nm)} y1={m.t - 44} y2={h - m.b} stroke="var(--accent)" strokeWidth={1.5} />}
       </svg>
       {hover && (
         <div className={s.tooltip} style={{ left: x(hover.nm), top: m.t - 44 }}>
-          {elementName(hover.element)[0].toUpperCase() + elementName(hover.element).slice(1)}
-          {hover.label ? ` (${hover.label})` : ""} <span className="mono">{hover.nm.toFixed(1)} nm</span>
+          {hoverEarth ? (
+            <>
+              {hoverEarth === "O2" ? "Oxygen (O₂)" : "Water vapour (H₂O)"} in Earth&apos;s air, not the Sun{hover.label ? ` (${hover.label})` : ""}
+            </>
+          ) : (
+            <>
+              {elementName(hover.element)[0].toUpperCase() + elementName(hover.element).slice(1)}
+              {hover.label ? ` (${hover.label})` : ""}
+            </>
+          )}{" "}
+          <span className="mono">{hover.nm.toFixed(1)} nm</span>
         </div>
       )}
+      <ul className={s.legend} style={{ paddingTop: "var(--s-2)" }}>
+        <li>Letters above the strip: elements in the Sun</li>
+        {earth.length > 0 && (
+          <li>
+            <span className={`${s.keyLine} ${s.keyDash}`} aria-hidden />
+            Dashed: absorbed by Earth&apos;s air on the way to the telescope
+          </li>
+        )}
+      </ul>
     </div>
   );
 }
 
+const COUNT = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
+
 function SunSection() {
   const { value, loading } = useSpectra<SunSpectrum>(sunPath);
+  const earthCount = value ? value.data.lines.filter((l) => telluricSpecies(l)).length : 0;
   return (
     <section className={s.section} aria-labelledby="sun-h">
       <div className={s.sectionHead}>
@@ -297,6 +346,14 @@ function SunSection() {
         <p className={s.body}>
           Spread sunlight into a rainbow and it is crossed by dark lines: colours taken out by atoms in the Sun&apos;s outer layers. Point at a dip
           to see which element made it.
+          {value && earthCount > 0 && (
+            <>
+              {" "}
+              <strong>
+                {COUNT[earthCount] ?? earthCount} of these dark {earthCount === 1 ? "lines comes" : "lines come"} from Earth&apos;s own air, not the Sun.
+              </strong>
+            </>
+          )}
         </p>
       </div>
       {loading ? (
