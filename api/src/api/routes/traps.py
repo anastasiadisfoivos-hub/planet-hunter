@@ -26,8 +26,8 @@ async def create_trap(
     queue: QueueDep,
 ) -> TrapCreated:
     """Store a trap and sweep it right away: Rubin alerts from the last nights, or a TESS hunt."""
-    storage = svc.storage
-    if storage.count_traps(pid) >= cfg.max_traps_per_player:
+    storage = svc.storage  # blocking calls: run them off the event loop
+    if await asyncio.to_thread(storage.count_traps, pid) >= cfg.max_traps_per_player:
         raise HTTPException(
             409, f"You already have {cfg.max_traps_per_player} traps. Remove one first."
         )
@@ -42,11 +42,13 @@ async def create_trap(
     )
 
     if body.star is not None:
-        if storage.count_pending_jobs(pid) >= cfg.max_pending_jobs_per_player:
+        if await asyncio.to_thread(storage.count_pending_jobs, pid) >= (
+            cfg.max_pending_jobs_per_player
+        ):
             raise HTTPException(
                 429, "You have too many hunts waiting. Try again when one finishes."
             )
-        storage.create_trap(trap)
+        await asyncio.to_thread(storage.create_trap, trap)
         job = await queue.submit(pid, body.star.tic_id, trap_id=trap.id)
         return TrapCreated(
             trap=trap.public(), sweep=SweepInfo(status="queued"), catches=[], job_id=job.id
@@ -68,9 +70,13 @@ async def create_trap(
 
     # A failed sweep leaves last_checked_at at the window start, so the nightly check retries it.
     trap.last_checked_at = until if status == "ok" else since
-    with storage.atomic():
-        storage.create_trap(trap)
-        result = catalog.ingest_rubin(storage, pid, trap.id, found, now)
+
+    def store() -> catalog.IngestResult:
+        with storage.atomic():
+            storage.create_trap(trap)
+            return catalog.ingest_rubin(storage, pid, trap.id, found, now)
+
+    result = await asyncio.to_thread(store)
     return TrapCreated(
         trap=trap.public(),
         sweep=SweepInfo(status=status, since=since, until=until, rejected=len(result.rejected)),

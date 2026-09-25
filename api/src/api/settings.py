@@ -15,6 +15,11 @@ def _float(name: str, default: float) -> float:
 @dataclass(frozen=True)
 class Settings:
     db_path: str = "traps.db"
+    # Postgres URL; when set it replaces SQLite. Kept out of repr: it holds the password.
+    database_url: str | None = field(default=None, repr=False)
+    db_pool_max: int = 5
+    db_timeout_s: float = 5.0
+    db_statement_timeout_ms: int = 15000
     adapters: str = "fake"  # "fake" | "real"
     max_concurrent_hunts: int = 2
     sweep_nights: int = 7
@@ -34,6 +39,10 @@ class Settings:
         origins = os.environ.get("PH_CORS_ORIGINS", "")
         return cls(
             db_path=os.environ.get("PH_DB_PATH", "traps.db"),
+            database_url=os.environ.get("PH_DATABASE_URL") or None,
+            db_pool_max=_int("PH_DB_POOL_MAX", 5),
+            db_timeout_s=_float("PH_DB_TIMEOUT_S", 5.0),
+            db_statement_timeout_ms=_int("PH_DB_STATEMENT_TIMEOUT_MS", 15000),
             adapters=os.environ.get("PH_ADAPTERS", "fake"),
             max_concurrent_hunts=_int("PH_MAX_CONCURRENT_HUNTS", 2),
             sweep_timeout_s=_float("PH_SWEEP_TIMEOUT_S", 15.0),

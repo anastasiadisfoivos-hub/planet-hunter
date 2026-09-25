@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -19,7 +20,9 @@ async def start_hunt(
     queue: QueueDep,
 ) -> HuntAccepted:
     """Queue a TESS hunt for one star. Poll GET /jobs/{id} for progress."""
-    if svc.storage.count_pending_jobs(pid) >= cfg.max_pending_jobs_per_player:
+    if await asyncio.to_thread(svc.storage.count_pending_jobs, pid) >= (
+        cfg.max_pending_jobs_per_player
+    ):
         raise HTTPException(429, "You have too many hunts waiting. Try again when one finishes.")
     job = await queue.submit(pid, body.star.tic_id)
     return HuntAccepted(job_id=job.id, status=job.status)

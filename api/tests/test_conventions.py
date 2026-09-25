@@ -12,7 +12,6 @@ from api.conventions import (
     normalize_rubin,
     period_match_error,
 )
-from api.storage.sqlite import SqliteStorage
 
 TIC = 1234
 T = datetime(2026, 9, 1, tzinfo=UTC)
@@ -114,8 +113,7 @@ def test_rubin_ids():
     assert kept == ok and len(rejected) == 3
 
 
-def test_ingest_update_rules():
-    storage = SqliteStorage()
+def test_ingest_update_rules(storage):
     first = d("rubin:obj:1", source="rubin", mag=19)
     r = catalog.ingest(storage, "p", None, [first], T)
     assert (r.created, r.new_catches) == (1, 1)

@@ -17,8 +17,22 @@ class Services:
     forecaster: Forecaster
 
 
+def build_storage(settings: Settings) -> Storage:
+    """Postgres when PH_DATABASE_URL is set, else SQLite at PH_DB_PATH."""
+    if settings.database_url:
+        from api.storage.postgres import PostgresStorage
+
+        return PostgresStorage(
+            settings.database_url,
+            pool_max=settings.db_pool_max,
+            timeout_s=settings.db_timeout_s,
+            statement_timeout_ms=settings.db_statement_timeout_ms,
+        )
+    return SqliteStorage(settings.db_path)
+
+
 def build_services(settings: Settings) -> Services:
-    storage = SqliteStorage(settings.db_path)
+    storage = build_storage(settings)
     if settings.adapters == "real":
         from api.adapters import real
 

@@ -1,4 +1,4 @@
-"""Nightly checker: `python -m api.nightly [--db PATH] [--dry-run]`.
+"""Nightly checker: `python -m api.nightly [--db PATH | --database-url URL] [--dry-run]`.
 
 Sky traps: new Rubin alerts since the trap's last check. Star traps: re-hunt only when new
 TESS data exists. Idempotent: each window advances only when its catches are committed, and
@@ -11,7 +11,7 @@ import argparse
 import json
 import logging
 import sys
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime
 
 from api import catalog
@@ -85,15 +85,25 @@ def run_nightly(services: Services, now: datetime | None = None, dry_run: bool =
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m api.nightly", description=__doc__)
-    parser.add_argument("--db", help="SQLite path (default: $PH_DB_PATH or traps.db)")
+    db = parser.add_mutually_exclusive_group()
+    db.add_argument("--db", help="use SQLite at this path (default: $PH_DB_PATH or traps.db)")
+    db.add_argument("--database-url", help="use this Postgres URL (default: $PH_DATABASE_URL)")
     parser.add_argument("--dry-run", action="store_true", help="count, but write nothing")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     settings = Settings.from_env()
     if args.db:
-        settings = Settings(**{**settings.__dict__, "db_path": args.db})
-    summary = run_nightly(build_services(settings), dry_run=args.dry_run)
+        settings = replace(settings, db_path=args.db, database_url=None)
+    elif args.database_url:
+        settings = replace(settings, database_url=args.database_url)
+    services = build_services(settings)
+    try:
+        summary = run_nightly(services, dry_run=args.dry_run)
+    finally:
+        close = getattr(services.storage, "close", None)  # not part of the Storage port
+        if close:
+            close()
     print(json.dumps(asdict(summary), indent=2))
     return 1 if summary.failures else 0
 

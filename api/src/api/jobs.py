@@ -1,4 +1,7 @@
-"""In-process TESS hunt queue: at most `max_concurrent_hunts` running, the rest wait in order."""
+"""In-process TESS hunt queue: at most `max_concurrent_hunts` running, the rest wait in order.
+
+Storage calls block (network round trips on Postgres), so they run in threads, off the event loop.
+"""
 
 from __future__ import annotations
 
@@ -44,7 +47,7 @@ class HuntQueue:
             steps=[JobStep(name="queued", at=now)],
             created_at=now,
         )
-        self.services.storage.create_job(job)
+        await asyncio.to_thread(self.services.storage.create_job, job)
         await self._queue.put(job.id)
         return job
 
@@ -61,20 +64,17 @@ class HuntQueue:
 
     async def _run(self, job_id: str) -> None:
         storage = self.services.storage
-        job = storage.get_job(job_id)
+        job = await asyncio.to_thread(storage.get_job, job_id)
         if job is None or job.status != "queued":
             return
-        storage.set_job_status(job_id, "running", at=utcnow())
+
+        def set_status(status, **kw) -> None:
+            storage.set_job_status(job_id, status, at=utcnow(), **kw)
 
         def step(name: str) -> None:
             storage.append_job_step(job_id, JobStep(name=name, at=utcnow()))
 
-        step("started")
-        try:
-            marker = await asyncio.to_thread(self.services.hunter.latest_data_marker, job.tic_id)
-            found = await asyncio.wait_for(
-                asyncio.to_thread(self.services.hunter.hunt, job.tic_id, step), self.timeout_s
-            )
+        def store(found, marker) -> catalog.IngestResult:
             now = utcnow()
             with storage.atomic():
                 result = catalog.ingest_hunt(
@@ -82,12 +82,20 @@ class HuntQueue:
                 )
                 if job.trap_id and marker is not None and storage.get_trap(job.trap_id):
                     storage.set_trap_checked(job.trap_id, last_checked_at=now, marker=marker)
-            step(f"stored {len(result.stored)} catches")
-            storage.set_job_status(
-                job_id, "done", at=utcnow(), result_ids=[d.id for d in result.stored]
+            return result
+
+        await asyncio.to_thread(set_status, "running")
+        await asyncio.to_thread(step, "started")
+        try:
+            marker = await asyncio.to_thread(self.services.hunter.latest_data_marker, job.tic_id)
+            found = await asyncio.wait_for(
+                asyncio.to_thread(self.services.hunter.hunt, job.tic_id, step), self.timeout_s
             )
+            result = await asyncio.to_thread(store, found, marker)
+            await asyncio.to_thread(step, f"stored {len(result.stored)} catches")
+            await asyncio.to_thread(set_status, "done", result_ids=[d.id for d in result.stored])
         except TimeoutError:
-            storage.set_job_status(job_id, "failed", at=utcnow(), error="hunt timed out")
+            await asyncio.to_thread(set_status, "failed", error="hunt timed out")
         except Exception as e:
             log.warning("hunt job %s failed: %s", job_id, e)
-            storage.set_job_status(job_id, "failed", at=utcnow(), error=str(e) or type(e).__name__)
+            await asyncio.to_thread(set_status, "failed", error=str(e) or type(e).__name__)

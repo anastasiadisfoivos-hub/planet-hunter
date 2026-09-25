@@ -5,13 +5,14 @@ import subprocess
 import sys
 import uuid
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
+
+import pytest
 
 from api.contract import Cutouts, Discovery, Sphere, StarTarget
 from api.models import TrapRecord
 from api.nightly import main, run_nightly
 from api.storage.sqlite import SqliteStorage
-from tests.conftest import SKY, TIC, wait_job
+from tests.conftest import SKY, TIC, wait_job, wipe_postgres
 
 T0 = datetime(2026, 9, 20, tzinfo=UTC)
 
@@ -182,8 +183,25 @@ def test_dry_run_writes_nothing(services):
     assert services.storage.get_trap(trap.id).last_checked_at == T0
 
 
-def _seed_file_db(path: Path) -> None:
-    storage = SqliteStorage(str(path))
+@pytest.fixture
+def cli_db(backend, tmp_path, monkeypatch, request):
+    """A fresh database the CLI can reach: (open a Storage on it, CLI args). Postgres goes
+    through PH_DATABASE_URL, so the env-var selection is what gets exercised."""
+    if backend == "sqlite":
+        monkeypatch.delenv("PH_DATABASE_URL", raising=False)
+        path = str(tmp_path / "traps.db")
+        return (lambda: SqliteStorage(path)), ["--db", path]
+    from api.storage.postgres import PostgresStorage
+
+    request.getfixturevalue("pg_storage")  # schema in place
+    url = request.getfixturevalue("pg_url")
+    wipe_postgres(url)
+    monkeypatch.setenv("PH_DATABASE_URL", url)
+    return (lambda: PostgresStorage(url)), []
+
+
+def _seed_db(open_storage) -> None:
+    storage = open_storage()
     checked = datetime.now(UTC) - timedelta(days=3)
     _sky_trap(storage, "p1", checked)
     storage.create_trap(
@@ -194,23 +212,23 @@ def _seed_file_db(path: Path) -> None:
     storage.close()
 
 
-def test_cli_main_twice(tmp_path, capsys):
-    db = tmp_path / "traps.db"
-    _seed_file_db(db)
-    assert main(["--db", str(db)]) == 0
+def test_cli_main_twice(cli_db, capsys):
+    open_storage, args = cli_db
+    _seed_db(open_storage)
+    assert main(args) == 0
     first = json.loads(capsys.readouterr().out)
     assert first["sky_checked"] == 1 and first["star_rehunted"] == 1
     assert first["new_catches"] > 0
-    assert main(["--db", str(db)]) == 0
+    assert main(args) == 0
     second = json.loads(capsys.readouterr().out)
     assert (second["new_catches"], second["created"], second["star_rehunted"]) == (0, 0, 0)
 
 
-def test_python_dash_m_entrypoint(tmp_path):
-    db = tmp_path / "traps.db"
-    _seed_file_db(db)
+def test_python_dash_m_entrypoint(cli_db):
+    open_storage, args = cli_db
+    _seed_db(open_storage)
     out = subprocess.run(
-        [sys.executable, "-m", "api.nightly", "--db", str(db)],
+        [sys.executable, "-m", "api.nightly", *args],
         capture_output=True,
         text=True,
         check=True,

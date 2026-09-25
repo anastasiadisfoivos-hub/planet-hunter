@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -27,7 +28,9 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         # Jobs don't survive a restart: mark them failed instead of leaving them hanging.
-        services.storage.fail_unfinished_jobs("interrupted by a server restart", utcnow())
+        await asyncio.to_thread(
+            services.storage.fail_unfinished_jobs, "interrupted by a server restart", utcnow()
+        )
         await queue.start()
         yield
         await queue.stop()
