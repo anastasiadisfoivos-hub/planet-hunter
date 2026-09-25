@@ -1,0 +1,16 @@
+# Used automatically by BuildKit for deploy/Dockerfile (context = repo root).
+.git
+.github
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/.env
+**/.env.*
+web/
+deploy/
+pipeline/reports/
+**/node_modules

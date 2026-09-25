@@ -1,0 +1,116 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Find which parts of the repo exist on this commit, so packages still being built
+  # elsewhere are simply skipped until they land.
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      python: ${{ steps.find.outputs.python }}
+      web: ${{ steps.find.outputs.web }}
+      api: ${{ steps.find.outputs.api }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        run: |
+          pkgs=()
+          for p in api pipeline sources forecast; do
+            [ -f "$p/pyproject.toml" ] && pkgs+=("\"$p\"")
+          done
+          echo "python=[$(IFS=,; echo "${pkgs[*]}")]" >> "$GITHUB_OUTPUT"
+          echo "web=$([ -f web/package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "api=$([ -f api/pyproject.toml ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+
+  python:
+    needs: detect
+    if: needs.detect.outputs.python != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.detect.outputs.python) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
+    env:
+      # Network tests stay off in CI: pipeline/ skips them unless this is 1, and every package
+      # also deselects tests marked `network`.
+      HUNTER_RUN_NETWORK: "0"
+      PH_ADAPTERS: fake
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: ${{ matrix.package }}/uv.lock
+      - name: Install Python 3.12
+        run: uv python install 3.12
+      - name: pytest (network tests skipped)
+        run: |
+          set +e
+          uv run pytest -q -m "not network"
+          code=$?
+          # 5 = no tests collected (a package that has no tests yet): not a failure.
+          if [ "$code" -eq 5 ]; then echo "no tests collected"; exit 0; fi
+          exit $code
+
+  web:
+    needs: detect
+    if: needs.detect.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  docker:
+    needs: detect
+    if: needs.detect.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build API image (not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/Dockerfile
+          push: false
+          load: true
+          tags: planet-hunter-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test
+        run: |
+          docker run -d --name api -p 8000:8000 planet-hunter-api:ci
+          for _ in $(seq 1 30); do
+            curl -fsS localhost:8000/healthz && exit 0
+            sleep 1
+          done
+          docker logs api
+          exit 1
