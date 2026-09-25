@@ -10,6 +10,13 @@
   NASA under the Exoplanet Exploration Program. Distances are the archive's `sy_dist`, mostly from TICv8 (Stassun et
   al. 2019, Gaia DR2 parallaxes). Built by `scripts/build-hosts.mjs`.
 - **Bright stars.** Yale Bright Star Catalogue, 5th revised ed. (Hoffleit & Warren 1991), VizieR V/50.
+- **Star colours.** Mitchell Charity, "What color are the stars?" (http://www.vendian.org/mncharity/dir3/starcolor/)
+  and its blackbody table, "What color is a blackbody?"
+  (http://www.vendian.org/mncharity/dir3/blackbody/UnstableURLs/bbr_color.html): sRGB, D65 white, CIE 1964 10°
+  observer, 1000 K to 40000 K. Built by `scripts/build-star-colors.mjs`. Temperatures: `st_teff` from the Exoplanet
+  Archive (TIC values for most hosts); for bright stars, Teff from B−V by Ballesteros (2012), EPL 97, 34008. Colours
+  get one display saturation boost (×1.75), noted in "About this map".
+- **Stellar radii and magnitudes.** Exoplanet Archive `st_rad` and `sy_vmag`, same table as above.
 
 ## Positions and sizes behind the illustrated sky
 
@@ -32,4 +39,8 @@ This research has made use of the VizieR catalogue access tool and the SIMBAD da
 - Simplex noise: "webgl-noise" by Ian McEwan and Stefan Gustavson (Ashima Arts), MIT licence,
   https://github.com/ashima/webgl-noise
 - HEALPix lookups: `@hscmap/healpix` (MIT).
+- Close-up star shading follows the approach in B. Podgursky, procedural star rendering (bpodgursky.com, 2017) and
+  S. Lee, realistic Sun with shaders (sangillee.com, 2024): layered simplex noise for granulation, linear limb
+  darkening, and a fresnel-falloff corona. Illustrations, not simulations.
+- camera-controls by yomotsu (MIT). postprocessing and @react-three/postprocessing by pmndrs (Zlib, MIT).
 - three.js, @react-three/fiber, @react-three/drei (MIT). Geist and Geist Mono (SIL OFL). Phosphor Icons (MIT).

@@ -58,7 +58,7 @@ export type Action =
 
 const initial: State = {
   mode: "look",
-  layers: { zone: true, grounds: false, heatmap: false, tonight: false, art: true, stars: true },
+  layers: { zone: true, grounds: false, heatmap: false, tonight: false, art: false, stars: true },
   heatType: "all",
   trueScale: false,
   window: "tonight",

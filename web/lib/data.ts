@@ -32,6 +32,10 @@ export type HostsFile = {
   dist: number[];
   npl: number[];
   teff: number[];
+  /** Stellar radius in solar radii; 0 when not listed. */
+  rad: number[];
+  /** V magnitude from Earth; 99 when not listed. */
+  vmag: number[];
   ref: number[];
 };
 

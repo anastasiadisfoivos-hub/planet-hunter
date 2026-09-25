@@ -8,6 +8,7 @@ import { indexHosts, type HostIndex } from "@/lib/classify";
 import { loadMapData, type MapData } from "@/lib/data";
 import { formatRadius } from "@/lib/sky";
 import { formatPercent } from "@/lib/odds";
+import { starColor } from "@/lib/starColor";
 import type { Forecast } from "@/lib/contract";
 import { StoreProvider, useStore, type Mode } from "@/state/store";
 import { hud, view } from "./scene/constants";
@@ -84,6 +85,54 @@ function SkyMap() {
   return <Loaded data={data} />;
 }
 
+const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+
+/** Name label that follows the hovered planet host (positioned by the scene each frame). */
+function HoverLabel() {
+  const ref = useCallback((el: HTMLDivElement | null) => {
+    hud.hover = el;
+  }, []);
+  return <div ref={ref} className={s.hoverLabel} data-visible="false" aria-hidden />;
+}
+
+/** Key facts for the star in close-up. The surface is procedural; the numbers are catalogue values. */
+function StarHud({ data, i }: { data: MapData; i: number }) {
+  const h = data.hosts;
+  const teff = h.teff[i];
+  const rad = h.rad?.[i] ?? 0;
+  const pc = h.dist[i];
+  const [r, g, b] = starColor(teff).map((v) => Math.round(v * 255));
+  return (
+    <section className={s.starHud} aria-label={`${h.name[i]} close-up`}>
+      <p className="label">Planet host</p>
+      <h2 className={s.starHudName}>{h.name[i]}</h2>
+      <dl className={s.starHudFacts}>
+        <div>
+          <dt className="label">Temperature</dt>
+          <dd className="mono">
+            <span className={s.starSwatch} style={{ background: `rgb(${r} ${g} ${b})` }} aria-hidden />
+            {teff > 0 ? `${nf.format(teff)} K` : "Not listed"}
+          </dd>
+        </div>
+        <div>
+          <dt className="label">Radius</dt>
+          <dd className="mono">{rad > 0 ? `${rad < 1 ? rad.toFixed(2) : rad.toFixed(1)} R☉` : "Not listed"}</dd>
+        </div>
+        <div>
+          <dt className="label">Distance</dt>
+          <dd className="mono">
+            {pc < 10 ? pc.toFixed(2) : nf.format(pc)} pc<span className={s.muted}> · {nf.format(pc * 3.2616)} ly</span>
+          </dd>
+        </div>
+      </dl>
+      <p className={s.starHudNote}>
+        Surface is an illustration; colour, size and position are from real data.
+        {rad > 0 ? "" : " No radius is listed, so it is drawn at the Sun's size."}
+      </p>
+    </section>
+  );
+}
+
 /** Compact label beside the watch being drawn: size, kind, and visit chance. */
 function Readout({ forecast }: { forecast: Forecast | null }) {
   const { state } = useStore();
@@ -131,20 +180,24 @@ function Loaded({ data }: { data: MapData }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [dispatch]);
 
-  // Test hook for screenshots and debugging: window.__skymap.jumpTo(ra, dec, fov).
+  // Test hook for screenshots and debugging: window.__skymap.jumpTo(ra, dec, fov), .select(hostIndex | null).
   useEffect(() => {
-    (window as unknown as { __skymap: unknown }).__skymap = { jumpTo: (ra: number, dec: number, fov: number) => view.jumpTo?.(ra, dec, fov), view };
-  }, []);
+    (window as unknown as { __skymap: unknown }).__skymap = {
+      jumpTo: (ra: number, dec: number, fov: number) => view.jumpTo?.(ra, dec, fov),
+      select: (i: number | null) => dispatch({ type: "selectStar", index: i }),
+      view,
+    };
+  }, [dispatch]);
 
-  // On phones, open the watch sheet once a drawn watch is released or a star is picked.
+  // On phones, open the watch sheet once a drawn watch is released. A picked star does not: the sheet
+  // would cover its close-up, and the close-up HUD already carries the key facts.
   const draftReleased = !!state.draft && !state.draft.dragging;
-  const hasStar = state.selectedStar !== null;
   const [autoOpened, setAutoOpened] = useState(false);
-  if ((draftReleased || hasStar) && !autoOpened) {
+  if (draftReleased && !autoOpened) {
     setAutoOpened(true);
     setSheet("watch");
   }
-  if (!draftReleased && !hasStar && autoOpened) setAutoOpened(false);
+  if (!draftReleased && autoOpened) setAutoOpened(false);
 
   const statusRef = (key: "pointer" | "fov" | "fps") => (el: HTMLElement | null) => {
     hud[key] = el;
@@ -153,7 +206,9 @@ function Loaded({ data }: { data: MapData }) {
   const toggle = (tab: "layers" | "watch") => setSheet((cur) => (cur === tab ? "closed" : tab));
   const hint =
     state.mode === "look"
-      ? "Drag to look around. Scroll or pinch to zoom. Click a blue star for details."
+      ? state.selectedStar !== null
+        ? null
+        : "Drag to look around. Scroll or pinch to zoom. Point at a star to find planet hosts; click one to fly to it."
       : state.draft
         ? null
         : "Drag outward on the sky to draw a watch. A single click draws a 1° watch.";
@@ -199,7 +254,9 @@ function Loaded({ data }: { data: MapData }) {
         </div>
 
         {hint && <p className={s.hint}>{hint}</p>}
+        {state.selectedStar !== null && state.mode === "look" && <StarHud data={data} i={state.selectedStar} />}
         <Readout forecast={forecast} />
+        <HoverLabel />
       </div>
 
       <Inspector data={data} index={index} forecast={forecast} watchesApi={watchesApi} />

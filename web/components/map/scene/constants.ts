@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type { Sphere } from "@/lib/contract";
 import { radecToVec } from "@/lib/sky";
+import { srgbToLinear, starColor } from "@/lib/starColor";
 
 /** Radius of the celestial sphere the sky layers are painted on. */
 export const SKY_R = 1000;
@@ -36,11 +37,19 @@ export function tokenColor(name: string, fallback: string): THREE.Color {
   return new THREE.Color(v || fallback);
 }
 
-/** Star colour from B-V, kept near-neutral so the accent stays reserved for planet hosts. */
-export function bvColor(bv: number): [number, number, number] {
-  const t = Math.max(-0.4, Math.min(2, bv));
-  const warm = (t + 0.4) / 2.4; // 0 blue-white .. 1 orange
-  return [0.82 + 0.18 * warm, 0.86 + 0.02 * warm, 1.0 - 0.3 * warm];
+/**
+ * Close-up stars: scene units per solar radius. One scale for every star, so relative sizes are true
+ * (a 0.15 R☉ red dwarf is a tenth the size of a 1.5 R☉ F star). Missing radius: drawn at 1 R☉.
+ */
+export const RSUN_UNITS = 0.004;
+export function displayRadius(rsun: number): number {
+  return RSUN_UNITS * (rsun > 0 ? rsun : 1);
+}
+
+/** Linear colour for a shader from a star's temperature (see lib/starColor.ts). */
+export function linearStarColor(teff: number): [number, number, number] {
+  const c = starColor(teff);
+  return [srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2])];
 }
 
 /**
@@ -54,7 +63,9 @@ export const hud: {
   pointer: HTMLElement | null;
   fov: HTMLElement | null;
   fps: HTMLElement | null;
-} = { readout: null, readoutTarget: null, readoutRadius: 0, pointer: null, fov: null, fps: null };
+  /** Name label that follows the hovered planet host. */
+  hover: HTMLElement | null;
+} = { readout: null, readoutTarget: null, readoutRadius: 0, pointer: null, fov: null, fps: null, hover: null };
 
 /** Commands the HUD can send to the scene (set by the scene once mounted). */
 export const view: {

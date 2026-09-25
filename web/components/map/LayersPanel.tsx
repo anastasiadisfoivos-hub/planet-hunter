@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { DemoTag, Panel, Segmented } from "@/components/ui";
 import { CATCH_TYPES, type CatchType } from "@/lib/contract";
 import type { MapData } from "@/lib/data";
+import { DISPLAY_SATURATION } from "@/lib/starColor";
 import { useStore, type Layers } from "@/state/store";
 import { TYPE_LABEL } from "./labels";
 import s from "./map.module.css";
@@ -43,7 +44,7 @@ export function LayersPanel({ data, heatMax }: { data: MapData; heatMax: number 
         </LayerRow>
 
         <LayerRow layer="stars" label="Bright stars" swatch="var(--ink-secondary)">
-          <p>Naked-eye stars, for finding your way. Planet hosts are always shown, in blue.</p>
+          <p>Naked-eye stars, for finding your way. Planet hosts are always shown; point at one to see its name.</p>
         </LayerRow>
 
         <LayerRow layer="grounds" label="Hunting grounds" swatch="var(--ground-bulge)">
@@ -98,7 +99,7 @@ export function LayersPanel({ data, heatMax }: { data: MapData; heatMax: number 
           </p>
         </LayerRow>
 
-        <LayerRow layer="art" label="Artistic nebulae & clouds">
+        <LayerRow layer="art" label="Milky Way & nebulae">
           <p>Shapes are illustrations; positions are real.</p>
         </LayerRow>
 
@@ -136,6 +137,15 @@ export function LayersPanel({ data, heatMax }: { data: MapData; heatMax: number 
               rubin_scheduler
             </a>{" "}
             {data.footprint.source_version.replace(/^rubin_scheduler /, "").split(",")[0]}).
+          </p>
+          <p>
+            Star colours come from each star&apos;s effective temperature: the TESS Input Catalog value for planet hosts, and
+            one derived from B−V for bright stars. Temperatures map to colour through{" "}
+            <a href="http://www.vendian.org/mncharity/dir3/starcolor/" target="_blank" rel="noreferrer">
+              Mitchell Charity&apos;s blackbody table
+            </a>
+            , with saturation raised {DISPLAY_SATURATION}× so the colours read on black. Stars with no listed temperature are
+            white. Star sizes on the map follow brightness; up close, the radius is the catalogue radius.
           </p>
           <p>Nebula and star positions: Sharpless, RCW, Lynds, Green SNR and Yale Bright Star catalogues via VizieR.</p>
         </details>

@@ -26,10 +26,32 @@ function texels(): Texel[] {
   return (texelCache = out);
 }
 
-export function bakeFootprint(buf: Uint8Array, fp: Footprint) {
+/**
+ * HEALPix pixel index for every texel, computed once per nside. @hscmap/healpix calls console.assert
+ * twice per lookup; in Next dev the console is instrumented, and 260k calls per bake froze the tab
+ * until it ran out of memory. So the asserts are muted for this one loop, and the table is reused.
+ */
+const pixelCache = new Map<number, Int32Array>();
+function texelPixels(nside: number): Int32Array {
+  const hit = pixelCache.get(nside);
+  if (hit) return hit;
   const t = texels();
-  for (let i = 0; i < t.length; i++) {
-    buf[i * 4] = fp.codes[ang2pix_nest(fp.nside, t[i].theta, t[i].phi)] > 0 ? 255 : 0;
+  const out = new Int32Array(t.length);
+  const assert = console.assert;
+  console.assert = () => {};
+  try {
+    for (let i = 0; i < t.length; i++) out[i] = ang2pix_nest(nside, t[i].theta, t[i].phi);
+  } finally {
+    console.assert = assert;
+  }
+  pixelCache.set(nside, out);
+  return out;
+}
+
+export function bakeFootprint(buf: Uint8Array, fp: Footprint) {
+  const pix = texelPixels(fp.nside);
+  for (let i = 0; i < pix.length; i++) {
+    buf[i * 4] = fp.codes[pix[i]] > 0 ? 255 : 0;
     buf[i * 4 + 3] = 255;
   }
 }
@@ -47,10 +69,10 @@ export function bakeHeatmap(buf: Uint8Array, hm: Heatmap, type: CatchType | "all
     values[c.pix] = n;
     if (n > max) max = n;
   }
-  const t = texels();
   const norm = max > 0 ? 1 / Math.log1p(max) : 0;
-  for (let i = 0; i < t.length; i++) {
-    const n = values[ang2pix_nest(nside, t[i].theta, t[i].phi)];
+  const pix = texelPixels(nside);
+  for (let i = 0; i < pix.length; i++) {
+    const n = values[pix[i]];
     buf[i * 4 + 1] = Math.round(Math.log1p(n) * norm * 255);
   }
   return max;

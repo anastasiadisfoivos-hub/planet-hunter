@@ -153,7 +153,9 @@ export const skyFragment = /* glsl */ `
       col = mix(col, dc, capFill(d, uDraft, fw) * 0.14 + capRing(d, uDraft, fw));
     }
 
-    gl_FragColor = vec4(col, 1.0);
+    // Every layer above was tuned as display values. The bloom composer encodes to sRGB on output, so
+    // decode once here: overlays keep exactly their tuned (subtle) strength on the black sky.
+    gl_FragColor = vec4(pow(col, vec3(2.2)), 1.0);
   }
 `;
 

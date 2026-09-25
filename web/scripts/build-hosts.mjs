@@ -18,7 +18,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(here, "..", "public", "data");
 
 const TAP = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync";
-const QUERY = `select hostname, tic_id, gaia_dr3_id, ra, dec, sy_dist, sy_dist_reflink, sy_pnum, st_teff, sy_vmag
+const QUERY = `select hostname, tic_id, gaia_dr3_id, ra, dec, sy_dist, sy_dist_reflink, sy_pnum, st_teff, st_rad, sy_vmag
 from pscomppars where sy_dist is not null`;
 
 function decodeFootprint(fp) {
@@ -53,7 +53,7 @@ async function main() {
 
   const counts = { hosts: hosts.size, noTic: 0, outside: 0, kept: 0 };
   const refs = [];
-  const cols = { name: [], tic: [], gaia: [], ra: [], dec: [], dist: [], npl: [], teff: [], ref: [] };
+  const cols = { name: [], tic: [], gaia: [], ra: [], dec: [], dist: [], npl: [], teff: [], rad: [], vmag: [], ref: [] };
 
   const sorted = [...hosts.values()].sort((a, b) => a.sy_dist - b.sy_dist);
   for (const r of sorted) {
@@ -78,6 +78,9 @@ async function main() {
     cols.dist.push(Math.round(r.sy_dist * 100) / 100);
     cols.npl.push(r.sy_pnum ?? 1);
     cols.teff.push(r.st_teff ? Math.round(r.st_teff) : 0);
+    // Stellar radius in solar radii and V magnitude as seen from Earth; 0 and 99 mean "not listed".
+    cols.rad.push(r.st_rad ? Math.round(r.st_rad * 1000) / 1000 : 0);
+    cols.vmag.push(r.sy_vmag != null ? Math.round(r.sy_vmag * 100) / 100 : 99);
     cols.ref.push(refs.indexOf(ref));
     counts.kept++;
   }
