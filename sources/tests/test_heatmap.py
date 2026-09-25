@@ -34,6 +34,17 @@ def test_cli_writes_file(replay, small_pages, tmp_path):
     assert_heatmap(json.loads(out.read_text()))
 
 
+def test_default_window_is_latest_night_with_alerts(replay, small_pages, tmp_path):
+    """The CLI's default (--until latest) never publishes an empty map while the stream is paused."""
+    replay("heatmap")
+    out = tmp_path / "heatmap.json"
+    assert heatmap.main(["--nights", "1", "--out", str(out)]) == 0
+    h = json.loads(out.read_text())
+    assert_heatmap(h)
+    assert h["window"] == {"start": "2026-07-14T00:00:00+00:00", "end": "2026-07-15T00:00:00+00:00"}
+    assert h["cells"]
+
+
 def test_rejects_zero_nights():
     with pytest.raises(ValueError):
         heatmap.build_heatmap(0)

@@ -1,4 +1,4 @@
-"""build_heatmap(nights=N) -> heatmap.json {generated_at, grid, cells[{pix, counts}]}.
+"""build_heatmap(nights=N) -> heatmap.json {generated_at, grid, window, cells[{pix, counts}]}.
 
 Counts are *objects* with Rubin alerts in the window, binned by HEALPix (RING ordering) at their
 position, per CatchType. Two no-login sources, because no single broker lists the whole sky fast:
@@ -9,9 +9,13 @@ position, per CatchType. Two no-login sources, because no single broker lists th
     the known solar-system objects below.
   - known solar-system objects: Fink's SSO bulk file (one download), typed by sso.heuristic_type.
 
+By default the window is the most recent `nights` nights that actually have alerts
+(status.latest_observed_window), so a paused survey still gives its last real map. The window
+used is written into the JSON as {"window": {"start", "end"}}.
+
 CLI (for the daily GitHub Action):
-    uv run skysources-heatmap --nights 3 --out heatmap.json
-    uv run skysources-heatmap --nights 3 --until latest   # anchor on the last night with alerts
+    uv run skysources-heatmap --nights 3 --out heatmap.json      # latest nights with alerts
+    uv run skysources-heatmap --nights 3 --until now             # strictly the last 3 x 24 h
 """
 
 from __future__ import annotations
@@ -33,6 +37,7 @@ from astropy_healpix import HEALPix
 
 from . import classes, sso
 from .http import HOST_MIN_INTERVAL, get_client
+from .status import latest_observed_window
 from .util import as_utc
 
 log = logging.getLogger("skysources.heatmap")
@@ -50,15 +55,18 @@ DEFAULT_NSIDE = 32  # 12,288 cells of ~3.4 deg^2 (about half an LSSTCam field)
 def build_heatmap(
     nights: int = 3,
     *,
-    until: datetime | str | None = None,
+    until: datetime | str = "latest",
     nside: int = DEFAULT_NSIDE,
 ) -> dict[str, Any]:
-    """Heatmap of the last `nights` x 24 h ending at `until` (default now; "latest" = the most
-    recent alert ALeRCE has)."""
+    """Heatmap of the latest `nights` nights that have alerts (until="latest"), or of the
+    `nights` x 24 h ending at `until` ("now" or a time)."""
     if nights < 1:
         raise ValueError("nights must be >= 1")
-    end = latest_alert_time() if until == "latest" else as_utc(until or datetime.now(UTC))
-    start = end - timedelta(days=nights)
+    if until == "latest":
+        start, end = latest_observed_window(nights)
+    else:
+        end = datetime.now(UTC) if until == "now" else as_utc(until)
+        start = end - timedelta(days=nights)
     m0, m1 = float(Time(start).tai.mjd), float(Time(end).tai.mjd)
     log.info("window %s -> %s (MJD TAI %.4f-%.4f), nside=%d", start, end, m0, m1, nside)
 
@@ -89,6 +97,7 @@ def build_heatmap(
     return {
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "grid": f"healpix nside={nside}",
+        "window": {"start": start.isoformat(timespec="seconds"), "end": end.isoformat(timespec="seconds")},
         "cells": [
             {"pix": p, "counts": dict(sorted(c.items()))} for p, c in sorted(counts.items())
         ],
@@ -124,26 +133,13 @@ def _alerce_positions(class_name: str, m0: float, m1: float) -> tuple[np.ndarray
     return np.array(ra), np.array(dec)
 
 
-def latest_alert_time() -> datetime:
-    """Time of the most recent LSST detection ALeRCE knows about."""
-    data = get_client().get_json(
-        ALERCE_OBJECTS,
-        params={"survey": "lsst", "page_size": 1, "order_by": "lastmjd", "order_mode": "DESC"},
-        ttl=3600,
-    )
-    mjd = data["items"][0]["lastmjd"]
-    # Round up to the end of that UTC day so the whole last night is inside the window.
-    t = Time(mjd, format="mjd", scale="tai").utc.to_datetime(UTC)
-    return (t + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-
-
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="skysources-heatmap", description=__doc__.split("\n\n")[0])
     ap.add_argument("--nights", type=int, default=3, help="window length in nights (24 h each)")
     ap.add_argument(
         "--until",
-        default=None,
-        help="window end: ISO time, 'latest' (last night with alerts) or omit for now",
+        default="latest",
+        help="'latest' (default: the latest nights that have alerts), 'now', or an ISO time",
     )
     ap.add_argument("--nside", type=int, default=DEFAULT_NSIDE)
     ap.add_argument("--out", default="heatmap.json", help="output path, or - for stdout")

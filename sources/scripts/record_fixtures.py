@@ -21,7 +21,7 @@ from astropy.time import Time
 from fixtures import scenarios as sc
 from recording import SSO_BULK, recording
 
-from skysources import fink, heatmap, sso
+from skysources import fink, heatmap, sso, status
 from skysources.alerts import alerts, light_curve
 from skysources.schedule import schedule
 from skysources.solar_system import known_solar_system
@@ -50,7 +50,13 @@ def main() -> None:
     heatmap.PAGE_SIZE, heatmap.MAX_PAGES_PER_CLASS = sc.HEATMAP_PAGE_SIZE, sc.HEATMAP_MAX_PAGES
     with recording("heatmap"):
         heat = heatmap.build_heatmap(sc.HEATMAP_NIGHTS, until=sc.HEATMAP_UNTIL)
-    print("heatmap cells", len(heat["cells"]))
+        latest = heatmap.build_heatmap(sc.HEATMAP_NIGHTS)  # default: latest night with alerts
+    print("heatmap cells", len(heat["cells"]), "latest window", latest["window"])
+
+    with recording("status"):
+        print("status", status.stream_status(max_age_s=0))
+        for n in sc.WINDOW_NIGHTS:
+            print("window", n, status.latest_observed_window(n))
 
     # The heatmap test reads the SSO subset too: keep a real sample of that night's objects.
     end = Time(sc.HEATMAP_UNTIL.replace("Z", ""), scale="utc")

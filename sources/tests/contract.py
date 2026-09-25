@@ -29,7 +29,8 @@ def assert_discovery(d: dict) -> None:
 
 
 def assert_heatmap(h: dict) -> None:
-    assert set(h) == {"generated_at", "grid", "cells"}
+    assert set(h) == {"generated_at", "grid", "window", "cells"}
+    assert datetime.fromisoformat(h["window"]["start"]) < datetime.fromisoformat(h["window"]["end"])
     assert h["grid"].startswith("healpix nside=")
     nside = int(h["grid"].split("=")[1])
     datetime.fromisoformat(h["generated_at"])

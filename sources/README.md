@@ -5,19 +5,23 @@ known solar-system objects, and a whole-sky heatmap. Python 3.12, `uv`. No login
 
 ```python
 from skysources import alerts, schedule, known_solar_system, build_heatmap
+from skysources import stream_status, latest_observed_window
 
 sphere = {"ra_deg": 317.18, "dec_deg": -21.1, "radius_deg": 0.3}
 alerts(sphere, "2026-07-10T00:00:00Z", "2026-07-11T12:00:00Z")   # -> list[Discovery]
 schedule(sphere, "2026-07-10T00:00:00Z", "2026-07-12T00:00:00Z") # -> list[Visit]
 known_solar_system(sphere, "2026-09-25T04:00:00Z")               # -> list[KnownSolarSystemObject]
 build_heatmap(nights=3)                                          # -> heatmap.json dict
+stream_status()            # {last_alert_at, last_scheduled_visit_at, is_live, checked_at}
+latest_observed_window(7)  # (start, end) of the latest 7 nights that actually have alerts
+alerts(sphere, *latest_observed_window(7))                       # "instant sweep" on real data
 ```
 
 ```sh
 uv sync
 uv run pytest                                          # offline, replays recorded real responses
-uv run skysources-heatmap --nights 3 --out heatmap.json                 # window ends now
-uv run skysources-heatmap --nights 3 --until latest --out heatmap.json  # ends at last night with alerts
+uv run skysources-heatmap --nights 3 --out heatmap.json              # latest 3 nights with alerts (default)
+uv run skysources-heatmap --nights 3 --until now --out heatmap.json  # strictly the last 3 x 24 h
 uv run python scripts/record_fixtures.py               # re-record fixtures (network)
 ```
 
@@ -126,9 +130,28 @@ TNS name, a VSX match, or it's a solar-system object; otherwise `not_on_lists`.
 
 ## Heatmap
 
-`{generated_at, grid: "healpix nside=32", cells: [{pix, counts}]}`. The grid uses **RING
-ordering** (the healpy / astropy-healpix default) and only non-empty cells are listed.
-Each count is one object with alerts in the window, counted at its position.
+`{generated_at, grid: "healpix nside=32", window: {start, end}, cells: [{pix, counts}]}`. The grid
+uses **RING ordering** (the healpy / astropy-healpix default) and only non-empty cells are listed.
+Each count is one object with alerts in the window, counted at its position. By default the window
+is `latest_observed_window(nights)`, so the daily job never publishes an empty map while the
+survey is paused. `window` records which nights were used.
+
+## Stream status
+
+`stream_status()` is cached on disk for about 1 hour, and `checked_at` is when the services were
+actually asked.
+
+- `last_alert_at` is the newest LSST detection in ALeRCE's object list. If ALeRCE is down, it
+  falls back to the start of Fink's newest night with alerts.
+- `last_scheduled_visit_at` is the newest exposure start in ObsLocTAP, of any status.
+- `is_live` means an alert within the last 72 hours.
+
+If a service is down, its field is `null` rather than an error.
+
+`latest_observed_window(n)` uses Fink's per-night alert counts (`/api/v1/statistics`). A Fink
+"night" is a UTC date (its newest night, 20260714, holds the 2026-07-14 10:03 UTC alert). The
+window runs from 00:00 UTC of the oldest of the latest `n` nights with alerts to 00:00 UTC after
+the newest. Nights inside it with no alerts don't count toward `n`.
 
 ## Rate limits and behaviour seen
 
@@ -149,7 +172,8 @@ for the Fink SSO bulk file. Requests retry on 429 or 5xx and honour `Retry-After
 
 - **The Rubin alert stream has been quiet since 2026-07-14** at every broker checked (Fink,
   ALeRCE, Lasair, ANTARES, Babamul), so `alerts()` and `build_heatmap()` for recent windows
-  are empty. Use `--until latest` to anchor on the last night with data.
+  are empty. `stream_status()` reports this (`is_live: false`), and `latest_observed_window()` /
+  the heatmap default use the last nights that have data.
 - **ObsLocTAP's newest row is from 2026-09-11**, so future windows return `[]`. It has no
   public TAP/ADQL, only the REST `/schedule` wrapper; the table includes Performed and
   Aborted visits, which are how we cover past windows (aborted ones are dropped unless

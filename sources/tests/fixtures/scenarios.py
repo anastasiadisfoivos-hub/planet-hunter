@@ -22,3 +22,5 @@ HEATMAP_NIGHTS = 1
 HEATMAP_UNTIL = "2026-07-15T00:00:00Z"
 HEATMAP_PAGE_SIZE = 50  # small real sample: first page(s) only
 HEATMAP_MAX_PAGES = 1
+
+WINDOW_NIGHTS = (1, 3, 7)

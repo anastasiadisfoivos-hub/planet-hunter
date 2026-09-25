@@ -64,7 +64,7 @@ def schedule(
     if t1 <= t0:
         raise ValueError("end must be after start")
     reach = sphere["radius_deg"] + LSSTCAM_FOV_DEG / 2
-    rows = _fetch_rows(t0, t1, _box_predicate(sphere, reach))
+    rows = fetch_rows(t0, t1, _box_predicate(sphere, reach))
 
     seen: set[tuple] = set()
     visits: list[Visit] = []
@@ -74,9 +74,7 @@ def schedule(
         visit = row_to_visit(row)
         if visit["status"] == "aborted" and not include_aborted:
             continue
-        # One exposure can appear more than once (re-planned rows); obs_id is per-block, not
-        # per-visit, so key on time + pointing.
-        key = (round(row["t_min"] * 86400), round(row["s_ra"], 3), round(row["s_dec"], 3))
+        key = visit_key(row)
         if key in seen:
             continue
         seen.add(key)
@@ -106,19 +104,24 @@ def band_from_em(em_min: float | None, em_max: float | None) -> str | None:
     return None
 
 
-def _fetch_rows(t0: float, t1: float, box: str, depth: int = 0) -> list[dict]:
+def fetch_rows(t0: float, t1: float, where: str = "", depth: int = 0) -> list[dict]:
+    """ObsLocTAP rows with t_min (MJD) in [t0, t1] and an extra SQL-ish `where`. Splits the window
+    when the service's 1000-row cap is hit."""
     predicate = f"t_min >= {t0:.6f} AND t_min <= {t1:.6f}"
-    if box:
-        predicate += f" AND {box}"
-    rows = get_client().get_json(
-        OBSLOCTAP_URL,
-        params={"time": 0, "RESPONSEFORMAT": "json", "predicate": predicate},
-        ttl=_ttl_for(t1),
-    )
+    if where:
+        predicate += f" AND {where}"
+    params = {"time": 0, "RESPONSEFORMAT": "json", "predicate": predicate}
+    rows = get_client().get_json(OBSLOCTAP_URL, params=params, ttl=_ttl_for(t1))
     if len(rows) >= ROW_LIMIT and depth < 12:
         mid = (t0 + t1) / 2  # truncated by the service's row cap: split the window
-        return _fetch_rows(t0, mid, box, depth + 1) + _fetch_rows(mid, t1, box, depth + 1)
+        return fetch_rows(t0, mid, where, depth + 1) + fetch_rows(mid, t1, where, depth + 1)
     return rows
+
+
+def visit_key(row: dict) -> tuple:
+    """One exposure can appear more than once (re-planned rows); obs_id is per-block, not
+    per-visit, so key on time + pointing."""
+    return (round(row["t_min"] * 86400), round(row["s_ra"], 3), round(row["s_dec"], 3))
 
 
 def _box_predicate(sphere: Sphere, reach: float) -> str:
