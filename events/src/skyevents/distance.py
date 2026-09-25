@@ -5,6 +5,7 @@ Runs after de-duplication, on the merged events. Which path an event takes depen
 | type | location gets | from | basis |
 |---|---|---|---|
 | comet, interstellar object (JPL) | ephemeris | Horizons vectors at observed_at | - |
+| asteroid seen once (ZTF) | ephemeris | IMCCE SkyBoT names it, then Horizons vectors | - |
 | NEOCP / PCCP objects (MPC) | ephemeris | Scout sampled orbits, Kepler to observed_at | - |
 | supernova, TDE, kilonova, AGN flare, unknown (small error) | distance | the transient's TNS redshift; else TNS host redshift, else a SIMBAD galaxy/AGN/QSO with a redshift within HOST_RADIUS | redshift / catalogue |
 | nova | distance | as above, else Gaia parallax | redshift / catalogue / parallax |
@@ -99,7 +100,9 @@ def plan(e: Event) -> str:
     if t in SOLAR_SYSTEM:
         if raw.get("pdes"):
             return "horizons"
-        return "scout" if raw.get("temp_designation") else "unknown"
+        if raw.get("temp_designation"):
+            return "scout"
+        return "identify" if t == "asteroid" else "unknown"
     if t == "gravitational_wave":
         return "gw"
     if t == "gamma_ray_burst" or "redshift_circulars" in raw:
@@ -144,6 +147,9 @@ def enrich(events: list[Event]) -> dict[str, Any]:
     if by_plan["scout"]:
         jobs["scout"] = lambda: _each(events, by_plan["scout"], lambda e: ephemeris.unconfirmed(
             e["raw"]["temp_designation"], as_utc(e["observed_at"])))
+    if by_plan["identify"]:
+        jobs["identify"] = lambda: _each(events, by_plan["identify"], lambda e: ephemeris.one_off(
+            e["location"]["ra_deg"], e["location"]["dec_deg"], as_utc(e["observed_at"]), e["source"]))
     if by_plan["gcn"]:
         jobs["gcn"] = lambda: _each(events, by_plan["gcn"], lambda e: catalogues.gcn_redshift(
             e["raw"].get("redshift_circulars") or []))
@@ -160,7 +166,7 @@ def enrich(events: list[Event]) -> dict[str, Any]:
             except Exception as exc:  # noqa: BLE001 - one broken lookup must not stop the feed
                 log.warning("distance lookup %s failed: %s", name, exc)
                 lookups[name] = {"ok": False, "error": str(exc)[:300]}
-    for name in ("horizons", "scout", "gcn"):
+    for name in ("horizons", "scout", "identify", "gcn"):
         if name in results:
             errs = [err for _, err in results[name].values() if err]
             lookups[name]["failed_objects"] = len(errs)
@@ -178,15 +184,21 @@ def enrich(events: list[Event]) -> dict[str, Any]:
         if p == "none":
             continue
         loc, raw = e["location"], e["raw"]
-        if p in ("horizons", "scout"):
-            got, _ = (results.get(p) or {}).get(i, (None, None))
+        if p in ("horizons", "scout", "identify"):
+            got, err = (results.get(p) or {}).get(i, (None, None))
             if got:
                 loc["ephemeris"] = got[0]
                 raw["distance_from"] = got[1]
-                if len(got) > 2:
+                if p == "scout":
                     raw["ephemeris_spread"] = got[2]
+                if p == "identify":
+                    raw.update(got[2])
+                    raw["names"] = sorted({*raw.get("names", []), got[2]["identified_as"]})
             else:
                 loc["distance"] = unknown()
+                if p == "identify" and p in results:
+                    raw["distance_note"] = (f"lookup failed: {err.split(': ', 1)[-1][:120]}" if err else
+                                            "no known asteroid within 5 arcsec at that time (IMCCE SkyBoT)")
             continue
         dist, why = _choose(e, p, i, tns, simbad, gaia, results)
         loc["distance"] = dist or unknown()

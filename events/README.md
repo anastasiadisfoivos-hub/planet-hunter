@@ -57,6 +57,11 @@ the real date, and `query(since=...)` filters on it.
 - **ZTF**: Fink's ZTF API did not answer within 60–75 s on 2026-09-25, so ZTF uses ALeRCE. It
   takes the light-curve classifier (supernova types, TDE, microlensing, and CV/Nova only when
   the object is new) plus the first-image classifier for objects first seen in the window.
+- **ZTF asteroids**: ALeRCE's first-image classifier calls more than 50,000 ZTF detections a
+  week "asteroid", nearly all known main-belt asteroids, so the feed keeps only the newest 25
+  (probability ≥ 0.9; `SKYEVENTS_ZTF_ASTEROIDS=N` changes the number, 0 turns them off). ALeRCE
+  gives no asteroid name (Fink's `ssnamenr` would, but Fink's ZTF API still did not answer on
+  2026-09-26), so the name comes from IMCCE SkyBoT by position and time (see Distances).
 - **TNS** needs no account for its public search. A free bot account would give exact
   classification dates through the TNS API, but this feed doesn't need it. The CSV has no
   report date, so `reported_at = observed_at`.
@@ -127,6 +132,7 @@ position could not be computed. Sun- and Earth-frame events get neither.
 | type | how | basis |
 |---|---|---|
 | comet, interstellar object (JPL) | [Horizons](https://ssd-api.jpl.nasa.gov/doc/horizons.html) vectors at `observed_at`: Sun-centred, ecliptic J2000, geometric | ephemeris |
+| asteroid (ZTF) | [IMCCE SkyBoT](https://ssp.imcce.fr/webservices/skybot/) names the known asteroid within 5″ of the detection at that time, seen from Palomar (MPC code I41); then Horizons vectors as above (JPL's sb_ident does the same but took over 200 s per call on 2026-09-26). `raw.identified_as` (also added to `raw.names`) and `raw.identified_offset_arcsec` record the match; an unnamed one stays `unknown` with `raw.distance_note` | ephemeris |
 | NEOCP / PCCP objects (MPC) | Horizons doesn't know temporary designations, so [JPL Scout](https://ssd-api.jpl.nasa.gov/doc/scout.html)'s 50 sampled orbits, each moved to `observed_at` with two-body Kepler motion; the median position, with the 16-84% Earth-distance spread in `raw.ephemeris_spread` | ephemeris |
 | supernova, TDE, kilonova, AGN flare, `unknown` (position ≤ 2″) | the transient's own TNS redshift → `redshift`; else TNS host-galaxy redshift, else a SIMBAD galaxy/AGN/QSO with a redshift within 2″ → `catalogue` | redshift, catalogue |
 | nova | as above (a nova in another galaxy), else Gaia as below | redshift, catalogue, parallax |

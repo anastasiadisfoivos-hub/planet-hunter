@@ -11,12 +11,17 @@ basis machine_guess):
   (first seen within NEW_DAYS; an old CV/Nova object is an ordinary variable star).
 - Stamp classifier: brand-new objects (first seen in the window) whose first image already looks
   like a supernova, before a light curve exists.
+- Stamp classifier "asteroid": a moving object in one image. ZTF records tens of thousands a
+  week, almost all known main-belt asteroids, so only the newest MAX_ASTEROIDS are kept
+  (env SKYEVENTS_ZTF_ASTEROIDS, default 25; 0 turns them off). Which asteroid it is gets resolved
+  later, with its 3D position (skyevents.distance).
 id: ztf:<ZTF object id>, the same id TNS lists as the internal name, which is how the
 de-duplicator joins the two.
 """
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta
 
 from ..models import Event
@@ -32,6 +37,8 @@ STAMP = "stamp_classifier"
 MIN_PROB = 0.5
 MIN_STAMP_PROB = 0.7
 NEW_DAYS = 30
+MIN_ASTEROID_PROB = 0.9
+MAX_ASTEROIDS = int(os.environ.get("SKYEVENTS_ZTF_ASTEROIDS", "25"))
 PAGE_SIZE = 200
 MAX_PAGES = 3
 
@@ -57,6 +64,10 @@ def fetch(since: datetime, until: datetime) -> list[Event]:
             out[r["oid"]] = to_event(r, kind, words, "light-curve")
     for r in objects(STAMP, "SN", MIN_STAMP_PROB, [("firstmjd", f"{m0:.4f}"), ("firstmjd", f"{m1:.4f}")]):
         out.setdefault(r["oid"], to_event(r, "supernova", "a supernova", "first-image"))
+    if MAX_ASTEROIDS > 0:
+        for r in objects(STAMP, "asteroid", MIN_ASTEROID_PROB,
+                         [("firstmjd", f"{m0:.4f}"), ("firstmjd", f"{m1:.4f}")], limit=MAX_ASTEROIDS):
+            out.setdefault(r["oid"], to_event(r, "asteroid", "a moving asteroid", "first-image"))
     return list(out.values())
 
 
@@ -68,18 +79,22 @@ def last_event_at(now: datetime) -> datetime | None:
     return mjd_utc_to_dt(items[0]["lastmjd"]) if items else None
 
 
-def objects(classifier: str, cls: str, min_prob: float, ranges: list[tuple[str, str]]) -> list[dict]:
+def objects(
+    classifier: str, cls: str, min_prob: float, ranges: list[tuple[str, str]], limit: int | None = None
+) -> list[dict]:
+    """Newest first. `limit` asks for just that many (one page)."""
+    size = min(limit, PAGE_SIZE) if limit else PAGE_SIZE
     rows: list[dict] = []
     for page in range(1, MAX_PAGES + 1):
         params = [
             ("classifier", classifier), ("class", cls), ("ranking", 1), ("probability", min_prob),
-            *ranges, ("order_by", "lastmjd"), ("order_mode", "DESC"), ("page_size", PAGE_SIZE), ("page", page),
+            *ranges, ("order_by", "lastmjd"), ("order_mode", "DESC"), ("page_size", size), ("page", page),
         ]
         items = client().get_json(API, params=params, ttl=FRESH).get("items") or []
         rows += items
-        if len(items) < PAGE_SIZE:
+        if len(items) < size or (limit and len(rows) >= limit):
             break
-    return rows
+    return rows[:limit] if limit else rows
 
 
 def to_event(r: dict, kind: str, words: str, how: str) -> Event:

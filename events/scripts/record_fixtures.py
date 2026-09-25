@@ -2,6 +2,7 @@
 
     uv run python scripts/record_fixtures.py              # everything
     uv run python scripts/record_fixtures.py distances    # only the distance lookups on top of live_week
+    uv run python scripts/record_fixtures.py asteroids    # only ZTF asteroids (+ sb_ident, Horizons)
 """
 
 from __future__ import annotations
@@ -49,9 +50,22 @@ def record_distances() -> None:
     print("distance_checks recorded")
 
 
+def record_asteroids() -> None:
+    """ZTF's asteroid sample for the recorded week and its identification (sb_ident, Horizons),
+    on top of live_week and distances_week."""
+    m = json.loads((Path(__file__).resolve().parents[1] / "tests/fixtures/http/live_week.json").read_text())["meta"]
+    with recording("asteroids_week", m, replay_from=("live_week", "distances_week")):
+        _, status = ingest(as_utc(m["since"]), as_utc(m["until"]), now=as_utc(m["now"]))
+    print("asteroids_week:", json.dumps(status["distances"]["lookups"].get("identify")),
+          json.dumps(status["distances"]["by_type"].get("asteroid")))
+
+
 def main() -> None:
     if sys.argv[1:] == ["distances"]:
         record_distances()
+        return
+    if sys.argv[1:] == ["asteroids"]:
+        record_asteroids()
         return
     now = datetime.now(UTC).replace(second=0, microsecond=0)
     since = now - timedelta(days=7)
@@ -72,6 +86,7 @@ def main() -> None:
     with recording("cneos_2026-09", w):
         print("cneos:", len(cneos.fetch(datetime.fromisoformat(w["since"]), datetime.fromisoformat(w["until"]))))
     record_distances()
+    record_asteroids()
 
 
 if __name__ == "__main__":

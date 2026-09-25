@@ -3,6 +3,11 @@
 - Objects with a designation (JPL's comets): JPL Horizons vectors
   (https://ssd-api.jpl.nasa.gov/doc/horizons.html), EPHEM_TYPE=VECTORS, centre the Sun, ecliptic
   J2000, geometric. One request per object, cached for good (a past epoch never changes).
+- Asteroids a survey saw once (ZTF's "asteroid" detections): IMCCE's SkyBoT cone search
+  (https://ssp.imcce.fr/webservices/skybot/) names the known asteroid at that place and time, seen
+  from the survey's observatory (MPC code); the nearest within IDENT_RADIUS_ARCSEC wins, and
+  Horizons gives its vectors as above. (JPL's sb_ident does the same but took over 200 s per
+  call on 2026-09-26; SkyBoT answers in a few seconds.)
 - Objects still on the MPC confirmation pages have only a temporary designation, which Horizons
   does not know. JPL Scout (https://ssd-api.jpl.nasa.gov/doc/scout.html) publishes N_ORBITS
   sampled orbits that fit their observations; each is moved to the epoch with two-body Kepler
@@ -16,6 +21,7 @@ ecliptic J2000 with the obliquity Horizons uses (84381.448"), so earth_distance_
 
 from __future__ import annotations
 
+import json
 import math
 import re
 from datetime import datetime
@@ -30,6 +36,9 @@ from .util import as_utc, iso
 
 HORIZONS = "https://ssd.jpl.nasa.gov/api/horizons.api"
 SCOUT = "https://ssd-api.jpl.nasa.gov/scout.api"
+SKYBOT = "https://ssp.imcce.fr/webservices/skybot/api/conesearch.php"
+IDENT_RADIUS_ARCSEC = 5.0
+OBSERVATORY = {"ztf": "I41", "rubin": "X05"}  # MPC codes: Palomar (ZTF), Rubin; else Earth's centre
 N_ORBITS = 50
 GAUSS_K = 0.01720209895  # rad/day, Gaussian gravitational constant (heliocentric, au)
 OBLIQUITY_J2000 = math.radians(84381.448 / 3600)
@@ -100,6 +109,63 @@ def designated(pdes: str, t: datetime) -> tuple[Ephemeris, str] | None:
     if xyz is None:
         return None
     return ephemeris_from_xyz(xyz, t), f"JPL Horizons vectors for {pdes}"
+
+
+# ------------------------------------------------------------------ SkyBoT (one-off detections)
+
+
+def identify(ra: float, dec: float, t: datetime, mpc_code: str) -> tuple[str, float, str | None] | None:
+    """(name as "180274 (2003 WC63)" or "(2026 AB12)", offset in arcsec, SkyBoT class) of the
+    nearest known asteroid within IDENT_RADIUS_ARCSEC of (ra, dec) at t, or None."""
+    params = {
+        "-ep": f"{Time(as_utc(t)).utc.jd:.6f}", "-ra": f"{ra:.7f}", "-dec": f"{dec:.7f}",
+        "-rs": f"{IDENT_RADIUS_ARCSEC:g}", "-mime": "json", "-output": "basic", "-observer": mpc_code,
+        "-objFilter": "100", "-refsys": "EQJ2000", "-from": "planet-hunter",
+    }
+    text = client().request_text("GET", SKYBOT, params=params, ttl=FOREVER).strip()
+    if _skybot_failed(text):
+        # SkyBoT sometimes crashes server-side and says so with HTTP 200, which the client has
+        # cached; ask once more past the cache.
+        text = client().request_text("GET", SKYBOT, params=params, ttl=0).strip()
+    if _skybot_failed(text):
+        raise UpstreamError(f"SkyBoT: {text[:200]}")
+    if not text.startswith("["):  # SkyBoT answers plain text when nothing is there
+        return None
+    rows = [r for r in json.loads(text) if r.get("d (arcsec)") is not None]
+    if not rows:
+        return None
+    best = min(rows, key=lambda r: float(r["d (arcsec)"]))
+    off = float(best["d (arcsec)"])
+    if off > IDENT_RADIUS_ARCSEC:
+        return None
+    num_, name = best.get("Num"), str(best.get("Name") or "").strip()
+    label = f"{num_} ({name})" if num_ not in (None, "", "-") else f"({name})"
+    return label, off, best.get("Class")
+
+
+def _skybot_failed(text: str) -> bool:
+    return not text.startswith("[") and '"flag":-1' in text.replace(" ", "")
+
+
+def horizons_command(name: str) -> str:
+    """Asteroid label -> Horizons small-body command: "180274 (2003 WC63)" -> "180274;",
+    "(2026 AB12)" or "2026 AB12" -> "DES=2026 AB12;"."""
+    if m := re.match(r"^(\d+)\b", name):
+        return f"{m[1]};"
+    return f"DES={name.strip('() ')};"
+
+
+def one_off(ra: float, dec: float, t: datetime, source: str) -> tuple[Ephemeris, str, dict] | None:
+    got = identify(ra, dec, t, OBSERVATORY.get(source, "500"))
+    if not got:
+        return None
+    name, off, cls = got
+    xyz = horizons_xyz(horizons_command(name), t)
+    if xyz is None:
+        return None
+    return ephemeris_from_xyz(xyz, t), f"JPL Horizons vectors for {name}", {
+        "identified_as": name, "identified_offset_arcsec": round(off, 2), "identified_by": "IMCCE SkyBoT",
+        "asteroid_class": cls}
 
 
 # ------------------------------------------------------------------ Scout (unconfirmed objects)

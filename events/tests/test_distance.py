@@ -108,6 +108,11 @@ def test_kepler_propagation_matches_horizons():
         assert np.linalg.norm(ours - horizons) < tol, days
 
 
+def test_asteroid_names_to_horizons_commands():
+    assert ephemeris.horizons_command("180274 (2003 WC63)") == "180274;"
+    assert ephemeris.horizons_command("(2026 AB12)") == "DES=2026 AB12;"
+
+
 def test_kepler_hyperbolic_orbit_is_continuous():
     # e > 1 (an interstellar object): perihelion at tp, distance grows both ways.
     at_peri = ephemeris.kepler_xyz(1.36, 6.14, 2460970.0, 322.0, 128.0, 175.1, 2460970.0)

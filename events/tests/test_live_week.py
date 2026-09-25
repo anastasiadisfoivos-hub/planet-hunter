@@ -26,7 +26,7 @@ def week(tmp_path_factory):
     with pytest.MonkeyPatch.context() as mp:
         mp.setenv("SKYSOURCES_CACHE", str(tmp_path_factory.mktemp("cache")))
         mp.setattr(httpx.Client, "send", lambda *a, **k: (_ for _ in ()).throw(AssertionError("network")))
-        install_replay(mp, "live_week", "distances_week")
+        install_replay(mp, "live_week", "distances_week", "asteroids_week")
         events, status = ingest(SINCE, UNTIL, now=NOW)
     return events, status
 
@@ -176,7 +176,10 @@ def test_every_sky_event_has_a_distance_or_an_ephemeris(week):
     for e in _sky(events):
         loc = e["location"]
         if e["type"] in CATEGORIES["solar_system"]:
-            assert "ephemeris" in loc and "distance" not in loc, e["id"]
+            # an asteroid no catalogue could name keeps distance "unknown", and says why
+            assert ("ephemeris" in loc) != ("distance" in loc), e["id"]
+            if "distance" in loc:
+                assert e["type"] == "asteroid" and loc["distance"]["basis"] == "unknown" and e["raw"]["distance_note"]
         else:
             assert "distance" in loc and "ephemeris" not in loc, e["id"]
     for e in events:
@@ -208,8 +211,8 @@ def test_distance_values_are_consistent(week):
 
 def test_solar_system_positions(week):
     events, _ = week
-    ss = [e for e in _sky(events) if e["type"] in CATEGORIES["solar_system"]]
-    assert len(ss) == 39
+    ss = [e for e in _sky(events) if e["type"] in CATEGORIES["solar_system"] and "ephemeris" in e["location"]]
+    assert len(ss) >= 39
     for e in ss:
         eph = e["location"]["ephemeris"]
         assert list(eph) == ["helio_xyz_au", "earth_distance_au", "sun_distance_au", "epoch"]
@@ -257,3 +260,20 @@ def test_status_reports_distance_coverage(week):
     assert sum(v["with_distance"] for v in d["by_type"].values()) == sum(
         e["location"]["frame"] == "sky" and ("ephemeris" in e["location"] or e["location"]["distance"]["pc"] is not None)
         for e in events)
+
+
+def test_ztf_asteroids_are_identified_and_placed(week):
+    events, status = week
+    ast = [e for e in events if e["type"] == "asteroid"]
+    assert 0 < len(ast) <= 25 and all(e["source"] == "ztf" for e in ast)
+    placed = [e for e in ast if "ephemeris" in e["location"]]
+    assert len(placed) / len(ast) >= 0.8
+    for e in placed:
+        raw = e["raw"]
+        assert raw["identified_by"] == "IMCCE SkyBoT" and raw["identified_offset_arcsec"] <= 5
+        assert raw["identified_as"] in raw["names"]
+        assert raw["distance_from"] == f"JPL Horizons vectors for {raw['identified_as']}"
+        assert 0.5 < e["location"]["ephemeris"]["sun_distance_au"] < 60
+    cov = status["distances"]["by_type"]["asteroid"]
+    assert cov["events"] == len(ast) and cov["with_distance"] == len(placed)
+    assert status["distances"]["lookups"]["identify"]["ok"]

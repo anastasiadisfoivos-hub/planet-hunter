@@ -10,6 +10,7 @@ HOST_MIN_INTERVAL.setdefault("gcn.nasa.gov", 1.0)
 HOST_MIN_INTERVAL.setdefault("ssd.jpl.nasa.gov", 1.0)
 HOST_MIN_INTERVAL.setdefault("ssd-api.jpl.nasa.gov", 1.0)
 HOST_MIN_INTERVAL.setdefault("api.alerce.online", 0.5)
+HOST_MIN_INTERVAL.setdefault("ssp.imcce.fr", 1.0)
 
 FRESH = 900.0  # 15 min: feeds that change during the day
 DAY = 86400.0
