@@ -1,0 +1,402 @@
+{
+ "tic_id": 100100827,
+ "ephemeris": {
+  "period_d": 0.9414525,
+  "t0_btjd": 3205.353322,
+  "duration_h": 2.05
+ },
+ "verdict": "on target",
+ "reason": "the light lost in transit comes from the target (offset 0.8\u2033 = 0.04 px, 1.0\u03c3) and every Gaia neighbour able to mimic the dip is excluded by the centroid",
+ "on_target_probability": 0.988,
+ "centroid_offset_arcsec": 0.83,
+ "centroid_offset_px": 0.04,
+ "offset_sigma": 0.96,
+ "offset_east_north_arcsec": [
+  0.72,
+  -0.41
+ ],
+ "depth_on_target": 0.009756,
+ "depth_on_target_err": 0.000203,
+ "depth_upper_limit_3sigma": null,
+ "tic_contamination_ratio": 0.00243834523,
+ "target_tmag": 8.8287,
+ "suspect_neighbours": [],
+ "neighbours": [
+  {
+   "gaia_id": "4955368408100115712",
+   "sep_arcsec": 50.15,
+   "east_north_arcsec": [
+    26.07,
+    -42.83
+   ],
+   "gmag": 18.024,
+   "tmag": 17.573,
+   "flux_ratio": 0.000318,
+   "needed_depth": 30.67967,
+   "centroid_distance_sigma": 56.86,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4931352226588481536",
+   "sep_arcsec": 52.41,
+   "east_north_arcsec": [
+    -25.18,
+    45.96
+   ],
+   "gmag": 15.179,
+   "tmag": 14.34,
+   "flux_ratio": 0.006245,
+   "needed_depth": 1.56212,
+   "centroid_distance_sigma": 61.08,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4931349202931505536",
+   "sep_arcsec": 68.82,
+   "east_north_arcsec": [
+    0.44,
+    -68.82
+   ],
+   "gmag": 18.2,
+   "tmag": 17.413,
+   "flux_ratio": 0.000368,
+   "needed_depth": 26.49036,
+   "centroid_distance_sigma": 77.83,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4931349198634615424",
+   "sep_arcsec": 70.9,
+   "east_north_arcsec": [
+    6.76,
+    -70.58
+   ],
+   "gmag": 18.857,
+   "tmag": 18.377,
+   "flux_ratio": 0.000152,
+   "needed_depth": 64.3655,
+   "centroid_distance_sigma": 80.28,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955371436054085888",
+   "sep_arcsec": 72.72,
+   "east_north_arcsec": [
+    -13.98,
+    71.36
+   ],
+   "gmag": 13.145,
+   "tmag": 12.711,
+   "flux_ratio": 0.028008,
+   "needed_depth": 0.34834,
+   "centroid_distance_sigma": 83.71,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955371436054086016",
+   "sep_arcsec": 73.78,
+   "east_north_arcsec": [
+    -12.59,
+    72.69
+   ],
+   "gmag": 17.434,
+   "tmag": 17.004,
+   "flux_ratio": 0.000537,
+   "needed_depth": 18.16437,
+   "centroid_distance_sigma": 84.86,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4931349198634613248",
+   "sep_arcsec": 75.08,
+   "east_north_arcsec": [
+    -21.56,
+    -71.92
+   ],
+   "gmag": 18.96,
+   "tmag": 17.852,
+   "flux_ratio": 0.000246,
+   "needed_depth": 39.69454,
+   "centroid_distance_sigma": 84.85,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4931352192228727552",
+   "sep_arcsec": 80.91,
+   "east_north_arcsec": [
+    -78.98,
+    -17.57
+   ],
+   "gmag": 13.804,
+   "tmag": 12.704,
+   "flux_ratio": 0.02818,
+   "needed_depth": 0.34621,
+   "centroid_distance_sigma": 93.35,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4931349134212461568",
+   "sep_arcsec": 124.26,
+   "east_north_arcsec": [
+    26.5,
+    -121.4
+   ],
+   "gmag": 16.92,
+   "tmag": 16.457,
+   "flux_ratio": 0.000888,
+   "needed_depth": 10.98287,
+   "centroid_distance_sigma": 141.37,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955368171878943104",
+   "sep_arcsec": 125.43,
+   "east_north_arcsec": [
+    102.17,
+    -72.76
+   ],
+   "gmag": 18.813,
+   "tmag": 17.718,
+   "flux_ratio": 0.000278,
+   "needed_depth": 35.06749,
+   "centroid_distance_sigma": 144.03,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955368274958157696",
+   "sep_arcsec": 127.62,
+   "east_north_arcsec": [
+    125.08,
+    -25.35
+   ],
+   "gmag": 16.821,
+   "tmag": 16.501,
+   "flux_ratio": 0.000853,
+   "needed_depth": 11.43193,
+   "centroid_distance_sigma": 146.3,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955368137519204992",
+   "sep_arcsec": 135.44,
+   "east_north_arcsec": [
+    60.41,
+    -121.22
+   ],
+   "gmag": 17.116,
+   "tmag": 16.295,
+   "flux_ratio": 0.001031,
+   "needed_depth": 9.46124,
+   "centroid_distance_sigma": 154.8,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955368167581945856",
+   "sep_arcsec": 138.39,
+   "east_north_arcsec": [
+    109.0,
+    -85.26
+   ],
+   "gmag": 18.451,
+   "tmag": 17.569,
+   "flux_ratio": 0.000319,
+   "needed_depth": 30.58357,
+   "centroid_distance_sigma": 158.99,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4931349164274860928",
+   "sep_arcsec": 141.88,
+   "east_north_arcsec": [
+    -66.04,
+    -125.57
+   ],
+   "gmag": 18.264,
+   "tmag": 17.134,
+   "flux_ratio": 0.000476,
+   "needed_depth": 20.49188,
+   "centroid_distance_sigma": 160.52,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955368137519205120",
+   "sep_arcsec": 148.53,
+   "east_north_arcsec": [
+    67.0,
+    -132.56
+   ],
+   "gmag": 18.914,
+   "tmag": 17.83,
+   "flux_ratio": 0.000251,
+   "needed_depth": 38.87357,
+   "centroid_distance_sigma": 169.85,
+   "excluded_by_centroid": true,
+   "suspect": false
+  }
+ ],
+ "per_sector": [
+  {
+   "sector": 104,
+   "kind": "tpf",
+   "n_transits": 24,
+   "n_in_transit_frames": 1178,
+   "n_out_of_transit_frames": 2893,
+   "detected": true,
+   "reason": "dip seen at SNR 23.1",
+   "diff_snr": 23.1,
+   "depth_on_target": 0.009758,
+   "depth_on_target_err": 0.000422,
+   "target_px": [
+    4.46,
+    4.429
+   ],
+   "centroid_px": [
+    4.493,
+    4.369
+   ],
+   "centroid_offset_arcsec": 1.42,
+   "offset_east_north_arcsec": [
+    -0.3,
+    -1.39
+   ],
+   "offset_sigma": 0.8,
+   "pixel_scale_arcsec": 21.025,
+   "wcs_shift_px": [
+    0.094,
+    -0.079
+   ],
+   "psf_sigma_px": [
+    1.175,
+    1.36
+   ],
+   "notes": []
+  },
+  {
+   "sector": 105,
+   "kind": "tpf",
+   "n_transits": 25,
+   "n_in_transit_frames": 1160,
+   "n_out_of_transit_frames": 2882,
+   "detected": true,
+   "reason": "dip seen at SNR 32.7",
+   "diff_snr": 32.66,
+   "depth_on_target": 0.009396,
+   "depth_on_target_err": 0.000288,
+   "target_px": [
+    5.86,
+    5.524
+   ],
+   "centroid_px": [
+    5.771,
+    5.483
+   ],
+   "centroid_offset_arcsec": 2.06,
+   "offset_east_north_arcsec": [
+    1.68,
+    -1.2
+   ],
+   "offset_sigma": 1.44,
+   "pixel_scale_arcsec": 21.105,
+   "wcs_shift_px": [
+    0.278,
+    0.028
+   ],
+   "psf_sigma_px": [
+    1.183,
+    1.206
+   ],
+   "notes": [
+    "difference-image noise scaled \u00d71.09 to match transit-to-transit scatter"
+   ]
+  },
+  {
+   "sector": 106,
+   "kind": "tpf",
+   "n_transits": 20,
+   "n_in_transit_frames": 877,
+   "n_out_of_transit_frames": 2344,
+   "detected": true,
+   "reason": "dip seen at SNR 26.8",
+   "diff_snr": 26.8,
+   "depth_on_target": 0.010411,
+   "depth_on_target_err": 0.000388,
+   "target_px": [
+    4.732,
+    4.825
+   ],
+   "centroid_px": [
+    4.774,
+    4.789
+   ],
+   "centroid_offset_arcsec": 1.13,
+   "offset_east_north_arcsec": [
+    0.58,
+    0.97
+   ],
+   "offset_sigma": 0.78,
+   "pixel_scale_arcsec": 20.022,
+   "wcs_shift_px": [
+    -0.106,
+    0.367
+   ],
+   "psf_sigma_px": [
+    0.952,
+    1.119
+   ],
+   "notes": []
+  }
+ ],
+ "heuristic": "P(on target) = L_t / (L_t + \u03a3_i w_i\u00b7L_i + e^(-4.5)),  L = exp(-\u00bd d\u00b2),  d = Mahalanobis distance of the combined difference-image centroid from that star, using the combined covariance plus a (0.1 px)\u00b2 floor; i runs over Gaia neighbours able to make the dip (needed depth \u2264 100%) with w_i = 0.25 (needed \u2264 50%) or 0.05 (50\u2013100%); the e^(-4.5) term is 'somewhere else' (uncatalogued source or systematics). A centroid exactly on the target gives \u2248 0.99; 3\u03c3 off with no neighbour gives \u2248 0.5.",
+ "data": [
+  {
+   "sector": 104,
+   "kind": "tpf",
+   "filename": "tess2026137223500-s0104-0000000100100827-0306-s_tp.fits"
+  },
+  {
+   "sector": 105,
+   "kind": "tpf",
+   "filename": "tess2026164183000-s0105-0000000100100827-0307-s_tp.fits"
+  },
+  {
+   "sector": 106,
+   "kind": "tpf",
+   "filename": "tess2026192185000-s0106-0000000100100827-0308-s_tp.fits"
+  }
+ ],
+ "warnings": [],
+ "timings_s": {
+  "catalogues": 0.0,
+  "search": 0.0,
+  "download": 0.06,
+  "reduce": 0.28,
+  "analyze": 0.33,
+  "total": 1.29
+ },
+ "files": {
+  "pngs": [
+   "tic100100827_s0104_pixels.png",
+   "tic100100827_s0105_pixels.png",
+   "tic100100827_s0106_pixels.png"
+  ],
+  "json": [
+   "tic100100827_s0104_pixels.json",
+   "tic100100827_s0105_pixels.json",
+   "tic100100827_s0106_pixels.json"
+  ]
+ }
+}

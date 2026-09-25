@@ -1,0 +1,5571 @@
+{
+ "tic_id": 75208638,
+ "ephemeris": {
+  "period_d": 4.6512523,
+  "t0_btjd": 2990.712909,
+  "duration_h": 2.251
+ },
+ "verdict": "off target",
+ "reason": "the light lost in transit comes from 24.9\u2033 (1.25 px) away from the target, 22.7\u03c3 off; it matches Gaia DR3 5423774792624492928 (G=14.3, 25\u2033 away), which would need a 3.3% eclipse (centroid 0.8\u03c3 from it)",
+ "on_target_probability": 0.0,
+ "centroid_offset_arcsec": 24.92,
+ "centroid_offset_px": 1.25,
+ "offset_sigma": 22.69,
+ "offset_east_north_arcsec": [
+  -4.37,
+  24.53
+ ],
+ "depth_on_target": 0.004429,
+ "depth_on_target_err": 0.000164,
+ "depth_upper_limit_3sigma": null,
+ "tic_contamination_ratio": 0.195094019,
+ "target_tmag": 11.7159,
+ "suspect_neighbours": [
+  {
+   "gaia_id": "5423774792624492928",
+   "sep_arcsec": 25.0,
+   "gmag": 14.322,
+   "tmag": 13.902,
+   "needed_depth": 0.03316,
+   "centroid_distance_sigma": 0.79
+  }
+ ],
+ "neighbours": [
+  {
+   "gaia_id": "5423774796928909952",
+   "sep_arcsec": 2.69,
+   "east_north_arcsec": [
+    1.07,
+    2.46
+   ],
+   "gmag": 17.546,
+   "tmag": 16.91,
+   "flux_ratio": 0.008362,
+   "needed_depth": 0.52961,
+   "centroid_distance_sigma": 20.76,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774796917947008",
+   "sep_arcsec": 7.79,
+   "east_north_arcsec": [
+    3.07,
+    7.16
+   ],
+   "gmag": 19.473,
+   "tmag": 19.043,
+   "flux_ratio": 0.001173,
+   "needed_depth": 3.77575,
+   "centroid_distance_sigma": 17.43,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774796928497536",
+   "sep_arcsec": 9.19,
+   "east_north_arcsec": [
+    2.82,
+    8.75
+   ],
+   "gmag": 19.227,
+   "tmag": 18.302,
+   "flux_ratio": 0.002321,
+   "needed_depth": 1.90819,
+   "centroid_distance_sigma": 16.02,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774792626108800",
+   "sep_arcsec": 15.34,
+   "east_north_arcsec": [
+    15.28,
+    -1.41
+   ],
+   "gmag": 19.214,
+   "tmag": 18.279,
+   "flux_ratio": 0.002369,
+   "needed_depth": 1.869,
+   "centroid_distance_sigma": 30.49,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774792626083456",
+   "sep_arcsec": 17.07,
+   "east_north_arcsec": [
+    13.41,
+    -10.56
+   ],
+   "gmag": 19.131,
+   "tmag": 18.154,
+   "flux_ratio": 0.002658,
+   "needed_depth": 1.6661,
+   "centroid_distance_sigma": 36.43,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774689549128320",
+   "sep_arcsec": 18.19,
+   "east_north_arcsec": [
+    11.18,
+    -14.34
+   ],
+   "gmag": 19.334,
+   "tmag": 18.315,
+   "flux_ratio": 0.002292,
+   "needed_depth": 1.93182,
+   "centroid_distance_sigma": 38.56,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775445461145344",
+   "sep_arcsec": 22.99,
+   "east_north_arcsec": [
+    -14.17,
+    18.11
+   ],
+   "gmag": 17.612,
+   "tmag": 16.928,
+   "flux_ratio": 0.008228,
+   "needed_depth": 0.53825,
+   "centroid_distance_sigma": 10.92,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774796917932928",
+   "sep_arcsec": 23.97,
+   "east_north_arcsec": [
+    12.87,
+    20.22
+   ],
+   "gmag": 20.129,
+   "tmag": 19.307,
+   "flux_ratio": 0.00092,
+   "needed_depth": 4.81485,
+   "centroid_distance_sigma": 17.1,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774792624492928",
+   "sep_arcsec": 25.0,
+   "east_north_arcsec": [
+    -3.57,
+    24.74
+   ],
+   "gmag": 14.322,
+   "tmag": 13.902,
+   "flux_ratio": 0.13357,
+   "needed_depth": 0.03316,
+   "centroid_distance_sigma": 0.79,
+   "excluded_by_centroid": false,
+   "suspect": true
+  },
+  {
+   "gaia_id": "5423775445461145472",
+   "sep_arcsec": 28.79,
+   "east_north_arcsec": [
+    -20.92,
+    19.79
+   ],
+   "gmag": 18.956,
+   "tmag": 17.973,
+   "flux_ratio": 0.00314,
+   "needed_depth": 1.41019,
+   "centroid_distance_sigma": 16.34,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774689546854272",
+   "sep_arcsec": 29.93,
+   "east_north_arcsec": [
+    -20.09,
+    -22.19
+   ],
+   "gmag": 17.371,
+   "tmag": 16.459,
+   "flux_ratio": 0.012672,
+   "needed_depth": 0.34948,
+   "centroid_distance_sigma": 44.51,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775445461119872",
+   "sep_arcsec": 30.23,
+   "east_north_arcsec": [
+    -30.16,
+    -2.09
+   ],
+   "gmag": 19.323,
+   "tmag": 18.368,
+   "flux_ratio": 0.002183,
+   "needed_depth": 2.02866,
+   "centroid_distance_sigma": 34.09,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774796931349760",
+   "sep_arcsec": 30.67,
+   "east_north_arcsec": [
+    17.78,
+    24.99
+   ],
+   "gmag": 19.409,
+   "tmag": 18.421,
+   "flux_ratio": 0.002079,
+   "needed_depth": 2.12969,
+   "centroid_distance_sigma": 21.26,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774689546846720",
+   "sep_arcsec": 31.26,
+   "east_north_arcsec": [
+    -14.44,
+    -27.72
+   ],
+   "gmag": 19.664,
+   "tmag": 18.668,
+   "flux_ratio": 0.001656,
+   "needed_depth": 2.67452,
+   "centroid_distance_sigma": 48.0,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774723906591232",
+   "sep_arcsec": 32.11,
+   "east_north_arcsec": [
+    22.57,
+    -22.84
+   ],
+   "gmag": 19.325,
+   "tmag": 18.4,
+   "flux_ratio": 0.002121,
+   "needed_depth": 2.08828,
+   "centroid_distance_sigma": 50.62,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774796917925376",
+   "sep_arcsec": 32.31,
+   "east_north_arcsec": [
+    28.23,
+    15.72
+   ],
+   "gmag": 20.178,
+   "tmag": 19.302,
+   "flux_ratio": 0.000924,
+   "needed_depth": 4.79525,
+   "centroid_distance_sigma": 32.49,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774792626131072",
+   "sep_arcsec": 32.89,
+   "east_north_arcsec": [
+    10.62,
+    31.13
+   ],
+   "gmag": 19.207,
+   "tmag": 18.322,
+   "flux_ratio": 0.002278,
+   "needed_depth": 1.94419,
+   "centroid_distance_sigma": 15.44,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775552832185600",
+   "sep_arcsec": 34.13,
+   "east_north_arcsec": [
+    -12.69,
+    31.68
+   ],
+   "gmag": 18.381,
+   "tmag": 17.951,
+   "flux_ratio": 0.003205,
+   "needed_depth": 1.38196,
+   "centroid_distance_sigma": 10.41,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775552842740480",
+   "sep_arcsec": 35.94,
+   "east_north_arcsec": [
+    -14.08,
+    33.06
+   ],
+   "gmag": 15.875,
+   "tmag": 15.165,
+   "flux_ratio": 0.041718,
+   "needed_depth": 0.10616,
+   "centroid_distance_sigma": 12.25,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774792626103936",
+   "sep_arcsec": 36.57,
+   "east_north_arcsec": [
+    35.98,
+    6.57
+   ],
+   "gmag": 19.475,
+   "tmag": 18.516,
+   "flux_ratio": 0.001906,
+   "needed_depth": 2.3234,
+   "centroid_distance_sigma": 42.39,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774728199773568",
+   "sep_arcsec": 36.89,
+   "east_north_arcsec": [
+    29.51,
+    -22.13
+   ],
+   "gmag": 20.392,
+   "tmag": 19.581,
+   "flux_ratio": 0.000715,
+   "needed_depth": 6.19736,
+   "centroid_distance_sigma": 53.96,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774796928490368",
+   "sep_arcsec": 37.68,
+   "east_north_arcsec": [
+    19.27,
+    32.38
+   ],
+   "gmag": 16.518,
+   "tmag": 15.456,
+   "flux_ratio": 0.031909,
+   "needed_depth": 0.13879,
+   "centroid_distance_sigma": 23.6,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774693840035328",
+   "sep_arcsec": 38.66,
+   "east_north_arcsec": [
+    -4.53,
+    -38.4
+   ],
+   "gmag": 20.361,
+   "tmag": 19.475,
+   "flux_ratio": 0.000787,
+   "needed_depth": 5.62471,
+   "centroid_distance_sigma": 56.92,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774723906595328",
+   "sep_arcsec": 39.47,
+   "east_north_arcsec": [
+    34.18,
+    -19.74
+   ],
+   "gmag": 18.787,
+   "tmag": 17.85,
+   "flux_ratio": 0.003518,
+   "needed_depth": 1.25866,
+   "centroid_distance_sigma": 55.23,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774620827358592",
+   "sep_arcsec": 41.33,
+   "east_north_arcsec": [
+    16.98,
+    -37.68
+   ],
+   "gmag": 19.379,
+   "tmag": 18.37,
+   "flux_ratio": 0.002179,
+   "needed_depth": 2.0327,
+   "centroid_distance_sigma": 60.39,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774693838764160",
+   "sep_arcsec": 41.45,
+   "east_north_arcsec": [
+    -33.21,
+    -24.8
+   ],
+   "gmag": 20.029,
+   "tmag": 19.096,
+   "flux_ratio": 0.001117,
+   "needed_depth": 3.96578,
+   "centroid_distance_sigma": 51.9,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775548540386048",
+   "sep_arcsec": 42.44,
+   "east_north_arcsec": [
+    -10.22,
+    41.19
+   ],
+   "gmag": 19.587,
+   "tmag": 18.689,
+   "flux_ratio": 0.001625,
+   "needed_depth": 2.72537,
+   "centroid_distance_sigma": 16.22,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774723906624512",
+   "sep_arcsec": 43.0,
+   "east_north_arcsec": [
+    42.93,
+    2.43
+   ],
+   "gmag": 19.107,
+   "tmag": 18.095,
+   "flux_ratio": 0.002807,
+   "needed_depth": 1.57788,
+   "centroid_distance_sigma": 50.09,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775548540390528",
+   "sep_arcsec": 44.81,
+   "east_north_arcsec": [
+    2.75,
+    44.73
+   ],
+   "gmag": 18.94,
+   "tmag": 18.025,
+   "flux_ratio": 0.002996,
+   "needed_depth": 1.47824,
+   "centroid_distance_sigma": 19.34,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774693852133120",
+   "sep_arcsec": 45.85,
+   "east_north_arcsec": [
+    -36.84,
+    -27.3
+   ],
+   "gmag": 18.802,
+   "tmag": 17.748,
+   "flux_ratio": 0.003863,
+   "needed_depth": 1.1463,
+   "centroid_distance_sigma": 55.63,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774792626130688",
+   "sep_arcsec": 45.91,
+   "east_north_arcsec": [
+    34.7,
+    30.06
+   ],
+   "gmag": 19.931,
+   "tmag": 18.895,
+   "flux_ratio": 0.001343,
+   "needed_depth": 3.29633,
+   "centroid_distance_sigma": 37.71,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774659479029248",
+   "sep_arcsec": 48.3,
+   "east_north_arcsec": [
+    -39.48,
+    -27.82
+   ],
+   "gmag": 20.425,
+   "tmag": 19.511,
+   "flux_ratio": 0.000762,
+   "needed_depth": 5.80999,
+   "centroid_distance_sigma": 57.41,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774625119278720",
+   "sep_arcsec": 49.09,
+   "east_north_arcsec": [
+    9.99,
+    -48.06
+   ],
+   "gmag": 20.049,
+   "tmag": 19.061,
+   "flux_ratio": 0.001153,
+   "needed_depth": 3.84005,
+   "centroid_distance_sigma": 67.45,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774620827355136",
+   "sep_arcsec": 51.05,
+   "east_north_arcsec": [
+    28.16,
+    -42.57
+   ],
+   "gmag": 19.154,
+   "tmag": 18.127,
+   "flux_ratio": 0.002727,
+   "needed_depth": 1.62386,
+   "centroid_distance_sigma": 68.99,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775548540399616",
+   "sep_arcsec": 51.22,
+   "east_north_arcsec": [
+    5.52,
+    50.92
+   ],
+   "gmag": 18.433,
+   "tmag": 17.689,
+   "flux_ratio": 0.00408,
+   "needed_depth": 1.08535,
+   "centroid_distance_sigma": 25.46,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775449753008640",
+   "sep_arcsec": 51.22,
+   "east_north_arcsec": [
+    -50.69,
+    -7.36
+   ],
+   "gmag": 20.47,
+   "tmag": 19.532,
+   "flux_ratio": 0.000748,
+   "needed_depth": 5.92284,
+   "centroid_distance_sigma": 52.37,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775449763527552",
+   "sep_arcsec": 51.25,
+   "east_north_arcsec": [
+    -30.56,
+    41.15
+   ],
+   "gmag": 18.415,
+   "tmag": 17.567,
+   "flux_ratio": 0.004566,
+   "needed_depth": 0.96986,
+   "centroid_distance_sigma": 29.62,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774728200109824",
+   "sep_arcsec": 51.62,
+   "east_north_arcsec": [
+    40.43,
+    -32.09
+   ],
+   "gmag": 19.646,
+   "tmag": 18.686,
+   "flux_ratio": 0.00163,
+   "needed_depth": 2.71734,
+   "centroid_distance_sigma": 67.74,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775445461138688",
+   "sep_arcsec": 51.76,
+   "east_north_arcsec": [
+    -50.24,
+    12.47
+   ],
+   "gmag": 18.058,
+   "tmag": 17.11,
+   "flux_ratio": 0.006958,
+   "needed_depth": 0.63643,
+   "centroid_distance_sigma": 45.09,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774728209022720",
+   "sep_arcsec": 51.82,
+   "east_north_arcsec": [
+    36.81,
+    -36.47
+   ],
+   "gmag": 17.851,
+   "tmag": 16.931,
+   "flux_ratio": 0.008204,
+   "needed_depth": 0.5398,
+   "centroid_distance_sigma": 68.71,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774728198450432",
+   "sep_arcsec": 51.87,
+   "east_north_arcsec": [
+    50.12,
+    -13.37
+   ],
+   "gmag": 16.194,
+   "tmag": 15.571,
+   "flux_ratio": 0.028713,
+   "needed_depth": 0.15424,
+   "centroid_distance_sigma": 63.28,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775449753001600",
+   "sep_arcsec": 51.98,
+   "east_north_arcsec": [
+    -50.32,
+    13.02
+   ],
+   "gmag": 18.444,
+   "tmag": 18.014,
+   "flux_ratio": 0.003024,
+   "needed_depth": 1.46424,
+   "centroid_distance_sigma": 45.06,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775548540398592",
+   "sep_arcsec": 52.36,
+   "east_north_arcsec": [
+    -13.09,
+    50.69
+   ],
+   "gmag": 18.164,
+   "tmag": 17.232,
+   "flux_ratio": 0.006218,
+   "needed_depth": 0.71224,
+   "centroid_distance_sigma": 25.31,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774728198466304",
+   "sep_arcsec": 53.65,
+   "east_north_arcsec": [
+    43.16,
+    -31.88
+   ],
+   "gmag": 19.495,
+   "tmag": 18.554,
+   "flux_ratio": 0.00184,
+   "needed_depth": 2.40723,
+   "centroid_distance_sigma": 69.33,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774831277650816",
+   "sep_arcsec": 53.92,
+   "east_north_arcsec": [
+    48.19,
+    24.18
+   ],
+   "gmag": 20.015,
+   "tmag": 19.057,
+   "flux_ratio": 0.001158,
+   "needed_depth": 3.82567,
+   "centroid_distance_sigma": 50.47,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774723906608384",
+   "sep_arcsec": 54.04,
+   "east_north_arcsec": [
+    52.51,
+    -12.77
+   ],
+   "gmag": 14.59,
+   "tmag": 14.097,
+   "flux_ratio": 0.111612,
+   "needed_depth": 0.03968,
+   "centroid_distance_sigma": 64.93,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775415406638080",
+   "sep_arcsec": 54.35,
+   "east_north_arcsec": [
+    -52.3,
+    -14.78
+   ],
+   "gmag": 20.436,
+   "tmag": 19.535,
+   "flux_ratio": 0.000746,
+   "needed_depth": 5.94015,
+   "centroid_distance_sigma": 57.43,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774796917914624",
+   "sep_arcsec": 54.6,
+   "east_north_arcsec": [
+    17.53,
+    51.7
+   ],
+   "gmag": 20.391,
+   "tmag": 19.597,
+   "flux_ratio": 0.000704,
+   "needed_depth": 6.28834,
+   "centroid_distance_sigma": 31.93,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774723906581120",
+   "sep_arcsec": 54.9,
+   "east_north_arcsec": [
+    43.93,
+    -32.93
+   ],
+   "gmag": 19.413,
+   "tmag": 18.456,
+   "flux_ratio": 0.002013,
+   "needed_depth": 2.1997,
+   "centroid_distance_sigma": 70.55,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774659489556224",
+   "sep_arcsec": 55.15,
+   "east_north_arcsec": [
+    -26.2,
+    -48.53
+   ],
+   "gmag": 17.274,
+   "tmag": 16.381,
+   "flux_ratio": 0.013618,
+   "needed_depth": 0.32519,
+   "centroid_distance_sigma": 68.82,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774723906587776",
+   "sep_arcsec": 55.22,
+   "east_north_arcsec": [
+    48.05,
+    -27.21
+   ],
+   "gmag": 18.818,
+   "tmag": 17.706,
+   "flux_ratio": 0.004018,
+   "needed_depth": 1.10216,
+   "centroid_distance_sigma": 69.61,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774792626152448",
+   "sep_arcsec": 55.61,
+   "east_north_arcsec": [
+    24.63,
+    49.86
+   ],
+   "gmag": 19.712,
+   "tmag": 18.756,
+   "flux_ratio": 0.001527,
+   "needed_depth": 2.89967,
+   "centroid_distance_sigma": 35.6,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774659479038720",
+   "sep_arcsec": 57.45,
+   "east_north_arcsec": [
+    -45.46,
+    -35.13
+   ],
+   "gmag": 19.887,
+   "tmag": 18.945,
+   "flux_ratio": 0.001284,
+   "needed_depth": 3.44918,
+   "centroid_distance_sigma": 66.02,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775445461138816",
+   "sep_arcsec": 57.8,
+   "east_north_arcsec": [
+    -56.68,
+    11.33
+   ],
+   "gmag": 19.115,
+   "tmag": 18.191,
+   "flux_ratio": 0.00257,
+   "needed_depth": 1.72332,
+   "centroid_distance_sigma": 51.31,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774659479038208",
+   "sep_arcsec": 58.77,
+   "east_north_arcsec": [
+    -30.82,
+    -50.04
+   ],
+   "gmag": 19.985,
+   "tmag": 19.065,
+   "flux_ratio": 0.001149,
+   "needed_depth": 3.8539,
+   "centroid_distance_sigma": 71.47,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774625119285760",
+   "sep_arcsec": 59.66,
+   "east_north_arcsec": [
+    2.95,
+    -59.59
+   ],
+   "gmag": 20.341,
+   "tmag": 19.439,
+   "flux_ratio": 0.000814,
+   "needed_depth": 5.43754,
+   "centroid_distance_sigma": 76.61,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775552842733824",
+   "sep_arcsec": 59.74,
+   "east_north_arcsec": [
+    -2.65,
+    59.68
+   ],
+   "gmag": 19.39,
+   "tmag": 18.463,
+   "flux_ratio": 0.002,
+   "needed_depth": 2.21395,
+   "centroid_distance_sigma": 31.79,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774831277644928",
+   "sep_arcsec": 62.01,
+   "east_north_arcsec": [
+    47.16,
+    40.27
+   ],
+   "gmag": 19.844,
+   "tmag": 19.414,
+   "flux_ratio": 0.000834,
+   "needed_depth": 5.31288,
+   "centroid_distance_sigma": 51.12,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775411106371072",
+   "sep_arcsec": 62.21,
+   "east_north_arcsec": [
+    -62.21,
+    -0.26
+   ],
+   "gmag": 18.566,
+   "tmag": 17.617,
+   "flux_ratio": 0.004362,
+   "needed_depth": 1.01534,
+   "centroid_distance_sigma": 59.34,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774826987771008",
+   "sep_arcsec": 62.94,
+   "east_north_arcsec": [
+    46.87,
+    42.01
+   ],
+   "gmag": 19.19,
+   "tmag": 18.298,
+   "flux_ratio": 0.002328,
+   "needed_depth": 1.90214,
+   "centroid_distance_sigma": 51.28,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774655187088000",
+   "sep_arcsec": 63.48,
+   "east_north_arcsec": [
+    -29.83,
+    -56.03
+   ],
+   "gmag": 18.214,
+   "tmag": 17.346,
+   "flux_ratio": 0.005599,
+   "needed_depth": 0.79101,
+   "centroid_distance_sigma": 76.27,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775445461179136",
+   "sep_arcsec": 63.89,
+   "east_north_arcsec": [
+    -40.39,
+    49.5
+   ],
+   "gmag": 18.691,
+   "tmag": 17.543,
+   "flux_ratio": 0.004668,
+   "needed_depth": 0.94862,
+   "centroid_distance_sigma": 41.79,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774762568745728",
+   "sep_arcsec": 64.96,
+   "east_north_arcsec": [
+    56.72,
+    31.68
+   ],
+   "gmag": 15.536,
+   "tmag": 14.942,
+   "flux_ratio": 0.051243,
+   "needed_depth": 0.08642,
+   "centroid_distance_sigma": 58.83,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774620827338624",
+   "sep_arcsec": 64.98,
+   "east_north_arcsec": [
+    31.45,
+    -56.86
+   ],
+   "gmag": 19.263,
+   "tmag": 18.368,
+   "flux_ratio": 0.002184,
+   "needed_depth": 2.02775,
+   "centroid_distance_sigma": 82.07,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774831277642624",
+   "sep_arcsec": 65.25,
+   "east_north_arcsec": [
+    51.03,
+    40.66
+   ],
+   "gmag": 20.185,
+   "tmag": 19.248,
+   "flux_ratio": 0.000971,
+   "needed_depth": 4.56295,
+   "centroid_distance_sigma": 54.78,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774758266375168",
+   "sep_arcsec": 65.28,
+   "east_north_arcsec": [
+    63.94,
+    13.14
+   ],
+   "gmag": 18.72,
+   "tmag": 17.773,
+   "flux_ratio": 0.003776,
+   "needed_depth": 1.17293,
+   "centroid_distance_sigma": 66.65,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775411101383168",
+   "sep_arcsec": 65.88,
+   "east_north_arcsec": [
+    -65.85,
+    -1.72
+   ],
+   "gmag": 18.653,
+   "tmag": 17.865,
+   "flux_ratio": 0.003469,
+   "needed_depth": 1.27654,
+   "centroid_distance_sigma": 63.05,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775445461165952",
+   "sep_arcsec": 65.89,
+   "east_north_arcsec": [
+    -55.13,
+    36.1
+   ],
+   "gmag": 19.041,
+   "tmag": 18.132,
+   "flux_ratio": 0.002713,
+   "needed_depth": 1.63258,
+   "centroid_distance_sigma": 50.1,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774728198441600",
+   "sep_arcsec": 65.89,
+   "east_north_arcsec": [
+    65.51,
+    -7.07
+   ],
+   "gmag": 20.106,
+   "tmag": 19.139,
+   "flux_ratio": 0.001074,
+   "needed_depth": 4.12502,
+   "centroid_distance_sigma": 73.61,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775582900155264",
+   "sep_arcsec": 68.05,
+   "east_north_arcsec": [
+    14.93,
+    66.39
+   ],
+   "gmag": 18.913,
+   "tmag": 18.059,
+   "flux_ratio": 0.002902,
+   "needed_depth": 1.52613,
+   "centroid_distance_sigma": 41.72,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775552842736128",
+   "sep_arcsec": 68.59,
+   "east_north_arcsec": [
+    -21.95,
+    64.98
+   ],
+   "gmag": 18.913,
+   "tmag": 17.969,
+   "flux_ratio": 0.003153,
+   "needed_depth": 1.40459,
+   "centroid_distance_sigma": 40.69,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774831288221440",
+   "sep_arcsec": 68.93,
+   "east_north_arcsec": [
+    46.89,
+    50.53
+   ],
+   "gmag": 14.289,
+   "tmag": 13.211,
+   "flux_ratio": 0.252227,
+   "needed_depth": 0.01756,
+   "centroid_distance_sigma": 53.99,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774762558169728",
+   "sep_arcsec": 68.93,
+   "east_north_arcsec": [
+    67.62,
+    13.34
+   ],
+   "gmag": 19.924,
+   "tmag": 18.946,
+   "flux_ratio": 0.001282,
+   "needed_depth": 3.45448,
+   "centroid_distance_sigma": 70.11,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774659479045504",
+   "sep_arcsec": 69.5,
+   "east_north_arcsec": [
+    -28.95,
+    -63.18
+   ],
+   "gmag": 19.948,
+   "tmag": 18.985,
+   "flux_ratio": 0.001237,
+   "needed_depth": 3.58055,
+   "centroid_distance_sigma": 82.2,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774758266352896",
+   "sep_arcsec": 70.81,
+   "east_north_arcsec": [
+    70.72,
+    -3.55
+   ],
+   "gmag": 18.845,
+   "tmag": 17.772,
+   "flux_ratio": 0.00378,
+   "needed_depth": 1.17143,
+   "centroid_distance_sigma": 77.06,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775449752975744",
+   "sep_arcsec": 70.88,
+   "east_north_arcsec": [
+    -41.08,
+    57.76
+   ],
+   "gmag": 19.798,
+   "tmag": 18.801,
+   "flux_ratio": 0.001466,
+   "needed_depth": 3.02163,
+   "centroid_distance_sigma": 46.91,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775552845591936",
+   "sep_arcsec": 71.09,
+   "east_north_arcsec": [
+    -6.94,
+    70.75
+   ],
+   "gmag": 15.848,
+   "tmag": 15.208,
+   "flux_ratio": 0.040092,
+   "needed_depth": 0.11046,
+   "centroid_distance_sigma": 41.95,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774826985897984",
+   "sep_arcsec": 71.41,
+   "east_north_arcsec": [
+    54.53,
+    46.11
+   ],
+   "gmag": 18.301,
+   "tmag": 17.45,
+   "flux_ratio": 0.005087,
+   "needed_depth": 0.8705,
+   "centroid_distance_sigma": 59.34,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775445461148416",
+   "sep_arcsec": 71.81,
+   "east_north_arcsec": [
+    -68.32,
+    22.11
+   ],
+   "gmag": 19.024,
+   "tmag": 18.099,
+   "flux_ratio": 0.002798,
+   "needed_depth": 1.58291,
+   "centroid_distance_sigma": 61.37,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775552832185472",
+   "sep_arcsec": 72.2,
+   "east_north_arcsec": [
+    -39.07,
+    60.71
+   ],
+   "gmag": 19.987,
+   "tmag": 19.105,
+   "flux_ratio": 0.001108,
+   "needed_depth": 3.99774,
+   "centroid_distance_sigma": 47.3,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774655187076352",
+   "sep_arcsec": 72.35,
+   "east_north_arcsec": [
+    -43.69,
+    -57.67
+   ],
+   "gmag": 18.43,
+   "tmag": 17.581,
+   "flux_ratio": 0.004507,
+   "needed_depth": 0.9827,
+   "centroid_distance_sigma": 82.52,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774728209016064",
+   "sep_arcsec": 72.45,
+   "east_north_arcsec": [
+    64.51,
+    -32.98
+   ],
+   "gmag": 17.255,
+   "tmag": 16.245,
+   "flux_ratio": 0.015436,
+   "needed_depth": 0.28689,
+   "centroid_distance_sigma": 85.19,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774831277640576",
+   "sep_arcsec": 72.63,
+   "east_north_arcsec": [
+    35.8,
+    63.19
+   ],
+   "gmag": 20.335,
+   "tmag": 19.456,
+   "flux_ratio": 0.000801,
+   "needed_depth": 5.52654,
+   "centroid_distance_sigma": 51.38,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774655187059840",
+   "sep_arcsec": 73.53,
+   "east_north_arcsec": [
+    -13.26,
+    -72.32
+   ],
+   "gmag": 19.63,
+   "tmag": 18.648,
+   "flux_ratio": 0.001688,
+   "needed_depth": 2.62422,
+   "centroid_distance_sigma": 87.82,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775514180650624",
+   "sep_arcsec": 73.68,
+   "east_north_arcsec": [
+    -58.97,
+    44.16
+   ],
+   "gmag": 19.153,
+   "tmag": 18.332,
+   "flux_ratio": 0.002256,
+   "needed_depth": 1.9628,
+   "centroid_distance_sigma": 55.78,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775552842737280",
+   "sep_arcsec": 73.91,
+   "east_north_arcsec": [
+    -28.53,
+    68.19
+   ],
+   "gmag": 16.181,
+   "tmag": 15.436,
+   "flux_ratio": 0.032514,
+   "needed_depth": 0.1362,
+   "centroid_distance_sigma": 46.31,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774659492394880",
+   "sep_arcsec": 74.42,
+   "east_north_arcsec": [
+    -47.35,
+    -57.42
+   ],
+   "gmag": 19.524,
+   "tmag": 18.529,
+   "flux_ratio": 0.001883,
+   "needed_depth": 2.35206,
+   "centroid_distance_sigma": 83.9,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775514180645760",
+   "sep_arcsec": 75.21,
+   "east_north_arcsec": [
+    -63.68,
+    40.03
+   ],
+   "gmag": 19.125,
+   "tmag": 18.347,
+   "flux_ratio": 0.002226,
+   "needed_depth": 1.9891,
+   "centroid_distance_sigma": 58.98,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774655187066112",
+   "sep_arcsec": 76.06,
+   "east_north_arcsec": [
+    -35.48,
+    -67.28
+   ],
+   "gmag": 19.083,
+   "tmag": 18.653,
+   "flux_ratio": 0.001679,
+   "needed_depth": 2.63775,
+   "centroid_distance_sigma": 87.53,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774659479049472",
+   "sep_arcsec": 76.08,
+   "east_north_arcsec": [
+    -34.28,
+    -67.92
+   ],
+   "gmag": 18.101,
+   "tmag": 17.189,
+   "flux_ratio": 0.006468,
+   "needed_depth": 0.6847,
+   "centroid_distance_sigma": 87.72,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775445461192576",
+   "sep_arcsec": 76.2,
+   "east_north_arcsec": [
+    -45.88,
+    60.85
+   ],
+   "gmag": 20.012,
+   "tmag": 19.108,
+   "flux_ratio": 0.001104,
+   "needed_depth": 4.01081,
+   "centroid_distance_sigma": 52.29,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775582900166912",
+   "sep_arcsec": 77.13,
+   "east_north_arcsec": [
+    10.88,
+    76.36
+   ],
+   "gmag": 17.072,
+   "tmag": 16.376,
+   "flux_ratio": 0.013673,
+   "needed_depth": 0.32389,
+   "centroid_distance_sigma": 48.75,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775548545324160",
+   "sep_arcsec": 77.15,
+   "east_north_arcsec": [
+    -5.55,
+    76.95
+   ],
+   "gmag": 19.69,
+   "tmag": 18.865,
+   "flux_ratio": 0.001381,
+   "needed_depth": 3.2067,
+   "centroid_distance_sigma": 47.46,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775415403799936",
+   "sep_arcsec": 77.17,
+   "east_north_arcsec": [
+    -76.81,
+    7.44
+   ],
+   "gmag": 18.431,
+   "tmag": 17.667,
+   "flux_ratio": 0.004165,
+   "needed_depth": 1.06319,
+   "centroid_distance_sigma": 70.84,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774762558167552",
+   "sep_arcsec": 77.39,
+   "east_north_arcsec": [
+    76.84,
+    9.22
+   ],
+   "gmag": 20.153,
+   "tmag": 19.281,
+   "flux_ratio": 0.000942,
+   "needed_depth": 4.7001,
+   "centroid_distance_sigma": 79.54,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774826985913728",
+   "sep_arcsec": 77.49,
+   "east_north_arcsec": [
+    35.4,
+    68.93
+   ],
+   "gmag": 19.826,
+   "tmag": 19.027,
+   "flux_ratio": 0.00119,
+   "needed_depth": 3.72278,
+   "centroid_distance_sigma": 54.7,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775484112748032",
+   "sep_arcsec": 78.13,
+   "east_north_arcsec": [
+    -76.33,
+    16.66
+   ],
+   "gmag": 20.095,
+   "tmag": 19.275,
+   "flux_ratio": 0.000947,
+   "needed_depth": 4.67558,
+   "centroid_distance_sigma": 69.26,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774728198473984",
+   "sep_arcsec": 78.14,
+   "east_north_arcsec": [
+    54.78,
+    -55.71
+   ],
+   "gmag": 19.951,
+   "tmag": 18.971,
+   "flux_ratio": 0.001253,
+   "needed_depth": 3.53384,
+   "centroid_distance_sigma": 93.32,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775552832162560",
+   "sep_arcsec": 79.74,
+   "east_north_arcsec": [
+    -12.89,
+    78.69
+   ],
+   "gmag": 20.253,
+   "tmag": 19.503,
+   "flux_ratio": 0.000767,
+   "needed_depth": 5.77066,
+   "centroid_distance_sigma": 49.88,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518472461184",
+   "sep_arcsec": 80.04,
+   "east_north_arcsec": [
+    -55.32,
+    57.84
+   ],
+   "gmag": 20.411,
+   "tmag": 19.573,
+   "flux_ratio": 0.00072,
+   "needed_depth": 6.15131,
+   "centroid_distance_sigma": 58.11,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518483005056",
+   "sep_arcsec": 80.62,
+   "east_north_arcsec": [
+    -52.19,
+    61.44
+   ],
+   "gmag": 17.639,
+   "tmag": 16.767,
+   "flux_ratio": 0.009539,
+   "needed_depth": 0.46427,
+   "centroid_distance_sigma": 57.46,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774762558159488",
+   "sep_arcsec": 81.32,
+   "east_north_arcsec": [
+    78.1,
+    22.68
+   ],
+   "gmag": 20.151,
+   "tmag": 19.322,
+   "flux_ratio": 0.000907,
+   "needed_depth": 4.88239,
+   "centroid_distance_sigma": 79.23,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522050588160",
+   "sep_arcsec": 82.16,
+   "east_north_arcsec": [
+    67.86,
+    -46.32
+   ],
+   "gmag": 19.856,
+   "tmag": 18.72,
+   "flux_ratio": 0.001579,
+   "needed_depth": 2.805,
+   "centroid_distance_sigma": 95.64,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774826985916416",
+   "sep_arcsec": 82.62,
+   "east_north_arcsec": [
+    44.01,
+    69.92
+   ],
+   "gmag": 18.607,
+   "tmag": 17.729,
+   "flux_ratio": 0.003935,
+   "needed_depth": 1.12554,
+   "centroid_distance_sigma": 61.19,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522050591872",
+   "sep_arcsec": 83.11,
+   "east_north_arcsec": [
+    59.25,
+    -58.29
+   ],
+   "gmag": 17.329,
+   "tmag": 16.198,
+   "flux_ratio": 0.016112,
+   "needed_depth": 0.27487,
+   "centroid_distance_sigma": 97.88,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775479820892032",
+   "sep_arcsec": 83.15,
+   "east_north_arcsec": [
+    -79.09,
+    25.69
+   ],
+   "gmag": 17.327,
+   "tmag": 16.266,
+   "flux_ratio": 0.015129,
+   "needed_depth": 0.29272,
+   "centroid_distance_sigma": 71.76,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774620827316736",
+   "sep_arcsec": 83.35,
+   "east_north_arcsec": [
+    27.87,
+    -78.55
+   ],
+   "gmag": 18.292,
+   "tmag": 17.211,
+   "flux_ratio": 0.00634,
+   "needed_depth": 0.69846,
+   "centroid_distance_sigma": 99.01,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775552833841408",
+   "sep_arcsec": 83.6,
+   "east_north_arcsec": [
+    -5.41,
+    83.42
+   ],
+   "gmag": 20.373,
+   "tmag": 19.515,
+   "flux_ratio": 0.000759,
+   "needed_depth": 5.83563,
+   "centroid_distance_sigma": 53.31,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518472458880",
+   "sep_arcsec": 84.58,
+   "east_north_arcsec": [
+    -56.7,
+    62.76
+   ],
+   "gmag": 19.357,
+   "tmag": 18.388,
+   "flux_ratio": 0.002143,
+   "needed_depth": 2.06675,
+   "centroid_distance_sigma": 61.72,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774826985900032",
+   "sep_arcsec": 84.7,
+   "east_north_arcsec": [
+    63.15,
+    56.44
+   ],
+   "gmag": 19.477,
+   "tmag": 18.542,
+   "flux_ratio": 0.001861,
+   "needed_depth": 2.37994,
+   "centroid_distance_sigma": 70.27,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775548540436992",
+   "sep_arcsec": 84.99,
+   "east_north_arcsec": [
+    -14.09,
+    83.82
+   ],
+   "gmag": 18.036,
+   "tmag": 17.285,
+   "flux_ratio": 0.005921,
+   "needed_depth": 0.74798,
+   "centroid_distance_sigma": 54.68,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774659479048704",
+   "sep_arcsec": 85.32,
+   "east_north_arcsec": [
+    -17.12,
+    -83.59
+   ],
+   "gmag": 20.263,
+   "tmag": 19.225,
+   "flux_ratio": 0.000991,
+   "needed_depth": 4.46707,
+   "centroid_distance_sigma": 98.26,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518472456192",
+   "sep_arcsec": 85.54,
+   "east_north_arcsec": [
+    -54.65,
+    65.8
+   ],
+   "gmag": 17.504,
+   "tmag": 16.683,
+   "flux_ratio": 0.010309,
+   "needed_depth": 0.42956,
+   "centroid_distance_sigma": 61.78,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775621562216576",
+   "sep_arcsec": 85.84,
+   "east_north_arcsec": [
+    -45.16,
+    73.0
+   ],
+   "gmag": 17.397,
+   "tmag": 16.444,
+   "flux_ratio": 0.012851,
+   "needed_depth": 0.34461,
+   "centroid_distance_sigma": 59.54,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587193578496",
+   "sep_arcsec": 85.9,
+   "east_north_arcsec": [
+    1.0,
+    85.89
+   ],
+   "gmag": 20.438,
+   "tmag": 19.819,
+   "flux_ratio": 0.000574,
+   "needed_depth": 7.71715,
+   "centroid_distance_sigma": 55.62,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522050583040",
+   "sep_arcsec": 85.91,
+   "east_north_arcsec": [
+    79.78,
+    -31.87
+   ],
+   "gmag": 16.208,
+   "tmag": 15.006,
+   "flux_ratio": 0.048295,
+   "needed_depth": 0.0917,
+   "centroid_distance_sigma": 96.66,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775484112754304",
+   "sep_arcsec": 85.92,
+   "east_north_arcsec": [
+    -84.27,
+    16.73
+   ],
+   "gmag": 18.271,
+   "tmag": 17.471,
+   "flux_ratio": 0.004988,
+   "needed_depth": 0.88781,
+   "centroid_distance_sigma": 76.85,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518472465152",
+   "sep_arcsec": 86.0,
+   "east_north_arcsec": [
+    -63.48,
+    58.02
+   ],
+   "gmag": 20.376,
+   "tmag": 19.549,
+   "flux_ratio": 0.000736,
+   "needed_depth": 6.02097,
+   "centroid_distance_sigma": 65.01,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522050586624",
+   "sep_arcsec": 86.66,
+   "east_north_arcsec": [
+    73.82,
+    -45.4
+   ],
+   "gmag": 17.032,
+   "tmag": 16.095,
+   "flux_ratio": 0.017724,
+   "needed_depth": 0.24986,
+   "centroid_distance_sigma": 99.41,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775484112754432",
+   "sep_arcsec": 87.03,
+   "east_north_arcsec": [
+    -85.12,
+    18.11
+   ],
+   "gmag": 19.68,
+   "tmag": 19.25,
+   "flux_ratio": 0.000969,
+   "needed_depth": 4.56968,
+   "centroid_distance_sigma": 77.59,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775415393291904",
+   "sep_arcsec": 87.33,
+   "east_north_arcsec": [
+    -87.17,
+    -5.2
+   ],
+   "gmag": 19.843,
+   "tmag": 18.922,
+   "flux_ratio": 0.00131,
+   "needed_depth": 3.37982,
+   "centroid_distance_sigma": 83.25,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518472455552",
+   "sep_arcsec": 87.79,
+   "east_north_arcsec": [
+    -55.39,
+    68.11
+   ],
+   "gmag": 19.711,
+   "tmag": 18.741,
+   "flux_ratio": 0.001549,
+   "needed_depth": 2.85934,
+   "centroid_distance_sigma": 63.66,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774831277624448",
+   "sep_arcsec": 88.41,
+   "east_north_arcsec": [
+    59.21,
+    65.65
+   ],
+   "gmag": 20.099,
+   "tmag": 19.27,
+   "flux_ratio": 0.000951,
+   "needed_depth": 4.65561,
+   "centroid_distance_sigma": 70.65,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775582900180480",
+   "sep_arcsec": 88.83,
+   "east_north_arcsec": [
+    -0.13,
+    88.83
+   ],
+   "gmag": 20.261,
+   "tmag": 19.54,
+   "flux_ratio": 0.000742,
+   "needed_depth": 5.97012,
+   "centroid_distance_sigma": 58.2,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775582900182784",
+   "sep_arcsec": 88.86,
+   "east_north_arcsec": [
+    12.84,
+    87.93
+   ],
+   "gmag": 19.428,
+   "tmag": 18.54,
+   "flux_ratio": 0.001863,
+   "needed_depth": 2.37655,
+   "centroid_distance_sigma": 59.27,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775621551655168",
+   "sep_arcsec": 88.86,
+   "east_north_arcsec": [
+    -42.7,
+    77.93
+   ],
+   "gmag": 20.382,
+   "tmag": 19.635,
+   "flux_ratio": 0.00068,
+   "needed_depth": 6.51228,
+   "centroid_distance_sigma": 61.48,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774826985899904",
+   "sep_arcsec": 88.89,
+   "east_north_arcsec": [
+    68.46,
+    56.7
+   ],
+   "gmag": 20.029,
+   "tmag": 19.099,
+   "flux_ratio": 0.001114,
+   "needed_depth": 3.97582,
+   "centroid_distance_sigma": 75.04,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774517750113280",
+   "sep_arcsec": 89.81,
+   "east_north_arcsec": [
+    65.58,
+    -61.36
+   ],
+   "gmag": 19.592,
+   "tmag": 18.6,
+   "flux_ratio": 0.001764,
+   "needed_depth": 2.51058,
+   "centroid_distance_sigma": 104.01,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522042101632",
+   "sep_arcsec": 89.88,
+   "east_north_arcsec": [
+    74.26,
+    -50.64
+   ],
+   "gmag": 20.481,
+   "tmag": 19.603,
+   "flux_ratio": 0.0007,
+   "needed_depth": 6.32783,
+   "centroid_distance_sigma": 102.9,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774655189066112",
+   "sep_arcsec": 90.03,
+   "east_north_arcsec": [
+    -62.13,
+    -65.16
+   ],
+   "gmag": 19.145,
+   "tmag": 18.094,
+   "flux_ratio": 0.002811,
+   "needed_depth": 1.57516,
+   "centroid_distance_sigma": 97.08,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774655187067008",
+   "sep_arcsec": 90.39,
+   "east_north_arcsec": [
+    -59.35,
+    -68.18
+   ],
+   "gmag": 18.805,
+   "tmag": 17.85,
+   "flux_ratio": 0.003517,
+   "needed_depth": 1.25915,
+   "centroid_distance_sigma": 97.93,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587193576960",
+   "sep_arcsec": 91.37,
+   "east_north_arcsec": [
+    8.67,
+    90.96
+   ],
+   "gmag": 20.143,
+   "tmag": 19.344,
+   "flux_ratio": 0.000888,
+   "needed_depth": 4.98452,
+   "centroid_distance_sigma": 61.06,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775479820849792",
+   "sep_arcsec": 91.81,
+   "east_north_arcsec": [
+    -91.31,
+    -9.57
+   ],
+   "gmag": 18.608,
+   "tmag": 17.669,
+   "flux_ratio": 0.004155,
+   "needed_depth": 1.06582,
+   "centroid_distance_sigma": 88.23,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775582902020736",
+   "sep_arcsec": 91.86,
+   "east_north_arcsec": [
+    19.29,
+    89.82
+   ],
+   "gmag": 19.259,
+   "tmag": 18.352,
+   "flux_ratio": 0.002215,
+   "needed_depth": 1.99898,
+   "centroid_distance_sigma": 62.72,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775415393306880",
+   "sep_arcsec": 92.1,
+   "east_north_arcsec": [
+    -75.0,
+    -53.46
+   ],
+   "gmag": 18.67,
+   "tmag": 17.851,
+   "flux_ratio": 0.003515,
+   "needed_depth": 1.26007,
+   "centroid_distance_sigma": 96.58,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775484112762112",
+   "sep_arcsec": 92.26,
+   "east_north_arcsec": [
+    -91.53,
+    11.57
+   ],
+   "gmag": 20.01,
+   "tmag": 18.949,
+   "flux_ratio": 0.001278,
+   "needed_depth": 3.46469,
+   "centroid_distance_sigma": 84.19,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774826987776384",
+   "sep_arcsec": 92.9,
+   "east_north_arcsec": [
+    33.44,
+    86.67
+   ],
+   "gmag": 19.838,
+   "tmag": 19.028,
+   "flux_ratio": 0.001189,
+   "needed_depth": 3.72416,
+   "centroid_distance_sigma": 66.12,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774762558142464",
+   "sep_arcsec": 93.75,
+   "east_north_arcsec": [
+    82.66,
+    44.24
+   ],
+   "gmag": 18.394,
+   "tmag": 17.529,
+   "flux_ratio": 0.004731,
+   "needed_depth": 0.93609,
+   "centroid_distance_sigma": 84.98,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774552107910784",
+   "sep_arcsec": 93.84,
+   "east_north_arcsec": [
+    92.56,
+    -15.44
+   ],
+   "gmag": 19.913,
+   "tmag": 18.886,
+   "flux_ratio": 0.001355,
+   "needed_depth": 3.26887,
+   "centroid_distance_sigma": 100.7,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774758266411648",
+   "sep_arcsec": 93.87,
+   "east_north_arcsec": [
+    82.02,
+    45.67
+   ],
+   "gmag": 19.727,
+   "tmag": 19.297,
+   "flux_ratio": 0.000928,
+   "needed_depth": 4.77252,
+   "centroid_distance_sigma": 84.63,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775621551644800",
+   "sep_arcsec": 94.21,
+   "east_north_arcsec": [
+    -33.43,
+    88.08
+   ],
+   "gmag": 20.195,
+   "tmag": 19.465,
+   "flux_ratio": 0.000795,
+   "needed_depth": 5.57081,
+   "centroid_distance_sigma": 64.54,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774517748115584",
+   "sep_arcsec": 95.05,
+   "east_north_arcsec": [
+    69.65,
+    -64.69
+   ],
+   "gmag": 20.31,
+   "tmag": 19.444,
+   "flux_ratio": 0.000811,
+   "needed_depth": 5.462,
+   "centroid_distance_sigma": 108.9,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773937935059840",
+   "sep_arcsec": 95.24,
+   "east_north_arcsec": [
+    -78.32,
+    -54.2
+   ],
+   "gmag": 15.867,
+   "tmag": 15.097,
+   "flux_ratio": 0.044432,
+   "needed_depth": 0.09967,
+   "centroid_distance_sigma": 99.25,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774556399739136",
+   "sep_arcsec": 95.6,
+   "east_north_arcsec": [
+    94.56,
+    -14.12
+   ],
+   "gmag": 19.896,
+   "tmag": 18.952,
+   "flux_ratio": 0.001275,
+   "needed_depth": 3.47317,
+   "centroid_distance_sigma": 102.05,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774418960847488",
+   "sep_arcsec": 95.68,
+   "east_north_arcsec": [
+    45.56,
+    -84.13
+   ],
+   "gmag": 19.762,
+   "tmag": 18.779,
+   "flux_ratio": 0.001495,
+   "needed_depth": 2.96237,
+   "centroid_distance_sigma": 110.48,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522040043008",
+   "sep_arcsec": 95.7,
+   "east_north_arcsec": [
+    67.9,
+    -67.44
+   ],
+   "gmag": 19.922,
+   "tmag": 18.985,
+   "flux_ratio": 0.001237,
+   "needed_depth": 3.57898,
+   "centroid_distance_sigma": 109.71,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775484112770048",
+   "sep_arcsec": 95.79,
+   "east_north_arcsec": [
+    -95.76,
+    2.25
+   ],
+   "gmag": 20.387,
+   "tmag": 19.543,
+   "flux_ratio": 0.00074,
+   "needed_depth": 5.9882,
+   "centroid_distance_sigma": 89.51,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518483010816",
+   "sep_arcsec": 96.08,
+   "east_north_arcsec": [
+    -83.47,
+    47.58
+   ],
+   "gmag": 16.336,
+   "tmag": 15.697,
+   "flux_ratio": 0.025554,
+   "needed_depth": 0.1733,
+   "centroid_distance_sigma": 79.27,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774414668877568",
+   "sep_arcsec": 96.29,
+   "east_north_arcsec": [
+    42.12,
+    -86.59
+   ],
+   "gmag": 19.759,
+   "tmag": 18.757,
+   "flux_ratio": 0.001526,
+   "needed_depth": 2.90222,
+   "centroid_distance_sigma": 111.04,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587191874176",
+   "sep_arcsec": 97.1,
+   "east_north_arcsec": [
+    21.29,
+    94.73
+   ],
+   "gmag": 20.022,
+   "tmag": 19.296,
+   "flux_ratio": 0.000929,
+   "needed_depth": 4.76958,
+   "centroid_distance_sigma": 67.52,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774758266407680",
+   "sep_arcsec": 97.34,
+   "east_north_arcsec": [
+    88.47,
+    40.6
+   ],
+   "gmag": 18.331,
+   "tmag": 17.486,
+   "flux_ratio": 0.004919,
+   "needed_depth": 0.90026,
+   "centroid_distance_sigma": 89.94,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774556413182976",
+   "sep_arcsec": 97.77,
+   "east_north_arcsec": [
+    97.19,
+    -10.71
+   ],
+   "gmag": 19.984,
+   "tmag": 18.966,
+   "flux_ratio": 0.001258,
+   "needed_depth": 3.51932,
+   "centroid_distance_sigma": 103.36,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774586467552128",
+   "sep_arcsec": 98.2,
+   "east_north_arcsec": [
+    -10.77,
+    -97.61
+   ],
+   "gmag": 20.011,
+   "tmag": 19.039,
+   "flux_ratio": 0.001177,
+   "needed_depth": 3.76244,
+   "centroid_distance_sigma": 110.51,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587202461824",
+   "sep_arcsec": 98.32,
+   "east_north_arcsec": [
+    19.99,
+    96.26
+   ],
+   "gmag": 18.259,
+   "tmag": 17.507,
+   "flux_ratio": 0.004827,
+   "needed_depth": 0.91753,
+   "centroid_distance_sigma": 68.41,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518472477056",
+   "sep_arcsec": 98.46,
+   "east_north_arcsec": [
+    -83.86,
+    51.6
+   ],
+   "gmag": 19.138,
+   "tmag": 18.323,
+   "flux_ratio": 0.002277,
+   "needed_depth": 1.94497,
+   "centroid_distance_sigma": 80.74,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774517752433920",
+   "sep_arcsec": 98.5,
+   "east_north_arcsec": [
+    72.5,
+    -66.68
+   ],
+   "gmag": 20.47,
+   "tmag": 20.04,
+   "flux_ratio": 0.000468,
+   "needed_depth": 9.45622,
+   "centroid_distance_sigma": 112.12,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774418960851328",
+   "sep_arcsec": 98.73,
+   "east_north_arcsec": [
+    41.61,
+    -89.53
+   ],
+   "gmag": 20.01,
+   "tmag": 19.061,
+   "flux_ratio": 0.001153,
+   "needed_depth": 3.83987,
+   "centroid_distance_sigma": 113.28,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774586467554304",
+   "sep_arcsec": 99.03,
+   "east_north_arcsec": [
+    -17.76,
+    -97.42
+   ],
+   "gmag": 19.437,
+   "tmag": 18.435,
+   "flux_ratio": 0.002053,
+   "needed_depth": 2.15754,
+   "centroid_distance_sigma": 110.74,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587193573120",
+   "sep_arcsec": 99.25,
+   "east_north_arcsec": [
+    31.51,
+    94.12
+   ],
+   "gmag": 20.472,
+   "tmag": 19.765,
+   "flux_ratio": 0.000603,
+   "needed_depth": 7.34037,
+   "centroid_distance_sigma": 70.97,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774625119289088",
+   "sep_arcsec": 99.44,
+   "east_north_arcsec": [
+    26.16,
+    -95.93
+   ],
+   "gmag": 20.16,
+   "tmag": 19.273,
+   "flux_ratio": 0.000949,
+   "needed_depth": 4.66616,
+   "centroid_distance_sigma": 113.58,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522040040960",
+   "sep_arcsec": 99.69,
+   "east_north_arcsec": [
+    72.47,
+    -68.45
+   ],
+   "gmag": 19.975,
+   "tmag": 18.97,
+   "flux_ratio": 0.001255,
+   "needed_depth": 3.52945,
+   "centroid_distance_sigma": 113.31,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775514180668032",
+   "sep_arcsec": 99.72,
+   "east_north_arcsec": [
+    -79.77,
+    59.85
+   ],
+   "gmag": 18.871,
+   "tmag": 17.974,
+   "flux_ratio": 0.003139,
+   "needed_depth": 1.41074,
+   "centroid_distance_sigma": 79.87,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774517748103936",
+   "sep_arcsec": 99.99,
+   "east_north_arcsec": [
+    65.31,
+    -75.71
+   ],
+   "gmag": 19.67,
+   "tmag": 18.715,
+   "flux_ratio": 0.001586,
+   "needed_depth": 2.79281,
+   "centroid_distance_sigma": 114.07,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522041667584",
+   "sep_arcsec": 100.62,
+   "east_north_arcsec": [
+    91.06,
+    -42.8
+   ],
+   "gmag": 19.937,
+   "tmag": 19.727,
+   "flux_ratio": 0.000625,
+   "needed_depth": 7.08892,
+   "centroid_distance_sigma": 111.32,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775479820896128",
+   "sep_arcsec": 101.04,
+   "east_north_arcsec": [
+    -96.48,
+    30.04
+   ],
+   "gmag": 18.304,
+   "tmag": 17.434,
+   "flux_ratio": 0.005164,
+   "needed_depth": 0.85765,
+   "centroid_distance_sigma": 88.69,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522050583168",
+   "sep_arcsec": 101.56,
+   "east_north_arcsec": [
+    90.76,
+    -45.57
+   ],
+   "gmag": 12.213,
+   "tmag": 11.868,
+   "flux_ratio": 0.869577,
+   "needed_depth": 0.00509,
+   "centroid_distance_sigma": 112.53,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774556399744384",
+   "sep_arcsec": 101.56,
+   "east_north_arcsec": [
+    97.04,
+    -29.95
+   ],
+   "gmag": 20.077,
+   "tmag": 19.162,
+   "flux_ratio": 0.001051,
+   "needed_depth": 4.21479,
+   "centroid_distance_sigma": 110.26,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774826985930240",
+   "sep_arcsec": 102.09,
+   "east_north_arcsec": [
+    62.52,
+    80.7
+   ],
+   "gmag": 19.226,
+   "tmag": 18.31,
+   "flux_ratio": 0.002304,
+   "needed_depth": 1.92193,
+   "centroid_distance_sigma": 80.85,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774556399732736",
+   "sep_arcsec": 102.21,
+   "east_north_arcsec": [
+    101.94,
+    -7.37
+   ],
+   "gmag": 20.325,
+   "tmag": 19.315,
+   "flux_ratio": 0.000913,
+   "needed_depth": 4.85301,
+   "centroid_distance_sigma": 106.78,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774556410310144",
+   "sep_arcsec": 102.32,
+   "east_north_arcsec": [
+    101.95,
+    8.67
+   ],
+   "gmag": 14.142,
+   "tmag": 13.681,
+   "flux_ratio": 0.16362,
+   "needed_depth": 0.02707,
+   "centroid_distance_sigma": 103.44,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775479823110272",
+   "sep_arcsec": 103.13,
+   "east_north_arcsec": [
+    -100.82,
+    -21.69
+   ],
+   "gmag": 18.224,
+   "tmag": 17.387,
+   "flux_ratio": 0.005389,
+   "needed_depth": 0.82175,
+   "centroid_distance_sigma": 100.6,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774762568738176",
+   "sep_arcsec": 103.58,
+   "east_north_arcsec": [
+    101.56,
+    20.33
+   ],
+   "gmag": 16.229,
+   "tmag": 15.651,
+   "flux_ratio": 0.026656,
+   "needed_depth": 0.16614,
+   "centroid_distance_sigma": 101.87,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775479820866560",
+   "sep_arcsec": 103.68,
+   "east_north_arcsec": [
+    -103.62,
+    3.65
+   ],
+   "gmag": 16.689,
+   "tmag": 15.929,
+   "flux_ratio": 0.020643,
+   "needed_depth": 0.21454,
+   "centroid_distance_sigma": 96.65,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204943047424",
+   "sep_arcsec": 104.2,
+   "east_north_arcsec": [
+    75.85,
+    71.45
+   ],
+   "gmag": 17.413,
+   "tmag": 16.526,
+   "flux_ratio": 0.011916,
+   "needed_depth": 0.37164,
+   "centroid_distance_sigma": 86.97,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774414668877440",
+   "sep_arcsec": 105.01,
+   "east_north_arcsec": [
+    43.59,
+    -95.54
+   ],
+   "gmag": 17.7,
+   "tmag": 16.978,
+   "flux_ratio": 0.007853,
+   "needed_depth": 0.56396,
+   "centroid_distance_sigma": 119.07,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773933632564992",
+   "sep_arcsec": 105.31,
+   "east_north_arcsec": [
+    -86.69,
+    -59.78
+   ],
+   "gmag": 19.102,
+   "tmag": 18.197,
+   "flux_ratio": 0.002556,
+   "needed_depth": 1.73233,
+   "centroid_distance_sigma": 108.4,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773937935061504",
+   "sep_arcsec": 105.38,
+   "east_north_arcsec": [
+    -93.03,
+    -49.5
+   ],
+   "gmag": 16.718,
+   "tmag": 15.682,
+   "flux_ratio": 0.025923,
+   "needed_depth": 0.17084,
+   "centroid_distance_sigma": 106.93,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775479823110144",
+   "sep_arcsec": 105.9,
+   "east_north_arcsec": [
+    -104.63,
+    -16.36
+   ],
+   "gmag": 18.557,
+   "tmag": 17.761,
+   "flux_ratio": 0.003819,
+   "needed_depth": 1.15948,
+   "centroid_distance_sigma": 102.21,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775582900202624",
+   "sep_arcsec": 106.0,
+   "east_north_arcsec": [
+    3.87,
+    105.93
+   ],
+   "gmag": 18.538,
+   "tmag": 17.702,
+   "flux_ratio": 0.004031,
+   "needed_depth": 1.09874,
+   "centroid_distance_sigma": 73.85,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773177718286208",
+   "sep_arcsec": 106.01,
+   "east_north_arcsec": [
+    -51.54,
+    -92.64
+   ],
+   "gmag": 18.915,
+   "tmag": 17.915,
+   "flux_ratio": 0.003315,
+   "needed_depth": 1.33573,
+   "centroid_distance_sigma": 114.19,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775209234729216",
+   "sep_arcsec": 106.45,
+   "east_north_arcsec": [
+    76.37,
+    74.15
+   ],
+   "gmag": 19.395,
+   "tmag": 18.498,
+   "flux_ratio": 0.001937,
+   "needed_depth": 2.28643,
+   "centroid_distance_sigma": 88.56,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006654536704",
+   "sep_arcsec": 106.95,
+   "east_north_arcsec": [
+    -103.26,
+    -27.83
+   ],
+   "gmag": 11.264,
+   "tmag": 11.012,
+   "flux_ratio": 1.912719,
+   "needed_depth": 0.00232,
+   "centroid_distance_sigma": 104.99,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774002354360192",
+   "sep_arcsec": 106.99,
+   "east_north_arcsec": [
+    -105.12,
+    -19.94
+   ],
+   "gmag": 17.799,
+   "tmag": 16.858,
+   "flux_ratio": 0.008771,
+   "needed_depth": 0.50493,
+   "centroid_distance_sigma": 103.79,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775140516959488",
+   "sep_arcsec": 107.14,
+   "east_north_arcsec": [
+    93.56,
+    52.21
+   ],
+   "gmag": 20.498,
+   "tmag": 19.751,
+   "flux_ratio": 0.000611,
+   "needed_depth": 7.25154,
+   "centroid_distance_sigma": 96.66,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587205329664",
+   "sep_arcsec": 108.85,
+   "east_north_arcsec": [
+    -12.4,
+    108.14
+   ],
+   "gmag": 19.895,
+   "tmag": 18.943,
+   "flux_ratio": 0.001286,
+   "needed_depth": 3.44488,
+   "centroid_distance_sigma": 76.22,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204943047552",
+   "sep_arcsec": 109.06,
+   "east_north_arcsec": [
+    75.19,
+    79.0
+   ],
+   "gmag": 19.471,
+   "tmag": 18.562,
+   "flux_ratio": 0.001826,
+   "needed_depth": 2.4258,
+   "centroid_distance_sigma": 89.82,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204947206016",
+   "sep_arcsec": 109.06,
+   "east_north_arcsec": [
+    81.5,
+    72.47
+   ],
+   "gmag": 19.976,
+   "tmag": 19.029,
+   "flux_ratio": 0.001188,
+   "needed_depth": 3.72689,
+   "centroid_distance_sigma": 92.15,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775479820850944",
+   "sep_arcsec": 109.55,
+   "east_north_arcsec": [
+    -109.33,
+    -6.91
+   ],
+   "gmag": 19.242,
+   "tmag": 18.355,
+   "flux_ratio": 0.002211,
+   "needed_depth": 2.00318,
+   "centroid_distance_sigma": 103.99,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518483002496",
+   "sep_arcsec": 109.64,
+   "east_north_arcsec": [
+    -65.99,
+    87.55
+   ],
+   "gmag": 18.438,
+   "tmag": 17.397,
+   "flux_ratio": 0.005339,
+   "needed_depth": 0.82954,
+   "centroid_distance_sigma": 83.21,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774552107914624",
+   "sep_arcsec": 109.99,
+   "east_north_arcsec": [
+    109.44,
+    -10.99
+   ],
+   "gmag": 19.781,
+   "tmag": 18.791,
+   "flux_ratio": 0.001479,
+   "needed_depth": 2.99405,
+   "centroid_distance_sigma": 114.68,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518472469632",
+   "sep_arcsec": 110.1,
+   "east_north_arcsec": [
+    -82.88,
+    72.47
+   ],
+   "gmag": 20.035,
+   "tmag": 19.067,
+   "flux_ratio": 0.001147,
+   "needed_depth": 3.8623,
+   "centroid_distance_sigma": 87.93,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204943059584",
+   "sep_arcsec": 110.24,
+   "east_north_arcsec": [
+    68.89,
+    86.07
+   ],
+   "gmag": 18.802,
+   "tmag": 17.909,
+   "flux_ratio": 0.003333,
+   "needed_depth": 1.32889,
+   "centroid_distance_sigma": 88.56,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006654537728",
+   "sep_arcsec": 110.45,
+   "east_north_arcsec": [
+    -105.13,
+    -33.87
+   ],
+   "gmag": 19.181,
+   "tmag": 18.512,
+   "flux_ratio": 0.001913,
+   "needed_depth": 2.31528,
+   "centroid_distance_sigma": 109.01,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774590759569024",
+   "sep_arcsec": 110.51,
+   "east_north_arcsec": [
+    13.19,
+    -109.72
+   ],
+   "gmag": 20.137,
+   "tmag": 19.175,
+   "flux_ratio": 0.001038,
+   "needed_depth": 4.26468,
+   "centroid_distance_sigma": 123.05,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775136227747456",
+   "sep_arcsec": 110.92,
+   "east_north_arcsec": [
+    100.15,
+    47.68
+   ],
+   "gmag": 19.24,
+   "tmag": 18.273,
+   "flux_ratio": 0.002383,
+   "needed_depth": 1.8581,
+   "centroid_distance_sigma": 101.97,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774556399718528",
+   "sep_arcsec": 110.99,
+   "east_north_arcsec": [
+    110.73,
+    7.48
+   ],
+   "gmag": 19.374,
+   "tmag": 18.393,
+   "flux_ratio": 0.002134,
+   "needed_depth": 2.07486,
+   "centroid_distance_sigma": 111.97,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775518472448512",
+   "sep_arcsec": 111.09,
+   "east_north_arcsec": [
+    -66.48,
+    89.0
+   ],
+   "gmag": 19.652,
+   "tmag": 19.222,
+   "flux_ratio": 0.000995,
+   "needed_depth": 4.45254,
+   "centroid_distance_sigma": 84.48,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006644036096",
+   "sep_arcsec": 111.33,
+   "east_north_arcsec": [
+    -109.44,
+    -20.43
+   ],
+   "gmag": 19.564,
+   "tmag": 18.642,
+   "flux_ratio": 0.001696,
+   "needed_depth": 2.61056,
+   "centroid_distance_sigma": 107.78,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775484123274368",
+   "sep_arcsec": 111.48,
+   "east_north_arcsec": [
+    -100.86,
+    47.48
+   ],
+   "gmag": 20.185,
+   "tmag": 19.238,
+   "flux_ratio": 0.00098,
+   "needed_depth": 4.51905,
+   "centroid_distance_sigma": 95.45,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773937924570240",
+   "sep_arcsec": 111.85,
+   "east_north_arcsec": [
+    -91.45,
+    -64.41
+   ],
+   "gmag": 19.589,
+   "tmag": 18.678,
+   "flux_ratio": 0.001641,
+   "needed_depth": 2.69808,
+   "centroid_distance_sigma": 114.51,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773937924570368",
+   "sep_arcsec": 111.96,
+   "east_north_arcsec": [
+    -89.3,
+    -67.54
+   ],
+   "gmag": 20.322,
+   "tmag": 19.516,
+   "flux_ratio": 0.000759,
+   "needed_depth": 5.8385,
+   "centroid_distance_sigma": 115.03,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204943074048",
+   "sep_arcsec": 112.22,
+   "east_north_arcsec": [
+    50.64,
+    100.15
+   ],
+   "gmag": 19.003,
+   "tmag": 18.168,
+   "flux_ratio": 0.002625,
+   "needed_depth": 1.68732,
+   "centroid_distance_sigma": 85.33,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775484126365568",
+   "sep_arcsec": 112.99,
+   "east_north_arcsec": [
+    -112.93,
+    3.63
+   ],
+   "gmag": 19.122,
+   "tmag": 18.279,
+   "flux_ratio": 0.002369,
+   "needed_depth": 1.86929,
+   "centroid_distance_sigma": 105.44,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774556401399936",
+   "sep_arcsec": 113.18,
+   "east_north_arcsec": [
+    113.15,
+    2.69
+   ],
+   "gmag": 20.488,
+   "tmag": 19.606,
+   "flux_ratio": 0.000698,
+   "needed_depth": 6.34372,
+   "centroid_distance_sigma": 115.04,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774586467537920",
+   "sep_arcsec": 113.68,
+   "east_north_arcsec": [
+    -0.19,
+    -113.68
+   ],
+   "gmag": 18.509,
+   "tmag": 17.581,
+   "flux_ratio": 0.004509,
+   "needed_depth": 0.98209,
+   "centroid_distance_sigma": 125.2,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774418962130432",
+   "sep_arcsec": 114.05,
+   "east_north_arcsec": [
+    26.91,
+    -110.83
+   ],
+   "gmag": 20.483,
+   "tmag": 19.594,
+   "flux_ratio": 0.000706,
+   "needed_depth": 6.27238,
+   "centroid_distance_sigma": 126.84,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775136223536000",
+   "sep_arcsec": 114.14,
+   "east_north_arcsec": [
+    104.03,
+    46.95
+   ],
+   "gmag": 19.169,
+   "tmag": 18.221,
+   "flux_ratio": 0.002499,
+   "needed_depth": 1.77201,
+   "centroid_distance_sigma": 105.51,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774590760821888",
+   "sep_arcsec": 114.6,
+   "east_north_arcsec": [
+    -15.85,
+    -113.5
+   ],
+   "gmag": 20.402,
+   "tmag": 19.368,
+   "flux_ratio": 0.000869,
+   "needed_depth": 5.09383,
+   "centroid_distance_sigma": 125.07,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775479823109888",
+   "sep_arcsec": 115.54,
+   "east_north_arcsec": [
+    -110.8,
+    32.73
+   ],
+   "gmag": 19.7,
+   "tmag": 18.822,
+   "flux_ratio": 0.001438,
+   "needed_depth": 3.07991,
+   "centroid_distance_sigma": 102.63,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773937935064448",
+   "sep_arcsec": 115.58,
+   "east_north_arcsec": [
+    -93.22,
+    -68.32
+   ],
+   "gmag": 17.037,
+   "tmag": 16.38,
+   "flux_ratio": 0.013626,
+   "needed_depth": 0.325,
+   "centroid_distance_sigma": 118.15,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774517748108544",
+   "sep_arcsec": 115.65,
+   "east_north_arcsec": [
+    88.57,
+    -74.37
+   ],
+   "gmag": 17.917,
+   "tmag": 17.098,
+   "flux_ratio": 0.007034,
+   "needed_depth": 0.62962,
+   "centroid_distance_sigma": 127.98,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204943076224",
+   "sep_arcsec": 115.81,
+   "east_north_arcsec": [
+    58.67,
+    99.85
+   ],
+   "gmag": 17.845,
+   "tmag": 16.967,
+   "flux_ratio": 0.007932,
+   "needed_depth": 0.55831,
+   "centroid_distance_sigma": 89.95,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006644043008",
+   "sep_arcsec": 115.98,
+   "east_north_arcsec": [
+    -110.15,
+    -36.34
+   ],
+   "gmag": 19.044,
+   "tmag": 18.166,
+   "flux_ratio": 0.002629,
+   "needed_depth": 1.68458,
+   "centroid_distance_sigma": 114.25,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774414668851968",
+   "sep_arcsec": 116.07,
+   "east_north_arcsec": [
+    38.89,
+    -109.36
+   ],
+   "gmag": 17.58,
+   "tmag": 16.492,
+   "flux_ratio": 0.012285,
+   "needed_depth": 0.36047,
+   "centroid_distance_sigma": 129.06,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522050594048",
+   "sep_arcsec": 116.16,
+   "east_north_arcsec": [
+    73.96,
+    -89.57
+   ],
+   "gmag": 19.706,
+   "tmag": 18.773,
+   "flux_ratio": 0.001504,
+   "needed_depth": 2.9455,
+   "centroid_distance_sigma": 129.27,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775617259950336",
+   "sep_arcsec": 116.6,
+   "east_north_arcsec": [
+    -25.14,
+    113.86
+   ],
+   "gmag": 19.704,
+   "tmag": 18.726,
+   "flux_ratio": 0.00157,
+   "needed_depth": 2.82037,
+   "centroid_distance_sigma": 83.73,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774414668858624",
+   "sep_arcsec": 116.65,
+   "east_north_arcsec": [
+    55.85,
+    -102.41
+   ],
+   "gmag": 19.006,
+   "tmag": 18.056,
+   "flux_ratio": 0.002911,
+   "needed_depth": 1.52117,
+   "centroid_distance_sigma": 129.9,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587202459648",
+   "sep_arcsec": 117.24,
+   "east_north_arcsec": [
+    12.63,
+    116.56
+   ],
+   "gmag": 16.699,
+   "tmag": 16.072,
+   "flux_ratio": 0.018087,
+   "needed_depth": 0.24484,
+   "centroid_distance_sigma": 84.42,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775582900216576",
+   "sep_arcsec": 117.75,
+   "east_north_arcsec": [
+    -1.19,
+    117.75
+   ],
+   "gmag": 19.415,
+   "tmag": 18.304,
+   "flux_ratio": 0.002316,
+   "needed_depth": 1.91233,
+   "centroid_distance_sigma": 84.3,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774418960860288",
+   "sep_arcsec": 117.86,
+   "east_north_arcsec": [
+    37.91,
+    -111.6
+   ],
+   "gmag": 20.413,
+   "tmag": 19.442,
+   "flux_ratio": 0.000812,
+   "needed_depth": 5.45444,
+   "centroid_distance_sigma": 130.66,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774418960868352",
+   "sep_arcsec": 118.11,
+   "east_north_arcsec": [
+    30.94,
+    -113.98
+   ],
+   "gmag": 20.401,
+   "tmag": 19.561,
+   "flux_ratio": 0.000728,
+   "needed_depth": 6.08385,
+   "centroid_distance_sigma": 130.66,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775484112764672",
+   "sep_arcsec": 118.15,
+   "east_north_arcsec": [
+    -113.74,
+    31.96
+   ],
+   "gmag": 18.508,
+   "tmag": 17.626,
+   "flux_ratio": 0.004324,
+   "needed_depth": 1.02416,
+   "centroid_distance_sigma": 105.38,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775621551629312",
+   "sep_arcsec": 118.54,
+   "east_north_arcsec": [
+    -26.73,
+    115.49
+   ],
+   "gmag": 20.482,
+   "tmag": 19.436,
+   "flux_ratio": 0.000817,
+   "needed_depth": 5.42302,
+   "centroid_distance_sigma": 85.57,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587202455552",
+   "sep_arcsec": 119.56,
+   "east_north_arcsec": [
+    35.64,
+    114.12
+   ],
+   "gmag": 19.982,
+   "tmag": 19.1,
+   "flux_ratio": 0.001112,
+   "needed_depth": 3.98125,
+   "centroid_distance_sigma": 88.78,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774930067297408",
+   "sep_arcsec": 119.62,
+   "east_north_arcsec": [
+    117.38,
+    23.01
+   ],
+   "gmag": 20.263,
+   "tmag": 19.228,
+   "flux_ratio": 0.000989,
+   "needed_depth": 4.47814,
+   "centroid_distance_sigma": 116.93,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774552107884928",
+   "sep_arcsec": 119.81,
+   "east_north_arcsec": [
+    113.8,
+    -37.47
+   ],
+   "gmag": 18.655,
+   "tmag": 17.806,
+   "flux_ratio": 0.003664,
+   "needed_depth": 1.20851,
+   "centroid_distance_sigma": 127.85,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774586467532416",
+   "sep_arcsec": 120.04,
+   "east_north_arcsec": [
+    21.26,
+    -118.14
+   ],
+   "gmag": 18.428,
+   "tmag": 17.509,
+   "flux_ratio": 0.004815,
+   "needed_depth": 0.91971,
+   "centroid_distance_sigma": 132.02,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587202457472",
+   "sep_arcsec": 120.17,
+   "east_north_arcsec": [
+    19.16,
+    118.63
+   ],
+   "gmag": 13.785,
+   "tmag": 12.586,
+   "flux_ratio": 0.448878,
+   "needed_depth": 0.00987,
+   "centroid_distance_sigma": 87.5,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006654539648",
+   "sep_arcsec": 120.46,
+   "east_north_arcsec": [
+    -115.21,
+    -35.18
+   ],
+   "gmag": 17.178,
+   "tmag": 16.428,
+   "flux_ratio": 0.013042,
+   "needed_depth": 0.33957,
+   "centroid_distance_sigma": 118.07,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775479825848064",
+   "sep_arcsec": 120.57,
+   "east_north_arcsec": [
+    -115.17,
+    35.67
+   ],
+   "gmag": 19.054,
+   "tmag": 18.202,
+   "flux_ratio": 0.002545,
+   "needed_depth": 1.7399,
+   "centroid_distance_sigma": 107.11,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774556410308224",
+   "sep_arcsec": 120.76,
+   "east_north_arcsec": [
+    120.75,
+    -1.72
+   ],
+   "gmag": 20.254,
+   "tmag": 19.295,
+   "flux_ratio": 0.00093,
+   "needed_depth": 4.76202,
+   "centroid_distance_sigma": 123.04,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775140515246592",
+   "sep_arcsec": 120.8,
+   "east_north_arcsec": [
+    110.57,
+    48.63
+   ],
+   "gmag": 19.592,
+   "tmag": 18.629,
+   "flux_ratio": 0.001718,
+   "needed_depth": 2.57832,
+   "centroid_distance_sigma": 111.93,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006654539264",
+   "sep_arcsec": 121.54,
+   "east_north_arcsec": [
+    -117.45,
+    -31.28
+   ],
+   "gmag": 14.545,
+   "tmag": 14.07,
+   "flux_ratio": 0.114332,
+   "needed_depth": 0.03873,
+   "centroid_distance_sigma": 118.53,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006644040064",
+   "sep_arcsec": 122.14,
+   "east_north_arcsec": [
+    -120.3,
+    -21.12
+   ],
+   "gmag": 19.912,
+   "tmag": 19.05,
+   "flux_ratio": 0.001165,
+   "needed_depth": 3.80171,
+   "centroid_distance_sigma": 117.7,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774590770087936",
+   "sep_arcsec": 122.36,
+   "east_north_arcsec": [
+    -8.94,
+    -122.03
+   ],
+   "gmag": 19.205,
+   "tmag": 18.247,
+   "flux_ratio": 0.00244,
+   "needed_depth": 1.81511,
+   "centroid_distance_sigma": 132.55,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774934356824448",
+   "sep_arcsec": 122.75,
+   "east_north_arcsec": [
+    121.64,
+    16.44
+   ],
+   "gmag": 19.283,
+   "tmag": 18.335,
+   "flux_ratio": 0.00225,
+   "needed_depth": 1.96783,
+   "centroid_distance_sigma": 121.39,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775140525852032",
+   "sep_arcsec": 123.0,
+   "east_north_arcsec": [
+    107.08,
+    60.52
+   ],
+   "gmag": 18.081,
+   "tmag": 17.364,
+   "flux_ratio": 0.005505,
+   "needed_depth": 0.80439,
+   "centroid_distance_sigma": 111.03,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587191859968",
+   "sep_arcsec": 123.46,
+   "east_north_arcsec": [
+    16.25,
+    122.39
+   ],
+   "gmag": 17.397,
+   "tmag": 16.504,
+   "flux_ratio": 0.012161,
+   "needed_depth": 0.36417,
+   "centroid_distance_sigma": 90.21,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773177718278400",
+   "sep_arcsec": 123.63,
+   "east_north_arcsec": [
+    -76.12,
+    -97.42
+   ],
+   "gmag": 19.592,
+   "tmag": 18.63,
+   "flux_ratio": 0.001715,
+   "needed_depth": 2.58263,
+   "centroid_distance_sigma": 128.53,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774418960868096",
+   "sep_arcsec": 124.01,
+   "east_north_arcsec": [
+    36.06,
+    -118.64
+   ],
+   "gmag": 20.106,
+   "tmag": 19.233,
+   "flux_ratio": 0.000985,
+   "needed_depth": 4.49702,
+   "centroid_distance_sigma": 136.18,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774552107895808",
+   "sep_arcsec": 124.18,
+   "east_north_arcsec": [
+    120.48,
+    -30.08
+   ],
+   "gmag": 17.297,
+   "tmag": 16.452,
+   "flux_ratio": 0.012747,
+   "needed_depth": 0.34743,
+   "centroid_distance_sigma": 130.82,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775209245328384",
+   "sep_arcsec": 124.64,
+   "east_north_arcsec": [
+    68.23,
+    104.3
+   ],
+   "gmag": 18.725,
+   "tmag": 17.955,
+   "flux_ratio": 0.003195,
+   "needed_depth": 1.38603,
+   "centroid_distance_sigma": 99.02,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204944901120",
+   "sep_arcsec": 125.05,
+   "east_north_arcsec": [
+    63.22,
+    107.89
+   ],
+   "gmag": 19.536,
+   "tmag": 18.52,
+   "flux_ratio": 0.001898,
+   "needed_depth": 2.33336,
+   "centroid_distance_sigma": 98.2,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774556402120064",
+   "sep_arcsec": 125.09,
+   "east_north_arcsec": [
+    108.59,
+    -62.09
+   ],
+   "gmag": 18.831,
+   "tmag": 18.401,
+   "flux_ratio": 0.002119,
+   "needed_depth": 2.08997,
+   "centroid_distance_sigma": 135.43,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773182010327168",
+   "sep_arcsec": 125.84,
+   "east_north_arcsec": [
+    -44.31,
+    -117.78
+   ],
+   "gmag": 20.153,
+   "tmag": 19.214,
+   "flux_ratio": 0.001001,
+   "needed_depth": 4.42249,
+   "centroid_distance_sigma": 133.38,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774934367861888",
+   "sep_arcsec": 125.96,
+   "east_north_arcsec": [
+    125.23,
+    13.55
+   ],
+   "gmag": 19.499,
+   "tmag": 18.496,
+   "flux_ratio": 0.001941,
+   "needed_depth": 2.28199,
+   "centroid_distance_sigma": 125.07,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773177718262528",
+   "sep_arcsec": 126.02,
+   "east_north_arcsec": [
+    -53.9,
+    -113.91
+   ],
+   "gmag": 18.408,
+   "tmag": 17.431,
+   "flux_ratio": 0.005175,
+   "needed_depth": 0.85582,
+   "centroid_distance_sigma": 132.81,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773937924585984",
+   "sep_arcsec": 126.62,
+   "east_north_arcsec": [
+    -102.07,
+    -74.93
+   ],
+   "gmag": 18.059,
+   "tmag": 17.203,
+   "flux_ratio": 0.006385,
+   "needed_depth": 0.69358,
+   "centroid_distance_sigma": 128.28,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775140525850624",
+   "sep_arcsec": 126.78,
+   "east_north_arcsec": [
+    109.46,
+    63.97
+   ],
+   "gmag": 14.574,
+   "tmag": 13.817,
+   "flux_ratio": 0.144401,
+   "needed_depth": 0.03067,
+   "centroid_distance_sigma": 114.08,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774552106327040",
+   "sep_arcsec": 127.03,
+   "east_north_arcsec": [
+    110.72,
+    -62.27
+   ],
+   "gmag": 11.398,
+   "tmag": 11.022,
+   "flux_ratio": 1.894819,
+   "needed_depth": 0.00234,
+   "centroid_distance_sigma": 137.2,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775479820898560",
+   "sep_arcsec": 127.04,
+   "east_north_arcsec": [
+    -122.28,
+    34.45
+   ],
+   "gmag": 19.318,
+   "tmag": 18.439,
+   "flux_ratio": 0.002045,
+   "needed_depth": 2.16597,
+   "centroid_distance_sigma": 113.78,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774522050594688",
+   "sep_arcsec": 127.49,
+   "east_north_arcsec": [
+    79.26,
+    -99.86
+   ],
+   "gmag": 13.704,
+   "tmag": 13.224,
+   "flux_ratio": 0.249298,
+   "needed_depth": 0.01776,
+   "centroid_distance_sigma": 139.92,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775136223572096",
+   "sep_arcsec": 127.55,
+   "east_north_arcsec": [
+    99.74,
+    79.51
+   ],
+   "gmag": 19.928,
+   "tmag": 18.951,
+   "flux_ratio": 0.001276,
+   "needed_depth": 3.46955,
+   "centroid_distance_sigma": 110.48,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006654544128",
+   "sep_arcsec": 127.95,
+   "east_north_arcsec": [
+    -118.24,
+    -48.91
+   ],
+   "gmag": 20.195,
+   "tmag": 19.588,
+   "flux_ratio": 0.00071,
+   "needed_depth": 6.23941,
+   "centroid_distance_sigma": 126.44,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774002352095872",
+   "sep_arcsec": 128.03,
+   "east_north_arcsec": [
+    -127.66,
+    -9.73
+   ],
+   "gmag": 19.871,
+   "tmag": 18.916,
+   "flux_ratio": 0.001318,
+   "needed_depth": 3.36009,
+   "centroid_distance_sigma": 121.57,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773937935068032",
+   "sep_arcsec": 128.06,
+   "east_north_arcsec": [
+    -103.14,
+    -75.91
+   ],
+   "gmag": 19.446,
+   "tmag": 19.016,
+   "flux_ratio": 0.001202,
+   "needed_depth": 3.68334,
+   "centroid_distance_sigma": 129.62,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775651619703168",
+   "sep_arcsec": 128.26,
+   "east_north_arcsec": [
+    -27.95,
+    125.18
+   ],
+   "gmag": 19.727,
+   "tmag": 18.827,
+   "flux_ratio": 0.001431,
+   "needed_depth": 3.09436,
+   "centroid_distance_sigma": 94.39,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773113304169856",
+   "sep_arcsec": 128.47,
+   "east_north_arcsec": [
+    -27.82,
+    -125.42
+   ],
+   "gmag": 19.694,
+   "tmag": 18.778,
+   "flux_ratio": 0.001496,
+   "needed_depth": 2.95961,
+   "centroid_distance_sigma": 136.94,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774934367427456",
+   "sep_arcsec": 129.08,
+   "east_north_arcsec": [
+    128.97,
+    5.34
+   ],
+   "gmag": 16.467,
+   "tmag": 15.782,
+   "flux_ratio": 0.023636,
+   "needed_depth": 0.18736,
+   "centroid_distance_sigma": 129.63,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773933632552448",
+   "sep_arcsec": 129.27,
+   "east_north_arcsec": [
+    -107.26,
+    -72.15
+   ],
+   "gmag": 18.827,
+   "tmag": 17.77,
+   "flux_ratio": 0.003787,
+   "needed_depth": 1.16931,
+   "centroid_distance_sigma": 130.23,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006644059776",
+   "sep_arcsec": 129.68,
+   "east_north_arcsec": [
+    -120.12,
+    -48.85
+   ],
+   "gmag": 20.165,
+   "tmag": 19.307,
+   "flux_ratio": 0.000919,
+   "needed_depth": 4.8183,
+   "centroid_distance_sigma": 127.96,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775140526292608",
+   "sep_arcsec": 129.69,
+   "east_north_arcsec": [
+    110.2,
+    68.38
+   ],
+   "gmag": 20.376,
+   "tmag": 19.429,
+   "flux_ratio": 0.000822,
+   "needed_depth": 5.38933,
+   "centroid_distance_sigma": 115.95,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775720339125504",
+   "sep_arcsec": 129.84,
+   "east_north_arcsec": [
+    -98.89,
+    84.13
+   ],
+   "gmag": 19.307,
+   "tmag": 18.428,
+   "flux_ratio": 0.002066,
+   "needed_depth": 2.1437,
+   "centroid_distance_sigma": 106.74,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774934367427712",
+   "sep_arcsec": 130.6,
+   "east_north_arcsec": [
+    130.56,
+    3.49
+   ],
+   "gmag": 20.215,
+   "tmag": 19.548,
+   "flux_ratio": 0.000736,
+   "needed_depth": 6.01352,
+   "centroid_distance_sigma": 131.41,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774552107892608",
+   "sep_arcsec": 131.41,
+   "east_north_arcsec": [
+    127.68,
+    -31.06
+   ],
+   "gmag": 19.474,
+   "tmag": 18.511,
+   "flux_ratio": 0.001914,
+   "needed_depth": 2.31402,
+   "centroid_distance_sigma": 137.59,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006654536192",
+   "sep_arcsec": 131.65,
+   "east_north_arcsec": [
+    -131.39,
+    8.21
+   ],
+   "gmag": 15.619,
+   "tmag": 14.718,
+   "flux_ratio": 0.062949,
+   "needed_depth": 0.07035,
+   "centroid_distance_sigma": 122.45,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774556401398144",
+   "sep_arcsec": 131.85,
+   "east_north_arcsec": [
+    114.97,
+    -64.54
+   ],
+   "gmag": 20.32,
+   "tmag": 19.764,
+   "flux_ratio": 0.000604,
+   "needed_depth": 7.3359,
+   "centroid_distance_sigma": 141.76,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775724630909568",
+   "sep_arcsec": 132.26,
+   "east_north_arcsec": [
+    -108.8,
+    75.21
+   ],
+   "gmag": 20.291,
+   "tmag": 19.458,
+   "flux_ratio": 0.0008,
+   "needed_depth": 5.53396,
+   "centroid_distance_sigma": 111.31,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774552107885184",
+   "sep_arcsec": 132.98,
+   "east_north_arcsec": [
+    121.49,
+    -54.06
+   ],
+   "gmag": 18.256,
+   "tmag": 17.318,
+   "flux_ratio": 0.005742,
+   "needed_depth": 0.77125,
+   "centroid_distance_sigma": 141.77,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587191851392",
+   "sep_arcsec": 133.1,
+   "east_north_arcsec": [
+    24.5,
+    130.83
+   ],
+   "gmag": 17.89,
+   "tmag": 17.2,
+   "flux_ratio": 0.006404,
+   "needed_depth": 0.69148,
+   "centroid_distance_sigma": 99.38,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773177718270848",
+   "sep_arcsec": 133.95,
+   "east_north_arcsec": [
+    -81.86,
+    -106.02
+   ],
+   "gmag": 19.403,
+   "tmag": 18.284,
+   "flux_ratio": 0.00236,
+   "needed_depth": 1.87646,
+   "centroid_distance_sigma": 137.94,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775621562209152",
+   "sep_arcsec": 133.97,
+   "east_north_arcsec": [
+    -54.0,
+    122.61
+   ],
+   "gmag": 16.717,
+   "tmag": 15.728,
+   "flux_ratio": 0.024847,
+   "needed_depth": 0.17823,
+   "centroid_distance_sigma": 101.78,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204943096448",
+   "sep_arcsec": 134.14,
+   "east_north_arcsec": [
+    64.23,
+    117.77
+   ],
+   "gmag": 19.322,
+   "tmag": 18.366,
+   "flux_ratio": 0.002188,
+   "needed_depth": 2.02383,
+   "centroid_distance_sigma": 105.66,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774002352060672",
+   "sep_arcsec": 134.19,
+   "east_north_arcsec": [
+    -127.03,
+    -43.22
+   ],
+   "gmag": 20.014,
+   "tmag": 19.182,
+   "flux_ratio": 0.001032,
+   "needed_depth": 4.29186,
+   "centroid_distance_sigma": 131.34,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775140515227520",
+   "sep_arcsec": 134.34,
+   "east_north_arcsec": [
+    108.21,
+    79.62
+   ],
+   "gmag": 19.476,
+   "tmag": 18.533,
+   "flux_ratio": 0.001875,
+   "needed_depth": 2.362,
+   "centroid_distance_sigma": 117.84,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774590759580928",
+   "sep_arcsec": 134.36,
+   "east_north_arcsec": [
+    10.57,
+    -133.95
+   ],
+   "gmag": 20.429,
+   "tmag": 19.566,
+   "flux_ratio": 0.000724,
+   "needed_depth": 6.11495,
+   "centroid_distance_sigma": 144.45,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775621565067008",
+   "sep_arcsec": 134.44,
+   "east_north_arcsec": [
+    -64.88,
+    117.76
+   ],
+   "gmag": 20.055,
+   "tmag": 19.261,
+   "flux_ratio": 0.000959,
+   "needed_depth": 4.61699,
+   "centroid_distance_sigma": 103.63,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773937935069568",
+   "sep_arcsec": 134.64,
+   "east_north_arcsec": [
+    -103.21,
+    -86.46
+   ],
+   "gmag": 17.267,
+   "tmag": 16.265,
+   "flux_ratio": 0.015148,
+   "needed_depth": 0.29235,
+   "centroid_distance_sigma": 136.35,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775617259950464",
+   "sep_arcsec": 135.02,
+   "east_north_arcsec": [
+    -72.75,
+    113.75
+   ],
+   "gmag": 17.562,
+   "tmag": 16.713,
+   "flux_ratio": 0.010031,
+   "needed_depth": 0.4415,
+   "centroid_distance_sigma": 105.34,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773177718264960",
+   "sep_arcsec": 135.09,
+   "east_north_arcsec": [
+    -75.2,
+    -112.22
+   ],
+   "gmag": 17.773,
+   "tmag": 17.035,
+   "flux_ratio": 0.007455,
+   "needed_depth": 0.59405,
+   "centroid_distance_sigma": 139.62,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775960855595520",
+   "sep_arcsec": 135.6,
+   "east_north_arcsec": [
+    28.29,
+    132.62
+   ],
+   "gmag": 12.525,
+   "tmag": 12.151,
+   "flux_ratio": 0.669858,
+   "needed_depth": 0.00661,
+   "centroid_distance_sigma": 101.91,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775209234709120",
+   "sep_arcsec": 135.86,
+   "east_north_arcsec": [
+    66.01,
+    118.75
+   ],
+   "gmag": 20.274,
+   "tmag": 19.844,
+   "flux_ratio": 0.000561,
+   "needed_depth": 7.89582,
+   "centroid_distance_sigma": 107.39,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774930065088512",
+   "sep_arcsec": 136.04,
+   "east_north_arcsec": [
+    132.52,
+    30.74
+   ],
+   "gmag": 18.342,
+   "tmag": 17.514,
+   "flux_ratio": 0.004793,
+   "needed_depth": 0.92387,
+   "centroid_distance_sigma": 131.39,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774934358516096",
+   "sep_arcsec": 136.13,
+   "east_north_arcsec": [
+    135.83,
+    8.92
+   ],
+   "gmag": 20.395,
+   "tmag": 19.565,
+   "flux_ratio": 0.000725,
+   "needed_depth": 6.10901,
+   "centroid_distance_sigma": 135.7,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587202455296",
+   "sep_arcsec": 136.65,
+   "east_north_arcsec": [
+    17.1,
+    135.58
+   ],
+   "gmag": 15.751,
+   "tmag": 14.759,
+   "flux_ratio": 0.060643,
+   "needed_depth": 0.07303,
+   "centroid_distance_sigma": 102.03,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775621552968064",
+   "sep_arcsec": 136.69,
+   "east_north_arcsec": [
+    -60.19,
+    122.72
+   ],
+   "gmag": 20.181,
+   "tmag": 19.298,
+   "flux_ratio": 0.000928,
+   "needed_depth": 4.77442,
+   "centroid_distance_sigma": 104.92,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773182010339072",
+   "sep_arcsec": 136.91,
+   "east_north_arcsec": [
+    -48.12,
+    -128.17
+   ],
+   "gmag": 20.044,
+   "tmag": 19.011,
+   "flux_ratio": 0.001207,
+   "needed_depth": 3.66854,
+   "centroid_distance_sigma": 143.34,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775617262087680",
+   "sep_arcsec": 137.12,
+   "east_north_arcsec": [
+    -52.95,
+    126.49
+   ],
+   "gmag": 18.357,
+   "tmag": 17.521,
+   "flux_ratio": 0.004763,
+   "needed_depth": 0.92975,
+   "centroid_distance_sigma": 104.43,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773937924593152",
+   "sep_arcsec": 137.32,
+   "east_north_arcsec": [
+    -94.7,
+    -99.43
+   ],
+   "gmag": 19.939,
+   "tmag": 19.055,
+   "flux_ratio": 0.00116,
+   "needed_depth": 3.81719,
+   "centroid_distance_sigma": 139.98,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774487680278144",
+   "sep_arcsec": 137.39,
+   "east_north_arcsec": [
+    115.81,
+    -73.91
+   ],
+   "gmag": 18.063,
+   "tmag": 17.028,
+   "flux_ratio": 0.007499,
+   "needed_depth": 0.59059,
+   "centroid_distance_sigma": 147.56,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773113290845312",
+   "sep_arcsec": 137.53,
+   "east_north_arcsec": [
+    -18.53,
+    -136.28
+   ],
+   "gmag": 20.231,
+   "tmag": 19.3,
+   "flux_ratio": 0.000925,
+   "needed_depth": 4.78572,
+   "centroid_distance_sigma": 145.76,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775587202456192",
+   "sep_arcsec": 138.07,
+   "east_north_arcsec": [
+    9.06,
+    137.77
+   ],
+   "gmag": 17.072,
+   "tmag": 16.243,
+   "flux_ratio": 0.015461,
+   "needed_depth": 0.28643,
+   "centroid_distance_sigma": 102.92,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774414668843520",
+   "sep_arcsec": 138.11,
+   "east_north_arcsec": [
+    74.37,
+    -116.38
+   ],
+   "gmag": 18.722,
+   "tmag": 17.907,
+   "flux_ratio": 0.003339,
+   "needed_depth": 1.32619,
+   "centroid_distance_sigma": 149.88,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775724632183552",
+   "sep_arcsec": 138.49,
+   "east_north_arcsec": [
+    -90.5,
+    104.82
+   ],
+   "gmag": 20.209,
+   "tmag": 19.302,
+   "flux_ratio": 0.000924,
+   "needed_depth": 4.79225,
+   "centroid_distance_sigma": 111.46,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775960857356544",
+   "sep_arcsec": 138.65,
+   "east_north_arcsec": [
+    45.14,
+    131.1
+   ],
+   "gmag": 19.81,
+   "tmag": 18.916,
+   "flux_ratio": 0.001318,
+   "needed_depth": 3.36016,
+   "centroid_distance_sigma": 106.38,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775655921941376",
+   "sep_arcsec": 138.66,
+   "east_north_arcsec": [
+    -29.47,
+    135.49
+   ],
+   "gmag": 19.857,
+   "tmag": 19.427,
+   "flux_ratio": 0.000823,
+   "needed_depth": 5.37929,
+   "centroid_distance_sigma": 103.84,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775651619717504",
+   "sep_arcsec": 138.95,
+   "east_north_arcsec": [
+    -28.57,
+    135.98
+   ],
+   "gmag": 16.154,
+   "tmag": 15.566,
+   "flux_ratio": 0.028836,
+   "needed_depth": 0.15358,
+   "centroid_distance_sigma": 104.05,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773933632549504",
+   "sep_arcsec": 138.95,
+   "east_north_arcsec": [
+    -116.63,
+    -75.53
+   ],
+   "gmag": 17.738,
+   "tmag": 16.904,
+   "flux_ratio": 0.008409,
+   "needed_depth": 0.52664,
+   "centroid_distance_sigma": 138.94,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775136223580288",
+   "sep_arcsec": 139.08,
+   "east_north_arcsec": [
+    111.06,
+    83.72
+   ],
+   "gmag": 19.76,
+   "tmag": 18.848,
+   "flux_ratio": 0.001403,
+   "needed_depth": 3.15709,
+   "centroid_distance_sigma": 121.82,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773182010343296",
+   "sep_arcsec": 139.58,
+   "east_north_arcsec": [
+    -55.99,
+    -127.85
+   ],
+   "gmag": 19.737,
+   "tmag": 18.845,
+   "flux_ratio": 0.001407,
+   "needed_depth": 3.14733,
+   "centroid_distance_sigma": 145.28,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775685979377024",
+   "sep_arcsec": 139.65,
+   "east_north_arcsec": [
+    -117.41,
+    75.62
+   ],
+   "gmag": 18.992,
+   "tmag": 18.105,
+   "flux_ratio": 0.002781,
+   "needed_depth": 1.59219,
+   "centroid_distance_sigma": 119.04,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775724632183296",
+   "sep_arcsec": 139.69,
+   "east_north_arcsec": [
+    -86.54,
+    109.66
+   ],
+   "gmag": 20.144,
+   "tmag": 19.259,
+   "flux_ratio": 0.000961,
+   "needed_depth": 4.60801,
+   "centroid_distance_sigma": 111.66,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775724632183936",
+   "sep_arcsec": 139.83,
+   "east_north_arcsec": [
+    -112.06,
+    83.64
+   ],
+   "gmag": 20.183,
+   "tmag": 19.267,
+   "flux_ratio": 0.000954,
+   "needed_depth": 4.64343,
+   "centroid_distance_sigma": 117.61,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774487680251776",
+   "sep_arcsec": 139.94,
+   "east_north_arcsec": [
+    134.78,
+    -37.63
+   ],
+   "gmag": 20.212,
+   "tmag": 19.378,
+   "flux_ratio": 0.000862,
+   "needed_depth": 5.13993,
+   "centroid_distance_sigma": 146.28,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773182010351488",
+   "sep_arcsec": 140.08,
+   "east_north_arcsec": [
+    -89.07,
+    -108.12
+   ],
+   "gmag": 20.259,
+   "tmag": 19.347,
+   "flux_ratio": 0.000886,
+   "needed_depth": 4.99892,
+   "centroid_distance_sigma": 143.2,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773177718270976",
+   "sep_arcsec": 140.11,
+   "east_north_arcsec": [
+    -86.81,
+    -109.97
+   ],
+   "gmag": 18.624,
+   "tmag": 17.718,
+   "flux_ratio": 0.003973,
+   "needed_depth": 1.11459,
+   "centroid_distance_sigma": 143.42,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774414668819968",
+   "sep_arcsec": 140.32,
+   "east_north_arcsec": [
+    40.77,
+    -134.27
+   ],
+   "gmag": 19.828,
+   "tmag": 18.824,
+   "flux_ratio": 0.001435,
+   "needed_depth": 3.08625,
+   "centroid_distance_sigma": 151.12,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775655924805760",
+   "sep_arcsec": 140.53,
+   "east_north_arcsec": [
+    -34.77,
+    136.16
+   ],
+   "gmag": 18.266,
+   "tmag": 17.444,
+   "flux_ratio": 0.005116,
+   "needed_depth": 0.86568,
+   "centroid_distance_sigma": 105.84,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775827711398144",
+   "sep_arcsec": 140.98,
+   "east_north_arcsec": [
+    -77.85,
+    117.54
+   ],
+   "gmag": 19.755,
+   "tmag": 18.799,
+   "flux_ratio": 0.001468,
+   "needed_depth": 3.01578,
+   "centroid_distance_sigma": 111.18,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204943110528",
+   "sep_arcsec": 141.07,
+   "east_north_arcsec": [
+    62.51,
+    126.46
+   ],
+   "gmag": 17.573,
+   "tmag": 16.509,
+   "flux_ratio": 0.012103,
+   "needed_depth": 0.36592,
+   "centroid_distance_sigma": 110.99,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774384601153920",
+   "sep_arcsec": 141.13,
+   "east_north_arcsec": [
+    9.91,
+    -140.78
+   ],
+   "gmag": 19.854,
+   "tmag": 18.862,
+   "flux_ratio": 0.001385,
+   "needed_depth": 3.19723,
+   "centroid_distance_sigma": 150.53,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774934356813440",
+   "sep_arcsec": 141.26,
+   "east_north_arcsec": [
+    139.87,
+    19.8
+   ],
+   "gmag": 19.719,
+   "tmag": 18.867,
+   "flux_ratio": 0.001378,
+   "needed_depth": 3.21267,
+   "centroid_distance_sigma": 138.65,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774934358516224",
+   "sep_arcsec": 141.3,
+   "east_north_arcsec": [
+    138.08,
+    30.01
+   ],
+   "gmag": 20.366,
+   "tmag": 19.399,
+   "flux_ratio": 0.000845,
+   "needed_depth": 5.24026,
+   "centroid_distance_sigma": 136.71,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774934367423616",
+   "sep_arcsec": 141.46,
+   "east_north_arcsec": [
+    140.62,
+    15.42
+   ],
+   "gmag": 15.401,
+   "tmag": 14.812,
+   "flux_ratio": 0.057744,
+   "needed_depth": 0.07669,
+   "centroid_distance_sigma": 139.65,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774414673913728",
+   "sep_arcsec": 141.69,
+   "east_north_arcsec": [
+    77.85,
+    -118.38
+   ],
+   "gmag": 19.495,
+   "tmag": 18.585,
+   "flux_ratio": 0.001788,
+   "needed_depth": 2.47682,
+   "centroid_distance_sigma": 153.21,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775136223571968",
+   "sep_arcsec": 142.21,
+   "east_north_arcsec": [
+    118.55,
+    78.54
+   ],
+   "gmag": 19.834,
+   "tmag": 18.819,
+   "flux_ratio": 0.001442,
+   "needed_depth": 3.07202,
+   "centroid_distance_sigma": 126.55,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774453331109248",
+   "sep_arcsec": 142.23,
+   "east_north_arcsec": [
+    112.8,
+    -86.64
+   ],
+   "gmag": 17.252,
+   "tmag": 16.615,
+   "flux_ratio": 0.010973,
+   "needed_depth": 0.40359,
+   "centroid_distance_sigma": 152.82,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775720339157376",
+   "sep_arcsec": 142.55,
+   "east_north_arcsec": [
+    -91.67,
+    109.16
+   ],
+   "gmag": 18.848,
+   "tmag": 17.759,
+   "flux_ratio": 0.003825,
+   "needed_depth": 1.15787,
+   "centroid_distance_sigma": 114.97,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775582902027008",
+   "sep_arcsec": 142.73,
+   "east_north_arcsec": [
+    16.23,
+    141.81
+   ],
+   "gmag": 18.596,
+   "tmag": 17.676,
+   "flux_ratio": 0.004131,
+   "needed_depth": 1.07193,
+   "centroid_distance_sigma": 107.42,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775655911363072",
+   "sep_arcsec": 142.85,
+   "east_north_arcsec": [
+    -36.76,
+    138.04
+   ],
+   "gmag": 19.501,
+   "tmag": 18.5,
+   "flux_ratio": 0.001933,
+   "needed_depth": 2.29082,
+   "centroid_distance_sigma": 108.06,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775685979361280",
+   "sep_arcsec": 143.04,
+   "east_north_arcsec": [
+    -128.96,
+    61.89
+   ],
+   "gmag": 19.889,
+   "tmag": 18.955,
+   "flux_ratio": 0.001272,
+   "needed_depth": 3.48116,
+   "centroid_distance_sigma": 125.13,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773182010343680",
+   "sep_arcsec": 143.26,
+   "east_north_arcsec": [
+    -52.26,
+    -133.39
+   ],
+   "gmag": 20.16,
+   "tmag": 19.274,
+   "flux_ratio": 0.000948,
+   "needed_depth": 4.6727,
+   "centroid_distance_sigma": 148.94,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775209234701056",
+   "sep_arcsec": 143.53,
+   "east_north_arcsec": [
+    82.35,
+    117.56
+   ],
+   "gmag": 19.27,
+   "tmag": 18.254,
+   "flux_ratio": 0.002426,
+   "needed_depth": 1.82525,
+   "centroid_distance_sigma": 116.84,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774449028604160",
+   "sep_arcsec": 143.57,
+   "east_north_arcsec": [
+    103.65,
+    -99.34
+   ],
+   "gmag": 18.136,
+   "tmag": 17.24,
+   "flux_ratio": 0.006174,
+   "needed_depth": 0.71732,
+   "centroid_distance_sigma": 154.64,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774586467503360",
+   "sep_arcsec": 143.65,
+   "east_north_arcsec": [
+    -13.18,
+    -143.04
+   ],
+   "gmag": 18.063,
+   "tmag": 17.108,
+   "flux_ratio": 0.006972,
+   "needed_depth": 0.63519,
+   "centroid_distance_sigma": 151.61,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775617259981952",
+   "sep_arcsec": 143.74,
+   "east_north_arcsec": [
+    -43.59,
+    136.98
+   ],
+   "gmag": 19.135,
+   "tmag": 18.243,
+   "flux_ratio": 0.002451,
+   "needed_depth": 1.80688,
+   "centroid_distance_sigma": 109.37,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774487690837504",
+   "sep_arcsec": 143.98,
+   "east_north_arcsec": [
+    136.2,
+    -46.69
+   ],
+   "gmag": 18.143,
+   "tmag": 17.262,
+   "flux_ratio": 0.006048,
+   "needed_depth": 0.73219,
+   "centroid_distance_sigma": 151.04,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774002352080640",
+   "sep_arcsec": 144.17,
+   "east_north_arcsec": [
+    -141.85,
+    -25.78
+   ],
+   "gmag": 18.568,
+   "tmag": 17.657,
+   "flux_ratio": 0.004203,
+   "needed_depth": 1.05374,
+   "centroid_distance_sigma": 138.49,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774483388386176",
+   "sep_arcsec": 144.18,
+   "east_north_arcsec": [
+    132.31,
+    -57.3
+   ],
+   "gmag": 19.71,
+   "tmag": 18.748,
+   "flux_ratio": 0.001539,
+   "needed_depth": 2.8771,
+   "centroid_distance_sigma": 152.31,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774414668825600",
+   "sep_arcsec": 144.31,
+   "east_north_arcsec": [
+    62.17,
+    -130.23
+   ],
+   "gmag": 19.612,
+   "tmag": 18.428,
+   "flux_ratio": 0.002066,
+   "needed_depth": 2.1439,
+   "centroid_distance_sigma": 155.39,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773108998757504",
+   "sep_arcsec": 144.35,
+   "east_north_arcsec": [
+    -40.5,
+    -138.55
+   ],
+   "gmag": 18.222,
+   "tmag": 17.425,
+   "flux_ratio": 0.005207,
+   "needed_depth": 0.85057,
+   "centroid_distance_sigma": 150.68,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774483388374144",
+   "sep_arcsec": 144.54,
+   "east_north_arcsec": [
+    126.41,
+    -70.09
+   ],
+   "gmag": 19.91,
+   "tmag": 18.97,
+   "flux_ratio": 0.001254,
+   "needed_depth": 3.53084,
+   "centroid_distance_sigma": 153.77,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774487680254336",
+   "sep_arcsec": 144.57,
+   "east_north_arcsec": [
+    137.48,
+    -44.73
+   ],
+   "gmag": 20.3,
+   "tmag": 19.463,
+   "flux_ratio": 0.000796,
+   "needed_depth": 5.56106,
+   "centroid_distance_sigma": 151.37,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774418960857472",
+   "sep_arcsec": 144.61,
+   "east_north_arcsec": [
+    61.73,
+    -130.77
+   ],
+   "gmag": 20.35,
+   "tmag": 19.92,
+   "flux_ratio": 0.000523,
+   "needed_depth": 8.47362,
+   "centroid_distance_sigma": 155.65,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204943102208",
+   "sep_arcsec": 144.89,
+   "east_north_arcsec": [
+    87.09,
+    115.8
+   ],
+   "gmag": 19.448,
+   "tmag": 18.568,
+   "flux_ratio": 0.001816,
+   "needed_depth": 2.43875,
+   "centroid_distance_sigma": 118.96,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775140525846528",
+   "sep_arcsec": 145.03,
+   "east_north_arcsec": [
+    128.53,
+    67.17
+   ],
+   "gmag": 16.36,
+   "tmag": 15.335,
+   "flux_ratio": 0.035686,
+   "needed_depth": 0.1241,
+   "centroid_distance_sigma": 132.33,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775204943102464",
+   "sep_arcsec": 145.36,
+   "east_north_arcsec": [
+    80.32,
+    121.15
+   ],
+   "gmag": 19.077,
+   "tmag": 18.141,
+   "flux_ratio": 0.002691,
+   "needed_depth": 1.64564,
+   "centroid_distance_sigma": 117.82,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773182020825088",
+   "sep_arcsec": 145.5,
+   "east_north_arcsec": [
+    -58.47,
+    -133.24
+   ],
+   "gmag": 15.853,
+   "tmag": 15.202,
+   "flux_ratio": 0.040328,
+   "needed_depth": 0.10981,
+   "centroid_distance_sigma": 150.61,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773967992297088",
+   "sep_arcsec": 146.01,
+   "east_north_arcsec": [
+    -129.8,
+    -66.86
+   ],
+   "gmag": 18.25,
+   "tmag": 17.369,
+   "flux_ratio": 0.005481,
+   "needed_depth": 0.80793,
+   "centroid_distance_sigma": 144.29,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773903566053376",
+   "sep_arcsec": 146.11,
+   "east_north_arcsec": [
+    -117.64,
+    -86.66
+   ],
+   "gmag": 20.32,
+   "tmag": 19.415,
+   "flux_ratio": 0.000832,
+   "needed_depth": 5.32057,
+   "centroid_distance_sigma": 146.21,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773113290854528",
+   "sep_arcsec": 146.32,
+   "east_north_arcsec": [
+    -28.07,
+    -143.6
+   ],
+   "gmag": 20.287,
+   "tmag": 19.435,
+   "flux_ratio": 0.000817,
+   "needed_depth": 5.42054,
+   "centroid_distance_sigma": 153.21,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773182020826112",
+   "sep_arcsec": 146.48,
+   "east_north_arcsec": [
+    -67.92,
+    -129.79
+   ],
+   "gmag": 16.309,
+   "tmag": 15.616,
+   "flux_ratio": 0.027538,
+   "needed_depth": 0.16082,
+   "centroid_distance_sigma": 150.9,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774212802476672",
+   "sep_arcsec": 146.61,
+   "east_north_arcsec": [
+    -146.58,
+    -3.07
+   ],
+   "gmag": 19.969,
+   "tmag": 18.907,
+   "flux_ratio": 0.00133,
+   "needed_depth": 3.33086,
+   "centroid_distance_sigma": 138.15,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775655911337856",
+   "sep_arcsec": 146.99,
+   "east_north_arcsec": [
+    -7.15,
+    146.82
+   ],
+   "gmag": 20.174,
+   "tmag": 19.277,
+   "flux_ratio": 0.000945,
+   "needed_depth": 4.68672,
+   "centroid_distance_sigma": 110.72,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774384614490368",
+   "sep_arcsec": 147.07,
+   "east_north_arcsec": [
+    22.83,
+    -145.29
+   ],
+   "gmag": 20.263,
+   "tmag": 19.04,
+   "flux_ratio": 0.001176,
+   "needed_depth": 3.76553,
+   "centroid_distance_sigma": 156.5,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006645641344",
+   "sep_arcsec": 147.13,
+   "east_north_arcsec": [
+    -138.52,
+    -49.59
+   ],
+   "gmag": 20.414,
+   "tmag": 19.732,
+   "flux_ratio": 0.000622,
+   "needed_depth": 7.12051,
+   "centroid_distance_sigma": 143.65,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774930065118336",
+   "sep_arcsec": 147.64,
+   "east_north_arcsec": [
+    136.62,
+    55.97
+   ],
+   "gmag": 18.423,
+   "tmag": 17.653,
+   "flux_ratio": 0.004217,
+   "needed_depth": 1.05009,
+   "centroid_distance_sigma": 137.59,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774934356807040",
+   "sep_arcsec": 147.78,
+   "east_north_arcsec": [
+    146.04,
+    22.65
+   ],
+   "gmag": 20.035,
+   "tmag": 19.133,
+   "flux_ratio": 0.001079,
+   "needed_depth": 4.10258,
+   "centroid_distance_sigma": 144.45,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774414668834432",
+   "sep_arcsec": 147.79,
+   "east_north_arcsec": [
+    77.41,
+    -125.89
+   ],
+   "gmag": 17.666,
+   "tmag": 16.937,
+   "flux_ratio": 0.008155,
+   "needed_depth": 0.54303,
+   "centroid_distance_sigma": 158.85,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773903575334272",
+   "sep_arcsec": 147.87,
+   "east_north_arcsec": [
+    -100.62,
+    -108.35
+   ],
+   "gmag": 17.598,
+   "tmag": 16.826,
+   "flux_ratio": 0.009032,
+   "needed_depth": 0.4903,
+   "centroid_distance_sigma": 149.71,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774208510547072",
+   "sep_arcsec": 147.89,
+   "east_north_arcsec": [
+    -147.75,
+    6.31
+   ],
+   "gmag": 18.911,
+   "tmag": 17.981,
+   "flux_ratio": 0.003119,
+   "needed_depth": 1.41999,
+   "centroid_distance_sigma": 138.21,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775617259982080",
+   "sep_arcsec": 148.38,
+   "east_north_arcsec": [
+    -48.6,
+    140.2
+   ],
+   "gmag": 18.794,
+   "tmag": 17.938,
+   "flux_ratio": 0.003244,
+   "needed_depth": 1.36514,
+   "centroid_distance_sigma": 113.94,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774487680252928",
+   "sep_arcsec": 148.72,
+   "east_north_arcsec": [
+    141.21,
+    -46.67
+   ],
+   "gmag": 20.194,
+   "tmag": 19.277,
+   "flux_ratio": 0.000945,
+   "needed_depth": 4.6863,
+   "centroid_distance_sigma": 155.39,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774006646244096",
+   "sep_arcsec": 148.83,
+   "east_north_arcsec": [
+    -147.18,
+    -22.1
+   ],
+   "gmag": 20.295,
+   "tmag": 19.524,
+   "flux_ratio": 0.000753,
+   "needed_depth": 5.88104,
+   "centroid_distance_sigma": 142.39,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775720339168768",
+   "sep_arcsec": 148.95,
+   "east_north_arcsec": [
+    -91.86,
+    117.25
+   ],
+   "gmag": 17.982,
+   "tmag": 17.155,
+   "flux_ratio": 0.006675,
+   "needed_depth": 0.66349,
+   "centroid_distance_sigma": 120.22,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773899272805248",
+   "sep_arcsec": 148.99,
+   "east_north_arcsec": [
+    -126.63,
+    -78.5
+   ],
+   "gmag": 19.823,
+   "tmag": 18.889,
+   "flux_ratio": 0.001351,
+   "needed_depth": 3.27818,
+   "centroid_distance_sigma": 147.98,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423774384601150080",
+   "sep_arcsec": 149.07,
+   "east_north_arcsec": [
+    23.48,
+    -147.21
+   ],
+   "gmag": 20.074,
+   "tmag": 19.085,
+   "flux_ratio": 0.001128,
+   "needed_depth": 3.92703,
+   "centroid_distance_sigma": 158.33,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423775655921938176",
+   "sep_arcsec": 149.96,
+   "east_north_arcsec": [
+    -25.34,
+    147.8
+   ],
+   "gmag": 16.705,
+   "tmag": 15.898,
+   "flux_ratio": 0.021231,
+   "needed_depth": 0.20859,
+   "centroid_distance_sigma": 113.83,
+   "excluded_by_centroid": true,
+   "suspect": false
+  },
+  {
+   "gaia_id": "5423773903564861952",
+   "sep_arcsec": 149.98,
+   "east_north_arcsec": [
+    -129.87,
+    -75.0
+   ],
+   "gmag": 20.27,
+   "tmag": 19.319,
+   "flux_ratio": 0.00091,
+   "needed_depth": 4.869,
+   "centroid_distance_sigma": 148.53,
+   "excluded_by_centroid": true,
+   "suspect": false
+  }
+ ],
+ "per_sector": [
+  {
+   "sector": 62,
+   "kind": "tpf",
+   "n_transits": 6,
+   "n_in_transit_frames": 323,
+   "n_out_of_transit_frames": 807,
+   "detected": true,
+   "reason": "dip seen at SNR 18.9",
+   "diff_snr": 18.94,
+   "depth_on_target": 0.004825,
+   "depth_on_target_err": 0.000255,
+   "target_px": [
+    4.364,
+    3.918
+   ],
+   "centroid_px": [
+    5.083,
+    2.906
+   ],
+   "centroid_offset_arcsec": 25.23,
+   "offset_east_north_arcsec": [
+    -4.83,
+    24.76
+   ],
+   "offset_sigma": 14.47,
+   "pixel_scale_arcsec": 20.177,
+   "wcs_shift_px": [
+    -0.089,
+    0.103
+   ],
+   "psf_sigma_px": [
+    0.854,
+    1.026
+   ],
+   "notes": [
+    "difference-image noise scaled \u00d71.00 to match transit-to-transit scatter"
+   ]
+  },
+  {
+   "sector": 63,
+   "kind": "tpf",
+   "n_transits": 5,
+   "n_in_transit_frames": 271,
+   "n_out_of_transit_frames": 680,
+   "detected": true,
+   "reason": "dip seen at SNR 13.9",
+   "diff_snr": 13.95,
+   "depth_on_target": 0.004289,
+   "depth_on_target_err": 0.000308,
+   "target_px": [
+    4.54,
+    4.633
+   ],
+   "centroid_px": [
+    5.684,
+    3.937
+   ],
+   "centroid_offset_arcsec": 25.17,
+   "offset_east_north_arcsec": [
+    -4.59,
+    24.75
+   ],
+   "offset_sigma": 12.91,
+   "pixel_scale_arcsec": 19.449,
+   "wcs_shift_px": [
+    -0.153,
+    0.068
+   ],
+   "psf_sigma_px": [
+    0.808,
+    0.91
+   ],
+   "notes": []
+  },
+  {
+   "sector": 89,
+   "kind": "ffi",
+   "n_transits": 5,
+   "n_in_transit_frames": 161,
+   "n_out_of_transit_frames": 394,
+   "detected": true,
+   "reason": "dip seen at SNR 13.3",
+   "diff_snr": 13.3,
+   "depth_on_target": 0.004008,
+   "depth_on_target_err": 0.000301,
+   "target_px": [
+    7.827,
+    7.749
+   ],
+   "centroid_px": [
+    8.485,
+    6.752
+   ],
+   "centroid_offset_arcsec": 24.21,
+   "offset_east_north_arcsec": [
+    -3.49,
+    23.96
+   ],
+   "offset_sigma": 11.81,
+   "pixel_scale_arcsec": 20.193,
+   "wcs_shift_px": [
+    -0.039,
+    0.087
+   ],
+   "psf_sigma_px": [
+    0.778,
+    0.891
+   ],
+   "notes": []
+  }
+ ],
+ "heuristic": "P(on target) = L_t / (L_t + \u03a3_i w_i\u00b7L_i + e^(-4.5)),  L = exp(-\u00bd d\u00b2),  d = Mahalanobis distance of the combined difference-image centroid from that star, using the combined covariance plus a (0.1 px)\u00b2 floor; i runs over Gaia neighbours able to make the dip (needed depth \u2264 100%) with w_i = 0.25 (needed \u2264 50%) or 0.05 (50\u2013100%); the e^(-4.5) term is 'somewhere else' (uncatalogued source or systematics). A centroid exactly on the target gives \u2248 0.99; 3\u03c3 off with no neighbour gives \u2248 0.5.",
+ "data": [
+  {
+   "sector": 62,
+   "kind": "tpf",
+   "filename": "tess2023043185947-s0062-0000000075208638-0254-s_tp.fits"
+  },
+  {
+   "sector": 63,
+   "kind": "tpf",
+   "filename": "tess2023069172124-s0063-0000000075208638-0255-s_tp.fits"
+  },
+  {
+   "sector": 89,
+   "kind": "ffi",
+   "filename": "tesscut_tic75208638_s0089_15x15.fits"
+  }
+ ],
+ "warnings": [],
+ "timings_s": {
+  "catalogues": 0.0,
+  "search": 0.0,
+  "download": 0.06,
+  "reduce": 0.38,
+  "analyze": 1.07,
+  "total": 2.32
+ },
+ "files": {
+  "pngs": [
+   "tic75208638_s0062_pixels.png",
+   "tic75208638_s0063_pixels.png",
+   "tic75208638_s0089_pixels.png"
+  ],
+  "json": [
+   "tic75208638_s0062_pixels.json",
+   "tic75208638_s0063_pixels.json",
+   "tic75208638_s0089_pixels.json"
+  ]
+ }
+}
