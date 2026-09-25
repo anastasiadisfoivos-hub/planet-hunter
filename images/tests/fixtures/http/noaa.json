@@ -1,0 +1,22 @@
+{
+ "probes": {
+  "https://services.swpc.noaa.gov/images/aurora-forecast-northern-hemisphere.jpg": {
+   "content_type": "image/jpeg",
+   "height": 800,
+   "ok": true,
+   "reason": "",
+   "status": 200,
+   "width": 800
+  },
+  "https://services.swpc.noaa.gov/images/aurora-forecast-southern-hemisphere.jpg": {
+   "content_type": "image/jpeg",
+   "height": 800,
+   "ok": true,
+   "reason": "",
+   "status": 200,
+   "width": 800
+  }
+ },
+ "recorded_at": "2026-09-25T16:27:58+00:00",
+ "texts": {}
+}
