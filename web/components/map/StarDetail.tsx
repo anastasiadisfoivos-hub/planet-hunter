@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowSquareOut, CheckCircle, Circle, CircleNotch } from "@phosphor-icons/react";
+import { ChemicalFingerprint } from "@/components/lab/ChemicalFingerprint";
 import { Button, DataGrid, DemoTag, Tag } from "@/components/ui";
 import { analyze, API_MOCK, getJob, type AnalyzeJob, type AnalyzeTarget } from "@/lib/api";
 import type { MapData } from "@/lib/data";
@@ -194,6 +195,8 @@ function Analysis({ target }: { target: AnalyzeTarget }) {
 export function StarDetail({ data, star, onBack }: { data: MapData; star: StarRef; onBack: () => void }) {
   const f = starFacts(data, star);
   const [r, g, b] = starColor(f.teff).map((v) => Math.round(v * 255));
+  const hostI = star.kind === "host" ? star.i : data.bright.host[star.i];
+  const fpTic = hostI >= 0 ? data.hosts.tic[hostI] : 0;
   return (
     <article className={s.detail} aria-label={f.name}>
       <div className={s.detailHead}>
@@ -232,6 +235,7 @@ export function StarDetail({ data, star, onBack }: { data: MapData; star: StarRe
         ]}
       />
       {star.kind === "host" && <p className={s.help}>Close-up surface is an illustration; colour, size and position are from real data.</p>}
+      {fpTic > 0 && <ChemicalFingerprint tic={fpTic} />}
       <Analysis key={`${star.kind}:${star.i}`} target={f.target} />
     </article>
   );

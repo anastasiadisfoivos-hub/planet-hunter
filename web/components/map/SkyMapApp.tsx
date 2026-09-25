@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Funnel, ListBullets, Star, X } from "@phosphor-icons/react";
+import { Flask, Funnel, ListBullets, Star, X } from "@phosphor-icons/react";
 import { Button, DemoTag, Panel } from "@/components/ui";
 import { API_MOCK, clockNow, getAllEvents, getStatus, type Status } from "@/lib/api";
 import type { SkyEvent } from "@/lib/contract";
@@ -19,6 +20,7 @@ import { FiltersPanel } from "./FiltersPanel";
 import { StarDetail } from "./StarDetail";
 import { StatusBanner } from "./StatusBanner";
 import s from "./map.module.css";
+import lab from "@/components/lab/lab.module.css";
 
 const Scene = dynamic(() => import("./scene/Scene"), { ssr: false, loading: () => null });
 
@@ -177,6 +179,26 @@ function MapView({ map, events, now }: Loaded) {
     return () => window.removeEventListener("keydown", onKey);
   }, [dispatch]);
 
+  // Deep link from the Lab: /map?host=<TIC> or /map?bright=<sky-objects index> flies to that star once the scene is ready.
+  useEffect(() => {
+    const tic = Number(params.get("host"));
+    const b = params.has("bright") ? Number(params.get("bright")) : -1;
+    const hi = tic > 0 ? map.hosts.tic.indexOf(tic) : -1;
+    const target = hi >= 0 ? ({ kind: "host", i: hi } as const) : b >= 0 && b < map.sky.stars.ra.length ? ({ kind: "bright", i: b } as const) : null;
+    if (!target) return;
+    let raf = 0;
+    let frames = 0;
+    const wait = () => {
+      // A few frames after the camera exists, so host positions are laid out and the flight is visible.
+      if (view.jumpTo && ++frames > 10) {
+        dispatch({ type: "layer", layer: target.kind === "host" ? "hosts" : "stars", on: true });
+        dispatch({ type: "selectStar", star: target });
+      } else raf = requestAnimationFrame(wait);
+    };
+    raf = requestAnimationFrame(wait);
+    return () => cancelAnimationFrame(raf);
+  }, [params, map, dispatch]);
+
   // Test hook for screenshots and debugging.
   useEffect(() => {
     (window as unknown as { __skymap: unknown }).__skymap = {
@@ -254,6 +276,10 @@ function MapView({ map, events, now }: Loaded) {
             </select>
           </label>
           <StatusBanner status={status} now={now} demo={API_MOCK} />
+          <Link href="/lab" className={lab.mapLab}>
+            <Flask size={14} aria-hidden />
+            Lab
+          </Link>
         </div>
 
         {hostHud && <StarHud data={map} i={state.selectedStar!.i} />}
