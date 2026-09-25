@@ -1,9 +1,11 @@
 # api/: planet-hunter phenomena spotter API
 
-A FastAPI service with two jobs:
+A FastAPI service with three jobs:
 - **Live sky events**: supernovae, near-Earth objects, solar flares, fireballs, gamma-ray bursts
   and the rest, with real pictures, filtered for the 3D map.
 - **Analyze a star**: checks any star for planets in NASA TESS data.
+- **Planet Finder** (`/finder` on the web): the nightly sweep's planet *candidates*, their pixel
+  check, and people's votes on them. See **Planet Finder** below.
 
 There are no accounts, traps, forecasts or points.
 
@@ -17,6 +19,7 @@ uv run pytest -q                                   # fakes; every storage test o
 uv run uvicorn --factory api.app:create_app        # serve on :8000, docs at /docs
 uv run python -m api.ingest                        # fetch events + pictures into the database
 uv run python -m api.precompute --known-systems    # pre-compute Analyze results (PH_ADAPTERS=real)
+uv run python -m api.finder_ingest --dir ../hunt/candidates   # store sweep candidates + pixel-check
 ```
 
 ## Endpoints
@@ -31,6 +34,12 @@ uv run python -m api.precompute --known-systems    # pre-compute Analyze results
 | GET | `/stars/{tic}/analysis` | | the stored result `{tic_id, data_marker, analyzed_at, marker_checked_at, analysis}` |
 | GET | `/stars/{tic}/lab` | | what exists for this star, for the web Lab (`/lab/star/<tic>`); see **Per-star Lab** |
 | GET | `/stars/{tic}/lightcurve` | | `{tic_id, data_marker, stored_at, unfolded: {time_btjd[], flux[], binned_from, sectors}, folded: [{signal_id, type, period_days, t0_btjd, duration_hours, depth_ppm, phase[], flux[]}]}`; **404** `{detail: {reason, tic_id}}` when none is stored |
+| GET | `/candidates` | filters below, `sort`, `cursor`, `limit` ≤ 200 (default 50) | `{items: [candidate summary], next_cursor}` |
+| GET | `/candidates/{id}` | header `X-Voter-Key` (optional) | `{candidate, pixel_vet, votes, my_vote}` |
+| POST | `/candidates/{id}/vote` | header `X-Voter-Key`; `{"vote": "planet"\|"fake"\|"unsure", "reason_chips": [...]}` | `{id, vote, reason_chips, previous_vote, status, votes}` |
+| GET | `/finder/funnel` | | `{sweep_at, stages: [{stage, count, source}], by_status, by_pixel_verdict}` |
+| GET | `/finder/sensitivity` | | `{updated_at, sensitivity}` (404 until one is stored) |
+| POST | `/admin/candidates/export` | header `X-Admin-Token`; `{ids, tag?, paper_url?}` | ExoFOP CTOI upload file (text) |
 | GET | `/healthz` | | `{ok: true}` |
 
 **`/events` filters.** All are optional and they combine with AND. List filters take either
@@ -171,6 +180,89 @@ Details:
 - **Offline replay:** `--from-file events.json --status-file status.json` stores an
   `events-ingest` output without fetching anything.
 
+## Planet Finder
+
+HUNT's nightly sweep (hunt/) writes candidates `hunt/candidates/<tic>_<n>.json`; PIXELS
+(pixels/, `vet_pixels`) checks whether each dip is on the target star. This API stores both,
+takes votes, and exports chosen candidates for ExoFOP. The wording is always "candidate".
+
+**`python -m api.finder_ingest --dir <candidates> [--sensitivity FILE] [--summary FILE]`**
+1. Upserts every `<tic>_<n>.json`. A file whose content (ignoring `created_at`) is unchanged is
+   not rewritten. Status and votes are never touched. Invalid files are listed in the summary
+   and the exit code is 1; the valid ones are still stored.
+2. **Dismissal on re-check.** An open candidate (`new` / `under review`) that is now on a TOI,
+   CTOI, confirmed-planet or eclipsing-binary list becomes `dismissed`, with `status_reason`
+   (e.g. `matches TOI TOI-1234.01 (same period)`). Two sources:
+   - the candidate's own `known_lists` (from HUNT). Accepted shapes: a list of matches
+     `[{list, name, alias?}]` (entries with `matched: false` don't count), a `hunter.known.check`
+     result `{status: "known", list_name, name, alias}`, or `{list: [matches]}`;
+   - a re-check of up to `--recheck-limit` open candidates, the longest-unchecked first, through
+     `hunter.known.check(..., include_eb_catalogue=True)` (period within 1% or ×2, ×3, ½, ⅓).
+     If the lists can't be reached, the candidate stays open and is re-checked next run.
+   Exported candidates are never dismissed: once submitted, they are on the CTOI list.
+3. Stores the sweep summary (`--summary`, else `summary.json` or `sweep_summary.json` in the
+   folder or one folder up) and `--sensitivity`.
+4. Pixel-checks up to `--pixel-limit` (20) open candidates with no vet for their current
+   period/t0/duration/sectors: never-vetted first, then by score. It stops starting new ones
+   after `--time-budget-min` (30). A failure is stored and retried on later runs, at most
+   `--max-vet-attempts` (3) times per ephemeris. If a candidate's ephemeris changes, it is
+   vetted again. When pixels/ isn't installed, the rest still runs and the summary says
+   `pixels.unavailable`.
+
+`--no-pixels` / `--no-recheck` skip steps 4 / 2b. [ci/finder.yml](ci/finder.yml) runs this
+after each successful sweep. It uses the sweep's `candidates` artifact and `PH_ADAPTERS=real`.
+
+**`GET /candidates` filters** (they combine with AND; lists take `a,b` or repeated parameters):
+- `min_radius` / `max_radius` (Jupiter radii);
+- `min_period` / `max_period` (days);
+- `pixel_verdict`: `on target`, `possible neighbour`, `off target`, `inconclusive`,
+  `unvetted` (`on_target` works too);
+- `status`: `new`, `under review`, `dismissed`, `exported`. The default is all but `dismissed`;
+- `needs_votes=true`: open candidates with fewer than `PH_FINDER_VOTES_NEEDED` votes.
+
+`sort` is `score` (default), `newest` (first ingested, from the candidate's `created_at`) or
+`votes`, always descending. A `cursor` only works with the sort that made it. Each item is the
+candidate without its curves and checks, plus `id, score, pixel_verdict, status,
+status_reason, votes: {planet, fake, unsure, total}, created_at, updated_at`.
+
+**`GET /candidates/{id}`** returns:
+- `candidate`: the full JSON plus status fields;
+- `pixel_vet`: the PixelVet plus `vetted_at`, and `current: false` when the ephemeris changed
+  since the vet ran; `null` if it was never vetted;
+- `votes`: the tallies plus `reasons: {vote: {chip: count}}`;
+- `my_vote`: the vote of the sender's `X-Voter-Key`, or `null`.
+
+**Votes.** There are no accounts. The browser makes a random `X-Voter-Key` (16–128 of
+`A-Za-z0-9_-`) once and sends it. Only its SHA-256 is stored. Each key gets one vote per
+candidate; voting again replaces the vote and `previous_vote` says what it was. Reason chips are
+up to 8 slugs (`a-z0-9_-`, ≤ 40 characters), lower-cased and de-duplicated. The first vote moves a
+`new` candidate to `under review`. A dismissed candidate answers 409. Votes are limited per IP
+(`PH_RATE_VOTE_PER_MIN`), in a bucket separate from reads, so new keys don't get around it.
+
+**Export for ExoFOP.** `POST /admin/candidates/export {ids, tag?, paper_url?}` needs
+`X-Admin-Token` equal to `PH_ADMIN_TOKEN` (compared in constant time). It answers 404 when that
+variable is unset, 403 when the header is missing or wrong, 404/409 when an id is unknown or
+dismissed (then nothing is marked). It returns ExoFOP-TESS's **bulk planet-parameter upload**
+file, `params_planet_YYYYMMDD_001.txt`. The format is documented in ExoFOP's template
+<https://exofop.ipac.caltech.edu/tess/templates/params_planet_YYYYMMDD_001.txt>, linked from
+<https://exofop.ipac.caltech.edu/tess/help.php> under "Bulk Parameter Upload":
+- **Delimiter and columns:** pipe-delimited, not commas. The 46 columns are in the template's
+  order, spellings included.
+- **Rows:** one `flag=newctoi`, `disp=PC` row per candidate:
+  - `target` = `TIC<tic>.<nn>`;
+  - `epoch` = BTJD + 2457000;
+  - `period`, `depth`, `duration`;
+  - `radius` in Earth radii (R_J = 11.209 R_⊕);
+  - `prop_period` = 0;
+  - `notes` ≤ 120 characters.
+- **Comment lines:** lines starting with `\` are comments that ExoFOP ignores.
+
+The candidates are marked `exported`. The owner uploads the file by hand. Before uploading:
+- **Paper URL:** ExoFOP's candidate guidelines
+  (<https://exofop.ipac.caltech.edu/tess/candidate_help.php>) require the URL of a published,
+  refereed paper for every new CTOI. The file has a warning comment when `paper_url` is empty.
+- **`.nn` suffix:** each target must use the TIC's next free `.nn` on ExoFOP.
+
 ## Configuration (env)
 
 | Variable | Default | What it sets |
@@ -193,6 +285,9 @@ Details:
 | `PH_SPECTRA_INDEX_TTL_S` | `3600` | re-read that index at most this often |
 | `PH_KNOWN_PLANETS_TTL_S` | `604800` | re-ask the NASA Exoplanet Archive per star at most this often |
 | `PH_ARCHIVE_TIMEOUT_S` | `8` | that question, inside `GET /stars/{tic}/lab` |
+| `PH_RATE_VOTE_PER_MIN` | `20` | POST /candidates/{id}/vote per IP per minute |
+| `PH_FINDER_VOTES_NEEDED` | `5` | `needs_votes=true`: open candidates with fewer votes than this |
+| `PH_ADMIN_TOKEN` | none | enables `/admin/*` (404 while unset); send it as `X-Admin-Token` |
 
 ## Storage
 
@@ -210,6 +305,7 @@ numbered file to both folders; never edit one that has been applied.
 | `0002_events` | `events`: `id` PK, `type`, `category`, `frame`, `observed_at`, `ra/dec` (nullable), `confidence`, `has_images`, `from_latest_observed_window`, `record` jsonb, plus content hashes. It also creates `event_sources`, `ingest_status` and `ph_sep_deg()`. An index backs every filter |
 | `0003_analyze` | `star_analyses` (one row per TIC: `data_marker`, `analyzed_at`, `marker_checked_at`, `result`), `star_names`, `analyze_jobs` |
 | `0004_stardata` | `star_lightcurves` (one row per TIC: `status` `stored`/`no_data`, `data_marker`, `stored_at`, `curve`), `known_planets` (one row per TIC: `host_name`, `star`, `planets`, `fetched_at`). No backfill in SQL: curves are re-read on each star's next analysis |
+| `0005_finder` | `candidates` (`id` "<tic>_<n>", `record` jsonb, `score`, `status` `new`/`under review`/`dismissed`/`exported`, `status_reason`, plus copies for filters: radius, period, pixel verdict, vote tallies), `pixel_vets` (latest vet per candidate and the ephemeris it ran on), `votes` (PK candidate + hashed voter key), `sensitivity` and `finder_sweep` (one row each) |
 
 `uv run pytest` runs every storage-touching test on both backends. Postgres comes from
 `PH_TEST_DATABASE_URL`, a throwaway database that the tests wipe. If that's unset, it comes from a

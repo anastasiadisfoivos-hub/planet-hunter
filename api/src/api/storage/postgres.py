@@ -34,6 +34,7 @@ from api.models import (
 )
 from api.ports import EventMeta, EventQuery, EventRow, Upserted
 from api.storage.events_sql import build_query
+from api.storage.finder_sql import FinderSql
 
 log = logging.getLogger(__name__)
 
@@ -74,7 +75,10 @@ def _utc(dt: datetime | None) -> datetime | None:
     return dt.astimezone(UTC) if dt is not None else None
 
 
-class PostgresStorage:
+class PostgresStorage(FinderSql):
+    PH = "%s"
+    FOR_UPDATE = " FOR UPDATE"
+
     def __init__(
         self,
         url: str,
@@ -157,6 +161,19 @@ class PostgresStorage:
     def _scalar(self, sql: str, params: tuple = ()) -> Any:
         with self._conn() as conn:
             return conn.execute(sql, params).fetchone()[0]
+
+    # finder_sql hooks
+    def _j(self, obj: Any) -> Jsonb:
+        return Jsonb(obj)
+
+    def _jo(self, value: Any) -> Any:
+        return value
+
+    def _t(self, dt: datetime | None) -> datetime | None:
+        return dt
+
+    def _to(self, value: Any) -> datetime | None:
+        return _utc(value)
 
     # events ----------------------------------------------------------------------------
 

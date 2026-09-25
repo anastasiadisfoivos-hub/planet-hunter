@@ -29,12 +29,12 @@ def _analysis(tic: int, marker: str = "sector-1") -> StoredAnalysis:
 def test_migrations_are_recorded(storage, backend):
     if backend == "sqlite":
         versions = [r[0] for r in storage._all("SELECT version FROM schema_migrations")]
-        assert versions == ["0002_events", "0003_analyze", "0004_stardata"]
+        assert versions == ["0002_events", "0003_analyze", "0004_stardata", "0005_finder"]
         assert storage.migrate() == []  # idempotent
     else:
         rows = storage._all("SELECT version FROM schema_migrations ORDER BY version")
         assert [r["version"] for r in rows] == [
-            "0001_init", "0002_events", "0003_analyze", "0004_stardata"
+            "0001_init", "0002_events", "0003_analyze", "0004_stardata", "0005_finder"
         ]  # fmt: skip
 
 

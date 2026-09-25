@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 
-from api.ports import PlanetArchive, StarAnalyzer, Storage
+from api.ports import KnownLists, PixelVetter, PlanetArchive, StarAnalyzer, Storage
 from api.settings import Settings
 from api.spectra_index import SpectraIndex
 from api.storage.sqlite import SqliteStorage
@@ -16,6 +16,9 @@ class Services:
     analyzer: StarAnalyzer
     archive: PlanetArchive | None = None  # None: the lab lists no known planets
     spectra: SpectraIndex = field(default_factory=lambda: SpectraIndex(None))
+    # Planet finder: only `python -m api.finder_ingest` uses these; web requests never do.
+    pixel_vetter: PixelVetter | None = None
+    known_lists: KnownLists | None = None
 
 
 def build_storage(settings: Settings) -> Storage:
@@ -62,6 +65,27 @@ def build_archive(settings: Settings) -> PlanetArchive:
     from api.fakes.archive import FakeArchive
 
     return FakeArchive()
+
+
+def build_pixel_vetter(settings: Settings) -> PixelVetter:
+    """Raises ImportError under PH_ADAPTERS=real when pixels/ isn't installed."""
+    if settings.adapters == "real":
+        from api.adapters.finder_real import PixelsVetter
+
+        return PixelsVetter()
+    from api.fakes.finder import FakePixelVetter
+
+    return FakePixelVetter()
+
+
+def build_known_lists(settings: Settings) -> KnownLists:
+    if settings.adapters == "real":
+        from api.adapters.finder_real import HunterKnownLists
+
+        return HunterKnownLists()
+    from api.fakes.finder import FakeKnownLists
+
+    return FakeKnownLists()
 
 
 def build_services(settings: Settings) -> Services:

@@ -26,6 +26,7 @@ from api.models import (
 )
 from api.ports import EventMeta, EventQuery, EventRow, Upserted
 from api.storage.events_sql import build_query
+from api.storage.finder_sql import FinderSql
 from api.timeutil import iso, parse
 
 
@@ -48,7 +49,10 @@ def _dump(obj: Any) -> str:
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
-class SqliteStorage:
+class SqliteStorage(FinderSql):
+    PH = "?"
+    FOR_UPDATE = ""  # BEGIN IMMEDIATE already serializes writers
+
     def __init__(self, path: str = ":memory:") -> None:
         self._conn = sqlite3.connect(path, check_same_thread=False, isolation_level=None)
         self._conn.row_factory = sqlite3.Row
@@ -113,6 +117,19 @@ class SqliteStorage:
     def _one(self, sql: str, params: tuple | list = ()) -> sqlite3.Row | None:
         with self._lock:
             return self._conn.execute(sql, params).fetchone()
+
+    # finder_sql hooks
+    def _j(self, obj: Any) -> str:
+        return _dump(obj)
+
+    def _jo(self, value: Any) -> Any:
+        return json.loads(value) if isinstance(value, str) else value
+
+    def _t(self, dt: datetime | None) -> str | None:
+        return iso(dt) if dt is not None else None
+
+    def _to(self, value: Any) -> datetime | None:
+        return parse(value)
 
     # events ----------------------------------------------------------------------------
 

@@ -47,7 +47,7 @@ class HonestClient(TestClient):
 BACKENDS = [b.strip() for b in os.environ.get("PH_TEST_BACKENDS", "sqlite,postgres").split(",")]
 TABLES = (
     "events, event_sources, ingest_status, star_analyses, star_names, analyze_jobs,"
-    " star_lightcurves, known_planets"
+    " star_lightcurves, known_planets, candidates, pixel_vets, votes, sensitivity, finder_sweep"
 )
 OLD_TABLES = "traps, discoveries, catches, jobs"
 

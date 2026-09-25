@@ -39,6 +39,11 @@ class Settings:
     spectra_index_ttl_s: float = 3600.0  # re-read it at most this often
     known_planets_ttl_s: float = 7 * 86400.0  # re-ask the NASA Exoplanet Archive per star
     archive_timeout_s: float = 8.0  # that question, inside GET /stars/{tic}/lab
+    # Planet finder
+    rate_vote_per_min: int = 20
+    finder_votes_needed: int = 5  # needs_votes: open candidates with fewer votes than this
+    # Admin endpoints are off (404) unless set. Kept out of repr.
+    admin_token: str | None = field(default=None, repr=False)
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -64,4 +69,7 @@ class Settings:
             spectra_index_ttl_s=_float("PH_SPECTRA_INDEX_TTL_S", 3600.0),
             known_planets_ttl_s=_float("PH_KNOWN_PLANETS_TTL_S", 7 * 86400.0),
             archive_timeout_s=_float("PH_ARCHIVE_TIMEOUT_S", 8.0),
+            rate_vote_per_min=_int("PH_RATE_VOTE_PER_MIN", 20),
+            finder_votes_needed=_int("PH_FINDER_VOTES_NEEDED", 5),
+            admin_token=os.environ.get("PH_ADMIN_TOKEN") or None,
         )

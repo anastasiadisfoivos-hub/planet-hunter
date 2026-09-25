@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.jobs import AnalyzeQueue
 from api.ratelimit import RateLimiter
-from api.routes import analyze, events, stars
+from api.routes import admin, analyze, events, finder, stars
 from api.settings import Settings
 from api.timeutil import utcnow
 from api.wiring import Services, build_services
@@ -40,8 +40,8 @@ def create_app(
     app = FastAPI(
         title="planet-hunter phenomena spotter API",
         version="0.2.0",
-        description="Live sky events with real pictures, Analyze a star (NASA TESS) and each"
-        " star's Lab data.",
+        description="Live sky events with real pictures, Analyze a star (NASA TESS), each"
+        " star's Lab data, and the Planet Finder's candidates.",
         lifespan=lifespan,
     )
     app.state.settings = settings
@@ -53,13 +53,15 @@ def create_app(
             CORSMiddleware,
             allow_origins=list(settings.web_origins),
             allow_methods=["GET", "POST"],
-            allow_headers=["Content-Type"],
+            allow_headers=["Content-Type", "X-Voter-Key"],
             expose_headers=["Retry-After"],
             max_age=3600,
         )
     app.include_router(events.router)
     app.include_router(analyze.router)
     app.include_router(stars.router)
+    app.include_router(finder.router)
+    app.include_router(admin.router)
 
     @app.get("/healthz", tags=["meta"])
     def healthz() -> dict:

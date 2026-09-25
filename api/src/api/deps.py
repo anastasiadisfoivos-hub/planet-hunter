@@ -36,13 +36,18 @@ def client_ip(request: Request, hops: int) -> str:
     return request.client.host if request.client else "unknown"
 
 
-def rate_limited(bucket: Literal["read", "analyze"]) -> Callable:
-    """Per-IP token bucket; `analyze` has its own, much smaller one (reads stay available)."""
+def rate_limited(bucket: Literal["read", "analyze", "vote", "admin"]) -> Callable:
+    """Per-IP token bucket; `analyze` and `vote` have their own, smaller ones (reads stay
+    available)."""
 
     def dep(request: Request, cfg: Annotated[Settings, Depends(settings)]) -> str:
         limiter: RateLimiter = request.app.state.limiter
         ip = client_ip(request, cfg.trusted_proxy_hops)
-        per_min = cfg.rate_analyze_per_min if bucket == "analyze" else cfg.rate_read_per_min
+        per_min = {
+            "analyze": cfg.rate_analyze_per_min,
+            "vote": cfg.rate_vote_per_min,
+            "admin": cfg.rate_analyze_per_min,
+        }.get(bucket, cfg.rate_read_per_min)
         wait = limiter.hit(bucket, ip, per_min)
         if wait > 0:
             raise HTTPException(
@@ -57,6 +62,7 @@ def rate_limited(bucket: Literal["read", "analyze"]) -> Callable:
 
 Reader = Annotated[str, Depends(rate_limited("read"))]
 Analyzer = Annotated[str, Depends(rate_limited("analyze"))]
+Voter = Annotated[str, Depends(rate_limited("vote"))]
 ServicesDep = Annotated[Services, Depends(services)]
 SettingsDep = Annotated[Settings, Depends(settings)]
 QueueDep = Annotated[AnalyzeQueue, Depends(analyze_queue)]
