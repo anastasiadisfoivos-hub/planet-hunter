@@ -79,8 +79,8 @@ jobs:
                   -regex '.*/[0-9]+_[0-9]+\.json' | head -1)
           [ -n "$first" ] || { echo "no candidates in the artifact"; exit 1; }
           sens=$(find ../sweep -type f -name 'sensitivity*.json' | head -1)
-          uv sync --frozen --no-dev
-          uv run --no-dev python -m api.finder_ingest --dir "$(dirname "$first")" \
+          uv sync --frozen --no-dev --extra finder
+          uv run --no-dev --extra finder python -m api.finder_ingest --dir "$(dirname "$first")" \
             ${sens:+--sensitivity "$sens"} --pixel-limit 20 --time-budget-min 90 \
             | tee summary.json
       - name: Summary

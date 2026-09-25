@@ -209,6 +209,13 @@ takes votes, and exports chosen candidates for ExoFOP. The wording is always "ca
    vetted again. When pixels/ isn't installed, the rest still runs and the summary says
    `pixels.unavailable`.
 
+Pixel checks use pixels/ (package `skypixels`), which is an optional extra so that the web API's
+deploy doesn't pull in astropy or lightkurve: `uv sync --extra finder`. The adapter runs
+`vet_pixels` with a temporary `out_dir` and builds `images` from the per-sector
+`tic<id>_s<sector>_pixels.json`: `{out_of_transit, difference, markers}` of the first sector,
+plus `sector` and every sector's full web JSON in `images.per_sector`. A stored vet is about
+25 kB, or up to about 250 kB in a crowded field (`neighbours` lists every Gaia star within 2.5′).
+
 `--no-pixels` / `--no-recheck` skip steps 4 / 2b. [ci/finder.yml](ci/finder.yml) runs this
 after each successful sweep. It uses the sweep's `candidates` artifact and `PH_ADAPTERS=real`.
 

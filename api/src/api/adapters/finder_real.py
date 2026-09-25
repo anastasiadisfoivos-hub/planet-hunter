@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import re
+import tempfile
+from pathlib import Path
 from typing import Any
 
 from api.finder import normalize_vet
@@ -9,27 +13,52 @@ from api.ports import KnownMatch
 
 
 def _vet_pixels():
-    # PIXELS ships the module as `pixels`; its package is also importable as `skypixels`.
+    # pixels/ is the `skypixels` package (the api's optional `finder` extra).
     try:
-        from pixels import vet_pixels
-    except ImportError:
         from skypixels import vet_pixels
+    except ImportError:
+        from pixels import vet_pixels
     return vet_pixels
 
 
+IMAGE_KEYS = ("out_of_transit", "difference", "markers")
+
+
+def images_from(out_dir: Path, names: list[str]) -> dict[str, Any]:
+    """PixelVet.images from the per-sector tic<id>_s<sector>_pixels.json files vet_pixels wrote:
+    {out_of_transit, difference, markers} of the first sector, plus `sector` and every sector's
+    full web JSON in `per_sector` (4-45 kB each)."""
+    sectors = []
+    for name in names:
+        doc = json.loads((out_dir / name).read_text())
+        m = re.search(r"_s(\d+)_pixels\.json$", name)
+        sectors.append({"sector": int(m.group(1)) if m else None, **doc})
+    if not sectors:
+        return {}
+    first = sectors[0]
+    return {**{k: first.get(k) for k in IMAGE_KEYS}, "sector": first["sector"],
+            "per_sector": sectors}  # fmt: skip
+
+
 class PixelsVetter:
-    def __init__(self) -> None:
-        self._vet_pixels = _vet_pixels()
+    def __init__(self, vet_pixels=None) -> None:
+        self._vet_pixels = vet_pixels or _vet_pixels()
 
     def vet(self, candidate: dict[str, Any]) -> dict[str, Any]:
-        vet = self._vet_pixels(
-            int(candidate["tic"]),
-            float(candidate["period_d"]),
-            float(candidate["t0_btjd"]),
-            float(candidate["duration_h"]),
-            sectors=[int(s) for s in candidate.get("sectors") or []] or None,
-        )
-        return normalize_vet(vet)
+        with tempfile.TemporaryDirectory(prefix="ph-pixels-") as tmp:
+            vet = self._vet_pixels(
+                int(candidate["tic"]),
+                float(candidate["period_d"]),
+                float(candidate["t0_btjd"]),
+                float(candidate["duration_h"]),
+                sectors=[int(s) for s in candidate.get("sectors") or []] or None,
+                out_dir=tmp,
+            )
+            doc = vet.to_dict() if hasattr(vet, "to_dict") else dict(vet)
+            files = doc.pop("files", None) or {}
+            if not doc.get("images"):
+                doc["images"] = images_from(Path(tmp), list(files.get("json", [])))
+        return normalize_vet(doc)
 
 
 class HunterKnownLists:

@@ -15,11 +15,17 @@ dependencies = [
     "hunter",
 ]
 
+[project.optional-dependencies]
+# Only `python -m api.finder_ingest` pixel-checks candidates; the web API never imports it, so
+# its deploy stays small. CI: `uv sync --extra finder`.
+finder = ["skypixels"]
+
 [tool.uv.sources]
 skyevents = { path = "../events", editable = true }
 skypictures = { path = "../images", editable = true }
 skysources = { path = "../sources", editable = true }
 hunter = { path = "../pipeline", editable = true }
+skypixels = { path = "../pixels", editable = true }
 
 [dependency-groups]
 dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.6"]
