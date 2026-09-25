@@ -1,0 +1,38 @@
+[project]
+name = "skypictures"
+version = "0.1.0"
+description = "Real pictures for planet-hunter sky events: survey cutouts, sky context, SDO/SOHO Sun images, NOAA aurora maps."
+readme = "README.md"
+authors = [
+    { name = "Foivos Anastasiadis", email = "anastasiadis.foivos@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "pillow>=11.0.0",
+]
+
+[project.scripts]
+skypictures = "skypictures.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+# Only for scripts/examples.py (reads a LIGO/Virgo/KAGRA sky map); the package never needs it.
+examples = [
+    "astropy>=8.0.1",
+    "astropy-healpix>=2.0.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"

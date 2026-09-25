@@ -1,0 +1,34 @@
+{
+ "event": {
+  "id": "test:storm",
+  "type": "geomagnetic_storm",
+  "title": "test storm",
+  "summary": "",
+  "source": "test",
+  "source_url": "",
+  "observed_at": "2026-09-25T15:55:40Z",
+  "reported_at": "",
+  "location": {
+   "frame": "earth",
+   "lat_deg": 64.8,
+   "lon_deg": -147.7,
+   "alt_km": null
+  },
+  "confidence": 1.0,
+  "confidence_basis": "",
+  "brightness_mag": null,
+  "images": [],
+  "raw": {}
+ },
+ "pictures": [
+  {
+   "url": "https://services.swpc.noaa.gov/images/animations/ovation/north/aurora_N_2026-09-25_1555.jpg",
+   "kind": "sky_context",
+   "caption": "NOAA OVATION aurora forecast for the northern hemisphere, model run 2026-09-25 15:55 UTC (the time it forecasts, printed on the map, is 30-90 min later): where aurora is likely, green to red = 10% to 90% chance. A model map, not a photograph.",
+   "credit": "NOAA Space Weather Prediction Center, OVATION aurora model",
+   "license": "Public domain (U.S. Government work, 17 U.S.C. \u00a7105); credit NOAA SWPC",
+   "width": 800,
+   "height": 800
+  }
+ ]
+}
