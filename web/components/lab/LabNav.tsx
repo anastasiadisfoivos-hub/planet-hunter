@@ -25,6 +25,9 @@ export function LabHeader() {
             {e.label}
           </Link>
         ))}
+        <Link href="/finder" className={s.navLink}>
+          Finder
+        </Link>
       </nav>
       <Link href="/map" className={s.mapLink}>
         Sky map

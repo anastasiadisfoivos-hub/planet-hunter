@@ -4,7 +4,7 @@ import { useState, type CSSProperties } from "react";
 import { Info } from "@phosphor-icons/react";
 import { Button, Segmented } from "@/components/ui";
 import type { KnownPlanet, StarLab } from "@/lib/api";
-import { Note } from "../chart";
+import { Note, nf0 } from "../chart";
 import { useWidth } from "../hooks";
 import { rgbCss, temperatureColor } from "../physics";
 import { DAYS_PER_YEAR, keplerAu } from "../transit";
@@ -18,6 +18,9 @@ const A_MAX = 50;
 const STEPS = 1000;
 const toA = (v: number) => A_MIN * (A_MAX / A_MIN) ** (v / STEPS);
 const toV = (a: number) => Math.round((STEPS * Math.log(a / A_MIN)) / Math.log(A_MAX / A_MIN));
+
+/** A planet's year in hours, days or years, never scientific notation. */
+const fmtYear = (P: number) => (P < 2 ? `${(P * 24).toFixed(1)} h` : P < 1000 ? `${P.toFixed(2)} d` : `${(P / DAYS_PER_YEAR).toFixed(1)} yr`);
 
 const fmtAu = (a: number) => (a >= 10 ? a.toFixed(1) : a >= 1 ? a.toFixed(2) : a >= 0.1 ? a.toFixed(3) : a.toFixed(4));
 const REFS = [
@@ -92,11 +95,11 @@ function Check({ lab, planet, mass }: { lab: StarLab; planet: KnownPlanet & { pe
           <dl className={l.readout}>
             <div>
               <dt className="label">Its year</dt>
-              <dd>{P < 2 ? `${(P * 24).toFixed(1)} h` : P < 1000 ? `${P.toFixed(2)} d` : `${years.toFixed(1)} yr`}</dd>
+              <dd>{fmtYear(P)}</dd>
             </div>
             <div>
-              <dt className="label">In Earth years</dt>
-              <dd>{years < 1 ? years.toPrecision(3) : years.toFixed(2)}</dd>
+              <dt className="label">{years < 1 ? "Orbits per Earth year" : "In Earth years"}</dt>
+              <dd>{years < 1 ? nf0.format(DAYS_PER_YEAR / P) : years.toFixed(2)}</dd>
             </div>
             <div className={l.readoutWide}>
               <dt className="label">Star&apos;s mass</dt>
@@ -148,7 +151,7 @@ function Check({ lab, planet, mass }: { lab: StarLab; planet: KnownPlanet & { pe
                   <dt>
                     Kepler&apos;s law
                     <span className={s.valueNote}>
-                      ∛({mass.value.toFixed(2)} × {years.toPrecision(3)}²)
+                      ∛({mass.value.toFixed(2)} × ({fmtYear(P)} ÷ 1 yr)²)
                     </span>
                   </dt>
                   <dd>{fmtAu(kepler)} AU</dd>

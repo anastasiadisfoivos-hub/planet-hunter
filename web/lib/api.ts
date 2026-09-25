@@ -332,3 +332,190 @@ export async function getStarLightcurve(tic: number, signal?: AbortSignal): Prom
     standIn: own ? null : r.target.query,
   };
 }
+
+// ---------- Finder: planet candidates from the nightly search ----------
+//
+// Candidate comes from the HUNT session, PixelVet from the PIXELS session; votes and the injection-recovery
+// grid from the FINDER API. None of those routes is live yet, so MOCK mode serves public/data/finder/*
+// (built by components/finder/data/build-finder-mock.mjs): made-up candidates with simulated light curves,
+// and pixel images borrowed from two real PIXELS runs. The route names below are this client's working
+// assumption until the FINDER API publishes its own.
+
+export type CheckResult = { name: string; value: number | string | null; passed: boolean | null; reason: string };
+
+/** One list a signal is compared against. `true` or `{ matched: true }` means it is already known. */
+export type KnownListResult = boolean | { matched: boolean; id?: string | null };
+export type KnownLists = { confirmed: KnownListResult; toi: KnownListResult; ctoi: KnownListResult; eb: KnownListResult };
+
+export type Candidate = {
+  id: string;
+  tic: number;
+  name?: string | null;
+  period_d: number;
+  t0_btjd: number;
+  duration_h: number;
+  depth_ppm: number;
+  snr: number;
+  sde: number;
+  n_transits: number;
+  sectors: number[];
+  /** Best radius and its likely range, in Jupiter radii. */
+  radius_rjup: number;
+  radius_low: number;
+  radius_high: number;
+  checks: CheckResult[];
+  /** 0 to 1: a machine ranking, the sum of score_parts. */
+  score: number;
+  score_parts: Record<string, number>;
+  known_lists: KnownLists;
+  folded: { phase: number[]; flux: number[] };
+  unfolded: { time_btjd: number[]; flux: number[] };
+  created_at: string;
+};
+
+export type PixelVerdict = "on target" | "possible neighbour" | "off target" | "inconclusive";
+
+/** A star drawn on the pixel images, in pixel coordinates (pixel centres at integers, x = column, y = row). */
+export type PixelMarker = { kind: "target" | "neighbour" | "suspect"; gaia_id: string | null; x: number; y: number; gmag?: number; needed_depth?: number | null; label?: string };
+
+export type PixelVet = {
+  verdict: PixelVerdict;
+  reason: string;
+  on_target_probability: number | null;
+  centroid_offset_arcsec: number | null;
+  offset_sigma: number | null;
+  suspect_neighbours: { gaia_id: string; sep_arcsec: number; gmag: number; needed_depth: number }[];
+  images: {
+    /** image[row][col] in e-/s. */
+    out_of_transit: number[][];
+    /** Out-of-transit minus in-transit: positive where light was lost during the dip. */
+    difference: number[][];
+    markers: PixelMarker[];
+    centroid?: { x: number; y: number } | null;
+    sector?: number;
+    pixel_scale_arcsec?: number;
+    /** Unit vectors in pixel (x, y) pointing north and east. */
+    compass?: { north: [number, number]; east: [number, number] };
+    /** Demo only: the real PIXELS run these images were copied from. */
+    borrowed_from?: string;
+  };
+};
+
+export type VoteChoice = "planet" | "fake" | "unsure";
+export type Votes = { planet: number; fake: number; unsure: number; my_vote: VoteChoice | null; my_reasons?: string[] };
+
+export type Sensitivity = {
+  run_at: string;
+  stars_used: number;
+  radius_edges_rearth: number[];
+  period_edges_d: number[];
+  /** recovery_pct[radius bin][period bin], 0 to 100. */
+  recovery_pct: number[][];
+  n_injected: number[][];
+};
+
+export type FunnelStep = { key: string; label: string; count: number };
+
+/** A row in the candidate list: the Candidate without its curves and checks, plus its pixel verdict and votes. */
+export type CandidateRow = Omit<Candidate, "folded" | "unfolded" | "checks"> & {
+  checks_passed: number;
+  checks_total: number;
+  pixel_verdict: PixelVerdict | null;
+  votes: Votes;
+};
+
+export type CandidateList = { run_at: string; funnel: FunnelStep[]; candidates: CandidateRow[]; demo: boolean };
+export type CandidateReport = { candidate: Candidate; pixels: PixelVet | null; votes: Votes; demo: boolean };
+
+type FinderIndexMock = { meta: { run_at: string; funnel: FunnelStep[] }; candidates: CandidateRow[] };
+let finderIndex: Promise<FinderIndexMock> | null = null;
+const finderMockIndex = () => (finderIndex ??= getJson<FinderIndexMock>("/data/finder/index.mock.json"));
+
+/** Demo votes: this browser's own vote, kept per candidate on top of the mock's counts. */
+const myVotes = {
+  key: "ph-finder-votes",
+  read(): Record<string, { vote: VoteChoice; reasons: string[] }> {
+    try {
+      return JSON.parse(localStorage.getItem(this.key) ?? "{}");
+    } catch {
+      return {};
+    }
+  },
+  write(id: string, v: { vote: VoteChoice; reasons: string[] } | null) {
+    const all = this.read();
+    if (v) all[id] = v;
+    else delete all[id];
+    try {
+      localStorage.setItem(this.key, JSON.stringify(all));
+    } catch {
+      /* private mode: the vote lasts until reload */
+    }
+  },
+};
+
+function withMyVote(id: string, base: Votes): Votes {
+  const mine = myVotes.read()[id];
+  if (!mine) return { ...base, my_vote: null, my_reasons: [] };
+  return { ...base, [mine.vote]: base[mine.vote] + 1, my_vote: mine.vote, my_reasons: mine.reasons };
+}
+
+export async function getCandidates(signal?: AbortSignal): Promise<CandidateList> {
+  if (!API_MOCK) return { ...(await getJson<Omit<CandidateList, "demo">>(`${API_BASE}/finder/candidates`, signal)), demo: false };
+  const ix = await finderMockIndex();
+  return { run_at: ix.meta.run_at, funnel: ix.meta.funnel, candidates: ix.candidates.map((c) => ({ ...c, votes: withMyVote(c.id, c.votes) })), demo: true };
+}
+
+export async function getCandidate(id: string, signal?: AbortSignal): Promise<CandidateReport> {
+  if (!API_MOCK) return { ...(await getJson<Omit<CandidateReport, "demo">>(`${API_BASE}/finder/candidates/${encodeURIComponent(id)}`, signal)), demo: false };
+  if (!/^[a-z0-9-]+$/i.test(id)) throw new ApiError(404, `No candidate ${id}`);
+  const r = await getJson<Omit<CandidateReport, "demo">>(`/data/finder/c/${id}.json`, signal).catch((e: unknown) => {
+    throw e instanceof ApiError && e.status === 404 ? new ApiError(404, `No candidate ${id}`) : e;
+  });
+  return { ...r, votes: withMyVote(id, r.votes), demo: true };
+}
+
+/** Cast, change (`vote` set) or take back (`vote` null) this viewer's vote. Returns the new totals. */
+export async function submitVote(id: string, vote: VoteChoice | null, reasons: string[]): Promise<Votes> {
+  if (!API_MOCK) {
+    const res = await fetch(`${API_BASE}/finder/candidates/${encodeURIComponent(id)}/vote`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ vote, reasons }),
+    });
+    if (!res.ok) throw new ApiError(res.status, `vote: ${res.status}`);
+    return res.json();
+  }
+  const base = (await finderMockIndex()).candidates.find((c) => c.id === id)?.votes;
+  if (!base) throw new ApiError(404, `No candidate ${id}`);
+  await new Promise((ok) => setTimeout(ok, 250));
+  myVotes.write(id, vote ? { vote, reasons } : null);
+  return withMyVote(id, base);
+}
+
+export async function getSensitivity(signal?: AbortSignal): Promise<Served<Sensitivity>> {
+  if (!API_MOCK) return { data: await getJson<Sensitivity>(`${API_BASE}/finder/sensitivity`, signal), demo: false, standIn: null };
+  return { data: await getJson<Sensitivity>("/data/finder/sensitivity.mock.json", signal), demo: true, standIn: null };
+}
+
+/** Which TICs are planet hosts on the sky map, so their candidates can link to a star lab and a flight. */
+let hostTics: Promise<Set<number>> | null = null;
+export function getMapHostTics(): Promise<Set<number>> {
+  hostTics ??= getJson<{ tic: number[] }>("/data/hosts.json").then((h) => new Set(h.tic));
+  return hostTics;
+}
+
+/** Admin: the selected candidates as an ExoFOP CTOI upload file. The API checks the token; the demo builds it here and sends nothing. */
+export async function exportCtoiCsv(ids: string[], token: string): Promise<{ filename: string; csv: string }> {
+  if (!API_MOCK) {
+    const res = await fetch(`${API_BASE}/finder/export/ctoi`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      body: JSON.stringify({ ids }),
+    });
+    if (!res.ok) throw new ApiError(res.status, res.status === 401 || res.status === 403 ? "The admin token was not accepted." : `export: ${res.status}`);
+    return { filename: `ctoi-${new Date().toISOString().slice(0, 10)}.csv`, csv: await res.text() };
+  }
+  const reports = await Promise.all(ids.map((id) => getCandidate(id)));
+  const { ctoiCsv } = await import("@/components/finder/finder");
+  return { filename: "ctoi-demo.csv", csv: ctoiCsv(reports.map((r) => r.candidate)) };
+}

@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Flask, Funnel, ListBullets, Star, X } from "@phosphor-icons/react";
+import { Flask, Funnel, ListBullets, MagnifyingGlass, Star, X } from "@phosphor-icons/react";
 import { Button, DemoTag, Panel } from "@/components/ui";
 import { API_MOCK, clockNow, getAllEvents, getStatus, type Status } from "@/lib/api";
 import type { SkyEvent } from "@/lib/contract";
@@ -279,6 +279,10 @@ function MapView({ map, events, now }: Loaded) {
           <Link href="/lab" className={lab.mapLab}>
             <Flask size={14} aria-hidden />
             Lab
+          </Link>
+          <Link href="/finder" className={lab.mapLab}>
+            <MagnifyingGlass size={14} aria-hidden />
+            Finder
           </Link>
         </div>
 
