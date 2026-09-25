@@ -1,0 +1,90 @@
+/* Design tokens. Values come from DESIGN.md; change them there first. Owned by the SKYMAP session. */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #09090b;
+  --bg-deep: #050506;
+  --raised: #111214;
+  --hairline: #1c1d21;
+  --control-border: #26282d;
+
+  /* Text */
+  --ink: #f4f4f5;
+  --ink-secondary: #a1a6b0;
+  --ink-muted: #8b909a;
+  --ink-faint: #737883;
+
+  /* The one accent, plus data colours */
+  --accent: #a3b8ff;
+  --accent-tint: rgb(163 184 255 / 0.12);
+  --accent-line: rgb(163 184 255 / 0.4);
+  --rubin: #6fd6c6;
+  --rubin-tint: rgb(111 214 198 / 0.12);
+  --supernova: #e8836a;
+  --supernova-tint: rgb(232 131 106 / 0.12);
+
+  /* Primary button */
+  --primary-bg: var(--ink);
+  --primary-ink: var(--bg);
+
+  /* Type */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+  --text-11: 11px;
+  --text-12: 12px;
+  --text-13: 13px;
+  --text-14: 14px;
+  --text-15: 15px;
+  --text-17: 17px;
+  --text-20: 20px;
+  --text-24: 24px;
+  --text-32: 32px;
+  --heading-tracking: -0.035em;
+  --label-tracking: 0.06em;
+
+  /* Space */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-12: 48px;
+
+  /* Shape */
+  --radius-control: 8px;
+  --radius-panel: 12px;
+  --radius-pill: 999px;
+  --control-h: 32px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+
+  /* Layout */
+  --layers-w: 248px;
+  --inspector-w: 360px;
+  --statusbar-h: 36px;
+
+  /* Stacking */
+  --z-panel: 10;
+  --z-overlay: 20;
+  --z-sheet: 30;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --control-h: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur: 0ms;
+  }
+}

@@ -1,0 +1,291 @@
+/* Shared primitives. Owned by the SKYMAP session; see DESIGN.md. */
+
+/* ---------- Button ---------- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: var(--control-h);
+  padding: 0 var(--s-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font-size: var(--text-13);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.primary {
+  background: var(--primary-bg);
+  color: var(--primary-ink);
+}
+
+.primary:hover:not(:disabled) {
+  background: #ffffff;
+}
+
+.ghost {
+  background: transparent;
+  border-color: var(--control-border);
+  color: var(--ink);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--raised);
+  border-color: var(--ink-faint);
+}
+
+.quiet {
+  background: transparent;
+  color: var(--ink-secondary);
+}
+
+.quiet:hover:not(:disabled) {
+  background: var(--raised);
+  color: var(--ink);
+}
+
+.sm {
+  height: 28px;
+  padding: 0 var(--s-2);
+  font-size: var(--text-12);
+}
+
+.iconOnly {
+  width: var(--control-h);
+  padding: 0;
+}
+
+.sm.iconOnly {
+  width: 28px;
+}
+
+.block {
+  width: 100%;
+}
+
+/* ---------- Panel ---------- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--raised);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-panel);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: var(--s-2) var(--s-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.panelTitle {
+  font-size: var(--text-14);
+  font-weight: 500;
+  letter-spacing: var(--heading-tracking);
+}
+
+.panelActions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.panelBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-4);
+}
+
+.panelFooter {
+  padding: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--hairline);
+}
+
+.flush .panelBody {
+  padding: 0;
+}
+
+/* ---------- Tag ---------- */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 var(--s-2);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-11);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.tag-accent {
+  border-color: var(--accent-line);
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+.tag-rubin {
+  border-color: rgb(111 214 198 / 0.4);
+  background: var(--rubin-tint);
+  color: var(--rubin);
+}
+
+.tag-supernova {
+  border-color: rgb(232 131 106 / 0.4);
+  background: var(--supernova-tint);
+  color: var(--supernova);
+}
+
+.tag-demo {
+  border-style: dashed;
+  color: var(--ink-muted);
+}
+
+/* ---------- Segmented ---------- */
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+}
+
+.segmented button {
+  height: calc(var(--control-h) - 6px);
+  padding: 0 var(--s-3);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: var(--text-12);
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.segmented button:hover {
+  color: var(--ink);
+}
+
+.segmented button[aria-checked="true"] {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--control-border);
+}
+
+.segmentedBlock {
+  display: flex;
+}
+
+.segmentedBlock button {
+  flex: 1;
+}
+
+/* ---------- DataGrid ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.cell {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  padding: var(--s-3) var(--s-3) var(--s-3) 0;
+  border-bottom: 1px solid var(--hairline);
+  min-width: 0;
+}
+
+.cell dt {
+  font-family: var(--font-mono);
+  font-size: var(--text-11);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.cell dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--text-14);
+  overflow-wrap: anywhere;
+}
+
+.cellMono dd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.cellWide {
+  grid-column: 1 / -1;
+}
+
+.cellHint {
+  color: var(--ink-muted);
+  font-size: var(--text-12);
+}
+
+/* ---------- EmptyState ---------- */
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-2);
+  padding: var(--s-4);
+  border: 1px dashed var(--control-border);
+  border-radius: var(--radius-panel);
+}
+
+.emptyTitle {
+  font-size: var(--text-14);
+  font-weight: 500;
+  letter-spacing: var(--heading-tracking);
+}
+
+.emptyBody {
+  color: var(--ink-secondary);
+  font-size: var(--text-13);
+  max-width: 48ch;
+}
+
+.emptyAction {
+  margin-top: var(--s-2);
+}
