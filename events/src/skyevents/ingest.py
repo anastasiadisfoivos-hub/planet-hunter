@@ -10,7 +10,7 @@ from typing import Any
 from .adapters import ADAPTERS
 from .dedup import dedup
 from .models import Event
-from .util import iso
+from .util import as_utc, iso
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +34,7 @@ def ingest(
         "window": {"since": iso(since), "until": iso(until)},
         "events_before_dedup": len(events),
         "events": len(merged),
+        "events_in_window": sum(since <= as_utc(e["observed_at"]) <= until for e in merged),
         "sources": {n: results[n][1] for n in names},
     }
     return merged, status
@@ -41,11 +42,14 @@ def ingest(
 
 def _run(name: str, since: datetime, until: datetime, now: datetime) -> tuple[list[Event], dict[str, Any]]:
     ad = ADAPTERS[name]
-    st: dict[str, Any] = {"live": None, "last_event_at": None, "events": 0, "error": None}
+    st: dict[str, Any] = {"live": None, "last_event_at": None, "events": 0, "events_fetched": 0, "error": None}
     events: list[Event] = []
     try:
         events = ad.fetch(since, until)
-        st["events"] = len(events)
+        # "events" counts only what was observed inside the requested window; a paused source
+        # (Rubin's latest nights) or a long lookback (TNS, JPL) can return older ones too.
+        st["events"] = sum(since <= as_utc(e["observed_at"]) <= until for e in events)
+        st["events_fetched"] = len(events)
     except Exception as exc:  # noqa: BLE001 - one broken source must not stop the feed
         log.warning("%s fetch failed: %s", name, exc)
         st["error"] = f"fetch: {exc}"[:300]

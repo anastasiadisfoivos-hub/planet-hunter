@@ -47,6 +47,9 @@ the real date, and `query(since=...)` filters on it.
 - **Rubin**: `skysources.stream_status()` decides live/paused. While paused, the adapter queries
   `skysources.latest_observed_window(n)` for the same number of nights, so the feed shows
   Rubin's latest real events with their true dates. `status.json` says which window was used.
+  Those events carry `raw.from_latest_observed_window = true`, so a UI can keep them out of a
+  "recent" feed (`query(since=...)` already does, since it filters on `observed_at`) and offer
+  "Rubin's latest nights" as a separate toggle.
   Types come from `skysources.alerts.fink_row_to_discovery` (the table in `sources/README.md`).
   `brightness_mag` is the brightness of the change (difference-image flux), and it is `null`
   when the object faded.
@@ -59,6 +62,10 @@ the real date, and `query(since=...)` filters on it.
 - **GCN**: Notices need a (free) Kafka login, so the adapter reads Circulars, which are
   public. Each burst's position is the smallest error circle among its first circular and up
   to 2 position circulars (Swift-XRT > Swift-BAT > Fermi GBM > EP > SVOM).
+- **GraceDB**: confidence is p_astro = 1 − P(terrestrial) from the alert. Unmodelled burst
+  alerts publish no classification; for those, confidence = 1 / (1 + false alarms per year)
+  (one per year → 0.5, one per century → 0.99), or 0.5 with no FAR. The summary says which,
+  and `raw.confidence_from` records it.
 - **GraceDB**: the position is the most probable pixel of the sky map. `error_deg` is the
   radius of a circle with the 90% area; the true area is in `raw.area90_deg2`.
 - **Geomagnetic storms** are global. Their Earth-frame point is the geomagnetic north pole
@@ -111,8 +118,11 @@ merged event matches any member), `frame` (`sky`/`sun`/`earth`), `region`
 ## Output
 
 - `events.json`: `{generated_at, since, until, count, events: [Event]}`.
-- `status.json`: `{generated_at, window, events_before_dedup, events, sources: {name: {state:
-  live|paused|unknown, live, last_event_at, events, error, live_within_hours, ...}}}`. Rubin adds
+- `status.json`: `{generated_at, window, events_before_dedup, events, events_in_window, sources: {name: {state:
+  live|paused|unknown, live, last_event_at, events, events_fetched, error, live_within_hours,
+  ...}}}`. `events` counts only events observed inside the requested window. `events_fetched`
+  also counts older ones: a paused source's latest nights, or TNS/JPL lookbacks. The top-level
+  `events_in_window` does the same after de-duplication. Rubin adds
   `window`, `last_scheduled_visit_at` and a `note` while it is paused.
 
 A failing source is reported in `status.json` and skipped; it never stops the feed.

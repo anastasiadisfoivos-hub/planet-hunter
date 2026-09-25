@@ -13,6 +13,7 @@ from recording import install_replay, meta
 from skyevents.adapters import ADAPTERS
 from skyevents.ingest import ingest
 from skyevents.models import CATEGORY_OF, EVENT_TYPES
+from skyevents.query import query
 
 M = meta("live_week")
 NOW, SINCE, UNTIL = (datetime.fromisoformat(M[k].replace("Z", "+00:00")) for k in ("now", "since", "until"))
@@ -137,3 +138,26 @@ def test_gcn_burst_position_prefers_the_tightest_report(week):
     for e in grbs:
         assert e["location"]["error_deg"] < 20
         assert e["raw"]["time_precision"] in ("second", "day")
+
+
+def test_status_counts_only_events_observed_in_the_window(week):
+    events, status = week
+    rubin = status["sources"]["rubin"]
+    assert rubin["events"] == 0  # paused: nothing observed this week
+    assert rubin["events_fetched"] > 0  # but its latest nights are in the feed
+    for name, st in status["sources"].items():
+        assert st["events"] <= st["events_fetched"], name
+    in_window = [e for e in events if SINCE <= datetime.fromisoformat(e["observed_at"].replace("Z", "+00:00")) <= UNTIL]
+    assert status["events_in_window"] == len(in_window) < status["events"]
+
+
+def test_rubin_latest_nights_are_flagged_and_query_since_drops_them(week):
+    events, _ = week
+    rubin = [e for e in events if e["source"] == "rubin"]
+    assert rubin and all(e["raw"]["from_latest_observed_window"] is True for e in rubin)
+    recent = query({"since": SINCE, "limit": 1000}, events)
+    assert recent and all(e["observed_at"] >= M["since"] for e in recent)
+    assert not any(e["source"] == "rubin" for e in recent)  # July is not "recent"
+    toggle = query({"sources": ["rubin"], "limit": 1000}, events)
+    toggle += query({"sources": ["rubin"], "limit": 1000, "offset": 1000}, events)  # paging
+    assert len(toggle) == len(rubin) and all(e["observed_at"] < "2026-07-15" for e in toggle)

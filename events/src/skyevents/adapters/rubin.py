@@ -4,7 +4,7 @@
   72 h). The Rubin alert stream has been quiet since 2026-07-14.
 - Window: [since, until] while live. While paused, skysources.latest_observed_window(n) for the
   same number of nights, so the feed still shows Rubin's most recent real events, with their
-  true dates.
+  true dates, each marked raw.from_latest_observed_window = true.
 - Which objects: Fink's all-sky tags (https://api.lsst.fink-portal.org/api/v1/tags) that pick
   likely extragalactic transients. One Event per diaObject (its newest alert in the window),
   converted by skysources.alerts.fink_row_to_discovery, so the type rules and Fink columns are
@@ -75,7 +75,8 @@ def window(since: datetime, until: datetime) -> tuple[datetime, datetime, dict]:
 
 
 def fetch(since: datetime, until: datetime) -> list[Event]:
-    start, end, _ = window(since, until)
+    start, end, status = window(since, until)
+    from_latest = not status.get("is_live")
     rows: dict[int, dict] = {}
     tags: dict[int, set[str]] = {}
     for tag in TAGS:
@@ -89,7 +90,12 @@ def fetch(since: datetime, until: datetime) -> list[Event]:
             tags.setdefault(oid, set()).add(tag)
             if oid not in rows or row["r:midpointMjdTai"] > rows[oid]["r:midpointMjdTai"]:
                 rows[oid] = row
-    return [to_event(row, sorted(tags[oid])) for oid, row in rows.items()]
+    events = [to_event(row, sorted(tags[oid])) for oid, row in rows.items()]
+    for e in events:
+        # True when the stream is paused and these are Rubin's latest nights, not the requested
+        # window: a UI can keep them out of "recent" and offer them as their own toggle.
+        e["raw"]["from_latest_observed_window"] = from_latest
+    return events
 
 
 def last_event_at(now: datetime) -> datetime | None:

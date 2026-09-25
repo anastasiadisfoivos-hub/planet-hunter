@@ -43,6 +43,30 @@ def test_gracedb_gravitational_wave(replay):
     assert 100 < e["raw"]["area90_deg2"] < 5000
 
 
+def test_gracedb_confidence_is_p_astro(replay):
+    replay("gracedb_S251117dq")
+    [e] = gracedb.fetch(*_window("gracedb_S251117dq"))
+    alert = next(json.loads(t) for t in _recorded("gracedb_S251117dq", "-update.json"))
+    terrestrial = alert["event"]["classification"]["Terrestrial"]
+    assert e["confidence"] == round(1.0 - terrestrial, 4)
+    assert e["confidence_basis"] == "machine_guess" and e["raw"]["confidence_from"] == "p_astro"
+    assert "best guess" in e["summary"]
+
+
+def test_gracedb_confidence_without_p_astro_uses_far(replay):
+    alert = next(json.loads(t) for t in _recorded("gracedb_S251117dq", "-update.json"))
+    alert["event"].pop("classification")
+    alert["event"]["far"] = 1 / (100 * gracedb.SECONDS_PER_YEAR)  # one false alarm per century
+    e = gracedb.alert_to_event(alert)
+    assert e["confidence"] == pytest.approx(1 / 1.01, abs=1e-4)
+    assert e["confidence_basis"] == "machine_guess" and e["raw"]["confidence_from"] == "far"
+    assert "no astrophysical probability was published" in e["summary"]
+    assert "one false alarm per 100 years" in e["summary"]
+    alert["event"]["far"] = None
+    e = gracedb.alert_to_event(alert)
+    assert e["confidence"] == 0.5 and "default of 0.5" in e["summary"]
+
+
 def test_gracedb_skymap_is_normalised(replay):
     alert = next(json.loads(t) for t in _recorded("gracedb_S251117dq", "-update.json"))
     ra, dec, area = gracedb.skymap_summary(base64.b64decode(alert["event"]["skymap"]))

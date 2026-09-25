@@ -48,7 +48,11 @@ def main(argv: list[str] | None = None) -> int:
     for name, st in status["sources"].items():
         flag = st["state"].upper()
         err = f"  ERROR {st['error']}" if st["error"] else ""
-        print(f"{name:8s} {flag:8s} last={st['last_event_at'] or '-':25s} events={st['events']}{err}", file=sys.stderr)
+        print(
+            f"{name:8s} {flag:8s} last={st['last_event_at'] or '-':25s} "
+            f"in-window={st['events']} fetched={st['events_fetched']}{err}",
+            file=sys.stderr,
+        )
     print(f"{len(events)} events ({status['events_before_dedup']} before de-dup) -> {out}, {status_path}", file=sys.stderr)
     return 0
 

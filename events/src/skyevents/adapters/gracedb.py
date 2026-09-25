@@ -8,7 +8,9 @@ classification and a multi-order HEALPix sky map. The Event position is the most
 pixel; error_deg is the radius of a circle with the 90% credible area (sky maps are banana-
 shaped, so the full map is the thing to show; raw.area90_deg2 has the true area).
 
-Confidence = 1 - P(terrestrial) from the alert, a pipeline estimate: machine_guess.
+Confidence = p_astro = 1 - P(terrestrial) from the alert, a pipeline estimate: machine_guess.
+Unmodelled "Burst" alerts publish no classification; then confidence = 1 / (1 + false alarms
+per year) from the FAR, or 0.5 with no FAR, and the summary says which (confidence_from).
 """
 
 from __future__ import annotations
@@ -78,7 +80,6 @@ def alert_to_event(alert: dict) -> Event | None:
         return None
     ra, dec, area90 = skymap_summary(base64.b64decode(ev["skymap"]))
     cls = ev.get("classification") or {}
-    terrestrial = float(cls.get("Terrestrial", 0.0))
     kinds = {k: v for k, v in cls.items() if k != "Terrestrial"}
     likely = max(kinds, key=kinds.get) if kinds else None
     sid = alert["superevent_id"]
@@ -87,6 +88,11 @@ def alert_to_event(alert: dict) -> Event | None:
         "BNS": "two neutron stars merging",
         "NSBH": "a neutron star and a black hole merging",
     }.get(likely or "", "a compact-object merger")
+    confidence, basis_note = confidence_from(ev)
+    if "Terrestrial" in cls and likely:
+        guess = f"the pipeline's best guess is {what} ({kinds[likely] * 100:.0f}% probability)"
+    else:
+        guess = f"no astrophysical probability was published, so confidence is {basis_note}"
     when = as_utc(ev["time"])
     return make_event(
         source=NAME,
@@ -95,19 +101,20 @@ def alert_to_event(alert: dict) -> Event | None:
         title=f"Gravitational-wave candidate {sid}",
         summary=(
             f"The {'/'.join(ev.get('instruments') or [])} detectors recorded a gravitational-wave signal; "
-            f"the pipeline's best guess is {what} ({(kinds.get(likely, 0) if likely else 0) * 100:.0f}% probability). "
+            f"{guess}. "
             f"It came from a patch of sky covering about {area90:.0f} square degrees."
         ),
         source_url=PUBLIC.format(sid),
         observed_at=when,
         reported_at=as_utc(alert.get("time_created") or ev["time"]),
         location=sky(ra, dec, round(math.sqrt(area90 / math.pi), 3)),
-        confidence=1.0 - terrestrial,
+        confidence=confidence,
         confidence_basis="machine_guess",
         raw={
             "names": [sid],
             "alert_type": alert.get("alert_type"),
             "far_hz": ev.get("far"),
+            "confidence_from": "p_astro" if "Terrestrial" in cls else "far",
             "classification": {k: round(v, 4) for k, v in cls.items()},
             "properties": ev.get("properties"),
             "area90_deg2": round(area90, 1),
@@ -115,6 +122,25 @@ def alert_to_event(alert: dict) -> Event | None:
             "group": ev.get("group"),
         },
     )
+
+
+SECONDS_PER_YEAR = 365.25 * 86400
+
+
+def confidence_from(ev: dict) -> tuple[float, str]:
+    """p_astro = 1 - P(terrestrial) when the alert publishes it. Otherwise a FAR-based stand-in:
+    with N = false alarms expected per year, confidence = 1 / (1 + N), so one per year -> 0.5,
+    one per century -> 0.99. With neither, 0.5."""
+    cls = ev.get("classification") or {}
+    if "Terrestrial" in cls:
+        return 1.0 - float(cls["Terrestrial"]), "p_astro"
+    far = ev.get("far")
+    if far is not None and float(far) >= 0:
+        per_year = float(far) * SECONDS_PER_YEAR
+        years = 1 / per_year if per_year > 0 else float("inf")
+        rate = f"one false alarm per {years:,.0f} years" if years >= 1 else f"{per_year:.1f} false alarms per year"
+        return 1.0 / (1.0 + per_year), f"estimated from the false-alarm rate ({rate})"
+    return 0.5, "a default of 0.5 (neither a probability nor a false-alarm rate was published)"
 
 
 def skymap_summary(fits_bytes: bytes) -> tuple[float, float, float]:
