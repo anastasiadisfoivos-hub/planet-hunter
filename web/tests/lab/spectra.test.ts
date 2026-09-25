@@ -14,6 +14,15 @@ test("Earth's air: oxygen A and B bands and water are telluric, solar lines are 
   assert.equal(telluricSpecies({ nm: 630.03, element: "O", label: "[O I]" }), null);
 });
 
+test("the file's origin field decides", () => {
+  assert.equal(telluricSpecies({ nm: 759.4, element: "O2", label: "A", origin: "earth_atmosphere" }), "O2");
+  assert.equal(telluricSpecies({ nm: 940, element: "H2O", label: "", origin: "earth_atmosphere" }), "H2O");
+  assert.equal(telluricSpecies({ nm: 630.03, element: "O", label: "[O I]", origin: "sun" }), null);
+  assert.equal(telluricSpecies({ nm: 777.19, element: "O", label: "", origin: "sun" }), null);
+  // origin "sun" wins even inside an oxygen band.
+  assert.equal(telluricSpecies({ nm: 687, element: "O", label: "", origin: "sun" }), null);
+});
+
 test("planet slugs and abundance ratios", () => {
   assert.equal(planetSlug("WASP-121 b"), "wasp-121-b");
   assert.equal(planetSlug("HD 209458 b"), "hd-209458-b");

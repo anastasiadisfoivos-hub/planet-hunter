@@ -97,7 +97,7 @@ write(
   write(`${MOCK}/sun_spectrum.json`, {
     wavelength_nm: wl,
     flux,
-    lines: LINES.map(([nm, element, label]) => ({ nm, element, label })),
+    lines: LINES.map(([nm, element, label]) => ({ nm, element, label, origin: element === "O2" || element === "H2O" ? "earth_atmosphere" : "sun" })),
     source: "DEMO: a 5772 K blackbody with the strong Fraunhofer lines drawn in, for building the UI",
     credit: "Demo data; the real solar atlas arrives with the SPECTRA files",
   });

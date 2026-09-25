@@ -7,7 +7,8 @@ export type ElementLines = { symbol: string; name: string; lines: { nm: number; 
 export type SunSpectrum = {
   wavelength_nm: number[];
   flux: number[];
-  lines: { nm: number; element: string; label: string }[];
+  /** origin: "sun" for the star's own lines, "earth_atmosphere" for telluric O2/H2O (SPECTRA contract). */
+  lines: { nm: number; element: string; label: string; origin?: "sun" | "earth_atmosphere" }[];
   source: string;
   credit: string;
 };
@@ -44,13 +45,15 @@ const plain = (sym: string) => sym.replace(/[₀-₉]/g, (c) => String(c.charCod
 
 /**
  * The molecule in Earth's air that made a line in a star's spectrum, or null for a line from the
- * star itself. Recognised by its species (O2, H2O), by a label that says so, or by an oxygen line
- * sitting in one of the oxygen bands.
+ * star itself. The file's `origin` decides when present; older files without it are recognised by
+ * species (O2, H2O), by a label that says so, or by an oxygen line in the A or B band.
  */
-export function telluricSpecies(line: { nm: number; element: string; label?: string }): "O2" | "H2O" | null {
+export function telluricSpecies(line: { nm: number; element: string; label?: string; origin?: string }): "O2" | "H2O" | null {
   const el = plain(line.element).trim();
-  if (el === "O2" || el === "H2O") return el;
   const band = TELLURIC_BANDS.find((b) => line.nm >= b.from && line.nm <= b.to);
+  if (line.origin === "sun") return null;
+  if (line.origin === "earth_atmosphere") return el === "H2O" || el === "O2" ? el : (band?.species ?? "O2");
+  if (el === "O2" || el === "H2O") return el;
   if (/earth|telluric|atmospher/i.test(line.label ?? "")) return band?.species ?? (el === "H" ? "H2O" : "O2");
   if (el === "O" && band?.species === "O2") return "O2";
   return null;
