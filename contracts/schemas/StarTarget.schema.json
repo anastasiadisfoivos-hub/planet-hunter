@@ -1,0 +1,15 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "tic_id": {
+      "exclusiveMinimum": 0,
+      "title": "Tic Id",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "tic_id"
+  ],
+  "title": "StarTarget",
+  "type": "object"
+}
