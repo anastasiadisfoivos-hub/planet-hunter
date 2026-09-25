@@ -379,11 +379,8 @@
   object-fit: cover;
 }
 
-.eventFrame[data-pixelated] img {
-  width: auto;
-  height: 100%;
-  max-width: 100%;
-  object-fit: contain;
+/* Survey cutouts are tiny (about 60 px): crop to fill the frame, keeping the pixels crisp. */
+.eventFrame[data-cutout] img {
   image-rendering: pixelated;
 }
 

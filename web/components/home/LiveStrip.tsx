@@ -17,8 +17,12 @@ import { DemoTag, EmptyState, Tag } from "@/components/ui";
 import s from "./home.module.css";
 
 const NEWEST = 6;
-/** Which picture stands for an event on its card, best first. */
-const KIND_ORDER: Image["kind"][] = ["solar", "cutout_new", "cutout_difference", "forecast_map", "light_curve", "sky_context", "cutout_reference"];
+/**
+ * Which picture stands for an event on its card, best first: colour pictures, then the survey's
+ * difference cutout (the one that shows what changed), then the other cutouts.
+ */
+const KIND_ORDER: Image["kind"][] = ["sky_context", "solar", "forecast_map", "light_curve", "cutout_difference", "cutout_new", "cutout_reference"];
+const CUTOUTS = new Set<Image["kind"]>(["cutout_difference", "cutout_new", "cutout_reference"]);
 
 type Loaded = { now: number; total: number; counts: Record<Category, number>; newest: { event: SkyEvent; image: Image }[] };
 type State = { kind: "loading" } | { kind: "error" } | ({ kind: "ready" } & Loaded);
@@ -36,10 +40,13 @@ async function load(signal: AbortSignal): Promise<Loaded> {
   ]);
   const counts = Object.fromEntries(Object.keys(CATEGORIES).map((c) => [c, 0])) as Record<Category, number>;
   for (const e of week.events) counts[categoryOf(e.type)]++;
-  const newest = pictured.events
+  // Newest first, but events with a colour picture come before ones that only have survey cutouts.
+  const withImage = pictured.events
     .map((event) => ({ event, image: cardImage(event) }))
-    .filter((x): x is { event: SkyEvent; image: Image } => x.image !== null)
-    .slice(0, NEWEST);
+    .filter((x): x is { event: SkyEvent; image: Image } => x.image !== null);
+  const newest = [...withImage.filter((x) => !CUTOUTS.has(x.image.kind)), ...withImage.filter((x) => CUTOUTS.has(x.image.kind))]
+    .slice(0, NEWEST)
+    .sort((a, b) => b.event.observed_at.localeCompare(a.event.observed_at));
   return { now, total: week.total, counts, newest };
 }
 
@@ -156,14 +163,16 @@ export function LiveStrip() {
 
 function EventCard({ event: e, image, now }: { event: SkyEvent; image: Image; now: number }) {
   const d = imageDisplay(image, "row");
+  const cutout = CUTOUTS.has(image.kind);
+  const tag = d.label ?? (cutout ? "Survey cutout" : null);
   const cat = categoryOf(e.type);
   // The map has no ?event= deep link yet, so the card opens the map itself.
   return (
     <Link href="/map" className={s.eventCard}>
-      <span className={s.eventFrame} data-pixelated={d.pixelated || undefined}>
+      <span className={s.eventFrame} data-cutout={cutout || undefined}>
         {/* eslint-disable-next-line @next/next/no-img-element -- remote survey thumbnails, as in the map's feed */}
-        <img src={d.src} alt={d.alt} width={d.width ?? undefined} height={d.height ?? undefined} loading="lazy" decoding="async" />
-        {d.label && <Tag className={s.frameTag}>{d.label}</Tag>}
+        <img src={d.src} alt={d.alt} loading="lazy" decoding="async" />
+        {tag && <Tag className={s.frameTag}>{tag}</Tag>}
       </span>
       <span className={s.eventType}>
         <CategoryGlyph category={cat} size={11} />
