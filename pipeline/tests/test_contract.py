@@ -58,6 +58,22 @@ def test_discoveries_follow_contract(synthetic):
             assert set(data["light_curve"]) == {"time_btjd", "flux"}
             assert len(data["light_curve"]["flux"]) <= 2000
         json.dumps(data, allow_nan=False)  # strict JSON: no NaN/Infinity
+        assert_raw_fields(data)
+
+
+def assert_raw_fields(data: dict) -> None:
+    """Integration keys: raw.period_days on transit signals, raw.peak_btjd on flares (both floats)."""
+    if ":sig:" in data["id"]:
+        assert isinstance(data["raw"]["period_days"], float)
+        assert data["raw"]["period_days"] == data["raw"]["signal"]["period"] or abs(
+            data["raw"]["period_days"] - data["raw"]["signal"]["period"]) < 1e-7
+        for k in ("radius_rjup", "radius_lower_rjup", "radius_upper_rjup"):
+            assert k in data["raw"]
+    elif ":flare:" in data["id"]:
+        assert isinstance(data["raw"]["peak_btjd"], float)
+        assert data["id"].endswith(f"{round(data['raw']['peak_btjd'], 2):.2f}")
+    else:
+        raise AssertionError(f"unexpected id {data['id']}")
 
 
 def test_ids_and_alias_match(synthetic):

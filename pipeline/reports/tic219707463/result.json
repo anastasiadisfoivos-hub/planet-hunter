@@ -5,6 +5,7 @@
     "ra_deg": 136.593490244071,
     "dec_deg": 68.4451458176147,
     "stellar_radius_rsun": 2.23315,
+    "stellar_radius_err_rsun": 0.0728015,
     "teff_k": 7541.0,
     "tmag": 6.83672
   },
@@ -3773,7 +3774,7 @@
           0.999186
         ]
       },
-      "explanation": "Best guess, with low confidence: an eclipsing binary. A dip of 13.803% repeats every 4.5073 days and lasts about 1.9 hours. The object is too large to be a planet; could be a small star or a blended signal. Dip depth 13.803% on a 2.23 R_sun star implies about 8.07 Jupiter radii (90.5 Earth radii). That is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet. Alternate dips match and there is no strong second dip, so this is not a sure binary either. This matches TIC 219707463 (TESS EB catalogue) on the TESS Eclipsing Binary catalogue (Prsa et al. 2022) (same period).",
+      "explanation": "Best guess, with low confidence: an eclipsing binary. A dip of 13.803% repeats every 4.5073 days and lasts about 1.9 hours. The object is too large to be a planet; could be a small star or a blended signal. Dip depth 13.803% on a 2.23 R_sun star implies about 8.07 Jupiter radii (90.5 Earth radii), likely range 7.81-8.34. Even the low end is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet. Alternate dips match and there is no strong second dip, so this is not a sure binary either. This matches TIC 219707463 (TESS EB catalogue) on the TESS Eclipsing Binary catalogue (Prsa et al. 2022) (same period).",
       "links": [
         {
           "label": "ExoFOP-TESS target page",
@@ -3786,6 +3787,7 @@
       ],
       "raw": {
         "tic_id": 219707463,
+        "period_days": 4.507298612970296,
         "signal": {
           "period": 4.50729861,
           "t0": 2941.73542829,
@@ -3823,12 +3825,16 @@
           {
             "name": "size",
             "passed": false,
-            "reason": "Dip depth 13.803% on a 2.23 R_sun star implies about 8.07 Jupiter radii (90.5 Earth radii). That is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
+            "reason": "Dip depth 13.803% on a 2.23 R_sun star implies about 8.07 Jupiter radii (90.5 Earth radii), likely range 7.81-8.34. Even the low end is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
             "value": 8.073684
           }
         ],
         "radius_rjup": 8.0737,
+        "radius_lower_rjup": 7.8105,
+        "radius_upper_rjup": 8.3369,
         "stellar_radius_rsun": 2.23315,
+        "stellar_radius_err_rsun": 0.0728,
+        "stellar_radius_err_assumed": false,
         "secondary_search": {
           "depth": 0.00087694,
           "err": 6.984e-05,
@@ -3897,11 +3903,13 @@
         {
           "name": "size",
           "passed": false,
-          "reason": "Dip depth 13.803% on a 2.23 R_sun star implies about 8.07 Jupiter radii (90.5 Earth radii). That is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
+          "reason": "Dip depth 13.803% on a 2.23 R_sun star implies about 8.07 Jupiter radii (90.5 Earth radii), likely range 7.81-8.34. Even the low end is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
           "value": 8.073684
         }
       ],
       "radius_rjup": 8.0737,
+      "radius_lower_rjup": 7.8105,
+      "radius_upper_rjup": 8.3369,
       "type": "eclipsing_binary",
       "secondary_search": {
         "depth": 0.00087694,
@@ -3914,10 +3922,10 @@
   "flares_found": 0,
   "timings_s": {
     "resolve": 0.0,
-    "fetch": 0.12,
-    "search": 3.18,
+    "fetch": 0.1,
+    "search": 2.61,
     "vet_known_flares": 0.18,
-    "total": 3.48
+    "total": 2.9
   },
   "plots": [
     "tic219707463_sig1_folded.png"

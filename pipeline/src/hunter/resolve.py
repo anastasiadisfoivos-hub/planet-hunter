@@ -22,6 +22,7 @@ class StarInfo:
     teff_k: float | None
     tmag: float | None
     query: str
+    radius_err_rsun: float | None = None
 
 
 def _num(value) -> float | None:
@@ -38,6 +39,7 @@ def _row_to_dict(row) -> dict:
         "ra_deg": float(row["ra"]),
         "dec_deg": float(row["dec"]),
         "radius_rsun": _num(row["rad"]),
+        "radius_err_rsun": _num(row["e_rad"]),
         "teff_k": _num(row["Teff"]),
         "tmag": _num(row["Tmag"]),
     }
@@ -79,7 +81,7 @@ def resolve(target: StarTarget | int | str, refresh: bool = False) -> StarInfo:
         tic_id, query = (int(match.group(1)), f"TIC {match.group(1)}") if match else (None, target.strip())
 
     if tic_id is not None:
-        data = cached_json("tic", str(tic_id), 30 * DAY, lambda: _query_by_tic(tic_id), refresh)
+        data = cached_json("tic-v2", str(tic_id), 30 * DAY, lambda: _query_by_tic(tic_id), refresh)
     else:
-        data = cached_json("tic-name", query.lower(), 30 * DAY, lambda: _query_by_name(query), refresh)
+        data = cached_json("tic-name-v2", query.lower(), 30 * DAY, lambda: _query_by_name(query), refresh)
     return StarInfo(query=query, **data)

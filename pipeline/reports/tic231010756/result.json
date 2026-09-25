@@ -5,6 +5,7 @@
     "ra_deg": 25.7960181063863,
     "dec_deg": -58.0101141532437,
     "stellar_radius_rsun": 0.980363,
+    "stellar_radius_err_rsun": 0.05651,
     "teff_k": 4929.0,
     "tmag": 8.3197
   },
@@ -3896,6 +3897,7 @@
       ],
       "raw": {
         "tic_id": 231010756,
+        "period_days": 3.7842347185694605,
         "signal": {
           "period": 3.78423472,
           "t0": 3155.99050458,
@@ -3933,12 +3935,16 @@
           {
             "name": "size",
             "passed": false,
-            "reason": "Dip depth 9.448% on a 0.98 R_sun star implies about 2.93 Jupiter radii (32.9 Earth radii). That is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
+            "reason": "Dip depth 9.448% on a 0.98 R_sun star implies about 2.93 Jupiter radii (32.9 Earth radii), likely range 2.76-3.10. Even the low end is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
             "value": 2.932451
           }
         ],
         "radius_rjup": 2.9325,
+        "radius_lower_rjup": 2.7634,
+        "radius_upper_rjup": 3.1015,
         "stellar_radius_rsun": 0.980363,
+        "stellar_radius_err_rsun": 0.0565,
+        "stellar_radius_err_assumed": false,
         "secondary_search": {
           "depth": 0.06382146,
           "err": 2.188e-05,
@@ -4007,11 +4013,13 @@
         {
           "name": "size",
           "passed": false,
-          "reason": "Dip depth 9.448% on a 0.98 R_sun star implies about 2.93 Jupiter radii (32.9 Earth radii). That is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
+          "reason": "Dip depth 9.448% on a 0.98 R_sun star implies about 2.93 Jupiter radii (32.9 Earth radii), likely range 2.76-3.10. Even the low end is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
           "value": 2.932451
         }
       ],
       "radius_rjup": 2.9325,
+      "radius_lower_rjup": 2.7634,
+      "radius_upper_rjup": 3.1015,
       "type": "eclipsing_binary",
       "secondary_search": {
         "depth": 0.06382146,
@@ -4024,10 +4032,10 @@
   "flares_found": 0,
   "timings_s": {
     "resolve": 0.0,
-    "fetch": 0.11,
-    "search": 2.79,
-    "vet_known_flares": 0.25,
-    "total": 3.14
+    "fetch": 0.16,
+    "search": 2.84,
+    "vet_known_flares": 0.23,
+    "total": 3.22
   },
   "plots": [
     "tic231010756_sig1_folded.png"

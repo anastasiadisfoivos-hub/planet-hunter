@@ -45,6 +45,7 @@ class HuntResult:
         return {
             "target": {"tic_id": self.star.tic_id, "query": self.star.query, "ra_deg": self.star.ra_deg,
                        "dec_deg": self.star.dec_deg, "stellar_radius_rsun": self.star.radius_rsun,
+                       "stellar_radius_err_rsun": self.star.radius_err_rsun,
                        "teff_k": self.star.teff_k, "tmag": self.star.tmag},
             "data": [{k: p[k] for k in ("sector", "author", "exptime", "flux_column")} for p in self.products],
             "discoveries": [d.to_dict() for d in self.discoveries],
@@ -52,6 +53,10 @@ class HuntResult:
             "flares_found": self.flares_found,
             "timings_s": {k: round(v, 2) for k, v in self.timings_s.items()},
         }
+
+
+def _r4(x: float | None) -> float | None:
+    return None if x is None else round(float(x), 4)
 
 
 def btjd_to_iso(btjd: float) -> str:
@@ -110,12 +115,13 @@ def _transit_discovery(star: StarInfo, lc: LightCurveData, flat, keep, sig: Sign
     use = keep.copy()
     for o in others:  # vet each signal without the other signals' dips in the way
         use &= ~in_transit(t, o.period, o.t0, o.duration, scale=1.5)
-    sz = implied_radius(sig.depth, star.radius_rsun)
+    sz = implied_radius(sig.depth, star.radius_rsun, sig.depth_err, star.radius_err_rsun)
     sec_vet, sec = secondary_eclipse(t[use], flat[use], sig)
     vets = {"snr": snr(sig), "odd_even": odd_even(sig), "secondary_eclipse": sec_vet, "size": size(sz)}
     ctype, conf, explanation = classify(sig, vets)
     record = {"n": n, "signal": sig.to_dict(), "vetting": [v.to_dict() for v in vets.values()],
-              "radius_rjup": None if sz.radius_rjup is None else round(sz.radius_rjup, 4),
+              "radius_rjup": _r4(sz.radius_rjup), "radius_lower_rjup": _r4(sz.lower_rjup),
+              "radius_upper_rjup": _r4(sz.upper_rjup),
               "type": None if ctype is None else str(ctype),
               "secondary_search": {k: round(float(v), 8) if np.isfinite(v) else None for k, v in sec.items()}}
     if ctype is None:
@@ -134,10 +140,15 @@ def _transit_discovery(star: StarInfo, lc: LightCurveData, flat, keep, sig: Sign
     planet_name = kr.name if kr.list_name and "confirmed" in kr.list_name else None
     raw = {
         "tic_id": star.tic_id,
+        "period_days": float(sig.period),
         "signal": sig.to_dict(),
         "vetting": record["vetting"],
         "radius_rjup": record["radius_rjup"],
+        "radius_lower_rjup": record["radius_lower_rjup"],
+        "radius_upper_rjup": record["radius_upper_rjup"],
         "stellar_radius_rsun": star.radius_rsun,
+        "stellar_radius_err_rsun": _r4(sz.stellar_radius_err_rsun),
+        "stellar_radius_err_assumed": sz.stellar_radius_err_assumed,
         "secondary_search": record["secondary_search"],
         "known_match": {"list": kr.list_name, "listed_period": kr.listed_period, "alias": kr.alias,
                         **kr.extra, "errors": kr.errors},
@@ -168,7 +179,8 @@ def _flare_discovery(star: StarInfo, lc: LightCurveData, fl: Flare) -> Discovery
                      f"about {decay_min:.0f} minutes. A fast rise and slower fade is the usual shape of a flare, a "
                      f"magnetic outburst on the star. Spacecraft glitches or a passing asteroid can look similar. "
                      f"We did not compare it with any flare list."),
-        links=_links(star.tic_id), raw={"tic_id": star.tic_id, "flare": fl.to_dict()},
+        links=_links(star.tic_id),
+        raw={"tic_id": star.tic_id, "peak_btjd": float(fl.t_peak), "flare": fl.to_dict()},
     )
 
 

@@ -83,10 +83,15 @@ def secondary_eclipse(time: np.ndarray, flux: np.ndarray, sig: Signal) -> tuple[
 def size(sz: Size) -> VetResult:
     if sz.radius_rjup is None:
         return VetResult("size", None, sz.note + " The size test was skipped.")
-    if sz.radius_rjup > MAX_RADIUS_RJUP:
+    # Fail only when even the low end of the likely range is too big (star-size and depth errors included).
+    if sz.lower_rjup is not None and sz.lower_rjup > MAX_RADIUS_RJUP:
         return VetResult("size", False,
-                         f"{sz.note} That is bigger than any known planet (limit {MAX_RADIUS_RJUP:.0f} Jupiter "
-                         f"radii), so it is too large to be a planet.", sz.radius_rjup)
+                         f"{sz.note} Even the low end is bigger than any known planet (limit "
+                         f"{MAX_RADIUS_RJUP:.0f} Jupiter radii), so it is too large to be a planet.", sz.radius_rjup)
+    if sz.radius_rjup > MAX_RADIUS_RJUP:
+        return VetResult("size", True,
+                         f"{sz.note} The best estimate is above the {MAX_RADIUS_RJUP:.0f} Jupiter-radius limit but "
+                         f"the low end is not, so a planet cannot be ruled out on size.", sz.radius_rjup)
     return VetResult("size", True, f"{sz.note} That is within the size range of planets.", sz.radius_rjup)
 
 

@@ -7,7 +7,7 @@ from conftest import box, make_time
 from hunter.classify import TOO_LARGE_TEXT, classify
 from hunter.clean import clip_upward, flatten_for_search
 from hunter.flares import find_flares
-from hunter.measure import implied_radius
+from hunter.measure import RSUN_IN_RJUP, implied_radius
 from hunter.models import CatchType
 from hunter.search import in_transit, search
 from hunter.vet import odd_even, secondary_eclipse, size, snr
@@ -95,13 +95,32 @@ def test_hot_jupiter_occultation_does_not_fail_secondary(rng):
 
 def test_size_test_uses_radius_not_depth():
     # WASP-43 b-like: very deep (2.5%) but the star is small, so the object is Jupiter-sized.
-    small_star = size(implied_radius(0.025, 0.6))
+    small_star = size(implied_radius(0.025, 0.6, 1e-4, 0.03))
     assert small_star.passed is True
     assert small_star.value < 1.5
-    # Same depth on a big star: too large.
-    big_star = size(implied_radius(0.025, 2.0))
+    # Same depth on a big star: too large even at the low end of the range.
+    big_star = size(implied_radius(0.025, 2.0, 1e-4, 0.1))
     assert big_star.passed is False
     assert big_star.value > 2.0
+
+
+def test_size_fails_only_when_lower_bound_is_too_big():
+    # Best estimate 2.1 R_Jup with a 10% star-radius error: the low end (~1.9) is planet-sized, so it passes.
+    r_star = 2.1 / RSUN_IN_RJUP / np.sqrt(0.01)
+    sz = implied_radius(0.01, r_star, 0.0, 0.1 * r_star)
+    assert sz.radius_rjup == pytest.approx(2.1)
+    assert sz.lower_rjup == pytest.approx(2.1 * 0.9) and sz.upper_rjup == pytest.approx(2.1 * 1.1)
+    assert size(sz).passed is True
+    # Tight errors: the low end is above 2, so it fails.
+    assert size(implied_radius(0.01, r_star, 0.0, 0.01 * r_star)).passed is False
+
+
+def test_size_error_sources():
+    # Missing star-radius error -> 10% assumed; depth error enters at half weight.
+    sz = implied_radius(0.01, 1.0, 0.0, None)
+    assert sz.stellar_radius_err_assumed and sz.stellar_radius_err_rsun == pytest.approx(0.1)
+    sz = implied_radius(0.01, 1.0, 0.002, 1e-12)  # 20% depth error -> 10% radius error
+    assert sz.lower_rjup == pytest.approx(sz.radius_rjup * 0.9)
 
 
 def test_missing_stellar_radius_is_reported_not_invented():

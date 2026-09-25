@@ -16,6 +16,7 @@ from hunter import known
 from hunter.__main__ import main as cli_main
 from hunter.core import run
 from hunter.models import CatchType
+from test_contract import assert_raw_fields
 
 pytestmark = pytest.mark.network
 
@@ -88,6 +89,16 @@ def test_extra_eclipsing_binaries_fail_the_right_test(results, star, failing_tes
     assert d.type == CatchType.eclipsing_binary
     vet = next(v for v in d.raw["vetting"] if v["name"] == failing_test)
     assert vet["passed"] is False
+
+
+def test_raw_fields_on_every_discovery(results):
+    for target, res in results[0].items():
+        assert res.discoveries, target
+        for d in res.discoveries:
+            assert_raw_fields(d.to_dict())
+    for path in REPORTS.glob("*/result.json"):
+        for d in json.loads(path.read_text())["discoveries"]:
+            assert_raw_fields(d)
 
 
 def test_cached_run_is_faster(results):

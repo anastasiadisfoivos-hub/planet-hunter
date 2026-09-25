@@ -5,6 +5,7 @@
     "ra_deg": 52.3453132571917,
     "dec_deg": -24.1008602199979,
     "stellar_radius_rsun": 0.914135,
+    "stellar_radius_err_rsun": 0.0763442,
     "teff_k": 4423.0,
     "tmag": 8.0934
   },
@@ -3968,6 +3969,7 @@
       ],
       "raw": {
         "tic_id": 144539611,
+        "period_days": 1.9903666187308646,
         "signal": {
           "period": 1.99036662,
           "t0": 4208.84263389,
@@ -4005,12 +4007,16 @@
           {
             "name": "size",
             "passed": false,
-            "reason": "Dip depth 18.319% on a 0.91 R_sun star implies about 3.81 Jupiter radii (42.7 Earth radii). That is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
+            "reason": "Dip depth 18.319% on a 0.91 R_sun star implies about 3.81 Jupiter radii (42.7 Earth radii), likely range 3.49-4.13. Even the low end is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
             "value": 3.807338
           }
         ],
         "radius_rjup": 3.8073,
+        "radius_lower_rjup": 3.4894,
+        "radius_upper_rjup": 4.1253,
         "stellar_radius_rsun": 0.914135,
+        "stellar_radius_err_rsun": 0.0763,
+        "stellar_radius_err_assumed": false,
         "secondary_search": {
           "depth": 0.0001747,
           "err": 4.158e-05,
@@ -4647,6 +4653,7 @@
       ],
       "raw": {
         "tic_id": 144539611,
+        "peak_btjd": 4258.310684909883,
         "flare": {
           "t_start": 4258.302351,
           "t_peak": 4258.310685,
@@ -4699,11 +4706,13 @@
         {
           "name": "size",
           "passed": false,
-          "reason": "Dip depth 18.319% on a 0.91 R_sun star implies about 3.81 Jupiter radii (42.7 Earth radii). That is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
+          "reason": "Dip depth 18.319% on a 0.91 R_sun star implies about 3.81 Jupiter radii (42.7 Earth radii), likely range 3.49-4.13. Even the low end is bigger than any known planet (limit 2 Jupiter radii), so it is too large to be a planet.",
           "value": 3.807338
         }
       ],
       "radius_rjup": 3.8073,
+      "radius_lower_rjup": 3.4894,
+      "radius_upper_rjup": 4.1253,
       "type": "eclipsing_binary",
       "secondary_search": {
         "depth": 0.0001747,
@@ -4716,10 +4725,10 @@
   "flares_found": 1,
   "timings_s": {
     "resolve": 0.0,
-    "fetch": 0.11,
-    "search": 2.36,
-    "vet_known_flares": 0.21,
-    "total": 2.68
+    "fetch": 0.1,
+    "search": 2.39,
+    "vet_known_flares": 0.22,
+    "total": 2.7
   },
   "plots": [
     "tic144539611_sig1_folded.png"

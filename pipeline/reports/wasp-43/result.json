@@ -5,6 +5,7 @@
     "ra_deg": 154.908370601711,
     "dec_deg": -9.80627863994801,
     "stellar_radius_rsun": 0.757649,
+    "stellar_radius_err_rsun": 0.0747613,
     "teff_k": 4124.0,
     "tmag": 11.1184
   },
@@ -3943,7 +3944,7 @@
           0.999938
         ]
       },
-      "explanation": "Best guess: a planet candidate. A dip of 2.264% repeats every 0.8135 days and lasts about 0.9 hours. The dips are regular, alternate dips match and there is no strong second dip halfway round the orbit, which is what an object passing in front of the star would look like. Dip depth 2.264% on a 0.76 R_sun star implies about 1.11 Jupiter radii (12.4 Earth radii). That is within the size range of planets. A candidate is not a confirmed planet: other things, such as a faint background binary, can look the same. This matches WASP-43 b on the NASA Exoplanet Archive (confirmed) (same period).",
+      "explanation": "Best guess: a planet candidate. A dip of 2.264% repeats every 0.8135 days and lasts about 0.9 hours. The dips are regular, alternate dips match and there is no strong second dip halfway round the orbit, which is what an object passing in front of the star would look like. Dip depth 2.264% on a 0.76 R_sun star implies about 1.11 Jupiter radii (12.4 Earth radii), likely range 1.00-1.22. That is within the size range of planets. A candidate is not a confirmed planet: other things, such as a faint background binary, can look the same. This matches WASP-43 b on the NASA Exoplanet Archive (confirmed) (same period).",
       "links": [
         {
           "label": "ExoFOP-TESS target page",
@@ -3960,6 +3961,7 @@
       ],
       "raw": {
         "tic_id": 36734222,
+        "period_days": 0.8134626318426427,
         "signal": {
           "period": 0.81346263,
           "t0": 3718.83529867,
@@ -3997,12 +3999,16 @@
           {
             "name": "size",
             "passed": true,
-            "reason": "Dip depth 2.264% on a 0.76 R_sun star implies about 1.11 Jupiter radii (12.4 Earth radii). That is within the size range of planets.",
+            "reason": "Dip depth 2.264% on a 0.76 R_sun star implies about 1.11 Jupiter radii (12.4 Earth radii), likely range 1.00-1.22. That is within the size range of planets.",
             "value": 1.1093
           }
         ],
         "radius_rjup": 1.1093,
+        "radius_lower_rjup": 0.9998,
+        "radius_upper_rjup": 1.2188,
         "stellar_radius_rsun": 0.757649,
+        "stellar_radius_err_rsun": 0.0748,
+        "stellar_radius_err_assumed": false,
         "secondary_search": {
           "depth": 7.19e-05,
           "err": 4.383e-05,
@@ -4072,11 +4078,13 @@
         {
           "name": "size",
           "passed": true,
-          "reason": "Dip depth 2.264% on a 0.76 R_sun star implies about 1.11 Jupiter radii (12.4 Earth radii). That is within the size range of planets.",
+          "reason": "Dip depth 2.264% on a 0.76 R_sun star implies about 1.11 Jupiter radii (12.4 Earth radii), likely range 1.00-1.22. That is within the size range of planets.",
           "value": 1.1093
         }
       ],
       "radius_rjup": 1.1093,
+      "radius_lower_rjup": 0.9998,
+      "radius_upper_rjup": 1.2188,
       "type": "planet_candidate",
       "secondary_search": {
         "depth": 7.19e-05,
@@ -4089,10 +4097,10 @@
   "flares_found": 0,
   "timings_s": {
     "resolve": 0.0,
-    "fetch": 0.21,
-    "search": 4.53,
-    "vet_known_flares": 0.39,
-    "total": 5.14
+    "fetch": 0.13,
+    "search": 3.6,
+    "vet_known_flares": 0.25,
+    "total": 3.98
   },
   "plots": [
     "tic36734222_sig1_folded.png"

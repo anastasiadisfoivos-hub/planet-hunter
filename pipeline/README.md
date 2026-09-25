@@ -26,8 +26,8 @@ latest_data_marker(36734222)               # "sector-100" (MAST product listing 
 | fetch | `fetch.py` | Best product per sector: SPOC 2-min PDCSAP > TESS-SPOC PDCSAP > QLP. Newest `--max-sectors` (default 2) sectors of the best available kind. |
 | clean | `clean.py` | Per-sector normalise; biweight trend (0.9 d window = 3× the longest trial transit), evaluated per data segment. Transit search clips **upward** outliers only. |
 | search | `search.py` | astropy BLS, P 0.5–15 d, duration 0.03–0.3 d. Coarse per-sector search (likelihood powers summed), then a fine search on all data. First pass → mask transits → re-flatten → search again. Up to 3 signals. |
-| measure | `measure.py` | Rp = R★ · √depth. |
-| vet | `vet.py` | odd/even depths; secondary dip at phase 0.4–0.6; radius > 2 R_Jup; SNR < 7. Each is pass/fail (or `None` = could not run) plus a plain-English reason. |
+| measure | `measure.py` | Rp = R★ · √depth, with a 1σ range from the TIC R★ error (10% assumed if missing) and the BLS depth error. |
+| vet | `vet.py` | odd/even depths; secondary dip at phase 0.4–0.6; radius lower bound > 2 R_Jup; SNR < 7. Each is pass/fail (or `None` = could not run) plus a plain-English reason. |
 | flares | `flares.py` | Unclipped curve, 0.25 d trend, ≥3 points > 3σ, peak > 5σ, fade ≥ 2× rise, eclipses masked out. |
 | known | `known.py` | NASA Exoplanet Archive confirmed planets, TOI table, ExoFOP CTOIs (+ TESS EB catalogue, Prša+ 2022, for eclipsing binaries). Period within 1% or a ×2, ×3, ½, ⅓ alias. |
 
@@ -45,6 +45,8 @@ latest_data_marker(36734222)               # "sector-100" (MAST product listing 
   flares it is the unbinned ±0.2 d window around the peak.
 - `detected_at` = first transit mid-time in the data (or flare peak), BTJD → ISO-UTC.
 - `id` = `tess:<tic>:sig:<n>` (n = 1 strongest) and `tess:<tic>:flare:<peak BTJD, 2 dp>`.
+- `raw.period_days` (transit signals) and `raw.peak_btjd` (flares) are always present floats. Transit
+  signals also carry `raw.radius_rjup`, `raw.radius_lower_rjup`, `raw.radius_upper_rjup`.
 - `cutouts` are all `null` (no pixel data in this pipeline yet).
 
 ## Cache
