@@ -27,7 +27,7 @@ or doc may say **"discovered"** or **"new planet"**. Every type is a best guess 
 | [`web/`](web/) | Front end: sky map and star picker | Next.js, TypeScript |
 | [`contracts/`](contracts/) | The shared data shapes (`CONTRACT.md`, `CONVENTIONS.md`, JSON Schemas) | – |
 | [`deploy/`](deploy/) | Dockerfile, hosting research ([`HOSTING.md`](deploy/HOSTING.md)), go-live steps ([`SETUP.md`](deploy/SETUP.md)) | Docker |
-| [`.github/workflows/`](.github/workflows/) | CI (`ci.yml`), nightly checker + heatmap (`nightly.yml`) | GitHub Actions |
+| [`.github/workflows/`](.github/workflows/) | CI (`ci.yml`), nightly checker + heatmap (`nightly.yml`), pre-warmed API image (`image.yml`) | GitHub Actions |
 
 Each Python folder is its own uv project with its own `pyproject.toml` and `uv.lock`.
 
@@ -101,6 +101,7 @@ From the repo root:
 docker build -f deploy/Dockerfile -t planet-hunter-api .
 docker run --rm -p 8000:8000 planet-hunter-api               # fakes on
 docker run --rm -p 8000:8000 -e PH_ADAPTERS=real planet-hunter-api   # once the adapters are wired
+docker build -f deploy/Dockerfile --build-arg PREWARM_STARS="WASP-18,WASP-121" -t planet-hunter-api .   # bake in TESS data (needs network)
 ```
 
 The image contains `api/` plus whichever of `pipeline/`, `sources/` and `forecast/` exist.
@@ -117,13 +118,18 @@ The image contains `api/` plus whichever of `pipeline/`, `sources/` and `forecas
 
   Each job is off until its repo variable (`PH_NIGHTLY_ENABLED`, `PH_HEATMAP_ENABLED`) is `true`.
   Either can be started by hand from the Actions tab.
+- **`image.yml`** runs nightly and on every push to `main`, once `PH_IMAGE_ENABLED` is `true`:
+  - builds the API image with the TESS cache pre-warmed for the "Known systems" stars
+    (WASP-18, WASP-121, WASP-43, TOI-700);
+  - pushes it to `ghcr.io`;
+  - redeploys Render.
 
 ## Hosting
 
 All free tier, no credit card anywhere:
 
 - API: Render
-- Database: Neon Postgres
+- Database and accounts: Supabase (Postgres + Auth)
 - Front end: Vercel Hobby
 - Scheduled jobs: GitHub Actions
 

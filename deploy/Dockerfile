@@ -12,6 +12,12 @@
 #     lock file.
 #   - Otherwise every pipeline/ sources/ forecast/ folder with a pyproject.toml is installed into
 #     the same venv. Set --build-arg WITH_SIBLINGS=0 to build api/ alone.
+#
+# Pre-warmed TESS cache (optional, needs network at build time):
+#   docker build -f deploy/Dockerfile --build-arg PREWARM_STARS="WASP-18,WASP-121,WASP-43,TOI-700" .
+# runs `python -m hunter <star>` for each star, so the downloaded light curves and star lookups
+# are baked into the image. They survive Render's disk wipes because they're part of the image.
+# Empty by default: CI builds stay offline and fast.
 
 ARG PYTHON_VERSION=3.12
 
@@ -40,7 +46,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     fi
 
 # ---------- runtime ----------
-FROM python:${PYTHON_VERSION}-slim-bookworm
+FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
 
 # uid 1000 matches what Hugging Face Spaces runs containers as.
 RUN useradd --create-home --uid 1000 app \
@@ -56,7 +62,8 @@ ENV PATH=/opt/venv/bin:$PATH \
     MPLCONFIGDIR=/tmp/matplotlib \
     PORT=8000 \
     PH_DB_PATH=/data/traps.db \
-    PH_ADAPTERS=fake
+    PH_ADAPTERS=fake \
+    HUNTER_CACHE_DIR=/home/app/.cache/planet-hunter/pipeline
 
 USER app
 WORKDIR /home/app
@@ -64,6 +71,21 @@ EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD python -c "import os,urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/healthz', timeout=4)" || exit 1
+
+# ---------- final: runtime, plus the pre-warmed cache when PREWARM_STARS is set ----------
+FROM runtime
+ARG PREWARM_STARS=""
+# Change this (e.g. to the date) to refresh the cache instead of reusing the cached layer.
+ARG PREWARM_STAMP=""
+RUN if [ -z "$PREWARM_STARS" ]; then exit 0; fi; \
+    if ! python -c "import hunter" 2>/dev/null; then echo "pipeline/ not installed: skipping prewarm"; exit 0; fi; \
+    echo "$PREWARM_STARS" | tr ',' '\n' | while read -r star; do \
+      [ -n "$star" ] || continue; \
+      echo "prewarming $star"; \
+      python -W ignore -m hunter "$star" --out /tmp/prewarm >/dev/null || echo "prewarm failed: $star (continuing)"; \
+    done; \
+    rm -rf /tmp/prewarm; \
+    du -sh "$HUNTER_CACHE_DIR" 2>/dev/null || true
 
 # Shell form so $PORT (set by Render / Koyeb / HF Spaces) is honoured. exec keeps uvicorn as PID 1.
 CMD ["sh", "-c", "exec uvicorn --factory api.app:create_app --host 0.0.0.0 --port \"$PORT\" --proxy-headers --forwarded-allow-ips='*'"]
