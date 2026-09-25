@@ -86,7 +86,7 @@ jobs:
       - name: Check prerequisites
         run: |
           [ -f sources/pyproject.toml ] || { echo "::error::sources/ is not on this branch yet"; exit 1; }
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: true
           cache-dependency-glob: sources/uv.lock
