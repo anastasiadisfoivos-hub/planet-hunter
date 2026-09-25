@@ -25,6 +25,12 @@
   --supernova: #e8836a;
   --supernova-tint: rgb(232 131 106 / 0.12);
 
+  /* Map-only data colours: hunting grounds (added with the sky map) */
+  --ground-ecliptic: #d9be7c;
+  --ground-bulge: #d98ba6;
+  --ground-high: #b7a5f0;
+  --grid: #1f2127;
+
   /* Primary button */
   --primary-bg: var(--ink);
   --primary-ink: var(--bg);

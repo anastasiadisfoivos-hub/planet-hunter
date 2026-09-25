@@ -1,0 +1,542 @@
+/* Sky map screen. Tokens: app/tokens.css. Rules: DESIGN.md. */
+
+.shell {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: var(--layers-w) minmax(0, 1fr) var(--inspector-w);
+  grid-template-rows: minmax(0, 1fr) var(--statusbar-h);
+  grid-template-areas:
+    "layers sky inspector"
+    "status status status";
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.layers {
+  grid-area: layers;
+  border-radius: 0;
+  border-width: 0 1px 0 0;
+}
+
+.inspector {
+  grid-area: inspector;
+  border-radius: 0;
+  border-width: 0 0 0 1px;
+}
+
+.sky {
+  grid-area: sky;
+  position: relative;
+  min-width: 0;
+  background: var(--bg-deep);
+  overflow: hidden;
+}
+
+.shell[data-mode="draw"] .sky canvas {
+  cursor: crosshair;
+}
+
+.skeletonPanel {
+  background: var(--raised);
+}
+
+.centerNote {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+/* ---------- text helpers ---------- */
+
+.muted {
+  color: var(--ink-muted);
+  font-size: var(--text-13);
+}
+
+.h3 {
+  font-size: var(--text-17);
+}
+
+.h4 {
+  font-size: var(--text-14);
+}
+
+.stack {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.stackTight {
+  display: grid;
+  gap: var(--s-1);
+}
+
+.rowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.rowBetween > div > .label,
+.rowBetween > div > p:first-child {
+  margin-bottom: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.blocked {
+  padding: var(--s-3);
+  border: 1px solid rgb(232 131 106 / 0.35);
+  border-radius: var(--radius-control);
+  background: var(--supernova-tint);
+  color: var(--ink);
+  font-size: var(--text-13);
+}
+
+.skeleton {
+  height: 96px;
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+}
+
+/* ---------- toolbar, hint, readout (over the sky) ---------- */
+
+.toolbar {
+  position: absolute;
+  z-index: var(--z-panel);
+  top: var(--s-3);
+  left: var(--s-3);
+  right: var(--s-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  pointer-events: none;
+}
+
+.toolbar > * {
+  pointer-events: auto;
+}
+
+.jump select {
+  height: var(--control-h);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  color: var(--ink-secondary);
+  font-size: var(--text-12);
+}
+
+.hint {
+  position: absolute;
+  z-index: var(--z-panel);
+  left: var(--s-3);
+  bottom: var(--s-3);
+  max-width: 48ch;
+  padding: 6px var(--s-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  color: var(--ink-muted);
+  font-size: var(--text-12);
+  pointer-events: none;
+}
+
+.readout {
+  position: absolute;
+  z-index: var(--z-overlay);
+  left: 0;
+  top: 0;
+  display: flex;
+  gap: var(--s-2);
+  align-items: baseline;
+  padding: 4px var(--s-2);
+  border: 1px solid var(--accent-line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--text-12);
+  white-space: nowrap;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.readout[hidden],
+.readout[data-visible="false"] {
+  visibility: hidden;
+}
+
+.readout > span + span {
+  color: var(--ink-secondary);
+}
+
+.readoutBlocked {
+  color: var(--supernova) !important;
+}
+
+/* ---------- layers ---------- */
+
+.layer {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.layer:last-of-type {
+  border-bottom: 0;
+}
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--control-h);
+  cursor: pointer;
+}
+
+.layerName {
+  flex: 1;
+  font-size: var(--text-13);
+}
+
+.swatch,
+.swatchEmpty {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.swatchEmpty {
+  border: 1px solid var(--control-border);
+}
+
+.switch {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  margin: 0;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  transition:
+    transform var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+
+.switch:checked {
+  border-color: var(--accent-line);
+  background: var(--accent-tint);
+}
+
+.switch:checked::after {
+  transform: translateX(12px);
+  background: var(--accent);
+}
+
+.layerBody {
+  display: grid;
+  gap: var(--s-2);
+  padding-left: calc(8px + var(--s-2));
+  color: var(--ink-muted);
+  font-size: var(--text-12);
+}
+
+.legend {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend li {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.legend .swatch {
+  margin-top: 5px;
+}
+
+.legend strong {
+  color: var(--ink-secondary);
+  font-weight: 500;
+}
+
+.field {
+  display: grid;
+  gap: var(--s-1);
+}
+
+.field select {
+  height: var(--control-h);
+  padding: 0 var(--s-2);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  font-size: var(--text-13);
+}
+
+.ramp {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.rampBar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--bg), var(--rubin), var(--ink));
+}
+
+.about {
+  padding-top: var(--s-2);
+  color: var(--ink-muted);
+  font-size: var(--text-12);
+}
+
+.about summary {
+  cursor: pointer;
+  min-height: 28px;
+  line-height: 28px;
+  color: var(--ink-secondary);
+}
+
+.about p + p,
+.about summary + p {
+  margin-top: var(--s-2);
+}
+
+/* ---------- inspector ---------- */
+
+.slider {
+  display: grid;
+  gap: var(--s-1);
+}
+
+.slider input {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.odds {
+  display: grid;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--hairline);
+}
+
+.odds li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: var(--text-13);
+}
+
+.watchList {
+  display: grid;
+  gap: var(--s-2);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--hairline);
+}
+
+.watchList ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.watchList li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.watchRow {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+  padding: var(--s-2);
+  margin-left: calc(-1 * var(--s-2));
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  text-align: left;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+
+.watchRow:hover {
+  background: var(--bg);
+}
+
+.watchText {
+  display: grid;
+  min-width: 0;
+  font-size: var(--text-13);
+}
+
+.watchText > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.watchText .muted {
+  font-size: var(--text-12);
+}
+
+/* ---------- status bar ---------- */
+
+.statusbar {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  padding: 0 var(--s-4);
+  border-top: 1px solid var(--hairline);
+  background: var(--bg);
+  font-size: var(--text-12);
+  color: var(--ink-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.statusItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.statusItem:last-child {
+  margin-left: auto;
+}
+
+.sheetTabs {
+  display: none;
+}
+
+/* ---------- narrow screens: sky full width, panels as bottom sheets ---------- */
+
+@media (max-width: 1099px) {
+  .statusWide:nth-of-type(4),
+  .statusWide:nth-of-type(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 899px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto var(--statusbar-h);
+    grid-template-areas:
+      "sky"
+      "tabs"
+      "status";
+  }
+
+  .layers,
+  .inspector {
+    position: absolute;
+    z-index: var(--z-sheet);
+    left: 0;
+    right: 0;
+    bottom: calc(var(--statusbar-h) + 57px + env(safe-area-inset-bottom));
+    max-height: 62dvh;
+    border-width: 1px 0 0;
+    border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+    display: none;
+  }
+
+  .shell[data-sheet="layers"] .layers,
+  .shell[data-sheet="watch"] .inspector {
+    display: flex;
+  }
+
+  .sheetTabs {
+    grid-area: tabs;
+    display: flex;
+    gap: var(--s-2);
+    padding: var(--s-2) var(--s-4);
+    border-top: 1px solid var(--hairline);
+    background: var(--bg);
+  }
+
+  .sheetTabs button {
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 40px;
+    border: 1px solid var(--control-border);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--ink-secondary);
+    font-size: var(--text-13);
+    font-weight: 500;
+  }
+
+  .sheetTabs button[aria-pressed="true"] {
+    background: var(--raised);
+    color: var(--ink);
+  }
+
+  .statusbar {
+    gap: var(--s-4);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .statusWide {
+    display: none !important;
+  }
+
+  .toolbar .jump {
+    margin-left: auto;
+  }
+
+  .hint {
+    right: var(--s-3);
+    max-width: none;
+  }
+}

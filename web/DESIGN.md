@@ -29,6 +29,8 @@ Dark only.
 | `--accent` | `#A3B8FF` | **the one accent**: watches, planet hosts, selection, focus |
 | `--rubin` | `#6FD6C6` | Rubin coverage (data colour) |
 | `--supernova` | `#E8836A` | supernova detections (data colour); also used for blocking notices |
+| `--ground-ecliptic` / `--ground-bulge` / `--ground-high` | `#D9BE7C` / `#D98BA6` / `#B7A5F0` | map "hunting grounds" layer only (data colours) |
+| `--grid` | `#1F2127` | the faint RA/Dec grid on the sky |
 
 Rules:
 
@@ -56,7 +58,19 @@ Rules:
 
 - 120 to 200ms, `cubic-bezier(.2, 0, 0, 1)`, on opacity, transform and colour only.
 - Motion is for feedback and state change only; nothing loops. Under `prefers-reduced-motion`, every duration is 0.
-- No camera animations in this pass.
+- No camera animations in this pass. "Jump to" moves the view instantly.
+- The illustrated sky's nebula layer may drift very slightly (under 0.1°). This is off under reduced motion and on
+  phones.
+
+## The sky
+
+- The sky is where the beauty lives. Panels stay flat and minimal.
+- The illustrated layers (Milky Way, dust, Magellanic Clouds, nebulae) are procedural shaders placed at **real**
+  positions and sizes from public catalogues (see `CREDITS.md`). They sit behind a layer toggle,
+  "Artistic nebulae & clouds", which is on by default and carries the note "Shapes are illustrations; positions are
+  real." A drawn nebula is never labelled as a photo.
+- Data (catalogue stars, planet hosts in `--accent`, Rubin coverage, watches) always draws on top and must stay
+  readable over the brightest part of the band.
 
 ## Words
 
