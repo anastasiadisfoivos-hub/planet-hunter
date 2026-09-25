@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowSquareOut, CheckCircle, Circle, CircleNotch } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowSquareOut, CheckCircle, Circle, CircleNotch, Flask } from "@phosphor-icons/react";
 import { ChemicalFingerprint } from "@/components/lab/ChemicalFingerprint";
 import { Button, DataGrid, DemoTag, Tag } from "@/components/ui";
 import { analyze, API_MOCK, getJob, type AnalyzeJob, type AnalyzeTarget } from "@/lib/api";
@@ -235,6 +236,14 @@ export function StarDetail({ data, star, onBack }: { data: MapData; star: StarRe
         ]}
       />
       {star.kind === "host" && <p className={s.help}>Close-up surface is an illustration; colour, size and position are from real data.</p>}
+      {fpTic > 0 && (
+        <div>
+          <Link className={s.linkButton} href={`/lab/star/${fpTic}`}>
+            <Flask size={14} aria-hidden />
+            Open in Lab
+          </Link>
+        </div>
+      )}
       {fpTic > 0 && <ChemicalFingerprint tic={fpTic} />}
       <Analysis key={`${star.kind}:${star.i}`} target={f.target} />
     </article>

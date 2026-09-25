@@ -17,6 +17,8 @@ export type LabStar = {
   /** Where the map deep link points: /map?host=<tic> or /map?bright=<index>. */
   href: string;
   planets: string[];
+  /** TIC number when the star is a planet host (its own lab is /lab/star/<tic>). */
+  tic: number | null;
 };
 
 /** Absolute visual magnitude of the Sun. */
@@ -56,6 +58,7 @@ export async function loadLabStars(signal?: AbortSignal): Promise<LabStar[]> {
       lum: visualLum(st.mag[i], pc),
       href: `/map?bright=${i}`,
       planets: host >= 0 ? (hosts.planets?.[host] ?? []) : [],
+      tic: host >= 0 ? hosts.tic[host] : null,
     });
   }
   for (let i = 0; i < hosts.name.length; i++) {
@@ -69,6 +72,7 @@ export async function loadLabStars(signal?: AbortSignal): Promise<LabStar[]> {
       lum: visualLum(hosts.vmag[i], hosts.dist[i]),
       href: `/map?host=${hosts.tic[i]}`,
       planets: hosts.planets?.[i] ?? [],
+      tic: hosts.tic[i],
     });
   }
   return out;

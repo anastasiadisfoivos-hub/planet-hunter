@@ -24,7 +24,7 @@ const PRESETS = [
 ];
 
 /** Where the peak falls, in words. */
-function peakWords(nm: number): string {
+export function peakWords(nm: number): string {
   if (nm < 380) return "in the ultraviolet, beyond violet: invisible to us";
   if (nm < 450) return "in violet light";
   if (nm < 495) return "in blue light";
@@ -35,7 +35,7 @@ function peakWords(nm: number): string {
   return "in the infrared, beyond red: invisible to us";
 }
 
-function colourWords(teff: number): string {
+export function colourWords(teff: number): string {
   if (teff < 3700) return "orange-red";
   if (teff < 5200) return "orange";
   if (teff < 6000) return "yellow-white";
@@ -48,7 +48,7 @@ const RAINBOW = Array.from({ length: 19 }, (_, i) => 380 + i * 20);
 
 // ---------- the spectrum chart ----------
 
-function SpectrumChart({ teff }: { teff: number }) {
+export function SpectrumChart({ teff }: { teff: number }) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const h = w < 520 ? 240 : 300;
   const m = { l: 40, r: 12, t: 28, b: 44 };
@@ -119,7 +119,7 @@ function SpectrumChart({ teff }: { teff: number }) {
 const L_MIN = 1e-4;
 const L_MAX = 1e6;
 
-function StarField({ stars, teff, picked, onPick }: { stars: LabStar[]; teff: number; picked: LabStar | null; onPick: (st: LabStar) => void }) {
+export function StarField({ stars, teff, picked, onPick, labelPicked }: { stars: LabStar[]; teff: number; picked: LabStar | null; onPick: (st: LabStar) => void; labelPicked?: boolean }) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const canvas = useRef<HTMLCanvasElement>(null);
   const h = w < 520 ? 300 : 380;
@@ -202,6 +202,11 @@ function StarField({ stars, teff, picked, onPick }: { stars: LabStar[]; teff: nu
         </text>
         {mark(hover, false)}
         {mark(picked, true)}
+        {labelPicked && picked && (
+          <text className={s.chartLabelStrong} x={x(picked.teff) + (x(picked.teff) > w - 160 ? -12 : 12)} y={y(picked.lum) - 10} textAnchor={x(picked.teff) > w - 160 ? "end" : "start"} style={{ paintOrder: "stroke", stroke: "var(--bg-deep)", strokeWidth: 5, strokeLinejoin: "round" }}>
+            {picked.name}
+          </text>
+        )}
       </svg>
       {hover && (
         <div className={s.tooltip} style={{ left: x(hover.teff), top: y(hover.lum) }}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { Info, Pause, Play, SpeakerHigh } from "@phosphor-icons/react";
 import { Button, Segmented } from "@/components/ui";
 import { linear, LoadError, Note, nf0, Skeleton, ticks, XAxis, YAxis } from "./chart";
@@ -24,6 +24,21 @@ const TARGETS = [
 ] as const;
 type Target = (typeof TARGETS)[number]["value"];
 type Mode = "raw" | "folded";
+
+/** What the player plays: any light curve, with the transit signal when one is known. */
+export type Track = {
+  name: string;
+  time: number[];
+  flux: number[];
+  /** period, t0 and duration in days; depth as a fraction. */
+  signal: { period: number; t0: number; duration: number; depth: number; n_transits?: number } | null;
+  planet?: string | null;
+};
+
+function trackOf(r: Result): Track {
+  const d = r.discoveries[0];
+  return { name: r.target.query, time: d.light_curve.time_btjd, flux: d.light_curve.flux, signal: d.raw.signal, planet: d.name_if_known };
+}
 const SPEEDS = [
   { value: "0.5", label: "0.5×" },
   { value: "1", label: "1×" },
@@ -38,13 +53,12 @@ const M = { l: 52, r: 12, t: 28, b: 44 };
 
 type Series = { x: number[]; y: number[]; minY: number; maxY: number; gaps: Set<number> };
 
-function makeSeries(r: Result, mode: Mode): Series {
-  const d = r.discoveries[0];
-  const { time_btjd: t, flux: f } = d.light_curve;
-  const { period, t0 } = d.raw.signal;
+function makeSeries(tr: Track, mode: Mode): Series {
+  const { time: t, flux: f } = tr;
   let x: number[];
   let y: number[];
-  if (mode === "folded") {
+  if (mode === "folded" && tr.signal) {
+    const { period, t0 } = tr.signal;
     const b = foldAndBin(t, f, period, t0, 180);
     // Hours from the middle of the transit.
     x = b.phase.map((p) => p * period * 24);
@@ -136,10 +150,10 @@ class Voice {
   }
 }
 
-function LightCurve({ sr, mode, result, pos, onSeek, headRef, valueRef }: {
+function LightCurve({ sr, mode, track, pos, onSeek, headRef, valueRef }: {
   sr: Series;
   mode: Mode;
-  result: Result;
+  track: Track;
   pos: number;
   onSeek: (frac: number) => void;
   headRef: React.RefObject<SVGGElement | null>;
@@ -153,16 +167,16 @@ function LightCurve({ sr, mode, result, pos, onSeek, headRef, valueRef }: {
   const x = linear([x0, x1], [m.l, w - m.r]);
   const pad = (sr.maxY - sr.minY) * 0.08;
   const y = linear([sr.minY - pad, sr.maxY + pad], [h - m.b, m.t]);
-  const sig = result.discoveries[0].raw.signal;
+  const sig = track.signal;
 
   // One path, broken at data gaps.
   const d = sr.x.map((v, i) => `${i === 0 || sr.gaps.has(i - 1) ? "M" : "L"}${x(v).toFixed(1)},${y(sr.y[i]).toFixed(1)}`).join("");
   const transits = useMemo(() => {
-    if (mode !== "raw") return [];
+    if (mode !== "raw" || !sig) return [];
     const out: number[] = [];
     for (let n = Math.ceil((x0 - sig.t0) / sig.period); sig.t0 + n * sig.period <= x1; n++) out.push(sig.t0 + n * sig.period);
     return out;
-  }, [mode, x0, x1, sig.t0, sig.period]);
+  }, [mode, x0, x1, sig]);
 
   const seek = (e: PointerEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -172,7 +186,7 @@ function LightCurve({ sr, mode, result, pos, onSeek, headRef, valueRef }: {
   const xt = mode === "raw" ? ticks(x0, x1, w < 520 ? 4 : 8) : ticks(x0, x1, w < 520 ? 4 : 6);
   const yt = ticks(sr.minY - pad, sr.maxY + pad, 4);
   const headX = m.l + pos * (w - m.l - m.r);
-  const inTransit = (v: number) => v < 1 - sig.depth * 0.4;
+  const inTransit = (v: number) => !!sig && v < 1 - sig.depth * 0.4;
   const idx = Math.min(sr.x.length - 1, Math.max(0, sr.x.findIndex((v) => v >= x0 + pos * (x1 - x0))));
 
   return (
@@ -183,9 +197,9 @@ function LightCurve({ sr, mode, result, pos, onSeek, headRef, valueRef }: {
         height={h}
         role="img"
         aria-label={
-          mode === "raw"
-            ? `Brightness of ${result.target.query} over ${Math.round(x1 - x0)} days, with ${transits.length} dips where the planet passes in front.`
-            : `Brightness of ${result.target.query} with every transit stacked: one dip of ${(sig.depth * 100).toFixed(2)}% lasting about ${(sig.duration * 24).toFixed(1)} hours.`
+          mode === "raw" || !sig
+            ? `Brightness of ${track.name} over ${Math.round(x1 - x0)} days${sig ? `, with ${transits.length} dips where the planet passes in front` : ""}.`
+            : `Brightness of ${track.name} with every transit stacked: one dip of ${(sig.depth * 100).toFixed(2)}% lasting about ${(sig.duration * 24).toFixed(1)} hours.`
         }
         style={{ cursor: "pointer" }}
         onPointerDown={seek}
@@ -210,27 +224,36 @@ function LightCurve({ sr, mode, result, pos, onSeek, headRef, valueRef }: {
       </svg>
       <p className={s.help} style={{ padding: "var(--s-2) var(--s-1) 0" }}>
         Now <span ref={valueRef} className="mono">{(sr.y[idx] * 100).toFixed(2)}%</span>
-        {mode === "raw" ? ". Blue ticks mark the transits the analysis found. Click the plot to jump." : ". Blue points are inside the transit. Click the plot to jump."}
+        {mode === "raw" ? (sig ? ". Blue ticks mark the transits the analysis found. Click the plot to jump." : ". Click the plot to jump.") : ". Blue points are inside the transit. Click the plot to jump."}
       </p>
     </div>
   );
 }
 
-export function HearStar() {
-  const [target, setTarget] = useState<Target>("wasp-18");
+/**
+ * A light curve with a player: the chart, Play, speed and position, and what the signal means.
+ * `picker` goes at the top of the controls (the Hear-a-star page puts its star switch there).
+ */
+export function LightCurvePlayer({ track, picker, loading, error, onRetry }: {
+  track: Track | null;
+  picker?: ReactNode;
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
+}) {
   const [mode, setMode] = useState<Mode>("raw");
   const [speed, setSpeed] = useState("1");
   const [playing, setPlaying] = useState(false);
   const [pos, setPos] = useState(0);
   const reduced = useReducedMotion();
-  const { data, error, retry } = useJson<Result>(`/data/lab/${target}.result.json`);
-  const sr = useMemo(() => (data ? makeSeries(data, mode) : null), [data, mode]);
+  const view: Mode = track?.signal ? mode : "raw";
+  const sr = useMemo(() => (track ? makeSeries(track, view) : null), [track, view]);
   const voice = useRef<Voice | null>(null);
   const headRef = useRef<SVGGElement | null>(null);
   const valueRef = useRef<HTMLSpanElement | null>(null);
   const [audioError, setAudioError] = useState<string | null>(null);
 
-  const seconds = DURATION[mode] / Number(speed);
+  const seconds = DURATION[view] / Number(speed);
 
   const stop = useCallback(() => {
     if (voice.current) {
@@ -262,19 +285,21 @@ export function HearStar() {
     [sr, seconds],
   );
 
-  // Changing star or mode stops the sound and rewinds.
-  const reset = () => {
-    voice.current?.stop();
+  // A new light curve or view stops the sound and rewinds.
+  const [shown, setShown] = useState<{ track: Track | null; view: Mode }>({ track, view });
+  if (shown.track !== track || shown.view !== view) {
+    setShown({ track, view });
     setPlaying(false);
     setPos(0);
-  };
+  }
+  useEffect(() => () => voice.current?.stop(), [track, view]);
 
   // Changing speed while playing carries on from the same place.
   const changeSpeed = (v: string) => {
     setSpeed(v);
     if (playing && voice.current && sr) {
       const p = voice.current.position();
-      const secs = DURATION[mode] / Number(v);
+      const secs = DURATION[view] / Number(v);
       voice.current.play(sr, p, secs, () => {
         setPlaying(false);
         setPos(1);
@@ -324,127 +349,132 @@ export function HearStar() {
     return () => document.removeEventListener("visibilitychange", onHide);
   }, [stop]);
 
-  const d = data?.discoveries[0];
-  const sig = d?.raw.signal;
+  const sig = track?.signal;
 
   return (
-    <>
-      <div className={s.bench}>
-        <section className={s.chartBox} aria-labelledby="lc-h">
-          <div className={s.chartHead}>
-            <h2 id="lc-h" className={s.h3}>
-              {data ? `${data.target.query}, as seen by TESS` : "Light curve"}
-            </h2>
+    <div className={s.bench}>
+      <section className={s.chartBox} aria-label="Light curve">
+        <div className={s.chartHead}>
+          <h3 className={s.h3}>{track ? `${track.name}, as seen by TESS` : "Light curve"}</h3>
+          {sig && (
             <Segmented
               label="View"
-              value={mode}
-              onChange={(v) => {
-                reset();
-                setMode(v);
-              }}
+              value={view}
+              onChange={setMode}
               options={[
                 { value: "raw", label: "Raw" },
                 { value: "folded", label: "Folded" },
               ]}
             />
-          </div>
-          {error ? (
-            <LoadError what="The light curve" error={error} onRetry={retry} />
-          ) : sr && data ? (
-            <LightCurve
-              key={`${target}-${mode}`}
-              sr={sr}
-              mode={mode}
-              result={data}
-              pos={pos}
-              headRef={headRef}
-              valueRef={valueRef}
-              onSeek={(f) => (playing ? start(f) : setPos(f))}
-            />
-          ) : (
-            <Skeleton label="Loading the light curve" />
           )}
-        </section>
+        </div>
+        {error ? (
+          <LoadError what="The light curve" error={error} onRetry={onRetry ?? (() => {})} />
+        ) : sr && track && !loading ? (
+          <LightCurve
+            key={view}
+            sr={sr}
+            mode={view}
+            track={track}
+            pos={pos}
+            headRef={headRef}
+            valueRef={valueRef}
+            onSeek={(f) => (playing ? start(f) : setPos(f))}
+          />
+        ) : (
+          <Skeleton label="Loading the light curve" />
+        )}
+      </section>
 
-        <aside className={s.side} aria-label="Player">
-          <div className={s.block}>
-            <Segmented
-              label="Star"
-              block
-              value={target}
-              onChange={(v) => {
-                reset();
-                setTarget(v);
-              }}
-              options={TARGETS.map((t) => ({ value: t.value, label: t.label }))}
-            />
-            <div className={s.controls}>
-              <Button
-                variant="primary"
-                icon={playing ? <Pause size={16} weight="fill" /> : <Play size={16} weight="fill" />}
-                onClick={() => (playing ? stop() : start(pos))}
-                disabled={!sr}
-              >
-                {playing ? "Pause" : pos > 0 && pos < 1 ? "Resume" : "Play"}
-              </Button>
-              <Segmented label="Speed" value={speed} onChange={changeSpeed} options={SPEEDS} />
-            </div>
-            <label className={s.field}>
-              <span className="label">Position</span>
-              <input
-                className={s.range}
-                type="range"
-                min={0}
-                max={1000}
-                value={Math.round(pos * 1000)}
-                onChange={(e) => {
-                  const f = Number(e.target.value) / 1000;
-                  if (playing) start(f);
-                  else setPos(f);
-                }}
-                aria-valuetext={`${Math.round(pos * 100)}% of the way through`}
-              />
-            </label>
-            <p className={s.help}>
-              <SpeakerHigh size={12} aria-hidden style={{ verticalAlign: "-1px" }} /> Turn your sound on. Nothing plays until you press Play.
-            </p>
-            {audioError && (
-              <p className={s.help} role="alert">
-                {audioError}
-              </p>
-            )}
+      <aside className={s.side} aria-label="Player">
+        <div className={s.block}>
+          {picker}
+          <div className={s.controls}>
+            <Button
+              variant="primary"
+              icon={playing ? <Pause size={16} weight="fill" /> : <Play size={16} weight="fill" />}
+              onClick={() => (playing ? stop() : start(pos))}
+              disabled={!sr || loading}
+            >
+              {playing ? "Pause" : pos > 0 && pos < 1 ? "Resume" : "Play"}
+            </Button>
+            <Segmented label="Speed" value={speed} onChange={changeSpeed} options={SPEEDS} />
           </div>
+          <label className={s.field}>
+            <span className="label">Position</span>
+            <input
+              className={s.range}
+              type="range"
+              min={0}
+              max={1000}
+              value={Math.round(pos * 1000)}
+              onChange={(e) => {
+                const f = Number(e.target.value) / 1000;
+                if (playing) start(f);
+                else setPos(f);
+              }}
+              aria-valuetext={`${Math.round(pos * 100)}% of the way through`}
+            />
+          </label>
+          <p className={s.help}>
+            <SpeakerHigh size={12} aria-hidden style={{ verticalAlign: "-1px" }} /> Turn your sound on. Nothing plays until you press Play.
+          </p>
+          {audioError && (
+            <p className={s.help} role="alert">
+              {audioError}
+            </p>
+          )}
+        </div>
 
-          {d && sig && (
-            <div className={s.block}>
-              <dl className={s.readout}>
-                <div>
-                  <dt className="label">Orbit</dt>
-                  <dd>{(sig.period * 24).toFixed(1)} h</dd>
-                </div>
-                <div>
-                  <dt className="label">Dip depth</dt>
-                  <dd>{(sig.depth * 100).toFixed(2)}%</dd>
-                </div>
+        {track && sig && (
+          <div className={s.block}>
+            <dl className={s.readout}>
+              <div>
+                <dt className="label">Orbit</dt>
+                <dd>{sig.period < 2 ? `${(sig.period * 24).toFixed(1)} h` : `${sig.period.toFixed(2)} d`}</dd>
+              </div>
+              <div>
+                <dt className="label">Dip depth</dt>
+                <dd>{(sig.depth * 100).toFixed(2)}%</dd>
+              </div>
+              {sig.n_transits != null && (
                 <div>
                   <dt className="label">Transits</dt>
                   <dd>{sig.n_transits}</dd>
                 </div>
-                <div>
-                  <dt className="label">Each lasts</dt>
-                  <dd>{(sig.duration * 24).toFixed(1)} h</dd>
-                </div>
-              </dl>
-              <p className={s.body}>
-                {d.name_if_known ?? "The planet"} passes in front of its star every {(sig.period * 24).toFixed(1)} hours and blocks about{" "}
-                {(sig.depth * 100).toFixed(1)}% of its light. The brighter the star, the higher the note, so{" "}
-                <strong>every transit is a short drop in pitch</strong>.
-              </p>
-            </div>
-          )}
-        </aside>
-      </div>
+              )}
+              <div>
+                <dt className="label">Each lasts</dt>
+                <dd>{(sig.duration * 24).toFixed(1)} h</dd>
+              </div>
+            </dl>
+            <p className={s.body}>
+              {track.planet ?? "The planet"} passes in front of its star every{" "}
+              {sig.period < 2 ? `${(sig.period * 24).toFixed(1)} hours` : `${sig.period.toFixed(2)} days`} and blocks about{" "}
+              {(sig.depth * 100).toFixed(sig.depth < 0.001 ? 3 : 1)}% of its light. The brighter the star, the higher the note, so{" "}
+              <strong>every transit is a short drop in pitch</strong>.
+            </p>
+          </div>
+        )}
+      </aside>
+    </div>
+  );
+}
 
+export function HearStar() {
+  const [target, setTarget] = useState<Target>("wasp-18");
+  const { data, error, retry } = useJson<Result>(`/data/lab/${target}.result.json`);
+  const track = useMemo(() => (data ? trackOf(data) : null), [data]);
+  const sig = track?.signal;
+
+  return (
+    <>
+      <LightCurvePlayer
+        track={track}
+        error={error}
+        onRetry={retry}
+        picker={<Segmented label="Star" block value={target} onChange={setTarget} options={TARGETS.map((t) => ({ value: t.value, label: t.label }))} />}
+      />
       <section className={s.section} style={{ marginTop: "var(--s-8)" }} aria-labelledby="how-h">
         <div className={s.sectionHead}>
           <h2 id="how-h" className={s.h2}>

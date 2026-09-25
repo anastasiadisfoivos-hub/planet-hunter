@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type PointerEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { Info } from "@phosphor-icons/react";
 import { DemoTag, EmptyState, Segmented, Tag } from "@/components/ui";
 import { linear, log, Note, nf0, Skeleton, ticks, XAxis, YAxis } from "./chart";
@@ -14,6 +15,7 @@ import {
   formatTimesSun,
   gaiaXpPath,
   loadSpectra,
+  planetSlug,
   speciesName,
   sunPath,
   telluricSpecies,
@@ -42,7 +44,7 @@ export function formula(species: string): string {
   return species.replace(/\d/g, (d) => "₀₁₂₃₄₅₆₇₈₉"[Number(d)]);
 }
 
-function useSpectra<T>(path: string | null) {
+export function useSpectra<T>(path: string | null) {
   const [state, setState] = useState<{ path: string | null; value: Loaded<T> | null; done: boolean }>({ path: null, value: null, done: false });
   useEffect(() => {
     if (!path) return;
@@ -56,7 +58,7 @@ function useSpectra<T>(path: string | null) {
   return { value: fresh ? state.value : null, loading: !fresh || !state.done };
 }
 
-function SourceLine({ demo, text }: { demo: boolean; text: string }) {
+export function SourceLine({ demo, text }: { demo: boolean; text: string }) {
   return (
     <p className={s.help}>
       {demo && (
@@ -374,7 +376,7 @@ function SunSection() {
 
 // ---------- (c) a star against the Sun ----------
 
-function AbundanceBars({ ab }: { ab: Abundances }) {
+export function AbundanceBars({ ab }: { ab: Abundances }) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const rowH = 30;
   const m = { l: 112, r: 72, t: 8, b: 34 };
@@ -416,7 +418,7 @@ function AbundanceBars({ ab }: { ab: Abundances }) {
   );
 }
 
-function XpChart({ xp }: { xp: GaiaXp }) {
+export function XpChart({ xp }: { xp: GaiaXp }) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const h = 180;
   const m = { l: 12, r: 12, t: 12, b: 40 };
@@ -505,7 +507,7 @@ function StarSection({ initialTic }: { initialTic: number | null }) {
 
 // ---------- (d) a planet's air ----------
 
-function AtmosphereChart({ sp }: { sp: NonNullable<Atmosphere["spectrum"]> }) {
+export function AtmosphereChart({ sp }: { sp: NonNullable<Atmosphere["spectrum"]> }) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const h = w < 520 ? 240 : 280;
   const m = { l: 60, r: 12, t: 28, b: 44 };
@@ -531,11 +533,13 @@ function AtmosphereChart({ sp }: { sp: NonNullable<Atmosphere["spectrum"]> }) {
 }
 
 function PlanetSection() {
-  const [planet, setPlanet] = useState(LAB_PLANETS[0]);
+  // A star's own lab links here as ?planet=wasp-121-b.
+  const asked = useSearchParams().get("planet");
+  const [planet, setPlanet] = useState(() => LAB_PLANETS.find((p) => planetSlug(p) === asked) ?? LAB_PLANETS[0]);
   const at = useSpectra<Atmosphere>(atmospherePath(planet));
   const a = at.value?.data;
   return (
-    <section className={s.section} aria-labelledby="planet-h">
+    <section className={s.section} aria-labelledby="planet-h" id="planet">
       <div className={s.sectionHead}>
         <div className={s.titleRow}>
           <h2 id="planet-h" className={s.h2}>

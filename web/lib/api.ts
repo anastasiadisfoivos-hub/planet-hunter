@@ -154,7 +154,12 @@ export async function analyze(target: AnalyzeTarget): Promise<{ job_id: string }
     mockJobs.set(job_id, { target, start: Date.now() });
     return { job_id };
   }
-  const res = await fetch(`${API_BASE}/analyze`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ target }) });
+  // STARDATA reads `tic_id` at the top level; `target` stays for the older SPOTAPI shape.
+  const res = await fetch(`${API_BASE}/analyze`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ tic_id: target.tic_id, target }),
+  });
   if (!res.ok) throw new ApiError(res.status, `analyze: ${res.status}`);
   return res.json();
 }
@@ -172,6 +177,7 @@ export async function getJob(id: string, signal?: AbortSignal): Promise<AnalyzeJ
     return { key: s.key, label: s.label, state, seconds: state === "done" ? s.mockSeconds : null };
   });
   const done = elapsed >= t;
+  if (done && j.target.tic_id) mockAnalyzed.add(j.target.tic_id);
   demoResult ??= getJson<AnalysisResult>("/data/analysis/wasp-18/result.json");
   const isWasp18 = j.target.tic_id === 100100827 || /^WASP-18$/i.test(j.target.name);
   return {
@@ -182,5 +188,147 @@ export async function getJob(id: string, signal?: AbortSignal): Promise<AnalyzeJ
     result: done ? await demoResult : null,
     plotBase: done ? "/data/analysis/wasp-18/" : null,
     demo: !isWasp18,
+  };
+}
+
+// ---------- A star's own lab (GET /stars/{tic}/lab, GET /stars/{tic}/lightcurve) ----------
+//
+// Served by the STARDATA session. Until it is live, MOCK mode builds the same shapes from
+// public/data/hosts.json and public/data/lab/star-lab.mock.json (real NASA Exoplanet Archive values),
+// with two stored real TESS analyses (WASP-18, WASP-121). Which stars have a light curve is a stand-in
+// rule: Tmag brighter than 4 is "too_bright", no TESS magnitude is "no_tess_data", and the rest are
+// "not_analyzed" until the mock job above has run for them.
+
+export type LabSignal = { period_d: number; t0: number; duration_h: number; depth_ppm: number };
+/** radius in Earth radii, mass in Earth masses (the archive's pl_rade and pl_bmasse). */
+export type KnownPlanet = { name: string; period_d: number | null; a_au: number | null; radius: number | null; mass: number | null };
+export type LightcurveReason = "not_analyzed" | "no_tess_data" | "too_bright";
+
+export type StarLab = {
+  tic: number;
+  name: string;
+  /** Kelvin; radius in Suns; distance in parsecs; tmag in TESS magnitudes. */
+  teff: number | null;
+  radius: number | null;
+  distance: number | null;
+  tmag: number | null;
+  /** Star mass in Suns. Not in the STARDATA shape yet (requested); the Lab estimates it when missing. */
+  mass?: number | null;
+  lightcurve: { available: boolean; reason_if_not: LightcurveReason | string | null };
+  signals: LabSignal[];
+  known_planets: KnownPlanet[];
+  /** gaia_xp and abundances: whether the SPECTRA files exist for this star. */
+  spectra: { gaia_xp: boolean; abundances: boolean; planet_atmospheres: string[] };
+};
+
+export type StarLightcurve = { unfolded: { time_btjd: number[]; flux: number[] }; folded: { phase: number[]; flux: number[] } };
+
+/** A lab response plus what in it is a stand-in. `standIn` names the star whose data is borrowed. */
+export type Served<T> = { data: T; demo: boolean; standIn: string | null };
+
+type StoredResult = {
+  target: { query: string };
+  discoveries: { light_curve: { time_btjd: number[]; flux: number[] }; raw: { signal: { period: number; t0: number; duration: number; depth: number } } }[];
+};
+type StarLabMock = { meta: { source: string }; stars: Record<string, { mass: number | null; tmag: number | null; planets: [string, number | null, number | null, number | null, number | null][] }> };
+
+/** Real TESS analyses kept in the repo, by TIC. */
+const STORED: Record<number, string> = { 100100827: "wasp-18", 22529346: "wasp-121" };
+const STAND_IN_TIC = 100100827;
+/** Stars with SPECTRA stand-in files (public/data/lab/spectra-mock). */
+const MOCK_SPECTRA = new Set([100100827, 22529346, 181949561]);
+const MOCK_ATMOSPHERES = ["wasp-121-b", "wasp-39-b", "wasp-18-b"];
+export const TOO_BRIGHT_TMAG = 4;
+
+const mockAnalyzed = {
+  key: "ph-lab-analyzed",
+  read(): number[] {
+    try {
+      return JSON.parse(sessionStorage.getItem(this.key) ?? "[]") as number[];
+    } catch {
+      return [];
+    }
+  },
+  has(tic: number) {
+    return this.read().includes(tic);
+  },
+  add(tic: number) {
+    try {
+      sessionStorage.setItem(this.key, JSON.stringify([...new Set([...this.read(), tic])]));
+    } catch {
+      /* private mode: the unlock lasts until reload */
+    }
+    mockAnalyzedMemory.add(tic);
+  },
+};
+const mockAnalyzedMemory = new Set<number>();
+
+let hostsMock: Promise<import("@/lib/data").HostsFile> | null = null;
+let starLabMock: Promise<StarLabMock> | null = null;
+const stored = new Map<number, Promise<StoredResult>>();
+const storedResult = (tic: number) => {
+  if (!stored.has(tic)) stored.set(tic, getJson<StoredResult>(`/data/lab/${STORED[tic]}.result.json`));
+  return stored.get(tic)!;
+};
+
+function signalsOf(r: StoredResult): LabSignal[] {
+  return r.discoveries.map(({ raw: { signal: g } }) => ({ period_d: g.period, t0: g.t0, duration_h: g.duration * 24, depth_ppm: g.depth * 1e6 }));
+}
+
+export async function getStarLab(tic: number, signal?: AbortSignal): Promise<Served<StarLab>> {
+  if (!API_MOCK) return { data: await getJson<StarLab>(`${API_BASE}/stars/${tic}/lab`, signal), demo: false, standIn: null };
+  hostsMock ??= getJson("/data/hosts.json");
+  starLabMock ??= getJson("/data/lab/star-lab.mock.json");
+  const [hosts, extra] = await Promise.all([hostsMock, starLabMock]);
+  const i = hosts.tic.indexOf(tic);
+  if (i < 0) throw new ApiError(404, `TIC ${tic} is not one of the map's planet hosts`);
+  const x = extra.stars[tic] ?? { mass: null, tmag: null, planets: [] };
+  const own = tic in STORED;
+  const analyzed = own || mockAnalyzed.has(tic) || mockAnalyzedMemory.has(tic);
+  const reason: LightcurveReason | null =
+    x.tmag != null && x.tmag < TOO_BRIGHT_TMAG ? "too_bright" : x.tmag == null ? "no_tess_data" : analyzed ? null : "not_analyzed";
+  const standIn = !reason && !own;
+  const signals = reason ? [] : signalsOf(await storedResult(own ? tic : STAND_IN_TIC));
+  const known_planets = x.planets.map(([name, period_d, a_au, radius, mass]) => ({ name, period_d, a_au, radius, mass }));
+  const slug = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return {
+    data: {
+      tic,
+      name: hosts.name[i],
+      teff: hosts.teff[i] > 0 ? hosts.teff[i] : null,
+      radius: hosts.rad?.[i] > 0 ? hosts.rad[i] : null,
+      distance: hosts.dist[i] > 0 ? hosts.dist[i] : null,
+      tmag: x.tmag,
+      mass: x.mass,
+      lightcurve: { available: !reason, reason_if_not: reason },
+      signals,
+      known_planets,
+      spectra: {
+        gaia_xp: MOCK_SPECTRA.has(tic),
+        abundances: MOCK_SPECTRA.has(tic),
+        planet_atmospheres: known_planets.map((p) => slug(p.name)).filter((sl) => MOCK_ATMOSPHERES.includes(sl)),
+      },
+    },
+    demo: true,
+    standIn: standIn ? "WASP-18" : null,
+  };
+}
+
+export async function getStarLightcurve(tic: number, signal?: AbortSignal): Promise<Served<StarLightcurve>> {
+  if (!API_MOCK) return { data: await getJson<StarLightcurve>(`${API_BASE}/stars/${tic}/lightcurve`, signal), demo: false, standIn: null };
+  const own = tic in STORED;
+  const r = await storedResult(own ? tic : STAND_IN_TIC);
+  const d = r.discoveries[0];
+  const { period, t0 } = d.raw.signal;
+  const { time_btjd, flux } = d.light_curve;
+  const phase = time_btjd.map((t) => {
+    const p = ((((t - t0) / period) % 1) + 1) % 1;
+    return p >= 0.5 ? p - 1 : p;
+  });
+  const order = phase.map((_, k) => k).sort((a, b) => phase[a] - phase[b]);
+  return {
+    data: { unfolded: { time_btjd, flux }, folded: { phase: order.map((k) => phase[k]), flux: order.map((k) => flux[k]) } },
+    demo: true,
+    standIn: own ? null : r.target.query,
   };
 }
