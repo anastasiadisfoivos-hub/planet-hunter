@@ -20,7 +20,7 @@ from api.finder import CANDIDATE_ID, PIXEL_VERDICTS, summary_view, sweep_stages
 from api.ports import CandidateQuery, CandidateSort, Vote
 from api.timeutil import iso, parse, utcnow
 
-router = APIRouter(tags=["finder"])
+router = APIRouter(prefix="/finder", tags=["finder"])
 
 MAX_LIMIT = 200
 STATUSES = ("new", "under review", "dismissed", "exported")
@@ -201,7 +201,7 @@ def vote(
     }
 
 
-@router.get("/finder/funnel")
+@router.get("/funnel")
 def funnel(_: Reader, services: ServicesDep) -> dict:
     """The latest sweep's stages (from HUNT's summary), then what happened in the finder."""
     storage = services.storage
@@ -226,7 +226,7 @@ def funnel(_: Reader, services: ServicesDep) -> dict:
     }
 
 
-@router.get("/finder/sensitivity")
+@router.get("/sensitivity")
 def sensitivity(_: Reader, services: ServicesDep) -> dict:
     doc = services.storage.get_finder_doc("sensitivity")
     if doc is None:

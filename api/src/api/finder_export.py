@@ -64,14 +64,22 @@ def file_name(today: datetime) -> str:
     return f"params_planet_{today:%Y%m%d}_001.txt"
 
 
+def pixel_note(verdict: str | None) -> str:
+    """What the pixel check said, always stated: "inconclusive" and "not run" included."""
+    if verdict is None:
+        return "no pixel check yet"
+    if verdict == "inconclusive":
+        return "pixel check inconclusive"
+    return f"pixel check: {verdict}"
+
+
 def notes_for(candidate_id: str, rec: dict[str, Any], verdict: str | None) -> str:
-    parts = [f"planet-hunter candidate {candidate_id}"]
+    # The pixel note comes second so the 120-character cut never drops it.
+    parts = [f"planet-hunter candidate {candidate_id}", pixel_note(verdict)]
     if isinstance(rec.get("n_transits"), int):
         parts.append(f"{rec['n_transits']} TESS transits")
     if isinstance(rec.get("snr"), int | float):
         parts.append(f"SNR {rec['snr']:.1f}")
-    if verdict:
-        parts.append(f"pixel check: {verdict}")
     text = honesty.soften(_clean("; ".join(parts)))
     return text[:MAX_NOTES]
 

@@ -34,12 +34,12 @@ uv run python -m api.finder_ingest --dir ../hunt/candidates   # store sweep cand
 | GET | `/stars/{tic}/analysis` | | the stored result `{tic_id, data_marker, analyzed_at, marker_checked_at, analysis}` |
 | GET | `/stars/{tic}/lab` | | what exists for this star, for the web Lab (`/lab/star/<tic>`); see **Per-star Lab** |
 | GET | `/stars/{tic}/lightcurve` | | `{tic_id, data_marker, stored_at, unfolded: {time_btjd[], flux[], binned_from, sectors}, folded: [{signal_id, type, period_days, t0_btjd, duration_hours, depth_ppm, phase[], flux[]}]}`; **404** `{detail: {reason, tic_id}}` when none is stored |
-| GET | `/candidates` | filters below, `sort`, `cursor`, `limit` ≤ 200 (default 50) | `{items: [candidate summary], next_cursor}` |
-| GET | `/candidates/{id}` | header `X-Voter-Key` (optional) | `{candidate, pixel_vet, votes, my_vote}` |
-| POST | `/candidates/{id}/vote` | header `X-Voter-Key`; `{"vote": "planet"\|"fake"\|"unsure", "reason_chips": [...]}` | `{id, vote, reason_chips, previous_vote, status, votes}` |
+| GET | `/finder/candidates` | filters below, `sort`, `cursor`, `limit` ≤ 200 (default 50) | `{items: [candidate summary], next_cursor}` |
+| GET | `/finder/candidates/{id}` | header `X-Voter-Key` (optional) | `{candidate, pixel_vet, votes, my_vote}` |
+| POST | `/finder/candidates/{id}/vote` | header `X-Voter-Key`; `{"vote": "planet"\|"fake"\|"unsure", "reason_chips": [...]}` | `{id, vote, reason_chips, previous_vote, status, votes}` |
 | GET | `/finder/funnel` | | `{sweep_at, stages: [{stage, count, source}], by_status, by_pixel_verdict}` |
 | GET | `/finder/sensitivity` | | `{updated_at, sensitivity}` (404 until one is stored) |
-| POST | `/admin/candidates/export` | header `X-Admin-Token`; `{ids, tag?, paper_url?}` | ExoFOP CTOI upload file (text) |
+| POST | `/finder/export/ctoi` | `Authorization: Bearer <PH_ADMIN_TOKEN>`; `{ids, tag?, paper_url?}` | ExoFOP CTOI upload file (text) |
 | GET | `/healthz` | | `{ok: true}` |
 
 **`/events` filters.** All are optional and they combine with AND. List filters take either
@@ -219,7 +219,7 @@ plus `sector` and every sector's full web JSON in `images.per_sector`. A stored 
 `--no-pixels` / `--no-recheck` skip steps 4 / 2b. [ci/finder.yml](ci/finder.yml) runs this
 after each successful sweep. It uses the sweep's `candidates` artifact and `PH_ADAPTERS=real`.
 
-**`GET /candidates` filters** (they combine with AND; lists take `a,b` or repeated parameters):
+**`GET /finder/candidates` filters** (they combine with AND; lists take `a,b` or repeated parameters):
 - `min_radius` / `max_radius` (Jupiter radii);
 - `min_period` / `max_period` (days);
 - `pixel_verdict`: `on target`, `possible neighbour`, `off target`, `inconclusive`,
@@ -232,7 +232,7 @@ after each successful sweep. It uses the sweep's `candidates` artifact and `PH_A
 candidate without its curves and checks, plus `id, score, pixel_verdict, status,
 status_reason, votes: {planet, fake, unsure, total}, created_at, updated_at`.
 
-**`GET /candidates/{id}`** returns:
+**`GET /finder/candidates/{id}`** returns:
 - `candidate`: the full JSON plus status fields;
 - `pixel_vet`: the PixelVet plus `vetted_at`, and `current: false` when the ephemeris changed
   since the vet ran; `null` if it was never vetted;
@@ -246,10 +246,17 @@ up to 8 slugs (`a-z0-9_-`, ≤ 40 characters), lower-cased and de-duplicated. Th
 `new` candidate to `under review`. A dismissed candidate answers 409. Votes are limited per IP
 (`PH_RATE_VOTE_PER_MIN`), in a bucket separate from reads, so new keys don't get around it.
 
-**Export for ExoFOP.** `POST /admin/candidates/export {ids, tag?, paper_url?}` needs
-`X-Admin-Token` equal to `PH_ADMIN_TOKEN` (compared in constant time). It answers 404 when that
-variable is unset, 403 when the header is missing or wrong, 404/409 when an id is unknown or
-dismissed (then nothing is marked). It returns ExoFOP-TESS's **bulk planet-parameter upload**
+**Export for ExoFOP.** `POST /finder/export/ctoi {ids, tag?, paper_url?}` needs
+`Authorization: Bearer <PH_ADMIN_TOKEN>` (compared in constant time). Answers:
+- **404** when `PH_ADMIN_TOKEN` is unset;
+- **403** when the header is missing or wrong, or not `Bearer`;
+- **404 / 409** when an id is unknown / dismissed;
+- **422** `{reason: "Dip comes from a neighbour; not exportable", ids}` when a candidate's pixel
+  verdict is `off target`.
+
+Any refusal exports and marks nothing. Candidates whose pixel check was `inconclusive`, or that
+haven't been checked yet, can still be exported; their notes say `pixel check inconclusive` or
+`no pixel check yet`. It returns ExoFOP-TESS's **bulk planet-parameter upload**
 file, `params_planet_YYYYMMDD_001.txt`. The format is documented in ExoFOP's template
 <https://exofop.ipac.caltech.edu/tess/templates/params_planet_YYYYMMDD_001.txt>, linked from
 <https://exofop.ipac.caltech.edu/tess/help.php> under "Bulk Parameter Upload":
@@ -261,7 +268,7 @@ file, `params_planet_YYYYMMDD_001.txt`. The format is documented in ExoFOP's tem
   - `period`, `depth`, `duration`;
   - `radius` in Earth radii (R_J = 11.209 R_⊕);
   - `prop_period` = 0;
-  - `notes` ≤ 120 characters.
+  - `notes` ≤ 120 characters, always stating the pixel check.
 - **Comment lines:** lines starting with `\` are comments that ExoFOP ignores.
 
 The candidates are marked `exported`. The owner uploads the file by hand. Before uploading:
@@ -294,7 +301,7 @@ The candidates are marked `exported`. The owner uploads the file by hand. Before
 | `PH_ARCHIVE_TIMEOUT_S` | `8` | that question, inside `GET /stars/{tic}/lab` |
 | `PH_RATE_VOTE_PER_MIN` | `20` | POST /candidates/{id}/vote per IP per minute |
 | `PH_FINDER_VOTES_NEEDED` | `5` | `needs_votes=true`: open candidates with fewer votes than this |
-| `PH_ADMIN_TOKEN` | none | enables `/admin/*` (404 while unset); send it as `X-Admin-Token` |
+| `PH_ADMIN_TOKEN` | none | enables `POST /finder/export/ctoi` (404 while unset); send `Authorization: Bearer <token>` |
 
 ## Storage
 

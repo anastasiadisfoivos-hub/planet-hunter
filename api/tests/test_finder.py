@@ -16,6 +16,7 @@ from api.finder_export import COLUMNS
 from api.ports import KnownMatch
 
 TIC_A, TIC_B, TIC_C = 150428135, 283722336, 71268730
+C = "/finder/candidates"
 KEY = "voter-key-aaaaaaaaaaaaaaaa"
 KEY2 = "voter-key-bbbbbbbbbbbbbbbb"
 
@@ -228,6 +229,12 @@ def test_recheck_when_lists_are_down_keeps_candidates_open(storage, run, cands, 
          "matches EB TIC 5 (same period)"),
         ({"toi": [], "confirmed": [{"name": "WASP-18 b"}]}, "matches confirmed WASP-18 b"),
         ([{"list": "CTOI", "name": "TIC1.02"}], "matches CTOI TIC1.02"),
+        # the web client's shape: {confirmed, toi, ctoi, eb}, each bool or {matched, id}
+        ({"confirmed": False, "toi": {"matched": False, "id": None}, "ctoi": False, "eb": False},
+         None),
+        ({"confirmed": False, "toi": True, "ctoi": False, "eb": False}, "matches the toi list"),
+        ({"confirmed": False, "toi": False, "ctoi": False, "eb": {"matched": True, "id": "EB 7"}},
+         "matches eb EB 7"),
     ],
 )  # fmt: skip
 def test_known_match_shapes(value, expected):
@@ -247,7 +254,7 @@ def ingested(run, cands):
 def test_vote_cast_change_and_uniqueness(client, ingested):
     cid = f"{TIC_A}_1"
     chips = ["clean-dip", "Clean-Dip", "on-target"]
-    r = client.post(f"/candidates/{cid}/vote", json={"vote": "planet", "reason_chips": chips},
+    r = client.post(f"{C}/{cid}/vote", json={"vote": "planet", "reason_chips": chips},
                     headers={"X-Voter-Key": KEY})  # fmt: skip
     assert r.status_code == 200, r.text
     body = r.json()
@@ -255,38 +262,38 @@ def test_vote_cast_change_and_uniqueness(client, ingested):
     assert body["reason_chips"] == ["clean-dip", "on-target"]
     assert body["votes"] == {"planet": 1, "fake": 0, "unsure": 0, "total": 1}
 
-    r = client.post(f"/candidates/{cid}/vote", json={"vote": "fake", "reason_chips": ["v-shape"]},
+    r = client.post(f"{C}/{cid}/vote", json={"vote": "fake", "reason_chips": ["v-shape"]},
                     headers={"X-Voter-Key": KEY})  # fmt: skip
     assert r.json()["previous_vote"] == "planet"
     assert r.json()["votes"] == {"planet": 0, "fake": 1, "unsure": 0, "total": 1}
 
-    client.post(f"/candidates/{cid}/vote", json={"vote": "unsure"}, headers={"X-Voter-Key": KEY2})
-    detail = client.get(f"/candidates/{cid}", headers={"X-Voter-Key": KEY}).json()
+    client.post(f"{C}/{cid}/vote", json={"vote": "unsure"}, headers={"X-Voter-Key": KEY2})
+    detail = client.get(f"{C}/{cid}", headers={"X-Voter-Key": KEY}).json()
     assert detail["votes"]["total"] == 2
     assert detail["votes"]["reasons"] == {"fake": {"v-shape": 1}}
     assert detail["my_vote"]["vote"] == "fake" and detail["my_vote"]["reason_chips"] == ["v-shape"]
-    assert client.get(f"/candidates/{cid}").json()["my_vote"] is None
+    assert client.get(f"{C}/{cid}").json()["my_vote"] is None
 
 
 def test_vote_errors(client, ingested, storage, backend):
     cid = f"{TIC_A}_1"
-    assert client.post(f"/candidates/{cid}/vote", json={"vote": "planet"}).status_code == 400
-    bad_key = client.post(f"/candidates/{cid}/vote", json={"vote": "planet"},
+    assert client.post(f"{C}/{cid}/vote", json={"vote": "planet"}).status_code == 400
+    bad_key = client.post(f"{C}/{cid}/vote", json={"vote": "planet"},
                           headers={"X-Voter-Key": "short"})  # fmt: skip
     assert bad_key.status_code == 422
     h = {"X-Voter-Key": KEY}
-    assert client.post(f"/candidates/{cid}/vote", json={"vote": "maybe"}, headers=h).status_code \
+    assert client.post(f"{C}/{cid}/vote", json={"vote": "maybe"}, headers=h).status_code \
         == 422  # fmt: skip
-    assert client.post(f"/candidates/{cid}/vote", json={"vote": "planet", "reason_chips":
+    assert client.post(f"{C}/{cid}/vote", json={"vote": "planet", "reason_chips":
                        ["<script>"]}, headers=h).status_code == 422  # fmt: skip
-    assert client.post(f"/candidates/{cid}/vote", json={"vote": "planet", "reason_chips":
+    assert client.post(f"{C}/{cid}/vote", json={"vote": "planet", "reason_chips":
                        [f"c{i}" for i in range(9)]}, headers=h).status_code == 422  # fmt: skip
-    assert client.post("/candidates/1_9/vote", json={"vote": "planet"}, headers=h).status_code \
+    assert client.post(f"{C}/1_9/vote", json={"vote": "planet"}, headers=h).status_code \
         == 404  # fmt: skip
-    assert client.post("/candidates/x/vote", json={"vote": "planet"}, headers=h).status_code \
+    assert client.post(f"{C}/x/vote", json={"vote": "planet"}, headers=h).status_code \
         == 404  # fmt: skip
     storage.dismiss_candidate(cid, "matches TOI TOI-1.01", storage.get_candidate(cid)["created_at"])
-    assert client.post(f"/candidates/{cid}/vote", json={"vote": "planet"}, headers=h).status_code \
+    assert client.post(f"{C}/{cid}/vote", json={"vote": "planet"}, headers=h).status_code \
         == 409  # fmt: skip
     # Only a hash of the key is stored.
     assert KEY not in json.dumps(storage.vote_reasons(cid)) + str(storage.get_vote(cid, KEY))
@@ -297,7 +304,7 @@ def test_concurrent_votes_are_all_counted(client, ingested, storage):
     errors: list = []
 
     def cast(i: int) -> None:
-        r = client.post(f"/candidates/{cid}/vote", json={"vote": "planet" if i % 2 else "fake"},
+        r = client.post(f"{C}/{cid}/vote", json={"vote": "planet" if i % 2 else "fake"},
                         headers={"X-Voter-Key": f"concurrent-voter-{i:04d}"})  # fmt: skip
         if r.status_code != 200:
             errors.append(r.text)
@@ -317,14 +324,14 @@ def test_vote_rate_limit_is_per_ip_and_separate_from_reads(make_client, ingested
     cid = f"{TIC_A}_1"
 
     def vote(key: str) -> int:
-        return client.post(f"/candidates/{cid}/vote", json={"vote": "planet"},
+        return client.post(f"{C}/{cid}/vote", json={"vote": "planet"},
                            headers={"X-Voter-Key": key}).status_code  # fmt: skip
 
     assert [vote(KEY), vote(KEY2)] == [200, 200]
-    r = client.post(f"/candidates/{cid}/vote", json={"vote": "planet"},
+    r = client.post(f"{C}/{cid}/vote", json={"vote": "planet"},
                     headers={"X-Voter-Key": "a-third-voter-key-xyz"})  # fmt: skip
     assert r.status_code == 429 and int(r.headers["Retry-After"]) >= 1  # new keys don't help
-    assert client.get(f"/candidates/{cid}").status_code == 200
+    assert client.get(f"{C}/{cid}").status_code == 200
     clock.t += 30
     assert vote(KEY) == 200
 
@@ -333,31 +340,31 @@ def test_vote_rate_limit_is_per_ip_and_separate_from_reads(make_client, ingested
 
 
 def test_list_filters_sorts_and_cursor(client, ingested, storage, vetter, run):
-    body = client.get("/candidates").json()
+    body = client.get(f"{C}").json()
     assert _ids(body) == [f"{TIC_A}_1", f"{TIC_B}_1", f"{TIC_C}_1"]  # by score
     item = body["items"][0]
     assert item["pixel_verdict"] == "on target" and item["status"] == "new"
     assert "folded" not in item and item["radius_rjup"] == 0.42
-    assert _ids(client.get("/candidates?min_radius=1").json()) == [f"{TIC_B}_1"]
-    assert _ids(client.get("/candidates?max_radius=0.5&max_period=10").json()) == [f"{TIC_A}_1"]
-    assert _ids(client.get("/candidates?min_period=10").json()) == [f"{TIC_C}_1"]
-    assert _ids(client.get("/candidates?pixel_verdict=off_target").json()) == []
-    assert len(client.get("/candidates?pixel_verdict=on target,unvetted").json()["items"]) == 3
-    assert client.get("/candidates?pixel_verdict=bogus").status_code == 422
-    assert client.get("/candidates?status=nope").status_code == 422
+    assert _ids(client.get(f"{C}?min_radius=1").json()) == [f"{TIC_B}_1"]
+    assert _ids(client.get(f"{C}?max_radius=0.5&max_period=10").json()) == [f"{TIC_A}_1"]
+    assert _ids(client.get(f"{C}?min_period=10").json()) == [f"{TIC_C}_1"]
+    assert _ids(client.get(f"{C}?pixel_verdict=off_target").json()) == []
+    assert len(client.get(f"{C}?pixel_verdict=on target,unvetted").json()["items"]) == 3
+    assert client.get(f"{C}?pixel_verdict=bogus").status_code == 422
+    assert client.get(f"{C}?status=nope").status_code == 422
 
     h = {"X-Voter-Key": KEY}
-    client.post(f"/candidates/{TIC_C}_1/vote", json={"vote": "planet"}, headers=h)
-    assert _ids(client.get("/candidates?sort=votes").json())[0] == f"{TIC_C}_1"
-    assert _ids(client.get("/candidates?status=under review").json()) == [f"{TIC_C}_1"]
-    assert f"{TIC_C}_1" in _ids(client.get("/candidates?needs_votes=true").json())
+    client.post(f"{C}/{TIC_C}_1/vote", json={"vote": "planet"}, headers=h)
+    assert _ids(client.get(f"{C}?sort=votes").json())[0] == f"{TIC_C}_1"
+    assert _ids(client.get(f"{C}?status=under review").json()) == [f"{TIC_C}_1"]
+    assert f"{TIC_C}_1" in _ids(client.get(f"{C}?needs_votes=true").json())
     many = make_votes(client, f"{TIC_C}_1", 5)
-    assert many and f"{TIC_C}_1" not in _ids(client.get("/candidates?needs_votes=true").json())
+    assert many and f"{TIC_C}_1" not in _ids(client.get(f"{C}?needs_votes=true").json())
 
     storage.dismiss_candidate(f"{TIC_B}_1", "matches TOI x", storage.get_candidate(
         f"{TIC_B}_1")["created_at"])  # fmt: skip
-    assert f"{TIC_B}_1" not in _ids(client.get("/candidates").json())
-    assert _ids(client.get("/candidates?status=dismissed").json()) == [f"{TIC_B}_1"]
+    assert f"{TIC_B}_1" not in _ids(client.get(f"{C}").json())
+    assert _ids(client.get(f"{C}?status=dismissed").json()) == [f"{TIC_B}_1"]
 
     for n in range(2, 9):
         write(ingested, TIC_A, n, score=0.5, created_at=f"2026-09-{10 + n:02d}T00:00:00Z")
@@ -365,31 +372,31 @@ def test_list_filters_sorts_and_cursor(client, ingested, storage, vetter, run):
     for sort in ("score", "newest", "votes"):
         seen, cursor = [], None
         while True:
-            url = f"/candidates?sort={sort}&limit=3" + (f"&cursor={cursor}" if cursor else "")
+            url = f"{C}?sort={sort}&limit=3" + (f"&cursor={cursor}" if cursor else "")
             page = client.get(url).json()
             seen += _ids(page)
             cursor = page["next_cursor"]
             if not cursor:
                 break
         assert len(seen) == len(set(seen)) == 9, sort
-    newest = _ids(client.get("/candidates?sort=newest&limit=2").json())
+    newest = _ids(client.get(f"{C}?sort=newest&limit=2").json())
     # Same created_at: newest id first. TIC_B is dismissed, so not listed.
     assert newest == [f"{TIC_C}_1", f"{TIC_A}_1"]
-    assert client.get("/candidates?cursor=garbage").status_code == 422
-    score_cursor = client.get("/candidates?limit=1").json()["next_cursor"]
-    assert client.get(f"/candidates?sort=newest&cursor={score_cursor}").status_code == 422
+    assert client.get(f"{C}?cursor=garbage").status_code == 422
+    score_cursor = client.get(f"{C}?limit=1").json()["next_cursor"]
+    assert client.get(f"{C}?sort=newest&cursor={score_cursor}").status_code == 422
 
 
 def make_votes(client, cid: str, n: int) -> bool:
     return all(
-        client.post(f"/candidates/{cid}/vote", json={"vote": "unsure"},
+        client.post(f"{C}/{cid}/vote", json={"vote": "unsure"},
                     headers={"X-Voter-Key": f"bulk-voter-key-{i:04d}"}).status_code == 200
         for i in range(n)
     )  # fmt: skip
 
 
 def test_detail(client, ingested):
-    body = client.get(f"/candidates/{TIC_A}_1").json()
+    body = client.get(f"{C}/{TIC_A}_1").json()
     c = body["candidate"]
     assert c["id"] == f"{TIC_A}_1" and c["status"] == "new" and c["folded"]["flux"]
     assert c["checks"][0]["name"] == "odd_even"
@@ -397,8 +404,8 @@ def test_detail(client, ingested):
     assert vet["verdict"] == "on target" and vet["current"] is True
     assert set(vet["images"]) == {"out_of_transit", "difference", "markers"}
     assert body["votes"]["total"] == 0 and body["my_vote"] is None
-    assert client.get("/candidates/1_1").status_code == 404
-    assert client.get("/candidates/not-an-id").status_code == 404
+    assert client.get(f"{C}/1_1").status_code == 404
+    assert client.get(f"{C}/not-an-id").status_code == 404
 
 
 def test_funnel_and_sensitivity(client, storage, run, cands, tmp_path):
@@ -434,24 +441,62 @@ TOKEN = "s3cret-admin-token-0123456789"
 def test_admin_token(make_client, ingested):
     body = {"ids": [f"{TIC_A}_1"]}
     off = make_client()  # PH_ADMIN_TOKEN unset
-    assert off.post("/admin/candidates/export", json=body,
-                    headers={"X-Admin-Token": TOKEN}).status_code == 404  # fmt: skip
+    assert off.post("/finder/export/ctoi", json=body,
+                    headers={"Authorization": f"Bearer {TOKEN}"}).status_code == 404  # fmt: skip
     on = make_client(admin_token=TOKEN)
-    assert on.post("/admin/candidates/export", json=body).status_code == 403
-    assert on.post("/admin/candidates/export", json=body,
-                   headers={"X-Admin-Token": TOKEN + "x"}).status_code == 403  # fmt: skip
-    assert on.post("/admin/candidates/export", json=body,
-                   headers={"X-Admin-Token": ""}).status_code == 403  # fmt: skip
-    ok = on.post("/admin/candidates/export", json=body, headers={"X-Admin-Token": TOKEN})
+    assert on.post("/finder/export/ctoi", json=body).status_code == 403
+    assert on.post("/finder/export/ctoi", json=body,
+                   headers={"Authorization": f"Bearer {TOKEN}x"}).status_code == 403  # fmt: skip
+    assert on.post("/finder/export/ctoi", json=body,
+                   headers={"Authorization": TOKEN}).status_code == 403  # fmt: skip
+    ok = on.post("/finder/export/ctoi", json=body, headers={"Authorization": f"Bearer {TOKEN}"})
     assert ok.status_code == 200 and ok.headers["content-type"].startswith("text/plain")
-    assert "/admin/candidates/export" not in on.get("/openapi.json").text
+    assert "/finder/export/ctoi" not in on.get("/openapi.json").text
+    assert on.post("/finder/export/ctoi", json=body,
+                   headers={"Authorization": f"Basic {TOKEN}"}).status_code == 403  # fmt: skip
+
+
+def test_old_paths_are_gone(make_client, ingested):
+    client = make_client(admin_token=TOKEN)
+    assert client.get("/candidates").status_code == 404
+    assert client.get(f"/candidates/{TIC_A}_1").status_code == 404
+    assert client.post(f"/candidates/{TIC_A}_1/vote", json={"vote": "planet"},
+                       headers={"X-Voter-Key": KEY}).status_code == 404  # fmt: skip
+    assert client.post("/admin/candidates/export", json={"ids": [f"{TIC_A}_1"]},
+                       headers={"Authorization": f"Bearer {TOKEN}"}).status_code == 404  # fmt: skip
+
+
+def test_export_refuses_off_target_and_exports_nothing(make_client, storage, run, cands, vetter):
+    vetter.verdicts[TIC_B] = "off target"
+    vetter.verdicts[TIC_C] = "inconclusive"
+    run(cands)
+    client = make_client(admin_token=TOKEN)
+    h = {"Authorization": f"Bearer {TOKEN}"}
+    ids = [f"{TIC_A}_1", f"{TIC_B}_1", f"{TIC_C}_1"]
+    r = client.post("/finder/export/ctoi", headers=h, json={"ids": ids})
+    assert r.status_code == 422
+    assert r.json()["detail"] == {"reason": "Dip comes from a neighbour; not exportable",
+                                  "ids": [f"{TIC_B}_1"]}  # fmt: skip
+    assert {storage.get_candidate(i)["status"] for i in ids} == {"new"}  # nothing exported
+
+    write(cands, TIC_A, 2, score=0.1)  # a fresh candidate, not pixel-checked yet
+    run(cands, vetter=None)
+    ok = client.post("/finder/export/ctoi", headers=h,
+                     json={"ids": [f"{TIC_A}_1", f"{TIC_C}_1", f"{TIC_A}_2"]})  # fmt: skip
+    assert ok.status_code == 200, ok.text
+    data = [ln for ln in ok.text.splitlines() if not ln.startswith("\\")]
+    notes = {row.split("|")[0]: row.split("|")[-1] for row in data[1:]}
+    assert "pixel check: on target" in notes[f"TIC{TIC_A}.01"]
+    assert "pixel check inconclusive" in notes[f"TIC{TIC_C}.01"]
+    assert "no pixel check yet" in notes[f"TIC{TIC_A}.02"]
+    assert all(len(n) <= 120 for n in notes.values())
 
 
 def test_export_file_columns_and_status(make_client, ingested, storage):
     client = make_client(admin_token=TOKEN)
-    h = {"X-Admin-Token": TOKEN}
+    h = {"Authorization": f"Bearer {TOKEN}"}
     ids = [f"{TIC_A}_1", f"{TIC_B}_1"]
-    r = client.post("/admin/candidates/export", headers=h,
+    r = client.post("/finder/export/ctoi", headers=h,
                     json={"ids": ids, "tag": "20260926_owner_finder",
                           "paper_url": "https://doi.org/10.0000/x"})  # fmt: skip
     assert r.status_code == 200
@@ -483,17 +528,17 @@ def test_export_file_columns_and_status(make_client, ingested, storage):
 
 def test_export_rejects_unknown_and_dismissed(make_client, ingested, storage):
     client = make_client(admin_token=TOKEN)
-    h = {"X-Admin-Token": TOKEN}
-    r = client.post("/admin/candidates/export", headers=h, json={"ids": [f"{TIC_A}_1", "7_7"]})
+    h = {"Authorization": f"Bearer {TOKEN}"}
+    r = client.post("/finder/export/ctoi", headers=h, json={"ids": [f"{TIC_A}_1", "7_7"]})
     assert r.status_code == 404 and r.json()["detail"]["ids"] == ["7_7"]
     storage.dismiss_candidate(f"{TIC_B}_1", "matches TOI x", storage.get_candidate(
         f"{TIC_B}_1")["created_at"])  # fmt: skip
-    r = client.post("/admin/candidates/export", headers=h, json={"ids": [f"{TIC_B}_1"]})
+    r = client.post("/finder/export/ctoi", headers=h, json={"ids": [f"{TIC_B}_1"]})
     assert r.status_code == 409
     assert storage.get_candidate(f"{TIC_A}_1")["status"] == "new"  # nothing marked
-    r = client.post("/admin/candidates/export", headers=h, json={"ids": [f"{TIC_A}_1"]})
+    r = client.post("/finder/export/ctoi", headers=h, json={"ids": [f"{TIC_A}_1"]})
     assert "\\ WARNING: `paper` is empty" in r.text  # ExoFOP requires one for newctoi
-    assert client.post("/admin/candidates/export", headers=h, json={"ids": []}).status_code == 422
+    assert client.post("/finder/export/ctoi", headers=h, json={"ids": []}).status_code == 422
 
 
 # honesty -------------------------------------------------------------------------------------
@@ -509,11 +554,11 @@ def test_honesty_scan(client, storage, run, cands, tmp_path, make_client):
     assert not honesty.violations(stored)
     assert stored["checks"][0]["reason"] == "Looks like a planet candidate detected by TESS"
     # HonestClient fails on any violation in a JSON response.
-    client.get("/candidates")
-    client.get(f"/candidates/{TIC_A}_1")
+    client.get(f"{C}")
+    client.get(f"{C}/{TIC_A}_1")
     client.get("/finder/funnel")
     admin = make_client(admin_token=TOKEN)
-    text = admin.post("/admin/candidates/export", headers={"X-Admin-Token": TOKEN},
+    text = admin.post("/finder/export/ctoi", headers={"Authorization": f"Bearer {TOKEN}"},
                       json={"ids": [f"{TIC_A}_1"]}).text  # fmt: skip
     assert not honesty.BANNED.search(text)
 

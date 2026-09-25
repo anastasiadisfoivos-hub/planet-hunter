@@ -116,6 +116,8 @@ _NO_MATCH = {"not_on_lists", "unchecked", "no_match", "none", "clear", "not_foun
 
 
 def _entry_match(list_name: str | None, entry: Any) -> KnownMatch | None:
+    if entry is True:  # {"toi": true}
+        return KnownMatch(list_name or "known", None)
     if not isinstance(entry, dict):
         return KnownMatch(list_name or "known", str(entry)) if entry else None
     if entry.get("matched") is False or entry.get("match") is False:
@@ -137,7 +139,8 @@ def known_match(known_lists: Any) -> KnownMatch | None:
 
     Accepted: a list of matches ([{list, name, ...}]; `matched: false` or `status: not_on_lists`
     entries are not matches), one hunter.known.check() result ({status: "known", list_name,
-    name, alias}), or {list name: [matches]}. Empty or absent: no match.
+    name, alias}), or {list name: match or [matches]}, where a match may be `true` or
+    {matched: true, id} (the web client's {confirmed, toi, ctoi, eb}). Empty or absent: no match.
     """
     if not known_lists:
         return None

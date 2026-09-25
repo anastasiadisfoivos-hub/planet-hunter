@@ -53,7 +53,7 @@ def create_app(
             CORSMiddleware,
             allow_origins=list(settings.web_origins),
             allow_methods=["GET", "POST"],
-            allow_headers=["Content-Type", "X-Voter-Key"],
+            allow_headers=["Content-Type", "X-Voter-Key", "Authorization"],
             expose_headers=["Retry-After"],
             max_age=3600,
         )
