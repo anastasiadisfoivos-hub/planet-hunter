@@ -1,0 +1,41 @@
+[project]
+name = "skysources"
+version = "0.1.0"
+description = "Rubin/LSST sky data clients for planet-hunter: broker alerts, Rubin visit schedule, known solar-system objects, sky heatmap."
+readme = "README.md"
+authors = [
+    { name = "Foivos Anastasiadis", email = "anastasiadis.foivos@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "astropy>=8.0.1",
+    "astropy-healpix>=2.0.1",
+    "astroquery>=0.4.11",
+    "httpx>=0.28.1",
+    "numpy>=2.5.3",
+    "pyarrow>=25.0.1",
+]
+
+[project.scripts]
+skysources-heatmap = "skysources.heatmap:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "respx>=0.23.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+ignore = ["FURB162"]  # explicit tz replacement reads clearer here
