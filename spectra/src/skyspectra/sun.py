@@ -1,10 +1,11 @@
 """sun_spectrum.json: the real Sun, from the Kitt Peak Solar Flux Atlas 2005 (Kurucz).
 
 The atlas is residual flux (continuum = 1) every 0.0005 nm from 300 to 1000 nm, air wavelengths,
-solar laboratory frame. We average it into bins (<= 5,000 points over 380-750 nm) and label the
-classic Fraunhofer lines. Each label's wavelength is the laboratory (NIST, air) value; a label is
-only kept if the full-resolution atlas really has an absorption line there (checked, see
-`find_line`), and the measured depth is reported with it.
+solar laboratory frame. We average it into bins (<= 5,000 points over 380-770 nm) and label the
+classic Fraunhofer lines, marking which the Sun makes ("origin": "sun") and which Earth's air
+makes ("earth_atmosphere": the O2 A and B bands, water). Each solar label's wavelength is the
+laboratory (NIST, air) value; a label is only kept if the full-resolution atlas really has an
+absorption line there (checked, see `find_line`), and the measured depth is reported with it.
 """
 
 from __future__ import annotations
@@ -15,12 +16,12 @@ from . import sources
 from .net import DAY, Net
 
 ATLAS_URL = "http://kurucz.harvard.edu/sun/fluxatlas2005/solarfluxintwl.asc"
-LOW_NM, HIGH_NM = 380.0, 750.0
-BIN_NM = 0.075  # -> 4,934 points over 380-750 nm
+LOW_NM, HIGH_NM = 380.0, 770.0  # to 770 nm so the telluric O2 A band (759 nm) is in
+BIN_NM = 0.08  # -> 4,875 points
 MAX_POINTS = 5000
 
-# (air nm, element, label). Laboratory wavelengths from NIST ASD; Fraunhofer letters after
-# Fraunhofer (1817). The G band is mostly CH molecule, with the Fe I line at its core.
+# (air nm, element, label) of solar lines. Laboratory wavelengths from NIST ASD; Fraunhofer
+# letters after Fraunhofer (1817). The G band is mostly CH molecule, with the Fe I line at its core.
 FRAUNHOFER: list[tuple[float, str, str]] = [
     (393.366, "Ca", "K (Ca II)"),
     (396.847, "Ca", "H (Ca II)"),
@@ -38,7 +39,13 @@ FRAUNHOFER: list[tuple[float, str, str]] = [
     (588.995, "Na", "D2 (Na I)"),
     (589.592, "Na", "D1 (Na I)"),
     (656.281, "H", "C, H-alpha"),
-    (686.719, "O", "B (telluric O2)"),
+]
+# Features made by Earth's air, not the Sun (the atlas was observed from Kitt Peak):
+# (band head / strongest line nm, molecule, label, search half-width nm).
+TELLURIC: list[tuple[float, str, str, float]] = [
+    (686.72, "O2", "B (telluric O2)", 0.8),
+    (718.5, "H2O", "a (telluric H2O band)", 1.5),
+    (759.37, "O2", "A (telluric O2)", 0.8),
 ]
 MAX_OFFSET_NM = 0.04  # the atlas minimum must sit this close to the lab wavelength
 MAX_DEPTH_FLUX = 0.85  # ... and be at least 15% deep
@@ -65,7 +72,7 @@ def parse_atlas(text: str, low: float = 0.0, high: float = math.inf) -> tuple[li
 
 
 def bin_mean(wl: list[float], fx: list[float], low: float, high: float, width: float) -> tuple[list, list]:
-    n = round((high - low) / width)
+    n = int((high - low) / width + 1e-9)  # whole bins only
     sums = [0.0] * n
     counts = [0] * n
     for w, f in zip(wl, fx):
@@ -81,11 +88,12 @@ def bin_mean(wl: list[float], fx: list[float], low: float, high: float, width: f
     return out_w, out_f
 
 
-def find_line(wl: list[float], fx: list[float], nm: float) -> tuple[float, float] | None:
-    """(wavelength, flux) of the deepest atlas point within MAX_OFFSET_NM of nm, if deep enough."""
+def find_line(wl: list[float], fx: list[float], nm: float,
+              half_width: float = MAX_OFFSET_NM) -> tuple[float, float] | None:
+    """(wavelength, flux) of the deepest atlas point within half_width of nm, if deep enough."""
     best = None
-    for w, f in zip(wl, fx):
-        if abs(w - nm) <= MAX_OFFSET_NM and (best is None or f < best[1]):
+    for w, f in zip(wl, fx, strict=True):
+        if abs(w - nm) <= half_width and (best is None or f < best[1]):
             best = (w, f)
     if best is None or best[1] > MAX_DEPTH_FLUX:
         return None
@@ -99,15 +107,17 @@ def build_sun(net: Net, low: float = LOW_NM, high: float = HIGH_NM, width: float
     if len(bw) > MAX_POINTS:
         raise ValueError(f"{len(bw)} points > {MAX_POINTS}")
     lines = []
-    for nm, element, label in FRAUNHOFER:
+    features = [(nm, el, label, MAX_OFFSET_NM, "sun") for nm, el, label in FRAUNHOFER]
+    features += [(nm, mol, label, hw, "earth_atmosphere") for nm, mol, label, hw in TELLURIC]
+    for nm, element, label, half_width, origin in sorted(features):
         if not low <= nm <= high:
             continue
-        hit = find_line(wl, fx, nm)
+        hit = find_line(wl, fx, nm, half_width)
         if hit is None:
             continue
-        lines.append({"nm": nm, "element": element, "label": label,
-                      "atlas_min_nm": round(hit[0], 4), "atlas_min_flux": round(hit[1], 4),
-                      "telluric": "telluric" in label})
+        lines.append({"nm": nm, "element": element, "label": label, "origin": origin,
+                      "atlas_min_nm": round(hit[0], 4), "atlas_min_flux": max(0.0, round(hit[1], 4)),  # saturated cores dip below 0 by noise
+                      "telluric": origin == "earth_atmosphere"})
     return {
         "wavelength_nm": bw,
         "flux": bf,
@@ -117,4 +127,6 @@ def build_sun(net: Net, low: float = LOW_NM, high: float = HIGH_NM, width: float
         "wavelength_medium": "air, solar laboratory frame (gravitational redshift removed)",
         "binning": f"mean of the 0.0005 nm atlas samples in {width} nm bins",
         "line_wavelengths": "laboratory air wavelengths (NIST ASD); atlas_min_* is the measured line core",
+        "line_origin": ("'sun': absorbed in the solar atmosphere; 'earth_atmosphere': telluric, absorbed by "
+                        "O2 / H2O in Earth's air above Kitt Peak"),
     }

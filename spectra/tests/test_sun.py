@@ -3,7 +3,7 @@ from skyspectra.sun import BIN_NM, HIGH_NM, LOW_NM, MAX_POINTS, bin_mean, build_
 
 
 def test_full_window_fits_the_point_budget():
-    assert round((HIGH_NM - LOW_NM) / BIN_NM) <= MAX_POINTS
+    assert int((HIGH_NM - LOW_NM) / BIN_NM + 1e-9) <= MAX_POINTS
 
 
 def test_bin_mean_averages_samples():
@@ -30,7 +30,7 @@ def test_build_sun_real_atlas_na_d(replay):
     labels = {ln["label"]: ln for ln in doc["lines"]}
     assert set(labels) == {"D2 (Na I)", "D1 (Na I)"}
     for ln in labels.values():
-        assert ln["element"] == "Na" and ln["atlas_min_flux"] < 0.1  # the D lines are >90% deep
+        assert ln["element"] == "Na" and ln["origin"] == "sun" and ln["atlas_min_flux"] < 0.1  # the D lines are >90% deep
         assert abs(ln["atlas_min_nm"] - ln["nm"]) < 0.005
     # even binned, the flux dips at the D lines and is near continuum between features
     i = min(range(len(doc["flux"])), key=doc["flux"].__getitem__)
@@ -41,3 +41,10 @@ def test_build_sun_real_atlas_na_d(replay):
 def test_build_sun_real_atlas_ca_hk(replay):
     doc = build_sun(net.Net(), 392.0, 398.0)
     assert {ln["label"] for ln in doc["lines"]} == {"K (Ca II)", "H (Ca II)"}
+
+
+def test_line_origin_marks_the_sun():
+    from skyspectra.sun import FRAUNHOFER, TELLURIC
+
+    assert {m for _, m, _, _ in TELLURIC} == {"O2", "H2O"}
+    assert not {label for *_, label in FRAUNHOFER} & {label for _, _, label, _ in TELLURIC}

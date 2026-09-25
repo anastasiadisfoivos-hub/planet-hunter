@@ -1,0 +1,862 @@
+{
+ "source": "Hand-curated by planet-hunter (skyspectra) from the cited papers' own abstracts (arXiv / publisher pages); bibliographic data checked against Crossref.",
+ "credit": "Each detection credits its paper (reference.title, authors, journal, DOI). Compiled 2026-09-26.",
+ "licence": "Compilation: CC0 1.0 (facts with citations). abstract_quote fields are short verbatim excerpts quoted for attribution; copyright remains with the authors/publishers.",
+ "curated_at": "2026-09-26",
+ "method": "Every abstract_quote was copied from the paper's own abstract. For papers with an arXiv ID this is the arXiv abstract (read through the arXiv API, which returns the same text as https://arxiv.org/abs/<id>); for Vidal-Madjar et al. 2003 it is the nature.com publisher page. LaTeX markup in quotes is rendered as plain text (e.g. H$_2$O -> H2O, $\\sigma$ -> sigma); otherwise the wording is verbatim. arXiv abstracts can differ slightly from the final published abstracts. Titles, journal, volume, first page and DOI were checked against Crossref metadata for each DOI.",
+ "status_rules": "detected = claimed in the abstract without hedging; tentative = abstract hedges (evidence/possible/potential/likely) or the curator notes why; contested = a later peer-reviewed paper disputes it (cited in note).",
+ "ads_caveat": "ADS pages (ui.adsabs.harvard.edu) returned a CAPTCHA 'Human Verification' page and could not be read. The ADS bibcodes were built from the Crossref-verified year/journal/volume/page/first-author initial using the standard ADS bibcode format, but were NOT loaded and confirmed on ADS. Please spot-check them, or use the DOI links instead.",
+ "planets": {
+  "WASP-39 b": {
+   "detections": [
+    {
+     "species": "CO2",
+     "instrument": "JWST NIRSpec PRISM (3.0-5.5 um, ERS)",
+     "reference": {
+      "title": "Identification of carbon dioxide in an exoplanet atmosphere",
+      "authors": "JWST Transiting Exoplanet Community Early Release Science Team et al.",
+      "year": 2023,
+      "journal": "Nature 614, 649",
+      "doi": "10.1038/s41586-022-05269-w",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.614..649J/abstract",
+      "abstract_source": "https://arxiv.org/abs/2208.11692",
+      "doi_url": "https://doi.org/10.1038/s41586-022-05269-w"
+     },
+     "status": "detected",
+     "abstract_quote": "Here we present the detection of CO2 in the atmosphere of the gas giant exoplanet WASP-39b from transmission spectroscopy observations obtained with JWST as part of the Early Release Science Program (ERS). The data used in this study span 3.0 to 5.5 μm in wavelength and show a prominent CO2 absorption feature at 4.3 μm (26σ significance).",
+     "curated": true
+    },
+    {
+     "species": "Na",
+     "instrument": "JWST NIRSpec PRISM",
+     "reference": {
+      "title": "Early Release Science of the exoplanet WASP-39b with JWST NIRSpec PRISM",
+      "authors": "Rustamkulov et al.",
+      "year": 2023,
+      "journal": "Nature 614, 659",
+      "doi": "10.1038/s41586-022-05677-y",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.614..659R/abstract",
+      "abstract_source": "https://arxiv.org/abs/2211.10487",
+      "doi_url": "https://doi.org/10.1038/s41586-022-05677-y"
+     },
+     "status": "detected",
+     "abstract_quote": "We robustly detect multiple chemical species at high significance, including Na (19σ), H2O (33σ), CO2 (28σ), and CO (7σ).",
+     "curated": true
+    },
+    {
+     "species": "H2O",
+     "instrument": "JWST NIRSpec PRISM",
+     "reference": {
+      "title": "Early Release Science of the exoplanet WASP-39b with JWST NIRSpec PRISM",
+      "authors": "Rustamkulov et al.",
+      "year": 2023,
+      "journal": "Nature 614, 659",
+      "doi": "10.1038/s41586-022-05677-y",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.614..659R/abstract",
+      "abstract_source": "https://arxiv.org/abs/2211.10487",
+      "doi_url": "https://doi.org/10.1038/s41586-022-05677-y"
+     },
+     "status": "detected",
+     "abstract_quote": "We robustly detect multiple chemical species at high significance, including Na (19σ), H2O (33σ), CO2 (28σ), and CO (7σ).",
+     "curated": true
+    },
+    {
+     "species": "CO2",
+     "instrument": "JWST NIRSpec PRISM",
+     "reference": {
+      "title": "Early Release Science of the exoplanet WASP-39b with JWST NIRSpec PRISM",
+      "authors": "Rustamkulov et al.",
+      "year": 2023,
+      "journal": "Nature 614, 659",
+      "doi": "10.1038/s41586-022-05677-y",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.614..659R/abstract",
+      "abstract_source": "https://arxiv.org/abs/2211.10487",
+      "doi_url": "https://doi.org/10.1038/s41586-022-05677-y"
+     },
+     "status": "detected",
+     "abstract_quote": "We robustly detect multiple chemical species at high significance, including Na (19σ), H2O (33σ), CO2 (28σ), and CO (7σ).",
+     "curated": true
+    },
+    {
+     "species": "CO",
+     "instrument": "JWST NIRSpec PRISM",
+     "reference": {
+      "title": "Early Release Science of the exoplanet WASP-39b with JWST NIRSpec PRISM",
+      "authors": "Rustamkulov et al.",
+      "year": 2023,
+      "journal": "Nature 614, 659",
+      "doi": "10.1038/s41586-022-05677-y",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.614..659R/abstract",
+      "abstract_source": "https://arxiv.org/abs/2211.10487",
+      "doi_url": "https://doi.org/10.1038/s41586-022-05677-y"
+     },
+     "status": "detected",
+     "abstract_quote": "We robustly detect multiple chemical species at high significance, including Na (19σ), H2O (33σ), CO2 (28σ), and CO (7σ).",
+     "curated": true
+    },
+    {
+     "species": "SO2",
+     "instrument": "JWST NIRSpec PRISM",
+     "reference": {
+      "title": "Early Release Science of the exoplanet WASP-39b with JWST NIRSpec PRISM",
+      "authors": "Rustamkulov et al.",
+      "year": 2023,
+      "journal": "Nature 614, 659",
+      "doi": "10.1038/s41586-022-05677-y",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.614..659R/abstract",
+      "abstract_source": "https://arxiv.org/abs/2211.10487",
+      "doi_url": "https://doi.org/10.1038/s41586-022-05677-y"
+     },
+     "status": "tentative",
+     "note": "Tentative in this paper (2.7 sigma, 'best explained by'). Later confirmed at higher significance with G395H by Alderson et al. 2023 (4.8 sigma) and interpreted as photochemical by Tsai et al. 2023; see those entries.",
+     "abstract_quote": "An unanticipated absorption feature at 4μm is best explained by SO2 (2.7σ), which could be a tracer of atmospheric photochemistry.",
+     "curated": true
+    },
+    {
+     "species": "CO2",
+     "instrument": "JWST NIRSpec G395H",
+     "reference": {
+      "title": "Early Release Science of the exoplanet WASP-39b with JWST NIRSpec G395H",
+      "authors": "Alderson et al.",
+      "year": 2023,
+      "journal": "Nature 614, 664",
+      "doi": "10.1038/s41586-022-05591-3",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.614..664A/abstract",
+      "abstract_source": "https://arxiv.org/abs/2211.10488",
+      "doi_url": "https://doi.org/10.1038/s41586-022-05591-3"
+     },
+     "status": "detected",
+     "abstract_quote": "We detect significant absorption from CO2 (28.5σ) and H2O (21.5σ), and identify SO2 as the source of absorption at 4.1 μm (4.8σ).",
+     "curated": true
+    },
+    {
+     "species": "H2O",
+     "instrument": "JWST NIRSpec G395H",
+     "reference": {
+      "title": "Early Release Science of the exoplanet WASP-39b with JWST NIRSpec G395H",
+      "authors": "Alderson et al.",
+      "year": 2023,
+      "journal": "Nature 614, 664",
+      "doi": "10.1038/s41586-022-05591-3",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.614..664A/abstract",
+      "abstract_source": "https://arxiv.org/abs/2211.10488",
+      "doi_url": "https://doi.org/10.1038/s41586-022-05591-3"
+     },
+     "status": "detected",
+     "abstract_quote": "We detect significant absorption from CO2 (28.5σ) and H2O (21.5σ), and identify SO2 as the source of absorption at 4.1 μm (4.8σ).",
+     "curated": true
+    },
+    {
+     "species": "SO2",
+     "instrument": "JWST NIRSpec G395H",
+     "reference": {
+      "title": "Early Release Science of the exoplanet WASP-39b with JWST NIRSpec G395H",
+      "authors": "Alderson et al.",
+      "year": 2023,
+      "journal": "Nature 614, 664",
+      "doi": "10.1038/s41586-022-05591-3",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.614..664A/abstract",
+      "abstract_source": "https://arxiv.org/abs/2211.10488",
+      "doi_url": "https://doi.org/10.1038/s41586-022-05591-3"
+     },
+     "status": "detected",
+     "abstract_quote": "We detect significant absorption from CO2 (28.5σ) and H2O (21.5σ), and identify SO2 as the source of absorption at 4.1 μm (4.8σ).",
+     "curated": true
+    },
+    {
+     "species": "SO2",
+     "instrument": "JWST NIRSpec PRISM + G395H (photochemical modelling)",
+     "reference": {
+      "title": "Photochemically produced SO2 in the atmosphere of WASP-39b",
+      "authors": "Tsai et al.",
+      "year": 2023,
+      "journal": "Nature 617, 483",
+      "doi": "10.1038/s41586-023-05902-2",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.617..483T/abstract",
+      "abstract_source": "https://arxiv.org/abs/2211.10490",
+      "doi_url": "https://doi.org/10.1038/s41586-023-05902-2"
+     },
+     "status": "detected",
+     "abstract_quote": "Here we show that the SO2 distribution computed by a suite of photochemical models robustly explains the 4.05 μm spectral feature identified by JWST transmission observations with NIRSpec PRISM (2.7σ) and G395H (4.5σ).",
+     "curated": true
+    }
+   ]
+  },
+  "WASP-121 b": {
+   "detections": [
+    {
+     "species": "H2O",
+     "instrument": "HST WFC3",
+     "reference": {
+      "title": "Detection of H2O and Evidence for TiO/VO in an Ultra-hot Exoplanet Atmosphere",
+      "authors": "Evans et al.",
+      "year": 2016,
+      "journal": "ApJL 822, L4",
+      "doi": "10.3847/2041-8205/822/1/L4",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2016ApJ...822L...4E/abstract",
+      "abstract_source": "https://arxiv.org/abs/1604.02310",
+      "doi_url": "https://doi.org/10.3847/2041-8205/822/1/L4"
+     },
+     "status": "detected",
+     "abstract_quote": "The 1.4 micron water absorption band is detected at high confidence (5.4 sigma) in the planetary atmosphere.",
+     "curated": true
+    },
+    {
+     "species": "TiO",
+     "instrument": "Ground-based B, r', z' photometry (reanalysed)",
+     "reference": {
+      "title": "Detection of H2O and Evidence for TiO/VO in an Ultra-hot Exoplanet Atmosphere",
+      "authors": "Evans et al.",
+      "year": 2016,
+      "journal": "ApJL 822, L4",
+      "doi": "10.3847/2041-8205/822/1/L4",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2016ApJ...822L...4E/abstract",
+      "abstract_source": "https://arxiv.org/abs/1604.02310",
+      "doi_url": "https://doi.org/10.3847/2041-8205/822/1/L4"
+     },
+     "status": "contested",
+     "note": "Contested: Evans et al. 2018, 'An Optical Transmission Spectrum for the Ultra-hot Jupiter WASP-121b Measured with the Hubble Space Telescope' (AJ 156, 283; doi:10.3847/1538-3881/aaebff) finds 'no evidence for TiO' (3-sigma upper limit -7.9 dex); Hoeijmakers et al. 2020 (A&A 641, A123; doi:10.1051/0004-6361/202038365) report 'Non-detections of Ti and TiO', attributing it to a Ti cold trap.",
+     "abstract_quote": "We conclude that scattering by high-altitude haze alone is unlikely to account for this difference, and instead interpret it as evidence for titanium oxide and vanadium oxide absorption.",
+     "curated": true
+    },
+    {
+     "species": "VO",
+     "instrument": "Ground-based B, r', z' photometry (reanalysed)",
+     "reference": {
+      "title": "Detection of H2O and Evidence for TiO/VO in an Ultra-hot Exoplanet Atmosphere",
+      "authors": "Evans et al.",
+      "year": 2016,
+      "journal": "ApJL 822, L4",
+      "doi": "10.3847/2041-8205/822/1/L4",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2016ApJ...822L...4E/abstract",
+      "abstract_source": "https://arxiv.org/abs/1604.02310",
+      "doi_url": "https://doi.org/10.3847/2041-8205/822/1/L4"
+     },
+     "status": "tentative",
+     "note": "Tentative in this abstract ('evidence for'). Later papers support VO only indirectly: Evans et al. 2018 (AJ 156, 283; doi:10.3847/1538-3881/aaebff) say the STIS opacity variations 'may instead be explained by VO spectral bands'; Hoeijmakers et al. 2020 detect neutral V and predict VO in equilibrium.",
+     "abstract_quote": "We conclude that scattering by high-altitude haze alone is unlikely to account for this difference, and instead interpret it as evidence for titanium oxide and vanadium oxide absorption.",
+     "curated": true
+    },
+    {
+     "species": "FeH",
+     "instrument": "HST WFC3",
+     "reference": {
+      "title": "Detection of H2O and Evidence for TiO/VO in an Ultra-hot Exoplanet Atmosphere",
+      "authors": "Evans et al.",
+      "year": 2016,
+      "journal": "ApJL 822, L4",
+      "doi": "10.3847/2041-8205/822/1/L4",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2016ApJ...822L...4E/abstract",
+      "abstract_source": "https://arxiv.org/abs/1604.02310",
+      "doi_url": "https://doi.org/10.3847/2041-8205/822/1/L4"
+     },
+     "status": "tentative",
+     "note": "Tentative: the abstract says the 1.12-1.3 micron opacity is 'possibly due to iron hydride absorption' and 'If confirmed'. No later confirmation was verified here.",
+     "abstract_quote": "Enhanced opacity is also inferred across the 1.12-1.3 micron wavelength range, possibly due to iron hydride absorption.",
+     "curated": true
+    },
+    {
+     "species": "Mg+",
+     "instrument": "HST STIS (NUV)",
+     "reference": {
+      "title": "The Hubble Space Telescope PanCET Program: Exospheric Mg II and Fe II in the Near-ultraviolet Transmission Spectrum of WASP-121b Using Jitter Decorrelation",
+      "authors": "Sing et al.",
+      "year": 2019,
+      "journal": "AJ 158, 91",
+      "doi": "10.3847/1538-3881/ab2986",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2019AJ....158...91S/abstract",
+      "abstract_source": "https://arxiv.org/abs/1908.00619",
+      "doi_url": "https://doi.org/10.3847/1538-3881/ab2986"
+     },
+     "status": "detected",
+     "abstract_quote": "We identify and spectrally resolve absorption from the Mg ii doublet in the planetary exosphere at a 5.9-σ confidence level.",
+     "curated": true
+    },
+    {
+     "species": "Fe+",
+     "instrument": "HST STIS (NUV)",
+     "reference": {
+      "title": "The Hubble Space Telescope PanCET Program: Exospheric Mg II and Fe II in the Near-ultraviolet Transmission Spectrum of WASP-121b Using Jitter Decorrelation",
+      "authors": "Sing et al.",
+      "year": 2019,
+      "journal": "AJ 158, 91",
+      "doi": "10.3847/1538-3881/ab2986",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2019AJ....158...91S/abstract",
+      "abstract_source": "https://arxiv.org/abs/1908.00619",
+      "doi_url": "https://doi.org/10.3847/1538-3881/ab2986"
+     },
+     "status": "detected",
+     "abstract_quote": "We also detect and resolve strong features of the Fe ii UV1 and UV2 multiplets, and observe the lines reaching altitudes of Rpl/Rstar≈0.3.",
+     "curated": true
+    },
+    {
+     "species": "Mg",
+     "instrument": "ESO 3.6m HARPS",
+     "reference": {
+      "title": "Hot Exoplanet Atmospheres Resolved with Transit Spectroscopy (HEARTS). IV. A spectral inventory of atoms and molecules in the high-resolution transmission spectrum of WASP-121 b",
+      "authors": "Hoeijmakers et al.",
+      "year": 2020,
+      "journal": "A&A 641, A123",
+      "doi": "10.1051/0004-6361/202038365",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2020A&A...641A.123H/abstract",
+      "abstract_source": "https://arxiv.org/abs/2006.11308",
+      "doi_url": "https://doi.org/10.1051/0004-6361/202038365"
+     },
+     "status": "detected",
+     "abstract_quote": "We detect neutral Mg, Na, Ca, Cr, Fe, Ni and V, which we predict exists in equilibrium with a significant quantity of VO, supporting earlier observations by HST/WFC3.",
+     "curated": true
+    },
+    {
+     "species": "Na",
+     "instrument": "ESO 3.6m HARPS",
+     "reference": {
+      "title": "Hot Exoplanet Atmospheres Resolved with Transit Spectroscopy (HEARTS). IV. A spectral inventory of atoms and molecules in the high-resolution transmission spectrum of WASP-121 b",
+      "authors": "Hoeijmakers et al.",
+      "year": 2020,
+      "journal": "A&A 641, A123",
+      "doi": "10.1051/0004-6361/202038365",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2020A&A...641A.123H/abstract",
+      "abstract_source": "https://arxiv.org/abs/2006.11308",
+      "doi_url": "https://doi.org/10.1051/0004-6361/202038365"
+     },
+     "status": "detected",
+     "abstract_quote": "We detect neutral Mg, Na, Ca, Cr, Fe, Ni and V, which we predict exists in equilibrium with a significant quantity of VO, supporting earlier observations by HST/WFC3.",
+     "curated": true
+    },
+    {
+     "species": "Ca",
+     "instrument": "ESO 3.6m HARPS",
+     "reference": {
+      "title": "Hot Exoplanet Atmospheres Resolved with Transit Spectroscopy (HEARTS). IV. A spectral inventory of atoms and molecules in the high-resolution transmission spectrum of WASP-121 b",
+      "authors": "Hoeijmakers et al.",
+      "year": 2020,
+      "journal": "A&A 641, A123",
+      "doi": "10.1051/0004-6361/202038365",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2020A&A...641A.123H/abstract",
+      "abstract_source": "https://arxiv.org/abs/2006.11308",
+      "doi_url": "https://doi.org/10.1051/0004-6361/202038365"
+     },
+     "status": "detected",
+     "abstract_quote": "We detect neutral Mg, Na, Ca, Cr, Fe, Ni and V, which we predict exists in equilibrium with a significant quantity of VO, supporting earlier observations by HST/WFC3.",
+     "curated": true
+    },
+    {
+     "species": "Cr",
+     "instrument": "ESO 3.6m HARPS",
+     "reference": {
+      "title": "Hot Exoplanet Atmospheres Resolved with Transit Spectroscopy (HEARTS). IV. A spectral inventory of atoms and molecules in the high-resolution transmission spectrum of WASP-121 b",
+      "authors": "Hoeijmakers et al.",
+      "year": 2020,
+      "journal": "A&A 641, A123",
+      "doi": "10.1051/0004-6361/202038365",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2020A&A...641A.123H/abstract",
+      "abstract_source": "https://arxiv.org/abs/2006.11308",
+      "doi_url": "https://doi.org/10.1051/0004-6361/202038365"
+     },
+     "status": "detected",
+     "abstract_quote": "We detect neutral Mg, Na, Ca, Cr, Fe, Ni and V, which we predict exists in equilibrium with a significant quantity of VO, supporting earlier observations by HST/WFC3.",
+     "curated": true
+    },
+    {
+     "species": "Fe",
+     "instrument": "ESO 3.6m HARPS",
+     "reference": {
+      "title": "Hot Exoplanet Atmospheres Resolved with Transit Spectroscopy (HEARTS). IV. A spectral inventory of atoms and molecules in the high-resolution transmission spectrum of WASP-121 b",
+      "authors": "Hoeijmakers et al.",
+      "year": 2020,
+      "journal": "A&A 641, A123",
+      "doi": "10.1051/0004-6361/202038365",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2020A&A...641A.123H/abstract",
+      "abstract_source": "https://arxiv.org/abs/2006.11308",
+      "doi_url": "https://doi.org/10.1051/0004-6361/202038365"
+     },
+     "status": "detected",
+     "abstract_quote": "We detect neutral Mg, Na, Ca, Cr, Fe, Ni and V, which we predict exists in equilibrium with a significant quantity of VO, supporting earlier observations by HST/WFC3.",
+     "curated": true
+    },
+    {
+     "species": "Ni",
+     "instrument": "ESO 3.6m HARPS",
+     "reference": {
+      "title": "Hot Exoplanet Atmospheres Resolved with Transit Spectroscopy (HEARTS). IV. A spectral inventory of atoms and molecules in the high-resolution transmission spectrum of WASP-121 b",
+      "authors": "Hoeijmakers et al.",
+      "year": 2020,
+      "journal": "A&A 641, A123",
+      "doi": "10.1051/0004-6361/202038365",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2020A&A...641A.123H/abstract",
+      "abstract_source": "https://arxiv.org/abs/2006.11308",
+      "doi_url": "https://doi.org/10.1051/0004-6361/202038365"
+     },
+     "status": "detected",
+     "abstract_quote": "We detect neutral Mg, Na, Ca, Cr, Fe, Ni and V, which we predict exists in equilibrium with a significant quantity of VO, supporting earlier observations by HST/WFC3.",
+     "curated": true
+    },
+    {
+     "species": "V",
+     "instrument": "ESO 3.6m HARPS",
+     "reference": {
+      "title": "Hot Exoplanet Atmospheres Resolved with Transit Spectroscopy (HEARTS). IV. A spectral inventory of atoms and molecules in the high-resolution transmission spectrum of WASP-121 b",
+      "authors": "Hoeijmakers et al.",
+      "year": 2020,
+      "journal": "A&A 641, A123",
+      "doi": "10.1051/0004-6361/202038365",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2020A&A...641A.123H/abstract",
+      "abstract_source": "https://arxiv.org/abs/2006.11308",
+      "doi_url": "https://doi.org/10.1051/0004-6361/202038365"
+     },
+     "status": "detected",
+     "abstract_quote": "We detect neutral Mg, Na, Ca, Cr, Fe, Ni and V, which we predict exists in equilibrium with a significant quantity of VO, supporting earlier observations by HST/WFC3.",
+     "curated": true
+    }
+   ],
+   "note": "A JWST detection of SiO in WASP-121 b (Evans-Soma et al. 2025, Nature Astronomy) was looked for but its abstract could not be found or checked, so it is not included."
+  },
+  "HD 209458 b": {
+   "detections": [
+    {
+     "species": "Na",
+     "instrument": "HST STIS",
+     "reference": {
+      "title": "Detection of an Extrasolar Planet Atmosphere",
+      "authors": "Charbonneau et al.",
+      "year": 2002,
+      "journal": "ApJ 568, 377",
+      "doi": "10.1086/338770",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2002ApJ...568..377C/abstract",
+      "abstract_source": "https://arxiv.org/abs/astro-ph/0111544",
+      "doi_url": "https://doi.org/10.1086/338770"
+     },
+     "status": "contested",
+     "note": "Contested: Casasayas-Barris et al. 2020, 'Is there Na I in the atmosphere of HD 209458b? Effect of the centre-to-limb variation and Rossiter-McLaughlin effect in transmission spectroscopy studies' (A&A 635, A206; doi:10.1051/0004-6361/201937221) find with HARPS-N/CARMENES that 'the transmission spectrum reveals no detectable NaI absorption in HD 209458b' and say earlier pioneering studies 'may have overlooked' CLV and RM effects. Their data are ground-based high-resolution, while Charbonneau used HST/STIS low-resolution photometry, so the dispute is about the Na signal in general and does not directly re-reduce the HST data.",
+     "abstract_quote": "We interpret this additional dimming as absorption from sodium in the planetary atmosphere, as recently predicted from several theoretical modeling efforts.",
+     "curated": true
+    },
+    {
+     "species": "H (Lyman-alpha)",
+     "instrument": "HST STIS (FUV)",
+     "reference": {
+      "title": "An extended upper atmosphere around the extrasolar planet HD209458b",
+      "authors": "Vidal-Madjar et al.",
+      "year": 2003,
+      "journal": "Nature 422, 143",
+      "doi": "10.1038/nature01448",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2003Natur.422..143V/abstract",
+      "abstract_source": "https://doi.org/10.1038/nature01448",
+      "doi_url": "https://doi.org/10.1038/nature01448"
+     },
+     "status": "detected",
+     "abstract_quote": "Here we report the detection of atomic hydrogen absorption in the stellar Lyman α line during three transits of HD209458b.",
+     "curated": true
+    },
+    {
+     "species": "CO",
+     "instrument": "VLT CRIRES",
+     "reference": {
+      "title": "The orbital motion, absolute mass and high-altitude winds of exoplanet HD 209458b",
+      "authors": "Snellen et al.",
+      "year": 2010,
+      "journal": "Nature 465, 1049",
+      "doi": "10.1038/nature09111",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2010Natur.465.1049S/abstract",
+      "abstract_source": "https://arxiv.org/abs/1006.4364",
+      "doi_url": "https://doi.org/10.1038/nature09111"
+     },
+     "status": "detected",
+     "abstract_quote": "High dispersion ground-based spectroscopy during a transit of this planet reveals absorption lines from carbon monoxide produced in the planet atmosphere, which shift significantly in wavelength due to the change in the radial component of the planet orbital velocity.",
+     "curated": true
+    }
+   ]
+  },
+  "HD 189733 b": {
+   "detections": [
+    {
+     "species": "Na",
+     "instrument": "Hobby-Eberly Telescope HRS",
+     "reference": {
+      "title": "Sodium Absorption from the Exoplanetary Atmosphere of HD 189733b Detected in the Optical Transmission Spectrum",
+      "authors": "Redfield et al.",
+      "year": 2008,
+      "journal": "ApJL 673, L87",
+      "doi": "10.1086/527475",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2008ApJ...673L..87R/abstract",
+      "abstract_source": "https://arxiv.org/abs/0712.0761",
+      "doi_url": "https://doi.org/10.1086/527475"
+     },
+     "status": "detected",
+     "abstract_quote": "Absorption due to the atmosphere of the extrasolar planet HD189733b is detected in both lines of the NaI doublet.",
+     "curated": true
+    },
+    {
+     "species": "H2O",
+     "instrument": "JWST NIRCam (2.4-5 um)",
+     "reference": {
+      "title": "Hydrogen sulfide and metal-enriched atmosphere for a Jupiter-mass exoplanet",
+      "authors": "Fu et al.",
+      "year": 2024,
+      "journal": "Nature 632, 752",
+      "doi": "10.1038/s41586-024-07760-y",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2024Natur.632..752F/abstract",
+      "abstract_source": "https://arxiv.org/abs/2407.06163",
+      "doi_url": "https://doi.org/10.1038/s41586-024-07760-y"
+     },
+     "status": "detected",
+     "abstract_quote": "Here we report detections of H2O (13.4 sigma), CO2 (11.2 sigma), CO (5 sigma), and H2S (4.5 sigma) in the transmission spectrum (2.4-5 micron) of HD 189733b.",
+     "curated": true
+    },
+    {
+     "species": "CO2",
+     "instrument": "JWST NIRCam (2.4-5 um)",
+     "reference": {
+      "title": "Hydrogen sulfide and metal-enriched atmosphere for a Jupiter-mass exoplanet",
+      "authors": "Fu et al.",
+      "year": 2024,
+      "journal": "Nature 632, 752",
+      "doi": "10.1038/s41586-024-07760-y",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2024Natur.632..752F/abstract",
+      "abstract_source": "https://arxiv.org/abs/2407.06163",
+      "doi_url": "https://doi.org/10.1038/s41586-024-07760-y"
+     },
+     "status": "detected",
+     "abstract_quote": "Here we report detections of H2O (13.4 sigma), CO2 (11.2 sigma), CO (5 sigma), and H2S (4.5 sigma) in the transmission spectrum (2.4-5 micron) of HD 189733b.",
+     "curated": true
+    },
+    {
+     "species": "CO",
+     "instrument": "JWST NIRCam (2.4-5 um)",
+     "reference": {
+      "title": "Hydrogen sulfide and metal-enriched atmosphere for a Jupiter-mass exoplanet",
+      "authors": "Fu et al.",
+      "year": 2024,
+      "journal": "Nature 632, 752",
+      "doi": "10.1038/s41586-024-07760-y",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2024Natur.632..752F/abstract",
+      "abstract_source": "https://arxiv.org/abs/2407.06163",
+      "doi_url": "https://doi.org/10.1038/s41586-024-07760-y"
+     },
+     "status": "detected",
+     "abstract_quote": "Here we report detections of H2O (13.4 sigma), CO2 (11.2 sigma), CO (5 sigma), and H2S (4.5 sigma) in the transmission spectrum (2.4-5 micron) of HD 189733b.",
+     "curated": true
+    },
+    {
+     "species": "H2S",
+     "instrument": "JWST NIRCam (2.4-5 um)",
+     "reference": {
+      "title": "Hydrogen sulfide and metal-enriched atmosphere for a Jupiter-mass exoplanet",
+      "authors": "Fu et al.",
+      "year": 2024,
+      "journal": "Nature 632, 752",
+      "doi": "10.1038/s41586-024-07760-y",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2024Natur.632..752F/abstract",
+      "abstract_source": "https://arxiv.org/abs/2407.06163",
+      "doi_url": "https://doi.org/10.1038/s41586-024-07760-y"
+     },
+     "status": "detected",
+     "abstract_quote": "Here we report detections of H2O (13.4 sigma), CO2 (11.2 sigma), CO (5 sigma), and H2S (4.5 sigma) in the transmission spectrum (2.4-5 micron) of HD 189733b.",
+     "curated": true
+    }
+   ],
+   "note": "The Fu et al. 2024 abstract gives the spectral range but does not name the instrument; the instrument listed (JWST NIRCam) comes from the paper body/program and is not stated in the abstract. The same abstract notes that earlier CO2 and CH4 claims 'later disputed', and puts a 5-sigma upper limit of 0.1 ppm on CH4."
+  },
+  "WASP-17 b": {
+   "detections": [
+    {
+     "species": "SiO2 (quartz clouds)",
+     "instrument": "JWST MIRI LRS (5-12 um)",
+     "reference": {
+      "title": "JWST-TST DREAMS: Quartz Clouds in the Atmosphere of WASP-17b",
+      "authors": "Grant et al.",
+      "year": 2023,
+      "journal": "ApJL 956, L32",
+      "doi": "10.3847/2041-8213/acfc3b",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023ApJ...956L..32G/abstract",
+      "abstract_source": "https://arxiv.org/abs/2310.08637",
+      "doi_url": "https://doi.org/10.3847/2041-8213/acfc3b"
+     },
+     "status": "detected",
+     "abstract_quote": "Our transmission spectrum shows additional opacity centered at 8.6 μm, and detailed atmospheric modeling and retrievals identify this feature as SiO2(s) (quartz) clouds. The SiO2(s) clouds model is preferred at 3.5-4.2σ versus a cloud-free model and at 2.6σ versus a generic aerosol prescription.",
+     "curated": true
+    }
+   ]
+  },
+  "K2-18 b": {
+   "detections": [
+    {
+     "species": "H2O",
+     "instrument": "HST WFC3",
+     "reference": {
+      "title": "Water vapour in the atmosphere of the habitable-zone eight-Earth-mass planet K2-18 b",
+      "authors": "Tsiaras et al.",
+      "year": 2019,
+      "journal": "Nature Astronomy 3, 1086",
+      "doi": "10.1038/s41550-019-0878-9",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2019NatAs...3.1086T/abstract",
+      "abstract_source": "https://arxiv.org/abs/1909.05218",
+      "doi_url": "https://doi.org/10.1038/s41550-019-0878-9"
+     },
+     "status": "contested",
+     "note": "Contested: Bezard et al. 2022, 'Methane as a dominant absorber in the habitable-zone sub-Neptune K2-18 b' (Nature Astronomy 6, 537; doi:10.1038/s41550-022-01678-z) argue the 1.4 micron HST/WFC3 feature 'is most likely due to methane' and is 'not diagnostic of the presence of water vapour' for sub-Neptunes below about 600 K. JWST (Madhusudhan et al. 2023) then detected CH4. (arXiv abstract text contains the macro '\\planet\\' in place of 'K2-18 b'; it has been replaced in the quote.)",
+     "abstract_quote": "Here we report the detection of an H2O spectroscopic signature in the atmosphere of K2-18 b -- an eight M⊕ planet in the habitable-zone of an M-dwarf -- with high statistical confidence (ADI = 5.0, ∼3.6σ).",
+     "curated": true
+    },
+    {
+     "species": "H2O",
+     "instrument": "HST WFC3 + Spitzer + K2",
+     "reference": {
+      "title": "Water Vapor and Clouds on the Habitable-zone Sub-Neptune Exoplanet K2-18b",
+      "authors": "Benneke et al.",
+      "year": 2019,
+      "journal": "ApJL 887, L14",
+      "doi": "10.3847/2041-8213/ab59dc",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2019ApJ...887L..14B/abstract",
+      "abstract_source": "https://arxiv.org/abs/1909.04642",
+      "doi_url": "https://doi.org/10.3847/2041-8213/ab59dc"
+     },
+     "status": "contested",
+     "note": "Contested: Bezard et al. 2022, 'Methane as a dominant absorber in the habitable-zone sub-Neptune K2-18 b' (Nature Astronomy 6, 537; doi:10.1038/s41550-022-01678-z) argue the 1.4 micron HST/WFC3 feature 'is most likely due to methane' and is 'not diagnostic of the presence of water vapour' for sub-Neptunes below about 600 K. JWST (Madhusudhan et al. 2023) then detected CH4.",
+     "abstract_quote": "Here, we report the detection of water vapor and the likely presence of liquid and icy water clouds in the atmosphere of the 2.6 R⊕ habitable-zone planet K2-18b.",
+     "curated": true
+    },
+    {
+     "species": "CH4",
+     "instrument": "JWST NIRISS SOSS + NIRSpec G395H",
+     "reference": {
+      "title": "Carbon-bearing Molecules in a Possible Hycean Atmosphere",
+      "authors": "Madhusudhan et al.",
+      "year": 2023,
+      "journal": "ApJL 956, L13",
+      "doi": "10.3847/2041-8213/acf577",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023ApJ...956L..13M/abstract",
+      "abstract_source": "https://arxiv.org/abs/2309.05566",
+      "doi_url": "https://doi.org/10.3847/2041-8213/acf577"
+     },
+     "status": "detected",
+     "abstract_quote": "The spectrum reveals strong detections of methane (CH4) and carbon dioxide (CO2) at 5σ and 3σ confidence, respectively, with high volume mixing ratios of ~1% each in a H2-rich atmosphere.",
+     "curated": true
+    },
+    {
+     "species": "CO2",
+     "instrument": "JWST NIRISS SOSS + NIRSpec G395H",
+     "reference": {
+      "title": "Carbon-bearing Molecules in a Possible Hycean Atmosphere",
+      "authors": "Madhusudhan et al.",
+      "year": 2023,
+      "journal": "ApJL 956, L13",
+      "doi": "10.3847/2041-8213/acf577",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023ApJ...956L..13M/abstract",
+      "abstract_source": "https://arxiv.org/abs/2309.05566",
+      "doi_url": "https://doi.org/10.3847/2041-8213/acf577"
+     },
+     "status": "contested",
+     "note": "Contested: Schmidt et al. 2025, 'A Comprehensive Reanalysis of K2-18 b's JWST NIRISS+NIRSpec Transmission Spectrum' (AJ 170, 298; doi:10.3847/1538-3881/ae019a) confirm CH4 (about 4 sigma) but 'find no statistically significant or reliable evidence for CO2 or DMS'.",
+     "abstract_quote": "The spectrum reveals strong detections of methane (CH4) and carbon dioxide (CO2) at 5σ and 3σ confidence, respectively, with high volume mixing ratios of ~1% each in a H2-rich atmosphere.",
+     "curated": true
+    },
+    {
+     "species": "(CH3)2S (DMS)",
+     "instrument": "JWST NIRISS SOSS + NIRSpec G395H",
+     "reference": {
+      "title": "Carbon-bearing Molecules in a Possible Hycean Atmosphere",
+      "authors": "Madhusudhan et al.",
+      "year": 2023,
+      "journal": "ApJL 956, L13",
+      "doi": "10.3847/2041-8213/acf577",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023ApJ...956L..13M/abstract",
+      "abstract_source": "https://arxiv.org/abs/2309.05566",
+      "doi_url": "https://doi.org/10.3847/2041-8213/acf577"
+     },
+     "status": "contested",
+     "note": "Tentative in the original abstract ('potential signs of dimethyl sulfide'), and later contested. Schmidt et al. 2025 (AJ 170, 298; doi:10.3847/1538-3881/ae019a) find 'no statistically significant or reliable evidence for CO2 or DMS'. Luque et al. 2025, 'Insufficient evidence for DMS and DMDS in the atmosphere of K2-18 b. From a joint analysis of JWST NIRISS, NIRSpec, and MIRI observations' (A&A 700, A284; doi:10.1051/0004-6361/202555580) state 'there is no statistical significance for DMS or DMDS in K2-18 b's atmosphere'.",
+     "abstract_quote": "The spectrum also suggests potential signs of dimethyl sulfide (DMS), which has been predicted to be an observable biomarker in Hycean worlds, motivating considerations of possible biological activity on the planet.",
+     "curated": true
+    }
+   ]
+  },
+  "TRAPPIST-1 b": {
+   "detections": [],
+   "note": "No atmospheric species detected. Greene et al. 2023, 'Thermal emission from the Earth-sized exoplanet TRAPPIST-1 b using JWST' (Nature 618, 39; doi:10.1038/s41586-023-05951-7; ADS 2023Natur.618...39G; arXiv:2303.14849), JWST MIRI F1500W: 'The most straightforward interpretation is that there is little or no planetary atmosphere redistributing radiation from the host star and also no detectable atmospheric absorption from carbon dioxide (CO2) or other species.' Lim et al. 2023, 'Atmospheric Reconnaissance of TRAPPIST-1 b with JWST/NIRISS: Evidence for Strong Stellar Contamination in the Transmission Spectra' (ApJL 955, L22; doi:10.3847/2041-8213/acf7c4; ADS 2023ApJ...955L..22L; arXiv:2309.07047), JWST NIRISS SOSS: 'we confirm the absence of cloud-free hydrogen-rich atmospheres, but cannot assess the presence of secondary atmospheres.'"
+  },
+  "55 Cnc e": {
+   "detections": [
+    {
+     "species": "CO2",
+     "instrument": "JWST NIRCam + MIRI (4-12 um, thermal emission)",
+     "reference": {
+      "title": "A secondary atmosphere on the rocky exoplanet 55 Cancri e",
+      "authors": "Hu et al.",
+      "year": 2024,
+      "journal": "Nature 630, 609",
+      "doi": "10.1038/s41586-024-07432-x",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2024Natur.630..609H/abstract",
+      "abstract_source": "https://arxiv.org/abs/2405.04744",
+      "doi_url": "https://doi.org/10.1038/s41586-024-07432-x"
+     },
+     "status": "tentative",
+     "note": "Tentative: the abstract says the atmosphere is 'likely rich in CO2 or CO' and does not distinguish between the two. Both are listed as candidate species.",
+     "abstract_quote": "The measurements rule out the scenario where the planet is a lava world shrouded by a tenuous atmosphere made of vaporized rock, and indicate a bona fide volatile atmosphere likely rich in CO2 or CO.",
+     "curated": true
+    },
+    {
+     "species": "CO",
+     "instrument": "JWST NIRCam + MIRI (4-12 um, thermal emission)",
+     "reference": {
+      "title": "A secondary atmosphere on the rocky exoplanet 55 Cancri e",
+      "authors": "Hu et al.",
+      "year": 2024,
+      "journal": "Nature 630, 609",
+      "doi": "10.1038/s41586-024-07432-x",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2024Natur.630..609H/abstract",
+      "abstract_source": "https://arxiv.org/abs/2405.04744",
+      "doi_url": "https://doi.org/10.1038/s41586-024-07432-x"
+     },
+     "status": "tentative",
+     "note": "Tentative: the abstract says the atmosphere is 'likely rich in CO2 or CO' and does not distinguish between the two. Both are listed as candidate species.",
+     "abstract_quote": "The measurements rule out the scenario where the planet is a lava world shrouded by a tenuous atmosphere made of vaporized rock, and indicate a bona fide volatile atmosphere likely rich in CO2 or CO.",
+     "curated": true
+    }
+   ]
+  },
+  "GJ 1214 b": {
+   "detections": [
+    {
+     "species": "H2O",
+     "instrument": "JWST MIRI LRS (phase curve)",
+     "reference": {
+      "title": "A reflective, metal-rich atmosphere for GJ 1214b from its JWST phase curve",
+      "authors": "Kempton et al.",
+      "year": 2023,
+      "journal": "Nature 620, 67",
+      "doi": "10.1038/s41586-023-06159-5",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023Natur.620...67K/abstract",
+      "abstract_source": "https://arxiv.org/abs/2305.06240",
+      "doi_url": "https://doi.org/10.1038/s41586-023-06159-5"
+     },
+     "status": "tentative",
+     "note": "Tentative: the abstract says '>3σ evidence of absorption features, with H2O as the most likely cause'. The lead said this paper suggested possible CO2, but its abstract names only H2O and a 'high metallicity atmosphere'.",
+     "abstract_quote": "The dayside and nightside spectra (average brightness temperatures of 553 ± 9 and 437 ± 19 K, respectively) each show >3σ evidence of absorption features, with H2O as the most likely cause in both.",
+     "curated": true
+    },
+    {
+     "species": "CO2",
+     "instrument": "JWST NIRSpec G395H",
+     "reference": {
+      "title": "Possible Carbon Dioxide above the Thick Aerosols of GJ 1214 b",
+      "authors": "Schlawin et al.",
+      "year": 2024,
+      "journal": "ApJL 974, L33",
+      "doi": "10.3847/2041-8213/ad7fef",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2024ApJ...974L..33S/abstract",
+      "abstract_source": "https://arxiv.org/abs/2410.10183",
+      "doi_url": "https://doi.org/10.3847/2041-8213/ad7fef"
+     },
+     "status": "tentative",
+     "note": "Tentative: the title says 'Possible' and the abstract says 'more observations are needed to confirm the carbon dioxide and methane signatures'.",
+     "abstract_quote": "Here, we present a JWST NIRSpec transmission spectrum from 2.8 to 5.1 um that shows signatures of carbon dioxide and methane, expected at high metallicity. A model containing both these molecules is preferred by 3.3 and 3.6 sigma as compared to a featureless spectrum for two different data analysis pipelines, respectively.",
+     "curated": true
+    },
+    {
+     "species": "CH4",
+     "instrument": "JWST NIRSpec G395H",
+     "reference": {
+      "title": "Possible Carbon Dioxide above the Thick Aerosols of GJ 1214 b",
+      "authors": "Schlawin et al.",
+      "year": 2024,
+      "journal": "ApJL 974, L33",
+      "doi": "10.3847/2041-8213/ad7fef",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2024ApJ...974L..33S/abstract",
+      "abstract_source": "https://arxiv.org/abs/2410.10183",
+      "doi_url": "https://doi.org/10.3847/2041-8213/ad7fef"
+     },
+     "status": "tentative",
+     "note": "Tentative: the abstract says 'more observations are needed to confirm the carbon dioxide and methane signatures'.",
+     "abstract_quote": "Here, we present a JWST NIRSpec transmission spectrum from 2.8 to 5.1 um that shows signatures of carbon dioxide and methane, expected at high metallicity. A model containing both these molecules is preferred by 3.3 and 3.6 sigma as compared to a featureless spectrum for two different data analysis pipelines, respectively.",
+     "curated": true
+    }
+   ],
+   "note": "Classic result with no species: Kreidberg et al. 2014, 'Clouds in the atmosphere of the super-Earth exoplanet GJ 1214b' (Nature 505, 69; doi:10.1038/nature12888; ADS 2014Natur.505...69K; arXiv:1401.0022), HST WFC3: 'The observed spectrum, however, is featureless. We rule out cloud-free atmospheric models with water-, methane-, carbon monoxide-, nitrogen-, or carbon dioxide-dominated compositions at greater than 5σ confidence.'"
+  },
+  "WASP-96 b": {
+   "detections": [
+    {
+     "species": "Na",
+     "instrument": "VLT FORS2",
+     "reference": {
+      "title": "An absolute sodium abundance for a cloud-free 'hot Saturn' exoplanet",
+      "authors": "Nikolov et al.",
+      "year": 2018,
+      "journal": "Nature 557, 526",
+      "doi": "10.1038/s41586-018-0101-7",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2018Natur.557..526N/abstract",
+      "abstract_source": "https://arxiv.org/abs/1806.06089",
+      "doi_url": "https://doi.org/10.1038/s41586-018-0101-7"
+     },
+     "status": "detected",
+     "abstract_quote": "Here we present an optical transmission spectrum for the 'hot-Saturn' WASP-96b obtained with the Very Large Telescope, which exhibits the complete pressure-broadened profile of the sodium absorption feature.",
+     "curated": true
+    },
+    {
+     "species": "H2O",
+     "instrument": "JWST NIRISS SOSS (0.6-2.85 um)",
+     "reference": {
+      "title": "Awesome SOSS: atmospheric characterization of WASP-96 b using the JWST early release observations",
+      "authors": "Taylor et al.",
+      "year": 2023,
+      "journal": "MNRAS 524, 817",
+      "doi": "10.1093/mnras/stad1547",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023MNRAS.524..817T/abstract",
+      "abstract_source": "https://arxiv.org/abs/2305.16887",
+      "doi_url": "https://doi.org/10.1093/mnras/stad1547"
+     },
+     "status": "detected",
+     "abstract_quote": "We constrain the logarithmic volume mixing ratios of multiple chemical species in its atmosphere, including: H2O = -3.59 +0.35/-0.35, CO2 = -4.38 +0.47/-0.57 and K = -8.04 +1.22/-1.71.",
+     "curated": true
+    },
+    {
+     "species": "CO2",
+     "instrument": "JWST NIRISS SOSS (0.6-2.85 um)",
+     "reference": {
+      "title": "Awesome SOSS: atmospheric characterization of WASP-96 b using the JWST early release observations",
+      "authors": "Taylor et al.",
+      "year": 2023,
+      "journal": "MNRAS 524, 817",
+      "doi": "10.1093/mnras/stad1547",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023MNRAS.524..817T/abstract",
+      "abstract_source": "https://arxiv.org/abs/2305.16887",
+      "doi_url": "https://doi.org/10.1093/mnras/stad1547"
+     },
+     "status": "tentative",
+     "note": "Marked tentative by curator judgement: the abstract reports bounded abundance constraints ('We constrain the logarithmic volume mixing ratios') and gives no detection significance. The companion analysis of the same NIRISS/SOSS data, Radica et al. 2023, 'Awesome SOSS: transmission spectroscopy of WASP-96b with NIRISS/SOSS' (MNRAS 524, 835; doi:10.1093/mnras/stad1762), reports only metallicity/C/O constraints in its abstract and claims no individual species.",
+     "abstract_quote": "We constrain the logarithmic volume mixing ratios of multiple chemical species in its atmosphere, including: H2O = -3.59 +0.35/-0.35, CO2 = -4.38 +0.47/-0.57 and K = -8.04 +1.22/-1.71.",
+     "curated": true
+    },
+    {
+     "species": "K",
+     "instrument": "JWST NIRISS SOSS (0.6-2.85 um)",
+     "reference": {
+      "title": "Awesome SOSS: atmospheric characterization of WASP-96 b using the JWST early release observations",
+      "authors": "Taylor et al.",
+      "year": 2023,
+      "journal": "MNRAS 524, 817",
+      "doi": "10.1093/mnras/stad1547",
+      "ads": "https://ui.adsabs.harvard.edu/abs/2023MNRAS.524..817T/abstract",
+      "abstract_source": "https://arxiv.org/abs/2305.16887",
+      "doi_url": "https://doi.org/10.1093/mnras/stad1547"
+     },
+     "status": "tentative",
+     "note": "Marked tentative by curator judgement: the abstract reports bounded abundance constraints ('We constrain the logarithmic volume mixing ratios') and gives no detection significance. The companion analysis of the same NIRISS/SOSS data, Radica et al. 2023, 'Awesome SOSS: transmission spectroscopy of WASP-96b with NIRISS/SOSS' (MNRAS 524, 835; doi:10.1093/mnras/stad1762), reports only metallicity/C/O constraints in its abstract and claims no individual species.",
+     "abstract_quote": "Notably, our results offer a first abundance constraint on potassium in WASP-96 b's atmosphere, and important inferences on carbon-bearing species such as CO2 and CO.",
+     "curated": true
+    }
+   ],
+   "note": "Radica et al. 2023 (MNRAS 524, 835; doi:10.1093/mnras/stad1762; arXiv:2305.17001) is not listed as a detection. Its abstract gives only metallicity (1-5x solar) and solar C/O, plus a short-wavelength slope that 'could either be caused by enhanced Rayleigh scattering or the red wing of a pressure-broadened Na feature'."
+  }
+ },
+ "not_included": [
+  "WASP-121 b: Evans-Soma et al. 2025 (JWST, SiO) was not found through arXiv search and its abstract could not be read, so it is dropped.",
+  "WASP-39 b: the ERS CO2 paper also 'tentatively detect[s] a small absorption feature near 4.0 μm'. No species is named in that abstract (it was later attributed to SO2), so it has no separate entry.",
+  "GJ 1214 b: the lead 'Kempton et al. 2023 possible CO2' was corrected. The Kempton abstract names only H2O (tentative) and a metal-rich atmosphere. The possible CO2 is from Schlawin et al. 2024 (ApJL 974, L33).",
+  "WASP-96 b: the lead 'Radica et al. 2023: H2O, CO2?' was corrected. Radica's abstract claims no species, and the H2O/CO2/K constraints come from Taylor et al. 2023.",
+  "HD 209458 b: the lead said Casasayas-Barris et al. 2020 disputes Charbonneau's HST sodium. Its abstract disputes Na I in ground-based high-resolution data and says earlier studies may have overlooked CLV/RM effects. It does not re-analyse the HST data. It is kept as the 'contested' reference with this caveat.",
+  "All ADS bibcodes: built from verified metadata but not loaded on ADS, because of a CAPTCHA (see meta.ads_caveat).",
+  "Fu et al. 2024: the instrument (NIRCam) is not stated in the abstract (see planet note)."
+ ]
+}

@@ -44,7 +44,7 @@ def test_atmospheres_real_archive(replay):
     assert set(docs) == {"wasp-121-b", "hd-189733-b"}
     w = docs["wasp-121-b"]
     assert w["planet"] == "WASP-121 b" and w["tic"] == 22529346
-    assert w["detections"] == [] and w["detections_note"]
+    assert w["detections"] and w["detections_note"]
     assert w["source"] and w["credit"] and w["licence"]
     sp = w["spectrum"]
     assert len(sp["wavelength_um"]) == len(sp["depth_ppm"]) == len(sp["err_ppm"]) == sp["num_datapoints"]
@@ -69,3 +69,34 @@ def test_viewer_change_degrades_to_null_spectrum(replay, monkeypatch):
     docs = build_atmospheres(n, hosts, ["WASP-121 b"])
     assert docs["wasp-121-b"]["spectrum"] is None
     assert docs["wasp-121-b"]["spectra_available"]
+
+
+def test_curated_detections_are_well_formed():
+    from skyspectra.atmospheres import curated
+
+    doc = curated()
+    assert doc["source"] and doc["credit"] and doc["licence"]
+    required = {"WASP-121 b", "WASP-39 b", "HD 209458 b", "HD 189733 b", "WASP-17 b", "K2-18 b", "TRAPPIST-1 b",
+                "55 Cnc e", "GJ 1214 b", "WASP-96 b"}
+    assert required <= set(doc["planets"])
+    for name, p in doc["planets"].items():
+        assert p["detections"] or p.get("note"), name  # no detections must be explained
+        for d in p["detections"]:
+            ref = d["reference"]
+            assert d["curated"] is True and d["species"] and d["instrument"] and d["abstract_quote"]
+            assert ref["title"] and ref["doi"].startswith("10.") and ref["doi_url"].endswith(ref["doi"])
+            assert d["status"] in {"detected", "tentative", "contested"}
+            if d["status"] == "contested":
+                assert "10." in d["note"]  # the disputing paper is cited
+
+
+def test_curated_detections_merge_into_planet_files(replay):
+    n = net.Net()
+    hosts, _ = select_hosts(n, [22529346, 256364928])
+    docs = build_atmospheres(n, hosts, ["WASP-121 b", "HD 189733 b"])
+    species = {d["species"] for d in docs["wasp-121-b"]["detections"]}
+    assert {"H2O", "Fe", "Mg+"} <= species
+    assert all(d["curated"] for d in docs["wasp-121-b"]["detections"])
+    tio = next(d for d in docs["wasp-121-b"]["detections"] if d["species"] == "TiO")
+    assert tio["status"] == "contested"
+    assert {"Na", "H2S"} <= {d["species"] for d in docs["hd-189733-b"]["detections"]}

@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from . import sources
-from .atmospheres import build_atmospheres
+from .atmospheres import build_atmospheres, curated
 from .gaia_xp import build_xp
 from .hosts import select_hosts
 from .hypatia import build_abundances
@@ -23,9 +23,31 @@ STAR_FILE = re.compile(r"^(\d+)\.(abundances|gaia_xp)\.json$")
 PLANET_FILE = re.compile(r"^(.+)\.atmosphere\.json$")
 
 
+SIG_FIGS = 4
+# Wavelengths keep their native precision: at 4 significant figures neighbouring solar bins
+# (0.08 nm), NIST lines (Na D2 588.995 / D1 589.592) and JWST points (2.72575 / 2.72711 um) merge.
+EXACT_KEYS = {"nm", "wavelength_nm", "wavelength_um", "atlas_min_nm", "min_um", "max_um", "window_nm",
+              "bandwidth_um"}
+
+
+def sig(x: float, n: int = SIG_FIGS) -> float:
+    return float(f"{x:.{n}g}")
+
+
+def rounded(doc, exact: bool = False):
+    """Round every float to SIG_FIGS significant figures, except under EXACT_KEYS."""
+    if isinstance(doc, float):
+        return doc if exact else sig(doc)
+    if isinstance(doc, list):
+        return [rounded(v, exact) for v in doc]
+    if isinstance(doc, dict):
+        return {k: rounded(v, exact or k in EXACT_KEYS) for k, v in doc.items()}
+    return doc
+
+
 def dump(path: Path, doc) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(doc, ensure_ascii=False, separators=(",", ":"))
+    text = json.dumps(rounded(doc), ensure_ascii=False, separators=(",", ":"))
     tmp = path.with_suffix(".tmp")
     tmp.write_text(text)
     tmp.replace(path)
@@ -68,6 +90,7 @@ def build(out: Path, net: Net, tics: list[int] | None = None, parts: tuple[str, 
             log.info("planets: NASA Exoplanet Archive transmission spectra")
             atm = build_atmospheres(net, hosts, planets)
             _replace_all(out / "planets", PLANET_FILE, {f"{s}.atmosphere.json": d for s, d in atm.items()})
+            dump(out / "planets" / "detections_curated.json", curated())
     index = make_index(out, requested_not_hosts=missing if tics is not None else None)
     dump(out / "index.json", index)
     return index
@@ -78,7 +101,8 @@ def make_index(out: Path, requested_not_hosts: list[int] | None = None) -> dict:
         return {"path": p.relative_to(out).as_posix(), "bytes": p.stat().st_size}
 
     files = {}
-    for name, key in (("elements.json", "elements"), ("sun_spectrum.json", "sun_spectrum")):
+    for name, key in (("elements.json", "elements"), ("sun_spectrum.json", "sun_spectrum"),
+                      ("planets/detections_curated.json", "detections_curated")):
         if (out / name).exists():
             files[key] = entry(out / name)
     stars: dict[str, dict] = {}
@@ -96,7 +120,7 @@ def make_index(out: Path, requested_not_hosts: list[int] | None = None) -> dict:
             planets[m.group(1)] = {"planet": doc["planet"], "host": doc.get("host"), "tic": doc.get("tic"),
                                    "has_spectrum": doc.get("spectrum") is not None,
                                    "n_detections": len(doc.get("detections") or []), **entry(p)}
-    all_files = [f["bytes"] for f in files.values()]
+    all_files = [f["bytes"] for f in files.values()]  # (index.json itself excluded)
     all_files += [v["bytes"] for s in stars.values() for k, v in s.items() if isinstance(v, dict)]
     all_files += [p["bytes"] for p in planets.values()]
     index = {
@@ -111,6 +135,7 @@ def make_index(out: Path, requested_not_hosts: list[int] | None = None) -> dict:
             "stars_with_gaia_xp": sum("gaia_xp" in s for s in stars.values()),
             "planets": len(planets),
             "planets_with_spectrum": sum(p["has_spectrum"] for p in planets.values()),
+            "planets_with_detections": sum(p["n_detections"] > 0 for p in planets.values()),
         },
         "total_bytes": sum(all_files),
         "files": files,

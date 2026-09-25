@@ -9,13 +9,18 @@ For each planet we keep the transmission spectrum with the most data points (all
 listed in `spectra_available`) as transit depth in ppm. Depth comes from the file's transit
 depth column (%), or from (Rp/Rs)^2 when only the radius ratio is given.
 
-`detections` is always empty: the archive does not record which species each paper claims.
+The archive does not record which species each paper claims, so `detections` comes from a
+hand-curated list (detections_curated.json, in this package): each entry was read from the
+paper's own abstract and is marked "curated": true. Planets on that list get a file even when
+the archive has no transmission spectrum for them.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import re
+from importlib import resources
 from itertools import pairwise
 
 from . import sources
@@ -28,6 +33,11 @@ VIEWER_URL = f"{HOST}/cgi-bin/atmospheres/nph-firefly?atmospheres"
 SPECTRA_QUERY = ("select pl_name, spec_type, authors, bibcode, num_datapoints, instrument, facility, "
                  "minwavelng, maxwavelng, note, spec_path from spectra where spec_type = 'Transmission'")
 TTL = 30 * DAY
+
+
+def curated() -> dict:
+    """The curated detections document (package data)."""
+    return json.loads(resources.files("skyspectra").joinpath("detections_curated.json").read_text())
 
 
 def slug(planet: str) -> str:
@@ -142,6 +152,11 @@ def build_atmospheres(net: Net, hosts: list[Host], planets: list[str] | None = N
         name = row["pl_name"]
         if name in planet_host and (planets is None or name in planets):
             by_planet.setdefault(name, []).append(row)
+    cdoc = curated()
+    cur = cdoc["planets"]
+    for name in cur:
+        if name in planet_host and (planets is None or name in planets):
+            by_planet.setdefault(name, [])
     files = SpectrumFiles(net)
     docs = {}
     for name, rows in sorted(by_planet.items()):
@@ -159,15 +174,22 @@ def build_atmospheres(net: Net, hosts: list[Host], planets: list[str] | None = N
                 spectrum = {**spec, "depth_from": method, **_meta_entry(row)}
                 break
         h = planet_host[name]
-        docs[slug(name)] = {
+        c = cur.get(name, {})
+        doc = {
             "planet": name,
             "host": h.name,
             "tic": h.tic,
-            "detections": [],
-            "detections_note": ("The NASA Exoplanet Archive does not list detected species; see each "
-                                "spectrum's reference for the authors' interpretation."),
+            "detections": [{**d, "curated": True} for d in c.get("detections", [])],
+            "detections_note": c.get("note") or (
+                "Curated from the papers' abstracts (see each reference)." if c else
+                "No curated detections for this planet yet; the NASA Exoplanet Archive does not list "
+                "detected species. See each spectrum's reference for the authors' interpretation."),
             "spectrum": spectrum,
             "spectra_available": [_meta_entry(r) for r in rows],
             **sources.meta("nea"),
         }
+        if c:
+            doc["detections_source"] = cdoc["source"]
+            doc["detections_licence"] = cdoc["licence"]
+        docs[slug(name)] = doc
     return docs

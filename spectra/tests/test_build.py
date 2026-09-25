@@ -15,13 +15,14 @@ def test_build_writes_exactly_the_contract(replay, tmp_path):
     index = build(out, net.Net(), TICS, element_symbols=ELEMENTS, sun_range=SUN_RANGE, planets=sorted(PLANETS))
     assert _files(out) == [
         "elements.json", "index.json",
+        "planets/detections_curated.json",
         "planets/hd-189733-b.atmosphere.json", "planets/wasp-121-b.atmosphere.json",
         "stars/22529346.abundances.json", "stars/22529346.gaia_xp.json",
         "stars/256364928.abundances.json", "stars/256364928.gaia_xp.json",
         "sun_spectrum.json",
     ]
     assert index["counts"] == {"stars_with_abundances": 2, "stars_with_gaia_xp": 2, "planets": 2,
-                               "planets_with_spectrum": 2}
+                               "planets_with_spectrum": 2, "planets_with_detections": 2}
     assert index["requested_tics_not_in_archive"] == [1]
     assert index["total_bytes"] == sum((out / f).stat().st_size for f in _files(out) if f != "index.json")
     assert index["stars"]["22529346"]["gaia_xp"]["path"] == "stars/22529346.gaia_xp.json"
@@ -52,3 +53,12 @@ def test_cli_build_with_tic_file(replay, tmp_path, capsys, monkeypatch):
     assert cli.main(["build", "--out", str(out), "--tic-file", str(tics), "--only", "stars", "-q"]) == 0
     assert "2 stars with abundances, 2 with Gaia XP" in capsys.readouterr().out
     assert json.loads((out / "index.json").read_text())["stars"]["22529346"]["name"] == "WASP-121"
+
+
+def test_rounding_keeps_wavelengths_exact():
+    from skyspectra.build import rounded
+
+    doc = {"flux": [0.123456, 1.9120454e-15], "x_h_dex": 0.23, "tic": 22529346,
+           "lines": [{"nm": 588.9951, "relative_intensity": 0.123456}], "wavelength_um": [2.72575]}
+    assert rounded(doc) == {"flux": [0.1235, 1.912e-15], "x_h_dex": 0.23, "tic": 22529346,
+                            "lines": [{"nm": 588.9951, "relative_intensity": 0.1235}], "wavelength_um": [2.72575]}
