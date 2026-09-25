@@ -16,7 +16,14 @@ from datetime import datetime
 from importlib import resources
 from typing import Any
 
-from api.models import JobRecord, JobStatus, JobStep, StoredAnalysis
+from api.models import (
+    HostSystem,
+    JobRecord,
+    JobStatus,
+    JobStep,
+    StoredAnalysis,
+    StoredLightCurve,
+)
 from api.ports import EventMeta, EventQuery, EventRow, Upserted
 from api.storage.events_sql import build_query
 from api.timeutil import iso, parse
@@ -248,6 +255,58 @@ class SqliteStorage:
             " tic_id = excluded.tic_id, resolved_at = excluded.resolved_at",
             (key, tic_id, iso(at)),
         )
+
+    # per-star lab ------------------------------------------------------------------------
+
+    def get_star_lightcurve(self, tic_id: int) -> StoredLightCurve | None:
+        row = self._one("SELECT * FROM star_lightcurves WHERE tic_id = ?", (tic_id,))
+        if row is None:
+            return None
+        return StoredLightCurve(
+            tic_id=row["tic_id"],
+            status=row["status"],
+            data_marker=row["data_marker"],
+            stored_at=parse(row["stored_at"]),
+            curve=json.loads(row["curve"]) if row["curve"] else None,
+        )
+
+    def put_star_lightcurve(self, rec: StoredLightCurve) -> None:
+        self._exec(
+            "INSERT INTO star_lightcurves (tic_id, status, data_marker, stored_at, curve)"
+            " VALUES (?,?,?,?,?) ON CONFLICT (tic_id) DO UPDATE SET status = excluded.status,"
+            " data_marker = excluded.data_marker, stored_at = excluded.stored_at,"
+            " curve = excluded.curve",
+            (
+                rec.tic_id,
+                rec.status,
+                rec.data_marker,
+                iso(rec.stored_at),
+                rec.curve.model_dump_json() if rec.curve else None,
+            ),
+        )
+
+    def get_known_planets(self, tic_id: int) -> HostSystem | None:
+        row = self._one("SELECT * FROM known_planets WHERE tic_id = ?", (tic_id,))
+        if row is None:
+            return None
+        return HostSystem(
+            tic_id=row["tic_id"],
+            host_name=row["host_name"],
+            star=json.loads(row["star"]),
+            planets=json.loads(row["planets"]),
+            fetched_at=parse(row["fetched_at"]),
+        )
+
+    def put_known_planets(self, rec: HostSystem) -> None:
+        doc = rec.model_dump(mode="json")
+        self._exec(
+            "INSERT INTO known_planets (tic_id, host_name, star, planets, fetched_at)"
+            " VALUES (?,?,?,?,?) ON CONFLICT (tic_id) DO UPDATE SET"
+            " host_name = excluded.host_name, star = excluded.star,"
+            " planets = excluded.planets, fetched_at = excluded.fetched_at",
+            (rec.tic_id, rec.host_name, _dump(doc["star"]), _dump(doc["planets"]),
+             iso(rec.fetched_at)),
+        )  # fmt: skip
 
     # jobs --------------------------------------------------------------------------------
 

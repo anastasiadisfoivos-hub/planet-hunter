@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from api import honesty
 from api.app import create_app
+from api.fakes.archive import FakeArchive
 from api.fakes.tess import FakeAnalyzer
 from api.ratelimit import RateLimiter
 from api.settings import Settings
@@ -44,7 +45,10 @@ class HonestClient(TestClient):
 # narrows it. Postgres comes from PH_TEST_DATABASE_URL (a throwaway database: tests wipe it), or
 # else a disposable `postgres:16` Docker container started for the session.
 BACKENDS = [b.strip() for b in os.environ.get("PH_TEST_BACKENDS", "sqlite,postgres").split(",")]
-TABLES = "events, event_sources, ingest_status, star_analyses, star_names, analyze_jobs"
+TABLES = (
+    "events, event_sources, ingest_status, star_analyses, star_names, analyze_jobs,"
+    " star_lightcurves, known_planets"
+)
 OLD_TABLES = "traps, discoveries, catches, jobs"
 
 
@@ -134,7 +138,7 @@ def storage(backend, request):
 
 @pytest.fixture
 def services(storage) -> Services:
-    return Services(storage=storage, analyzer=FakeAnalyzer())
+    return Services(storage=storage, analyzer=FakeAnalyzer(), archive=FakeArchive())
 
 
 @pytest.fixture

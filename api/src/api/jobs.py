@@ -1,6 +1,8 @@
 """In-process Analyze queue: at most `workers` analyses at once, the rest wait in order.
 
 One job per star: asking again for a star that is already queued or running returns that job.
+A job is a full analysis, or (`lightcurve_only`) the re-read of a stored result's light curve
+for a result stored before light curves were kept: no new search.
 Storage calls block (network round trips on Postgres), so they run in threads, off the event loop.
 """
 
@@ -32,6 +34,7 @@ class AnalyzeQueue:
         self._tasks: list[asyncio.Task] = []
         self._lock: asyncio.Lock | None = None
         self._active: dict[int, JobRecord] = {}  # tic -> its queued or running job
+        self._lightcurve_only: set[str] = set()  # job ids that only re-read a light curve
 
     async def start(self) -> None:
         self._queue = asyncio.Queue()
@@ -47,7 +50,12 @@ class AnalyzeQueue:
     def active(self, tic_id: int) -> JobRecord | None:
         return self._active.get(tic_id)
 
-    async def submit(self, tic_id: int, marker: str | None) -> JobRecord:
+    def is_lightcurve_only(self, job_id: str) -> bool:
+        return job_id in self._lightcurve_only
+
+    async def submit(
+        self, tic_id: int, marker: str | None, *, lightcurve_only: bool = False
+    ) -> JobRecord:
         """Queue an analysis, or return the star's job already in the queue."""
         assert self._queue is not None and self._lock is not None, "start() was not called"
         async with self._lock:
@@ -65,6 +73,8 @@ class AnalyzeQueue:
                 created_at=now,
             )
             await asyncio.to_thread(self.services.storage.create_job, job)
+            if lightcurve_only:
+                self._lightcurve_only.add(job.id)
             self._active[tic_id] = job
             await self._queue.put(job.id)
             return job
@@ -93,6 +103,14 @@ class AnalyzeQueue:
         def step(name: str) -> None:
             storage.append_job_step(job_id, JobStep(name=name, at=utcnow()))
 
+        if job_id in self._lightcurve_only:
+            try:
+                await self._reread_lightcurve(job_id, tic, set_status, step)
+            finally:
+                self._lightcurve_only.discard(job_id)
+                self._active.pop(tic, None)
+            return
+
         try:
             await asyncio.to_thread(set_status, "running")
             await asyncio.to_thread(step, "started")
@@ -113,9 +131,33 @@ class AnalyzeQueue:
         except TimeoutError:
             await asyncio.to_thread(set_status, "failed", error="analysis timed out")
         except LookupError as e:
+            await asyncio.to_thread(analysis.record_no_data, storage, tic, utcnow())
             await asyncio.to_thread(set_status, "failed", error=str(e))
         except Exception as e:
             log.warning("analyze job %s failed: %s", job_id, e)
             await asyncio.to_thread(set_status, "failed", error=str(e) or type(e).__name__)
         finally:
             self._active.pop(tic, None)
+
+    async def _reread_lightcurve(self, job_id: str, tic: int, set_status, step) -> None:
+        storage, analyzer = self.services.storage, self.services.analyzer
+        try:
+            await asyncio.to_thread(set_status, "running")
+            await asyncio.to_thread(step, "re-reading the light curve (no new search)")
+            rec = await asyncio.to_thread(storage.get_star_analysis, tic)
+            if rec is not None and await asyncio.to_thread(analysis.needs_lightcurve, storage, rec):
+                lc = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        analysis.backfill_lightcurve, storage, analyzer, rec, utcnow()
+                    ),
+                    self.timeout_s,
+                )
+                n = len(lc.curve.time_btjd) if lc.curve else 0
+                await asyncio.to_thread(step, f"stored light curve ({n} points)")
+            await asyncio.to_thread(set_status, "done")
+        except TimeoutError:
+            await asyncio.to_thread(set_status, "failed", error="light curve re-read timed out")
+        except Exception as e:  # noqa: BLE001 - the stored result itself is untouched
+            log.warning("light curve job %s failed: %s", job_id, e)
+            error = f"could not re-read the light curve: {str(e) or type(e).__name__}"
+            await asyncio.to_thread(set_status, "failed", error=error)

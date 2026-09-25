@@ -8,9 +8,22 @@ import threading
 import time
 from collections.abc import Callable
 
+import numpy as np
+
 from api.analysis import describe
 from api.known_systems import BY_KEY, NAME_OF, name_key
-from api.models import Analysis, Check, Flare, FoldedCurve, Link, Sector, Signal, StarInfo
+from api.lightcurve import bin_lightcurve
+from api.models import (
+    Analysis,
+    Check,
+    Flare,
+    FoldedCurve,
+    LightCurve,
+    Link,
+    Sector,
+    Signal,
+    StarInfo,
+)
 
 STEPS = (
     "looking up the star",
@@ -31,6 +44,9 @@ class FakeAnalyzer:
         self.marker_down = False
         self.gate: threading.Event | None = None
         self.fail_for: set[int] = set()
+        self.lightcurve_fail_for: set[int] = set()  # lightcurve() raises LookupError
+        self.star_extra: dict[int, dict] = {}  # StarInfo fields per TIC (e.g. tmag)
+        self.lightcurve_calls: list[int] = []
         self.extra_text = ""  # appended to explanations (honesty tests)
         self.hunt_calls: list[int] = []
         self.marker_calls: list[int] = []
@@ -79,6 +95,30 @@ class FakeAnalyzer:
         finally:
             with self._lock:
                 self.running -= 1
+
+    def lightcurve(self, tic_id: int) -> LightCurve:
+        with self._lock:
+            self.lightcurve_calls.append(tic_id)
+        if self.gate is not None:
+            self.gate.wait(timeout=30)
+        if tic_id in self.fail_for or tic_id in self.lightcurve_fail_for:
+            raise LookupError(f"no usable light curve for TIC {tic_id}")
+        marker = self._marker(tic_id) or "none"
+        curve = self._result(tic_id, marker).lightcurve
+        assert curve is not None
+        return curve
+
+    @staticmethod
+    def _curve(sector: int, signals: list[Signal]) -> LightCurve:
+        """One sector at 2-min cadence (two orbits, a downlink gap), with each signal's dips."""
+        start = 1325.0 + 27.4 * (sector - 1)
+        t = np.arange(start, start + 27.0, 2 / 1440)
+        t = t[np.abs(t - (start + 13.5)) > 0.5]
+        f = np.ones_like(t)
+        for sig in signals:
+            phase = ((t - sig.t0_btjd) / sig.period_days + 0.5) % 1.0 - 0.5
+            f[np.abs(phase * sig.period_days * 24) < sig.duration_hours / 2] -= sig.depth_ppm / 1e6
+        return bin_lightcurve(t, f, [sector])
 
     def _result(self, tic_id: int, marker: str) -> Analysis:
         rng = random.Random(f"{self.seed}:star:{tic_id}")
@@ -134,7 +174,11 @@ class FakeAnalyzer:
         ra, dec = rng.uniform(0, 360), math.degrees(math.asin(rng.uniform(-1, 1)))
         sectors = [Sector(sector=sector, author="SPOC", exptime=120.0)]
         star = StarInfo(
-            tic_id=tic_id, name=NAME_OF.get(tic_id), ra_deg=round(ra, 5), dec_deg=round(dec, 5)
+            tic_id=tic_id,
+            name=NAME_OF.get(tic_id),
+            ra_deg=round(ra, 5),
+            dec_deg=round(dec, 5),
+            **self.star_extra.get(tic_id, {}),
         )
         return Analysis(
             star=star,
@@ -145,4 +189,5 @@ class FakeAnalyzer:
             signals_examined=len(signals),
             summary=describe(star, sectors, signals, len(flares)),
             links=links,
+            lightcurve=self._curve(sector, signals),
         )

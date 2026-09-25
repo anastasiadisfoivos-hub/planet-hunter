@@ -14,7 +14,15 @@ from datetime import datetime
 
 from api import honesty
 from api.known_systems import BY_KEY, name_key
-from api.models import Analysis, Sector, Signal, StarInfo, StoredAnalysis
+from api.models import (
+    Analysis,
+    LightCurve,
+    Sector,
+    Signal,
+    StarInfo,
+    StoredAnalysis,
+    StoredLightCurve,
+)
 from api.ports import StarAnalyzer, Storage
 
 log = logging.getLogger(__name__)
@@ -62,8 +70,44 @@ def store(
     rec = StoredAnalysis(
         tic_id=tic_id, data_marker=marker, analyzed_at=now, marker_checked_at=now, analysis=clean
     )
-    storage.put_star_analysis(rec)
+    with storage.atomic():
+        storage.put_star_analysis(rec)
+        if analysis.lightcurve is not None:
+            store_lightcurve(storage, tic_id, marker, analysis.lightcurve, now)
     return rec
+
+
+def store_lightcurve(
+    storage: Storage, tic_id: int, marker: str | None, curve: LightCurve, now: datetime
+) -> StoredLightCurve:
+    rec = StoredLightCurve(
+        tic_id=tic_id, status="stored", data_marker=marker, stored_at=now, curve=curve
+    )
+    storage.put_star_lightcurve(rec)
+    return rec
+
+
+def record_no_data(storage: Storage, tic_id: int, now: datetime) -> None:
+    """MAST has no light curve for this star; a curve stored earlier is kept."""
+    old = storage.get_star_lightcurve(tic_id)
+    if old is None or old.status == "no_data":
+        storage.put_star_lightcurve(
+            StoredLightCurve(tic_id=tic_id, status="no_data", stored_at=now)
+        )
+
+
+def needs_lightcurve(storage: Storage, rec: StoredAnalysis) -> bool:
+    """A result stored before light curves were kept (or whose curve is for older data)."""
+    lc = storage.get_star_lightcurve(rec.tic_id)
+    return lc is None or lc.status != "stored" or lc.data_marker != rec.data_marker
+
+
+def backfill_lightcurve(
+    storage: Storage, analyzer: StarAnalyzer, rec: StoredAnalysis, now: datetime
+) -> StoredLightCurve:
+    """Re-read (not re-search) the light curve of a stored result. Raises like analyzer does."""
+    curve = analyzer.lightcurve(rec.tic_id)
+    return store_lightcurve(storage, rec.tic_id, rec.data_marker, curve, now)
 
 
 def reusable(storage: Storage, tic_id: int, marker: str | None) -> StoredAnalysis | None:

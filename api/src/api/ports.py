@@ -1,4 +1,5 @@
-"""The only interfaces the API uses to reach pipeline/ (Analyze a star) and its database.
+"""The only interfaces the API uses to reach pipeline/ (Analyze a star), the NASA Exoplanet
+Archive and its database.
 
 Real modules plug in through api/adapters/real.py; fakes live in api/fakes/. Events arrive
 through `python -m api.ingest`, not through a port: the web requests only ever read the table.
@@ -12,7 +13,17 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Literal, Protocol
 
-from api.models import Analysis, JobRecord, JobStatus, JobStep, StarInfo, StoredAnalysis
+from api.models import (
+    Analysis,
+    HostSystem,
+    JobRecord,
+    JobStatus,
+    JobStep,
+    LightCurve,
+    StarInfo,
+    StoredAnalysis,
+    StoredLightCurve,
+)
 
 
 class StarAnalyzer(Protocol):
@@ -30,7 +41,23 @@ class StarAnalyzer(Protocol):
         ...
 
     def analyze(self, tic_id: int, progress: Callable[[str], None]) -> Analysis:
-        """Run the search (20-60 s on a full CPU). Raises LookupError if there is no light curve."""
+        """Run the search (20-60 s on a full CPU). Raises LookupError if there is no light curve.
+
+        The result carries the unfolded light curve (Analysis.lightcurve), binned to <= 3000
+        points, which storage keeps apart from the result."""
+        ...
+
+    def lightcurve(self, tic_id: int) -> LightCurve:
+        """Just the unfolded, binned light curve (no search): the same data analyze() reads,
+        for results stored before light curves were kept. Raises LookupError if there is none."""
+        ...
+
+
+class PlanetArchive(Protocol):
+    """NASA Exoplanet Archive (pscomppars): the catalogued planets of one star."""
+
+    def host_system(self, tic_id: int, now: datetime) -> HostSystem:
+        """planets is empty when the star hosts none. Raises if the archive can't be reached."""
         ...
 
 
@@ -103,6 +130,12 @@ class Storage(Protocol):
     def touch_star_analysis(self, tic_id: int, at: datetime) -> None: ...
     def get_star_name(self, key: str) -> int | None: ...
     def put_star_name(self, key: str, tic_id: int, at: datetime) -> None: ...
+
+    # per-star lab
+    def get_star_lightcurve(self, tic_id: int) -> StoredLightCurve | None: ...
+    def put_star_lightcurve(self, rec: StoredLightCurve) -> None: ...
+    def get_known_planets(self, tic_id: int) -> HostSystem | None: ...
+    def put_known_planets(self, rec: HostSystem) -> None: ...
 
     # jobs
     def create_job(self, job: JobRecord) -> None: ...

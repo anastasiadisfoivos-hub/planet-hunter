@@ -24,7 +24,14 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 
-from api.models import JobRecord, JobStatus, JobStep, StoredAnalysis
+from api.models import (
+    HostSystem,
+    JobRecord,
+    JobStatus,
+    JobStep,
+    StoredAnalysis,
+    StoredLightCurve,
+)
 from api.ports import EventMeta, EventQuery, EventRow, Upserted
 from api.storage.events_sql import build_query
 
@@ -294,6 +301,58 @@ class PostgresStorage:
             " tic_id = excluded.tic_id, resolved_at = excluded.resolved_at",
             (key, tic_id, at),
         )
+
+    # per-star lab ------------------------------------------------------------------------
+
+    def get_star_lightcurve(self, tic_id: int) -> StoredLightCurve | None:
+        row = self._one("SELECT * FROM star_lightcurves WHERE tic_id = %s", (tic_id,))
+        if row is None:
+            return None
+        return StoredLightCurve(
+            tic_id=row["tic_id"],
+            status=row["status"],
+            data_marker=row["data_marker"],
+            stored_at=_utc(row["stored_at"]),
+            curve=row["curve"],
+        )
+
+    def put_star_lightcurve(self, rec: StoredLightCurve) -> None:
+        self._exec(
+            "INSERT INTO star_lightcurves (tic_id, status, data_marker, stored_at, curve)"
+            " VALUES (%s,%s,%s,%s,%s::jsonb) ON CONFLICT (tic_id) DO UPDATE SET"
+            " status = excluded.status, data_marker = excluded.data_marker,"
+            " stored_at = excluded.stored_at, curve = excluded.curve",
+            (
+                rec.tic_id,
+                rec.status,
+                rec.data_marker,
+                rec.stored_at,
+                rec.curve.model_dump_json() if rec.curve else None,
+            ),
+        )
+
+    def get_known_planets(self, tic_id: int) -> HostSystem | None:
+        row = self._one("SELECT * FROM known_planets WHERE tic_id = %s", (tic_id,))
+        if row is None:
+            return None
+        return HostSystem(
+            tic_id=row["tic_id"],
+            host_name=row["host_name"],
+            star=row["star"],
+            planets=row["planets"],
+            fetched_at=_utc(row["fetched_at"]),
+        )
+
+    def put_known_planets(self, rec: HostSystem) -> None:
+        doc = rec.model_dump(mode="json")
+        self._exec(
+            "INSERT INTO known_planets (tic_id, host_name, star, planets, fetched_at)"
+            " VALUES (%s,%s,%s,%s,%s) ON CONFLICT (tic_id) DO UPDATE SET"
+            " host_name = excluded.host_name, star = excluded.star,"
+            " planets = excluded.planets, fetched_at = excluded.fetched_at",
+            (rec.tic_id, rec.host_name, Jsonb(doc["star"]), Jsonb(doc["planets"]),
+             rec.fetched_at),
+        )  # fmt: skip
 
     # jobs --------------------------------------------------------------------------------
 

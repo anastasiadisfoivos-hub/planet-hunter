@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
-from api.ports import StarAnalyzer, Storage
+from api.ports import PlanetArchive, StarAnalyzer, Storage
 from api.settings import Settings
+from api.spectra_index import SpectraIndex
 from api.storage.sqlite import SqliteStorage
 
 
@@ -13,6 +14,8 @@ from api.storage.sqlite import SqliteStorage
 class Services:
     storage: Storage
     analyzer: StarAnalyzer
+    archive: PlanetArchive | None = None  # None: the lab lists no known planets
+    spectra: SpectraIndex = field(default_factory=lambda: SpectraIndex(None))
 
 
 def build_storage(settings: Settings) -> Storage:
@@ -51,5 +54,20 @@ def build_analyzer(settings: Settings) -> StarAnalyzer:
     return FakeAnalyzer()
 
 
+def build_archive(settings: Settings) -> PlanetArchive:
+    if settings.adapters == "real":
+        from api.adapters.exoarchive import ExoplanetArchive
+
+        return ExoplanetArchive()
+    from api.fakes.archive import FakeArchive
+
+    return FakeArchive()
+
+
 def build_services(settings: Settings) -> Services:
-    return Services(storage=build_storage(settings), analyzer=build_analyzer(settings))
+    return Services(
+        storage=build_storage(settings),
+        analyzer=build_analyzer(settings),
+        archive=build_archive(settings),
+        spectra=SpectraIndex(settings.spectra_index, settings.spectra_index_ttl_s),
+    )

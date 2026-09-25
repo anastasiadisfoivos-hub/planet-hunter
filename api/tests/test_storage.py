@@ -21,18 +21,21 @@ def _analysis(tic: int, marker: str = "sector-1") -> StoredAnalysis:
         data_marker=marker,
         analyzed_at=T,
         marker_checked_at=T,
-        analysis=FakeAnalyzer()._result(tic, marker),
+        # The light curve travels apart (star_lightcurves), never inside the stored result.
+        analysis=FakeAnalyzer()._result(tic, marker).model_copy(update={"lightcurve": None}),
     )
 
 
 def test_migrations_are_recorded(storage, backend):
     if backend == "sqlite":
         versions = [r[0] for r in storage._all("SELECT version FROM schema_migrations")]
-        assert versions == ["0002_events", "0003_analyze"]
+        assert versions == ["0002_events", "0003_analyze", "0004_stardata"]
         assert storage.migrate() == []  # idempotent
     else:
         rows = storage._all("SELECT version FROM schema_migrations ORDER BY version")
-        assert [r["version"] for r in rows] == ["0001_init", "0002_events", "0003_analyze"]
+        assert [r["version"] for r in rows] == [
+            "0001_init", "0002_events", "0003_analyze", "0004_stardata"
+        ]  # fmt: skip
 
 
 def test_star_analysis_round_trip(storage):

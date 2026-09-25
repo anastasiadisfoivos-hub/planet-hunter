@@ -34,6 +34,11 @@ class Settings:
     # How many proxies in front of the API append to X-Forwarded-For (Render: 1). 0 = ignore it.
     trusted_proxy_hops: int = 0
     web_origins: tuple[str, ...] = field(default_factory=tuple)
+    # Per-star lab
+    spectra_index: str | None = None  # path or URL of the SPECTRA index.json
+    spectra_index_ttl_s: float = 3600.0  # re-read it at most this often
+    known_planets_ttl_s: float = 7 * 86400.0  # re-ask the NASA Exoplanet Archive per star
+    archive_timeout_s: float = 8.0  # that question, inside GET /stars/{tic}/lab
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -55,4 +60,8 @@ class Settings:
             rate_analyze_per_min=_int("PH_RATE_ANALYZE_PER_MIN", 6),
             trusted_proxy_hops=_int("PH_TRUSTED_PROXY_HOPS", 0),
             web_origins=tuple(o.strip().rstrip("/") for o in origins.split(",") if o.strip()),
+            spectra_index=os.environ.get("PH_SPECTRA_INDEX") or None,
+            spectra_index_ttl_s=_float("PH_SPECTRA_INDEX_TTL_S", 3600.0),
+            known_planets_ttl_s=_float("PH_KNOWN_PLANETS_TTL_S", 7 * 86400.0),
+            archive_timeout_s=_float("PH_ARCHIVE_TIMEOUT_S", 8.0),
         )

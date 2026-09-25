@@ -15,6 +15,7 @@ JobStatus = Literal["queued", "running", "done", "failed"]
 # "eps Eri", "Barnard's star", "2MASS J0523+2344", "LHS 1140").
 _NAME_RE = re.compile(r"^[\w .'+\-*/()]{1,80}$")
 MAX_TIC = 10_000_000_000
+MAX_LC_POINTS = 3000
 
 
 # events -------------------------------------------------------------------------------
@@ -84,6 +85,8 @@ class AnalyzeRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str | None = Field(default=None, description='A star name, e.g. "WASP-18" or "TIC 123"')
     tic_id: int | None = Field(default=None, gt=0, lt=MAX_TIC)
+    # Some clients send what they were looking at; accepted and ignored (never echoed back).
+    target: Any = Field(default=None, exclude=True, description="ignored")
 
     @field_validator("tic_id", mode="before")
     @classmethod
@@ -121,6 +124,23 @@ class StarInfo(BaseModel):
     radius_rsun: float | None = None
     teff_k: float | None = None
     tmag: float | None = None
+    mass_msun: float | None = None
+    distance_pc: float | None = None
+
+
+class LightCurve(BaseModel):
+    """The star's light curve as observed (not folded), normalised to 1 and binned in time."""
+
+    time_btjd: list[float] = Field(max_length=MAX_LC_POINTS)
+    flux: list[float] = Field(max_length=MAX_LC_POINTS)
+    binned_from: int = Field(ge=0, description="points in the light curve before binning")
+    sectors: list[int] = []
+
+    @model_validator(mode="after")
+    def _same_length(self) -> LightCurve:
+        if len(self.time_btjd) != len(self.flux):
+            raise ValueError("time_btjd and flux must have the same length")
+        return self
 
 
 class FoldedCurve(BaseModel):
@@ -194,6 +214,9 @@ class Analysis(BaseModel):
     signals_examined: int
     summary: str
     links: list[Link] = []
+    # Carried from the analyzer to storage, which keeps it in its own table (star_lightcurves):
+    # never part of the stored or served result.
+    lightcurve: LightCurve | None = Field(default=None, exclude=True)
 
 
 class StoredAnalysis(BaseModel):
@@ -212,6 +235,11 @@ class AnalyzeResponse(BaseModel):
     cached: bool = False
     note: str | None = None
     result: StoredAnalysis | None = None
+    lightcurve_job_id: str | None = Field(
+        default=None,
+        description="Set when a result stored before light curves were kept is re-reading its"
+        " light curve (no new search): poll GET /jobs/{id}, then GET /stars/{tic}/lightcurve",
+    )
 
 
 class JobStep(BaseModel):
@@ -242,3 +270,120 @@ class JobView(BaseModel):
     created_at: datetime
     started_at: datetime | None = None
     finished_at: datetime | None = None
+
+
+# per-star lab --------------------------------------------------------------------------
+
+LightcurveStatus = Literal["stored", "no_data"]
+
+
+class StoredLightCurve(BaseModel):
+    tic_id: int
+    status: LightcurveStatus  # no_data: MAST has no SPOC, TESS-SPOC or QLP light curve
+    data_marker: str | None = None
+    stored_at: datetime
+    curve: LightCurve | None = None
+
+
+class KnownPlanet(BaseModel):
+    """One planet from the NASA Exoplanet Archive (pscomppars): what the Kepler check needs."""
+
+    name: str
+    period_d: float | None = None
+    a_au: float | None = Field(default=None, description="semi-major axis (au)")
+    radius: float | None = Field(default=None, description="planet radius (Earth radii)")
+    mass: float | None = Field(default=None, description="planet mass (Earth masses)")
+    mass_kind: str | None = Field(
+        default=None,
+        description='the archive\'s pl_bmassprov: "Mass", "Msini", "M-R relationship"…',
+    )
+
+
+class HostStar(BaseModel):
+    mass_msun: float | None = None
+    radius_rsun: float | None = None
+    teff_k: float | None = None
+    distance_pc: float | None = None
+    tmag: float | None = None
+
+
+class HostSystem(BaseModel):
+    """The archive's answer for one TIC, cached (planets is empty for a star with none)."""
+
+    tic_id: int
+    host_name: str | None = None
+    star: HostStar = HostStar()
+    planets: list[KnownPlanet] = []
+    fetched_at: datetime
+
+
+LabReason = Literal["not analyzed yet", "no TESS data", "too bright for TESS (Tmag < ~4)"]
+
+
+class LabLightcurve(BaseModel):
+    available: bool
+    reason_if_not: LabReason | None = None
+    n_points: int | None = None
+    sectors: list[int] = []
+
+
+class LabSignal(BaseModel):
+    id: str
+    type: str
+    confidence: float
+    period_days: float
+    t0_btjd: float
+    duration_hours: float
+    depth_ppm: float
+    snr: float
+    radius_rjup: float | None = None
+    known_status: str
+    name_if_known: str | None = None
+
+
+class LabSpectra(BaseModel):
+    gaia_xp: bool = False
+    abundances: bool = False
+    planet_atmospheres: list[str] = Field(
+        default=[], description="slugs: planets/<slug>.atmosphere.json"
+    )
+    index_available: bool = Field(description="false when PH_SPECTRA_INDEX is unset or unreadable")
+
+
+class LabView(BaseModel):
+    """What exists for one star, so /lab/star/<tic> knows which experiments it can offer."""
+
+    tic: int
+    name: str | None = None
+    teff: float | None = Field(default=None, description="K")
+    radius: float | None = Field(default=None, description="solar radii")
+    mass: float | None = Field(default=None, description="solar masses (archive, else TIC)")
+    distance: float | None = Field(default=None, description="parsecs")
+    tmag: float | None = None
+    analyzed_at: datetime | None = None
+    lightcurve: LabLightcurve
+    signals: list[LabSignal] = []
+    known_planets: list[KnownPlanet] = []
+    known_planets_note: str | None = Field(
+        default=None, description="set when the NASA Exoplanet Archive couldn't be asked"
+    )
+    spectra: LabSpectra
+
+
+class LabFolded(BaseModel):
+    signal_id: str
+    type: str
+    period_days: float
+    t0_btjd: float
+    duration_hours: float
+    depth_ppm: float
+    phase: list[float]
+    flux: list[float]
+
+
+class LightcurveView(BaseModel):
+    tic_id: int
+    data_marker: str | None = None
+    stored_at: datetime
+    unfolded: LightCurve
+    folded: list[LabFolded]

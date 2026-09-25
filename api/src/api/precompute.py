@@ -5,8 +5,9 @@
     python -m api.precompute --stars 100100827,22529346 --force
 
 Idempotent: a star whose stored result matches its current TESS data marker is skipped (so a
-re-run, or a run after a crash, only does what's missing or out of date). A failing star is
-recorded and the run moves on. Prints a JSON summary; exits 1 if more than
+re-run, or a run after a crash, only does what's missing or out of date). A skipped star whose
+result was stored before light curves were kept gets its light curve re-read (no new search).
+A failing star is recorded and the run moves on. Prints a JSON summary; exits 1 if more than
 --max-failed-fraction of the stars failed (default: any).
 
 --shard i/N (0 <= i < N) takes every N-th star of the sorted, de-duplicated list, starting at i,
@@ -86,14 +87,29 @@ class Summary:
     stars: int = 0
     analyzed: list[int] = field(default_factory=list)
     skipped: list[int] = field(default_factory=list)  # stored result is current
+    lightcurves_reread: list[int] = field(default_factory=list)  # skipped, curve backfilled
     no_data: list[int] = field(default_factory=list)  # no TESS light curve
     failed: list[dict[str, Any]] = field(default_factory=list)
     not_reached: list[int] = field(default_factory=list)  # --time-budget-min ran out
     seconds: float = 0.0
 
 
+def backfill(storage: Storage, analyzer: StarAnalyzer, tic: int) -> bool:
+    """Re-read a current result's light curve if it has none; never fails the star."""
+    rec = storage.get_star_analysis(tic)
+    if rec is None or not analysis.needs_lightcurve(storage, rec):
+        return False
+    try:
+        analysis.backfill_lightcurve(storage, analyzer, rec, utcnow())
+    except Exception as exc:  # noqa: BLE001
+        log.warning("TIC %s: light curve re-read failed: %s", tic, exc)
+        return False
+    return True
+
+
 def precompute_one(storage: Storage, analyzer: StarAnalyzer, tic: int, force: bool) -> str:
-    """'analyzed', 'skipped' or 'no_data'. Raises on failure."""
+    """'analyzed', 'skipped', 'skipped_reread' (a light curve backfilled) or 'no_data'.
+    Raises on failure."""
     rec = storage.get_star_analysis(tic)
     try:
         marker = analyzer.latest_data_marker(tic)
@@ -105,8 +121,9 @@ def precompute_one(storage: Storage, analyzer: StarAnalyzer, tic: int, force: bo
         if rec is not None and (not marker_known or marker is None or marker == rec.data_marker):
             if marker_known:
                 storage.touch_star_analysis(tic, utcnow())
-            return "skipped"
+            return "skipped_reread" if backfill(storage, analyzer, tic) else "skipped"
         if marker_known and marker is None:
+            analysis.record_no_data(storage, tic, utcnow())
             return "no_data"
     try:
         analysis.run(
@@ -114,6 +131,7 @@ def precompute_one(storage: Storage, analyzer: StarAnalyzer, tic: int, force: bo
         )
     except LookupError as exc:  # no light curve (or none with usable points)
         log.info("TIC %s: %s", tic, exc)
+        analysis.record_no_data(storage, tic, utcnow())
         return "no_data"
     return "analyzed"
 
@@ -141,6 +159,9 @@ def run(
             summary.failed.append({"tic_id": tic, "error": (str(exc) or type(exc).__name__)[:300]})
             outcome = "failed"
         else:
+            if outcome == "skipped_reread":
+                summary.lightcurves_reread.append(tic)
+                outcome = "skipped"
             getattr(summary, outcome).append(tic)
         print(
             f"[{k + 1}/{len(tics)}] TIC {tic}: {outcome} ({time.monotonic() - t0:.1f} s)",
@@ -203,9 +224,17 @@ def main(argv: list[str] | None = None) -> int:
         "stars_in_shard": summary.stars,
         "counts": {
             k: len(getattr(summary, k))
-            for k in ("analyzed", "skipped", "no_data", "failed", "not_reached")
-        },
+            for k in (
+                "analyzed",
+                "skipped",
+                "lightcurves_reread",
+                "no_data",
+                "failed",
+                "not_reached",
+            )
+        },  # fmt: skip
         "analyzed": summary.analyzed,
+        "lightcurves_reread": summary.lightcurves_reread,
         "no_data": summary.no_data,
         "failed": summary.failed,
         "not_reached": summary.not_reached,

@@ -35,6 +35,23 @@ async def _resolve(body: AnalyzeRequest, svc: ServicesDep, cfg: SettingsDep) -> 
     return star.tic_id
 
 
+async def _backfill(fresh: analysis.Freshness, svc, queue) -> str | None:
+    """A result stored before light curves were kept: re-read its light curve, once (backfill).
+    Not while MAST is down: the re-read would need it too."""
+    assert fresh.stored is not None
+    if fresh.note is not None:
+        return None
+    if (job := queue.active(fresh.stored.tic_id)) is not None:
+        return job.id if queue.is_lightcurve_only(job.id) else None
+    if not await asyncio.to_thread(analysis.needs_lightcurve, svc.storage, fresh.stored):
+        return None
+    try:
+        job = await queue.submit(fresh.stored.tic_id, fresh.marker, lightcurve_only=True)
+    except QueueFull:
+        return None
+    return job.id
+
+
 @router.post(
     "/analyze",
     response_model=AnalyzeResponse,
@@ -55,7 +72,7 @@ async def analyze(
     """
     tic = await _resolve(body, svc, cfg)
 
-    if (job := queue.active(tic)) is not None:
+    if (job := queue.active(tic)) is not None and not queue.is_lightcurve_only(job.id):
         response.status_code = 202
         return AnalyzeResponse(status=job.status, tic_id=tic, job_id=job.id)
 
@@ -74,9 +91,15 @@ async def analyze(
 
     if fresh.current and fresh.stored is not None:
         return AnalyzeResponse(
-            status="done", tic_id=tic, cached=True, note=fresh.note, result=fresh.stored
+            status="done",
+            tic_id=tic,
+            cached=True,
+            note=fresh.note,
+            result=fresh.stored,
+            lightcurve_job_id=await _backfill(fresh, svc, queue),
         )
     if fresh.no_data:
+        await asyncio.to_thread(analysis.record_no_data, svc.storage, tic, utcnow())
         raise HTTPException(
             404, f"TIC {tic} has no TESS light curve (SPOC, TESS-SPOC or QLP) to analyze."
         )

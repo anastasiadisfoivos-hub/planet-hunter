@@ -29,6 +29,8 @@ uv run python -m api.precompute --known-systems    # pre-compute Analyze results
 | POST | `/analyze` | `{"name": "WASP-18"}` or `{"tic_id": 100100827}` | **200** `{status: "done", cached: true, result}` when a current result is stored, else **202** `{status: "queued", job_id, queue_position}` |
 | GET | `/jobs/{id}` | | `{status, queue_position, steps: [{name, at}], error, result}` |
 | GET | `/stars/{tic}/analysis` | | the stored result `{tic_id, data_marker, analyzed_at, marker_checked_at, analysis}` |
+| GET | `/stars/{tic}/lab` | | what exists for this star, for the web Lab (`/lab/star/<tic>`); see **Per-star Lab** |
+| GET | `/stars/{tic}/lightcurve` | | `{tic_id, data_marker, stored_at, unfolded: {time_btjd[], flux[], binned_from, sectors}, folded: [{signal_id, type, period_days, t0_btjd, duration_hours, depth_ppm, phase[], flux[]}]}`; **404** `{detail: {reason, tic_id}}` when none is stored |
 | GET | `/healthz` | | `{ok: true}` |
 
 **`/events` filters.** All are optional and they combine with AND. List filters take either
@@ -80,7 +82,49 @@ A result holds:
 - up to 50 flares;
 - a one-paragraph summary.
 
-A stored result is about 20 KB.
+A stored result is about 20 KB. The star's **unfolded** light curve (normalised flux, averaged
+over consecutive points, never across a data gap, to at most 3,000 points) is stored beside it in
+`star_lightcurves` (about 75 KB served) and is only served by `/stars/{tic}/lightcurve`.
+
+`POST /analyze` also accepts a `target` field and ignores it. When a current result was stored
+before light curves were kept, the answer is still **200** with the result, plus
+`lightcurve_job_id`: a job that re-reads that star's light curve (no new search). Poll it, then
+fetch `/stars/{tic}/lightcurve`.
+
+## Per-star Lab
+
+`GET /stars/{tic}/lab` answers for any TIC and never starts an analysis:
+
+```json
+{"tic": 22529346, "name": "WASP-121", "teff": 6776.0, "radius": 1.52253, "mass": 1.33,
+ "distance": 269.898, "tmag": 10.056, "analyzed_at": "…",
+ "lightcurve": {"available": true, "reason_if_not": null, "n_points": 2928, "sectors": [87, 88]},
+ "signals": [{"id": "tess:22529346:sig:1", "type": "planet_candidate", "period_days": 1.274853,
+              "t0_btjd": 3665.74629, "duration_hours": 2.376, "depth_ppm": 15788.5, …}],
+ "known_planets": [{"name": "WASP-121 b", "period_d": 1.27492504, "a_au": 0.02571,
+                    "radius": 19.52604438, "mass": 371.85923619, "mass_kind": "Mass"}],
+ "known_planets_note": null,
+ "spectra": {"gaia_xp": true, "abundances": true, "planet_atmospheres": ["wasp-121-b"],
+             "index_available": true}}
+```
+
+- **Units:** `teff` K, `radius` solar radii, `mass` solar masses, `distance` parsecs. In
+  `known_planets`: `radius` Earth radii (`pl_rade`), `mass` Earth masses (`pl_bmasse`; `mass_kind`
+  is `pl_bmassprov`, e.g. `Msini`), `a_au` au, `period_d` days.
+- **Star values:** `teff`, `radius`, `tmag` come from TIC 8.2 (stored with the analysis), else the
+  archive. `mass` and `distance` come from the NASA Exoplanet Archive (`st_mass`, `sy_dist`: the
+  mass its orbits were solved with, for the Kepler check), else TIC 8.2.
+- **`lightcurve.reason_if_not`:** `"too bright for TESS (Tmag < ~4)"` when Tmag < 4;
+  `"no TESS data"` when MAST has no SPOC, TESS-SPOC or QLP light curve (recorded when an
+  analysis finds none); otherwise `"not analyzed yet"` (also for a result stored before light
+  curves were kept, until its next `POST /analyze`).
+- **Known planets:** NASA Exoplanet Archive TAP, table `pscomppars`, cached per TIC in
+  `known_planets` for `PH_KNOWN_PLANETS_TTL_S` (7 days), also when the star hosts none. If the
+  archive doesn't answer within `PH_ARCHIVE_TIMEOUT_S`, the last cached answer is served with
+  `known_planets_note` (or `[]` and a note when there is none).
+- **Spectra:** read from the SPECTRA `index.json` at `PH_SPECTRA_INDEX` (a path or a URL, re-read
+  at most every `PH_SPECTRA_INDEX_TTL_S`). When it is unset or unreadable, every flag is false and
+  `index_available` is false.
 
 ## Pre-compute
 
@@ -94,6 +138,8 @@ PH_ADAPTERS=real uv run python -m api.precompute --known-systems [--force]
 - **Sharding:** `--shard i/N` (0-based) takes every N-th star of the sorted list, so N runs
   cover it exactly once.
 - **Idempotent:** a star whose stored marker is current is skipped; `--force` re-analyzes it.
+  A skipped star with no stored light curve (analyzed before 0004) gets it re-read, not
+  re-searched (`lightcurves_reread` in the summary).
 - **Failures:** a failure is recorded and the run continues. Stars with no TESS data are
   counted as `no_data`, not as failures.
 - **Output and exit code:** prints a JSON summary. Exits 1 when more than
@@ -143,6 +189,10 @@ Details:
 | `PH_MARKER_TTL_S` | `21600` | ask MAST for a star's newest sector at most this often |
 | `PH_MARKER_TIMEOUT_S` | `10` | that question, inside POST /analyze |
 | `PH_RESOLVE_TIMEOUT_S` | `20` | resolving a star name through MAST |
+| `PH_SPECTRA_INDEX` | none | path or URL of the SPECTRA `index.json` (Lab spectra flags) |
+| `PH_SPECTRA_INDEX_TTL_S` | `3600` | re-read that index at most this often |
+| `PH_KNOWN_PLANETS_TTL_S` | `604800` | re-ask the NASA Exoplanet Archive per star at most this often |
+| `PH_ARCHIVE_TIMEOUT_S` | `8` | that question, inside `GET /stars/{tic}/lab` |
 
 ## Storage
 
@@ -159,6 +209,7 @@ numbered file to both folders; never edit one that has been applied.
 | `0001_init` (Postgres only) | traps, discoveries, catches, jobs. No longer used; kept so applied databases stay consistent |
 | `0002_events` | `events`: `id` PK, `type`, `category`, `frame`, `observed_at`, `ra/dec` (nullable), `confidence`, `has_images`, `from_latest_observed_window`, `record` jsonb, plus content hashes. It also creates `event_sources`, `ingest_status` and `ph_sep_deg()`. An index backs every filter |
 | `0003_analyze` | `star_analyses` (one row per TIC: `data_marker`, `analyzed_at`, `marker_checked_at`, `result`), `star_names`, `analyze_jobs` |
+| `0004_stardata` | `star_lightcurves` (one row per TIC: `status` `stored`/`no_data`, `data_marker`, `stored_at`, `curve`), `known_planets` (one row per TIC: `host_name`, `star`, `planets`, `fetched_at`). No backfill in SQL: curves are re-read on each star's next analysis |
 
 `uv run pytest` runs every storage-touching test on both backends. Postgres comes from
 `PH_TEST_DATABASE_URL`, a throwaway database that the tests wipe. If that's unset, it comes from a

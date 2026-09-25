@@ -1,27 +1,34 @@
 """The real StarAnalyzer: pipeline/ (package `hunter`), turned into the compact Analysis we store.
 
 The pipeline's per-signal light curve is 2000 unfolded points; we keep instead the curve folded on
-each signal's period and binned to at most 1000 points, which is what a reader looks at.
+each signal's period and binned to at most 1000 points, which is what a reader looks at, plus the
+star's whole unfolded light curve binned to at most 3000 points (stored apart, for the Lab).
 """
 
 from __future__ import annotations
 
+import logging
+import math
 from collections.abc import Callable
 
 import numpy as np
 
 from api.analysis import describe
 from api.known_systems import NAME_OF
+from api.lightcurve import bin_lightcurve
 from api.models import (
     Analysis,
     Check,
     Flare,
     FoldedCurve,
+    LightCurve,
     Link,
     Sector,
     Signal,
     StarInfo,
 )
+
+log = logging.getLogger(__name__)
 
 MAX_BINS = 1000
 MAX_FLARES = 50
@@ -44,7 +51,7 @@ def fold(
     )
 
 
-def _star(info, name: str | None = None) -> StarInfo:
+def _star(info, name: str | None = None, extra: dict | None = None) -> StarInfo:
     return StarInfo(
         tic_id=info.tic_id,
         name=name or NAME_OF.get(info.tic_id),
@@ -53,7 +60,41 @@ def _star(info, name: str | None = None) -> StarInfo:
         radius_rsun=info.radius_rsun,
         teff_k=info.teff_k,
         tmag=info.tmag,
+        **(extra or {}),
     )
+
+
+def _finite(v) -> float | None:
+    try:
+        x = float(v)
+    except (TypeError, ValueError):
+        return None
+    return None if math.isnan(x) else x
+
+
+def _tic_mass_distance(tic_id: int) -> dict:
+    """TIC 8.2 mass (Msun) and distance (pc), which pipeline/'s resolve() doesn't keep.
+    Cached on disk like the pipeline's own TIC answers; {} if MAST can't be reached."""
+    from hunter.cache import DAY, cached_json, retry
+
+    def query() -> dict:
+        from astroquery.mast import Catalogs
+
+        table = retry(lambda: Catalogs.query_criteria(catalog="Tic", ID=tic_id))
+        if len(table) == 0:
+            return {}
+        row = table[0]
+        return {"mass_msun": _finite(row["mass"]), "distance_pc": _finite(row["d"])}
+
+    try:
+        return cached_json("api-tic-mass-d-v1", str(tic_id), 30 * DAY, query)
+    except Exception as exc:  # noqa: BLE001 - optional extras
+        log.warning("TIC %s: mass/distance unavailable: %s", tic_id, exc)
+        return {}
+
+
+def _curve(lc) -> LightCurve:
+    return bin_lightcurve(lc.time, lc.flux, [int(p["sector"]) for p in lc.products])
 
 
 class PipelineAnalyzer:
@@ -69,6 +110,11 @@ class PipelineAnalyzer:
         from hunter import latest_data_marker
 
         return latest_data_marker(tic_id)
+
+    def lightcurve(self, tic_id: int) -> LightCurve:
+        from hunter.fetch import fetch
+
+        return _curve(fetch(tic_id, max_sectors=self.max_sectors))
 
     def analyze(self, tic_id: int, progress: Callable[[str], None]) -> Analysis:
         from hunter.core import run
@@ -128,7 +174,7 @@ class PipelineAnalyzer:
                     )
                 )
 
-        star = _star(result.star)
+        star = _star(result.star, extra=_tic_mass_distance(tic_id))
         sectors = [
             Sector(sector=p["sector"], author=p["author"], exptime=p["exptime"])
             for p in result.products
@@ -153,4 +199,5 @@ class PipelineAnalyzer:
             signals_examined=len(result.signals),
             summary=describe(star, sectors, signals, result.flares_found),
             links=links,
+            lightcurve=_curve(lc),
         )
