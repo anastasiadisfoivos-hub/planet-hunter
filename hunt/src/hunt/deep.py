@@ -116,7 +116,7 @@ def refine(time: np.ndarray, flux: np.ndarray, sig: Signal) -> Signal:
     dp = sig.duration * sig.period / baseline
     periods = np.linspace(max(sig.period - dp, 0.5), sig.period + dp, 101)
     durs = sig.duration * np.array([0.8, 0.9, 1.0, 1.1, 1.25])
-    durs = durs[durs < 0.5 * periods.min()]
+    durs = durs[(durs < 0.5 * periods.min()) & (durs <= LONG_DURATION_MAX_D)]
     if len(durs) == 0:
         return sig
     bt, bf, cnt = bin_by_time(time, flux, min(10 / 1440, sig.duration / 6))
@@ -279,6 +279,8 @@ def tls_search(time: np.ndarray, flux: np.ndarray, sector: np.ndarray, star: Sta
     from transitleastsquares import transitleastsquares
 
     t_start = _time.perf_counter()
+    if len(time) < 200:  # e.g. everything masked by known planets
+        return TLSResult(None, "skipped: too few points", int(len(time)), 0, 0.0, 0.0)
     use, ran_on = tls_subset(time, sector, star, budget_s)
     t, f = time[use], flux[use]
     baseline = float(np.ptp(t)) if len(t) else 0.0

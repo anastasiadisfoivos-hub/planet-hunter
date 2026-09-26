@@ -58,10 +58,11 @@ from .stars import RHO_SUN_KG_M3, Star
 DURATIONS_H = np.array([1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 24.0])
 TIERS = ((1.0, 4.0), (6.0, 12.0), (16.0, 24.0))  # hours; each is flattened with a window 3x its longest
 EVENT_MIN_SES = 7.0  # recorded as an event (for duos and neighbour comparison)
-SINGLE_MIN_SNR = 10.0  # a single becomes a candidate at this SES (see README "False alarms")
+SINGLE_MIN_SNR = 12.0  # a single becomes a candidate at this SES: ~3 per 1,000 stars (README "False alarms")
 DUO_MIN_SNR = 10.0  # a duo needs this combined SNR ...
 DUO_MIN_EACH = 7.0  # ... and each dip at least this
 MAX_EVENTS = 20
+FIT_MAX_DURATION_D = 1.25  # the trapezoid fit may stretch the 24-h longest box by a quarter, no further
 MIN_COVERAGE = 0.75
 EDGE_D = 0.5
 GAP_D = 0.25
@@ -314,7 +315,7 @@ def fit_trapezoid(e: Event, t: np.ndarray, f: np.ndarray, g: np.ndarray, window:
     e.local = (x, y)
     p0 = [e.tc, max(e.depth, 1e-5), e.duration, e.duration / 10]
     lo = [e.tc - e.duration / 2, 0.0, 0.5 * e.duration, 0.005]
-    hi = [e.tc + e.duration / 2, 0.5, min(2 * e.duration, 1.5), max(0.5 * e.duration, 0.006)]
+    hi = [e.tc + e.duration / 2, 0.5, min(2 * e.duration, FIT_MAX_DURATION_D), max(0.5 * e.duration, 0.006)]
     try:
         r = least_squares(lambda p: trapezoid(x, *p) - y, np.clip(p0, lo, hi), bounds=(lo, hi))
         dof = max(len(y) - 4, 1)

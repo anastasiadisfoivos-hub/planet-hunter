@@ -61,8 +61,9 @@ def bins(grid: str = "grid") -> list[tuple[int, int]]:
 
 
 def all_bins() -> list[tuple[str, int, int]]:
-    """Every bin of every grid, cycled over the stars (so each grid gets injections in proportion to its bins)."""
-    return [(g, i, j) for g in GRIDS for i, j in bins(g)]
+    """Every bin of every grid, cycled over the stars: the deep search's grids (single, long_period) first, so a
+    short campaign covers them before re-checking HUNT's short-period grid."""
+    return [(g, i, j) for g in ("single", "long_period", "grid") for i, j in bins(g)]
 
 
 def inject(lc: StarLC, period: float, t0: float, duration: float, depth: float, single: bool = False) -> StarLC:

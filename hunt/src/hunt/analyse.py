@@ -3,14 +3,14 @@ then the single / double dip search on what is left.
 
 Periodic filter (a signal must pass every stage, in this order; the first stage it fails is recorded):
   snr       SNR >= 10
-  sde       SDE >= 9
+  sde       SDE >= 9 (waived at SNR >= 30: SDE saturates for strong signals with few transits)
   transits  >= 3 transits with data
   checks    no check failed, and every must-run check actually ran (checks.MUST_RUN)
   known     period does not match (1% or x2, x3, 1/2, 1/3) a confirmed planet, TOI, CTOI or catalogued EB on
             this star
   neighbour ... nor on a listed star within 2.5 arcmin (likely the source of the dips)
 
-Single / duo filter (singles.py): snr (SES >= 10; duo: combined >= 10 and each dip >= 7) -> checks (no check
+Single / duo filter (singles.py): snr (SES >= 12; duo: combined >= 10 and each dip >= 7) -> checks (no check
 failed, every must-run check ran: singles.SINGLE_MUST_RUN / DUO_MUST_RUN) -> known -> neighbour (listed
 signal on this star or a neighbour predicts a transit at a dip time, or a duo alias matches a listed period).
 At merge a further stage, neighbour_dips, drops dips seen at the same time in 2+ nearby stars.
@@ -18,7 +18,7 @@ At merge a further stage, neighbour_dips, drops dips seen at the same time in 2+
 Score (0-1, transparent), one formula for every kind:
   score = K_kind * (0.40 * S_snr + 0.20 * S_orbit + 0.25 * S_checks + 0.15 * S_bright)
   K_kind     periodic 1.0 (x 0.8 if all dips are in one sector), duo 0.5, single 0.3
-  S_snr      = 1 - exp(-(SNR - 10) / 20)            0 at the SNR cut, 0.63 at SNR 30
+  S_snr      = 1 - exp(-(SNR - cut) / 20)           0 at the SNR cut (periodic 10, single 12, duo 10)
   S_orbit    periodic: S_transits = 1 - exp(-(N - 3) / 6)   0 at 3 transits, 0.63 at 9
              duo: 1 / (number of surviving period aliases)   single: 0 (no period)
   S_checks   = mean check margin (0 at a check's threshold, 1 far inside it)
@@ -47,6 +47,9 @@ from .stars import Star
 
 MIN_SNR = 10.0
 MIN_SDE = 9.0
+SDE_EXEMPT_SNR = 30.0  # SDE saturates for strong signals with few transits (their own harmonics raise the
+# periodogram's scatter): a 5.7 R_earth injection at 12.5 d had SNR 1042 and SDE 8.9. At 3x the SNR cut the SDE
+# cut is waived; three_dips still demands three real dips. On 359 real stars this added no candidate.
 MIN_TRANSITS = 3
 STAGES = ("snr", "sde", "transits", "checks", "known", "neighbour")
 DIP_STAGES = ("snr", "checks", "known", "neighbour", "neighbour_dips")
@@ -99,7 +102,7 @@ def dip_score(res: sg.DipResult, tmag: float | None) -> dict:
 def first_failed_stage(sig: Signal, failed_checks: list[str], known: dict | None) -> str | None:
     if sig.snr < MIN_SNR:
         return "snr"
-    if sig.sde < MIN_SDE:
+    if sig.sde < MIN_SDE and sig.snr < SDE_EXEMPT_SNR:
         return "sde"
     if sig.n_transits < MIN_TRANSITS:
         return "transits"

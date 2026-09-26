@@ -181,7 +181,7 @@ counts as an extra dip. Surviving aliases (`period_aliases_d`) get posterior wei
 duration/density model; `period_d` is the most probable. `depth_consistency` compares the two dips; `duration`
 passes if at least one surviving alias can give the duration; `aliases` fails if none survive.
 
-**Filter**: `snr` (single SES ≥ 10; duo combined ≥ 10 with each ≥ 7) → `checks` (no failure, every must-run
+**Filter**: `snr` (single SES ≥ 12; duo combined ≥ 10 with each ≥ 7) → `checks` (no failure, every must-run
 check ran: `snr`, `size`, `duration`, `edge`, `momentum_dump`, `shape`, `background`; duo also
 `depth_consistency`, `aliases`) → `known` / `neighbour` (a listed signal on the star or a neighbour within 2.5′
 predicts a transit or eclipse at a dip time, or a duo alias matches a listed period) → `neighbour_dips` (merge).
@@ -193,7 +193,9 @@ A signal becomes a candidate only if it passes every stage, in this order (the f
 recorded for the funnel):
 
 1. `snr`: SNR ≥ 10
-2. `sde`: SDE ≥ 9
+2. `sde`: SDE ≥ 9, waived at SNR ≥ 30 (DEEPHUNT). SDE saturates for strong signals with few transits, whose own
+   harmonics raise the periodogram's scatter: injected 3–6 R⊕ planets at 11–13 d had SNR 275–1,042 and SDE
+   7.0–8.9. On the 359 calibration stars the waiver added no candidate; `three_dips` still demands three real dips.
 3. `transits`: ≥ 3 transits with data
 4. `checks`: no check failed, and every must-run check (all except `sector_depth` and `single_sector`;
    `three_dips` included) actually ran. A star with no TIC radius therefore gives no candidates: size and duration cannot be vetted.
@@ -214,7 +216,7 @@ One formula for every kind:
 score = K_kind × (0.40·S_snr + 0.20·S_orbit + 0.25·S_checks + 0.15·S_brightness) × (0.8 if single-sector)
 
 K_kind       periodic 1.0, duo 0.5, single 0.3
-S_snr        = 1 − exp(−(SNR − 10) / 20)     0 at the SNR cut, 0.63 at SNR 30 (singles: SES; duos: combined)
+S_snr        = 1 − exp(−(SNR − cut) / 20)    0 at the SNR cut (periodic 10, single 12, duo 10), 0.63 at 20 above it
 S_orbit      periodic: 1 − exp(−(N − 3) / 6) 0 at 3 transits, 0.63 at 9
              duo: 1 / (surviving aliases)   single: 0 (no period)
 S_checks     = mean margin of the checks that ran (0 at a check's threshold, 1 far inside it)
