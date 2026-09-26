@@ -16,7 +16,7 @@ It outputs data and targets only. Candidates come from the search in `hunt/` (or
 
 ```bash
 cd faint && uv sync
-uv run skyfaint targets --out targets        # ranked list (first run: ~2-3 h of MAST queries, then cached)
+uv run skyfaint targets --out targets        # ranked list (first run: ~1-2 h of MAST queries, then cached)
 uv run skyfaint lc 259168516                 # every TGLC sector for a star, stitched
 uv run skyfaint noise 259168516              # CDPP 1 h / 2 h and smallest detectable planet at P = 1, 5, 10 d
 uv run pytest                                # offline, recorded real TGLC data
@@ -43,9 +43,7 @@ uv run pytest                                # offline, recorded real TGLC data
      sampled stars that faint had no file.
 5. **Order within a tier:** the predicted smallest planet detectable at SNR 10 at P = 5 d (§3). This combines
    radius, brightness and number of sectors in one number.
-6. **`reason`**, in every row, e.g. *"late M dwarf, R 0.21 R_sun, Teff 3231 K, Tmag 13.31; 24 TGLC sectors
-   (S14-S55); contamination 0.02 (low); not a TOI, CTOI, confirmed host or known EB; a 1.0 R_earth planet at P = 5 d
-   should reach SNR 10 (predicted)"*.
+6. **`reason`**, in every row. Rank 1 (TIC 29780677): *"late M dwarf, R 0.14 R_sun, Teff 2849 K, Tmag 13.23; 26 TGLC sectors (S1-S39); contamination 0.00 (low); not a TOI, CTOI, confirmed host or known EB; a 0.7 R_earth planet at P = 5 d should reach SNR 10 (predicted)"*.
 
 Crowding uses the TIC's contamination ratio: the flux from Gaia DR2 neighbours in a TESS aperture, relative to the
 star's own. TGLC removes known Gaia neighbours by PSF fitting, so the cut (> 1) is looser than it would be for
@@ -54,7 +52,28 @@ aperture photometry. The residual risk is a neighbour that is itself variable.
 Output: `targets_faint.csv.gz` (every listed star), `targets_faint_top.csv` (first 5,000 rows) and
 `targets_faint_summary.json`. The committed run is under `results/`:
 
-TARGET_TABLE
+Build of 2026-09-26 (`results/targets_faint_summary.json`; the full 270 MB `.csv.gz` is not committed and takes
+about 5 min of CPU to rebuild once the TIC strips are cached):
+
+| step | stars |
+|---|---|
+| TIC 8.2 M dwarfs, Tmag 13–16 | 4,048,750 |
+| dropped: on a known list (TOI 295, CTOI 203, confirmed host 186, TESS EB 201; some on several) | 748 |
+| dropped: no TGLC sector | 402,093 |
+| dropped: contamination ratio > 1 | 639,505 |
+| dropped: no TIC radius | 13,100 |
+| **listed** | **2,993,304** |
+| tier 1: R ≤ 0.4, ≥ 3 sectors, contamination ≤ 0.1 | **95,370** (median predicted smallest planet at P = 5 d: 4.4 R⊕; 2,575 below 2 R⊕) |
+| tier 2: R ≤ 0.6, ≥ 2 sectors, contamination ≤ 0.3 | **903,424** (median 7.0 R⊕; 997 below 2 R⊕) |
+| tier 3: the rest | **1,994,510** (median 10.5 R⊕; 329 below 2 R⊕) |
+
+Sectors per listed star: median 2, 90th percentile 6, maximum 26. `targets_faint_top.csv` holds the first 5,000
+rows, all tier 1 (smallest predicted planet at P = 5 d from 0.5 to 2.3 R⊕).
+
+**Coverage spot check** (`scripts/spotcheck.py`, `results/targets_spotcheck.json`): 30 tier-1 stars (the top 10 and 20
+at random) were checked against the files that exist. 484 of 511 predicted sectors exist (95%), and 2 more sectors
+were found that were not predicted; every star had files. The ~5% shortfall is the footprint ignoring CCD gaps.
+The loader uses what exists.
 
 ## 2. Light curves (`tglc.get_lightcurves(tic)`)
 

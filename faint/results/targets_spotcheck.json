@@ -1,0 +1,330 @@
+{
+ "summary": {
+  "stars": 30,
+  "predicted_sectors": 511,
+  "published_of_predicted": 484,
+  "extra_found": 2,
+  "identical_sets": 11,
+  "stars_without_files": 0
+ },
+ "stars": [
+  {
+   "tic": 29780677,
+   "tmag": 13.2324,
+   "gaia_digits": 19,
+   "predicted": 26,
+   "published": 25,
+   "missing": [
+    8
+   ],
+   "extra": []
+  },
+  {
+   "tic": 232607684,
+   "tmag": 13.6157,
+   "gaia_digits": 19,
+   "predicted": 24,
+   "published": 22,
+   "missing": [
+    21,
+    51
+   ],
+   "extra": []
+  },
+  {
+   "tic": 220429097,
+   "tmag": 14.0127,
+   "gaia_digits": 19,
+   "predicted": 26,
+   "published": 24,
+   "missing": [
+    4,
+    34
+   ],
+   "extra": []
+  },
+  {
+   "tic": 38698751,
+   "tmag": 13.4923,
+   "gaia_digits": 19,
+   "predicted": 26,
+   "published": 25,
+   "missing": [
+    6
+   ],
+   "extra": []
+  },
+  {
+   "tic": 424389265,
+   "tmag": 13.1488,
+   "gaia_digits": 19,
+   "predicted": 24,
+   "published": 23,
+   "missing": [
+    52
+   ],
+   "extra": []
+  },
+  {
+   "tic": 229644973,
+   "tmag": 13.2699,
+   "gaia_digits": 19,
+   "predicted": 24,
+   "published": 22,
+   "missing": [
+    25,
+    52
+   ],
+   "extra": []
+  },
+  {
+   "tic": 219773818,
+   "tmag": 13.1144,
+   "gaia_digits": 19,
+   "predicted": 24,
+   "published": 22,
+   "missing": [
+    21,
+    51
+   ],
+   "extra": []
+  },
+  {
+   "tic": 167525513,
+   "tmag": 13.3162,
+   "gaia_digits": 19,
+   "predicted": 26,
+   "published": 23,
+   "missing": [
+    8,
+    28,
+    38
+   ],
+   "extra": []
+  },
+  {
+   "tic": 278199738,
+   "tmag": 13.3978,
+   "gaia_digits": 19,
+   "predicted": 10,
+   "published": 9,
+   "missing": [
+    39
+   ],
+   "extra": []
+  },
+  {
+   "tic": 232626766,
+   "tmag": 13.944,
+   "gaia_digits": 19,
+   "predicted": 24,
+   "published": 24,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 33878410,
+   "tmag": 14.6112,
+   "gaia_digits": 19,
+   "predicted": 26,
+   "published": 24,
+   "missing": [
+    4,
+    34
+   ],
+   "extra": []
+  },
+  {
+   "tic": 364175695,
+   "tmag": 13.4606,
+   "gaia_digits": 19,
+   "predicted": 9,
+   "published": 9,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 229439120,
+   "tmag": 13.7438,
+   "gaia_digits": 19,
+   "predicted": 21,
+   "published": 22,
+   "missing": [],
+   "extra": [
+    22
+   ]
+  },
+  {
+   "tic": 237935905,
+   "tmag": 13.209,
+   "gaia_digits": 19,
+   "predicted": 11,
+   "published": 12,
+   "missing": [],
+   "extra": [
+    35
+   ]
+  },
+  {
+   "tic": 391946225,
+   "tmag": 13.7647,
+   "gaia_digits": 19,
+   "predicted": 26,
+   "published": 24,
+   "missing": [
+    28,
+    38
+   ],
+   "extra": []
+  },
+  {
+   "tic": 143058542,
+   "tmag": 13.1145,
+   "gaia_digits": 19,
+   "predicted": 4,
+   "published": 4,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 309657156,
+   "tmag": 14.2165,
+   "gaia_digits": 19,
+   "predicted": 26,
+   "published": 23,
+   "missing": [
+    7,
+    27,
+    37
+   ],
+   "extra": []
+  },
+  {
+   "tic": 293696773,
+   "tmag": 13.8481,
+   "gaia_digits": 19,
+   "predicted": 4,
+   "published": 3,
+   "missing": [
+    44
+   ],
+   "extra": []
+  },
+  {
+   "tic": 306635997,
+   "tmag": 14.1709,
+   "gaia_digits": 19,
+   "predicted": 26,
+   "published": 26,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 154256927,
+   "tmag": 13.3303,
+   "gaia_digits": 19,
+   "predicted": 5,
+   "published": 5,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 260352702,
+   "tmag": 13.5023,
+   "gaia_digits": 19,
+   "predicted": 26,
+   "published": 25,
+   "missing": [
+    30
+   ],
+   "extra": []
+  },
+  {
+   "tic": 155895287,
+   "tmag": 13.4963,
+   "gaia_digits": 19,
+   "predicted": 3,
+   "published": 3,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 219219716,
+   "tmag": 13.8066,
+   "gaia_digits": 19,
+   "predicted": 5,
+   "published": 4,
+   "missing": [
+    4
+   ],
+   "extra": []
+  },
+  {
+   "tic": 233176530,
+   "tmag": 14.5945,
+   "gaia_digits": 19,
+   "predicted": 9,
+   "published": 9,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 307160507,
+   "tmag": 13.3201,
+   "gaia_digits": 19,
+   "predicted": 15,
+   "published": 15,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 349643121,
+   "tmag": 13.8639,
+   "gaia_digits": 19,
+   "predicted": 26,
+   "published": 26,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 422754456,
+   "tmag": 13.6805,
+   "gaia_digits": 18,
+   "predicted": 5,
+   "published": 4,
+   "missing": [
+    24
+   ],
+   "extra": []
+  },
+  {
+   "tic": 362221062,
+   "tmag": 13.3396,
+   "gaia_digits": 19,
+   "predicted": 12,
+   "published": 12,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 68983787,
+   "tmag": 14.4264,
+   "gaia_digits": 18,
+   "predicted": 4,
+   "published": 4,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "tic": 230063284,
+   "tmag": 14.6647,
+   "gaia_digits": 19,
+   "predicted": 14,
+   "published": 13,
+   "missing": [
+    48
+   ],
+   "extra": []
+  }
+ ]
+}

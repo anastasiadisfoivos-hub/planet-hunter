@@ -3,7 +3,7 @@ normalised per sector and stitched, in the shape hunt/ searches.
 
 Where the files are. TGLC names files by Gaia DR3 source id, sector, camera and CCD:
 
-    https://archive.stsci.edu/hlsps/tglc/s<SSSS>/cam<C>-ccd<D>/<id // 1e5 as 16 digits, in 4-digit groups>/
+    https://archive.stsci.edu/hlsps/tglc/s<SSSS>/cam<C>-ccd<D>/<first 14 digits of id, 0-padded to 16, 4-digit groups>/
         hlsp_tglc_tess_ffi_gaiaid-<id>-s<SSSS>-cam<C>-ccd<D>_tess_v1_llc.fits
 
 Sectors 1-55 are published (1-11 are also in the MAST API; 12-55 only at these URLs). resolve() finds the star's
@@ -63,7 +63,8 @@ HTTP_TIMEOUT = 120
 
 def url_for(gaia_dr3: int | str, sector: int, camera: int, ccd: int) -> str:
     gid = int(gaia_dr3)
-    p = f"{gid // 100_000:016d}"
+    # the first 14 digits of the id, left-padded to 16 (so ids shorter than 19 digits are not id // 1e5)
+    p = str(gid)[:14].zfill(16)
     path = "/".join(p[i:i + 4] for i in range(0, 16, 4))
     return (f"{BASE}/s{sector:04d}/cam{camera}-ccd{ccd}/{path}/"
             f"hlsp_tglc_tess_ffi_gaiaid-{gid}-s{sector:04d}-cam{camera}-ccd{ccd}_tess_v1_llc.fits")
@@ -130,7 +131,7 @@ def resolve(tic: int, refresh: bool = False) -> dict:
         return {"tic": int(tic), "gaia_dr3": gid, "gaia_note": note,
                 "predicted_sectors": [p[0] for p in pts], "files": files,
                 "resolved_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
-    return cached_json(f"tglc-index/{int(tic)}", INDEX_TTL, compute, refresh)
+    return cached_json(f"tglc-index-v2/{int(tic)}", INDEX_TTL, compute, refresh)
 
 
 def download(f: dict) -> Path:

@@ -24,6 +24,7 @@ so inside the method.
 from skyfaint import targets, tglc, noise
 
 rows = targets.read("targets/targets_faint.csv.gz")      # list[dict], ranked; one row per star
+# faint/results/targets_faint_top.csv (committed) holds the first 5,000 rows, all tier 1, for a first run
 lc   = tglc.get_lightcurves(int(row["tic"]))              # FaintLC: every TGLC sector, stitched
 slc  = lc.to_hunt()                                       # hunt.lightcurve.StarLC, the same arrays (no copy)
 n    = noise.star_noise(lc, row)                          # CDPP 1 h / 2 h, smallest detectable radius
@@ -122,7 +123,7 @@ Measured on 54 random faint M dwarfs from the target selection, each with an emp
   scattered-light dips reach `bls_long`.
 
 **A night.** The estimate below assumes about 75 s of deep search per typical faint star (measured at 5 sectors;
-the median listed star has 2 or 3) plus 6.7 s of fetching:
+the median listed star has 2) plus 6.7 s of fetching:
 
 - 20 shards × 350 min / 82 s ≈ **5,100 stars a night**;
 - about **1.0 GB** of TGLC files (5,100 × 193 KB);

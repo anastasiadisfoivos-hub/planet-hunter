@@ -13,6 +13,11 @@ def test_url_matches_mast_layout():
     assert tglc.url_for(5707485527450614656, 7, 2, 3) == (
         "https://archive.stsci.edu/hlsps/tglc/s0007/cam2-ccd3/0057/0748/5527/4506/"
         "hlsp_tglc_tess_ffi_gaiaid-5707485527450614656-s0007-cam2-ccd3_tess_v1_llc.fits")
+    # an 18-digit id (TIC 68983787), as the sector-20 bulk download script lists it: the directory is the first 14
+    # digits padded to 16, not id // 1e5
+    assert tglc.url_for(889642728078120192, 20, 1, 3) == (
+        "https://archive.stsci.edu/hlsps/tglc/s0020/cam1-ccd3/0088/9642/7280/7812/"
+        "hlsp_tglc_tess_ffi_gaiaid-889642728078120192-s0020-cam1-ccd3_tess_v1_llc.fits")
 
 
 def _white(cadence_min: float, sigma: float, days: float = 25, seed: int = 0):
