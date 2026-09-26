@@ -105,9 +105,13 @@ FALSE_ALARM_TIC = 121490076
 
 @pytest.fixture(scope="module")
 def false_alarms(catalogue):
-    """Sector 96 of TIC 121490076 (Tmag 9.0), as the 2026-09-26 calibration sweep searched it (list B)."""
+    """Sector 96 of TIC 121490076 (Tmag 9.0), as the 2026-09-26 calibration sweep searched it (list B).
+
+    With the full periodic search these two dips (and two more artefacts) line up in a 6.1-d fold that repeats,
+    so it is masked before the dip search and itself fails `duration`: nothing reaches the candidates either way.
+    One periodic round (max_signals=1) leaves the dips to the dip search, whose checks are what this tests."""
     star, lc = load_fixture(FALSE_ALARM_TIC)
-    return analyse.analyse(star, lc, catalogue, "B")
+    return analyse.analyse(star, lc, catalogue, "B", max_signals=1)
 
 
 @pytest.mark.parametrize("mid,check,words,min_snr", [
