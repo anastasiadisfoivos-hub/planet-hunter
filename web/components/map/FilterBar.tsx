@@ -20,6 +20,16 @@ const PRESETS: { value: Preset; label: string }[] = [
   { value: "30d", label: "30 d" },
 ];
 
+/** One short word per chip, next to the marker glyph; the full name is the tooltip and the accessible name. */
+const CHIP_LABEL: Record<Category, string> = {
+  transients: "Transients",
+  solar_system: "Solar system",
+  sun_space_weather: "Sun",
+  earth_atmosphere: "Earth",
+  high_energy: "Energy",
+  other: "Other",
+};
+
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const isoDay = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 
@@ -64,11 +74,12 @@ function Chip({ category, state, count, onToggle }: { category: Category; state:
       className={s.chip}
       aria-pressed={state === "on" ? true : state === "mixed" ? "mixed" : false}
       data-empty={count === 0 || undefined}
+      title={CATEGORY_LABEL[category]}
       aria-label={`${CATEGORY_LABEL[category]}, ${count} ${count === 1 ? "event" : "events"}${state === "mixed" ? ", some types" : ""}`}
       onClick={onToggle}
     >
       <CategoryGlyph category={category} size={11} />
-      <span>{CATEGORY_LABEL[category]}</span>
+      <span>{CHIP_LABEL[category]}</span>
       <RollingCount value={count} className={`mono ${s.chipCount}`} />
     </button>
   );

@@ -7,7 +7,11 @@ button (bottom left), and filter changes move instead of popping.
 
 - **Filter bar:** `24 h | 7 d | 30 d`, six category chips (marker glyph, count for the current range,
   `aria-pressed` on / off / mixed, dimmed at zero but still clickable), **More** with a badge for
-  non-default settings inside it, and **Reset** when anything differs from the defaults.
+  non-default settings inside it, and **Reset** when anything differs from the defaults. Chips say one
+  short word (Transients, Solar system, Sun, Earth, Energy, Other). The full category name is the
+  tooltip and the accessible name.
+- **Paused sources:** one "2 sources paused" button on desktop and phone. The sentences and per-source
+  freshness are in its popover.
 - **More:** event sub-types, sources, minimum confidence, only with pictures, custom date range, and
   Rubin's latest nights. It is a popover on desktop and a bottom sheet on phones.
 - **Layers:** Stars (bright, dim, planet hosts), Overlays (Rubin coverage, Rubin heatmap, Milky Way
@@ -17,7 +21,7 @@ button (bottom left), and filter changes move instead of popping.
   sheets. Nothing covers the sky until you open something.
 - **Keyboard:** every control is reachable with Tab. Esc closes a popover or sheet and returns focus
   to its button, and Tab-ing out of one closes it. The focus ring is the 2px accent.
-- "About this map" (star colours, Rubin footprint source) moved into the **About the data** popover.
+- "About this map" (star colours, Rubin footprint source) moved into the About the data popover, behind the paused-sources button.
 
 ### Filters in the URL
 

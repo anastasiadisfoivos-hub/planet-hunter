@@ -18,22 +18,15 @@ export function statusLines(status: Status, now: number): string[] {
     });
 }
 
-/** A quiet banner over the sky when a source is paused, plus per-source freshness in a popover. */
+/** One small button over the sky: "2 sources paused" (or "About the data"); the lines and per-source freshness are in its popover. */
 export function StatusBanner({ status, now, demo, footprintUrl }: { status: Status | null; now: number; demo: boolean; footprintUrl: string }) {
   if (!status) return null;
   const lines = statusLines(status, now);
   return (
     <div className={s.status}>
-      {lines.length > 0 && (
-        <p className={s.statusText} role="status">
-          {lines.join(" ")}
-        </p>
-      )}
       <button className={s.statusButton} popoverTarget="about-data" type="button">
         <Info size={14} aria-hidden />
-        <span className={s.statusLong}>About the data</span>
-        {/* On a phone the banner collapses into the button; the popover has the full lines. */}
-        <span className={s.statusShort}>{lines.length ? `${lines.length} ${lines.length === 1 ? "source" : "sources"} paused` : "About the data"}</span>
+        {lines.length ? `${lines.length} ${lines.length === 1 ? "source" : "sources"} paused` : "About the data"}
       </button>
       <div id="about-data" popover="auto" className={s.popover} role="dialog" aria-label="About the data">
         <div className={s.rowBetween}>

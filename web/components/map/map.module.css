@@ -156,16 +156,10 @@
   flex: none;
 }
 
-/* On desktop the paused-source line wraps inside its own box rather than pushing the row apart. */
 .utilities .status {
   flex: 0 1 auto;
   flex-wrap: nowrap;
   align-items: flex-end;
-}
-
-.utilities .statusText {
-  min-width: 0;
-  max-width: 44ch;
 }
 
 .utilities .statusButton {
@@ -201,15 +195,6 @@
   pointer-events: auto;
 }
 
-.statusText {
-  padding: 6px var(--s-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-control);
-  background: var(--bg);
-  color: var(--ink-secondary);
-  font-size: var(--text-12);
-}
-
 .statusButton {
   display: inline-flex;
   align-items: center;
@@ -231,9 +216,9 @@
   }
 }
 
-.statusShort,
 .statusPopLines {
-  display: none;
+  font-size: var(--text-13);
+  color: var(--ink-secondary);
 }
 
 .popover {
@@ -1116,21 +1101,6 @@
   .status {
     flex: 0 1 auto;
     justify-content: flex-start;
-  }
-
-  .statusText,
-  .statusLong {
-    display: none;
-  }
-
-  .statusShort {
-    display: inline;
-  }
-
-  .statusPopLines {
-    display: block;
-    font-size: var(--text-13);
-    color: var(--ink-secondary);
   }
 
   .popover {
