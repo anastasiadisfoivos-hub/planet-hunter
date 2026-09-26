@@ -1,0 +1,116 @@
+/* /sensitivity: the injection-recovery grid as ink densities on paper. */
+
+.page {
+  padding-top: var(--s-7);
+  display: grid;
+  gap: var(--s-7);
+}
+
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--s-6);
+  align-items: end;
+  padding-bottom: var(--s-5);
+  border-bottom: 1px solid var(--grid-strong);
+}
+
+.head h1 {
+  font-size: var(--t-h1);
+}
+
+.head .prose {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.wait {
+  height: 420px;
+  background: var(--paper-2);
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.grid {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 640px;
+}
+
+.grid th {
+  font-weight: 400;
+  text-align: left;
+  padding: var(--s-2) var(--s-3);
+  white-space: nowrap;
+}
+
+.grid thead th {
+  border-bottom: 1px solid var(--grid-strong);
+}
+
+.grid tbody th {
+  border-right: 1px solid var(--grid-strong);
+}
+
+.cell {
+  --p: 0;
+  position: relative;
+  padding: var(--s-3);
+  height: 64px;
+  vertical-align: bottom;
+  background: color-mix(in oklab, var(--ink) calc(var(--p) * 88%), var(--paper));
+  border: 1px solid var(--paper);
+  color: var(--ink);
+}
+
+.cell[data-dark] {
+  color: var(--paper);
+}
+
+.pct {
+  display: block;
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.n {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  font-variation-settings: "wdth" 87;
+  opacity: 0.8;
+}
+
+.defs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-4) var(--s-6);
+  margin: 0;
+  font-size: var(--t-small);
+  max-width: 1000px;
+}
+
+.defs dd {
+  margin: 4px 0 0;
+  color: var(--ink-2);
+}
+
+.after {
+  font-size: var(--t-small);
+}
+
+@media (max-width: 899px) {
+  .head {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .defs {
+    grid-template-columns: 1fr;
+  }
+}

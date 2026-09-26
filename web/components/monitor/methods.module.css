@@ -1,0 +1,105 @@
+/* /methods: the lab notebook, numbered in the margin (DESIGN.md: Other pages). */
+
+.page {
+  padding-top: var(--s-7);
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+  gap: var(--s-7) var(--s-6);
+}
+
+.head {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--s-3);
+  padding-bottom: var(--s-5);
+  border-bottom: 1px solid var(--grid-strong);
+}
+
+.head h1 {
+  font-size: var(--t-display);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  max-width: 14ch;
+}
+
+.toc {
+  position: sticky;
+  top: calc(var(--bar-h) + var(--s-5));
+  align-self: start;
+  font-size: var(--t-small);
+}
+
+.toc ol {
+  margin: 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: var(--s-2);
+  color: var(--ink-3);
+}
+
+.toc a {
+  color: var(--ink-2);
+}
+
+.sections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-8);
+}
+
+.section {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--grid);
+}
+
+.step {
+  padding-top: 0.5em;
+  color: var(--pen);
+}
+
+.body {
+  display: grid;
+  gap: var(--s-3);
+  max-width: var(--measure);
+}
+
+.body h2 {
+  scroll-margin-top: calc(var(--bar-h) + var(--s-5));
+}
+
+.asks {
+  color: var(--ink-2);
+}
+
+.pending {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  padding: var(--s-3) 0 var(--s-3) var(--s-4);
+  border-left: 2px solid var(--grid-strong);
+}
+
+@media (max-width: 899px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .toc {
+    position: static;
+  }
+}
+
+@media (max-width: 719px) {
+  .page {
+    padding-top: var(--s-5);
+  }
+
+  .section {
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: var(--s-2);
+  }
+}

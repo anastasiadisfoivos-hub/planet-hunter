@@ -1,0 +1,146 @@
+{
+ "run_at": "2026-09-26T08:50:56Z",
+ "stars_used": 200,
+ "radius_edges_rearth": [
+  1.0,
+  2.0,
+  3.0,
+  4.0,
+  6.0,
+  8.0,
+  11.0,
+  15.0
+ ],
+ "period_edges_d": [
+  0.5,
+  1.0,
+  2.0,
+  4.0,
+  7.0,
+  10.0,
+  15.0
+ ],
+ "recovery_pct": [
+  [
+   56.2,
+   41.7,
+   31.9,
+   29.8,
+   10.2,
+   0.0
+  ],
+  [
+   79.6,
+   75.5,
+   72.0,
+   60.0,
+   36.7,
+   4.1
+  ],
+  [
+   86.0,
+   88.0,
+   87.8,
+   73.5,
+   56.9,
+   7.8
+  ],
+  [
+   90.2,
+   92.2,
+   88.7,
+   83.0,
+   58.0,
+   8.0
+  ],
+  [
+   87.2,
+   87.2,
+   84.1,
+   79.5,
+   47.6,
+   7.1
+  ],
+  [
+   90.2,
+   97.6,
+   83.3,
+   78.6,
+   56.5,
+   10.9
+  ],
+  [
+   97.9,
+   95.8,
+   91.7,
+   81.2,
+   50.0,
+   8.7
+  ]
+ ],
+ "n_injected": [
+  [
+   48,
+   48,
+   47,
+   47,
+   49,
+   49
+  ],
+  [
+   49,
+   49,
+   50,
+   50,
+   49,
+   49
+  ],
+  [
+   50,
+   50,
+   49,
+   49,
+   51,
+   51
+  ],
+  [
+   51,
+   51,
+   53,
+   53,
+   50,
+   50
+  ],
+  [
+   47,
+   47,
+   44,
+   44,
+   42,
+   42
+  ],
+  [
+   41,
+   41,
+   42,
+   42,
+   46,
+   46
+  ],
+  [
+   48,
+   48,
+   48,
+   48,
+   46,
+   46
+  ]
+ ],
+ "definition": {
+  "detected": "the search returned a signal within 1% of the injected period, in phase with it",
+  "recovered": "detected, and the signal passed every cut (SNR >= 10, SDE >= 9, >= 3 transits) and every vetting check, so it would have become a candidate",
+  "injection": "box-shaped transit multiplied into the real light curve before detrending; radius and period log-uniform within each bin; impact parameter uniform 0-0.7; duration from the star's TIC density",
+  "quiet_star": "its own search found no signal passing SNR >= 10, SDE >= 9 and >= 3 transits"
+ },
+ "overall_recovery_pct": 60.8
+}

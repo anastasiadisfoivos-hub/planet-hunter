@@ -333,13 +333,117 @@ export async function getStarLightcurve(tic: number, signal?: AbortSignal): Prom
   };
 }
 
-// ---------- Finder: planet candidates from the nightly search ----------
+// ---------- Monitor and candidates: the planet finder ----------
 //
-// Candidate comes from the HUNT session, PixelVet from the PIXELS session; votes and the injection-recovery
-// grid from the FINDER API. None of those routes is live yet, so MOCK mode serves public/data/finder/*
-// (built by components/finder/data/build-finder-mock.mjs): made-up candidates with simulated light curves,
-// and pixel images borrowed from two real PIXELS runs. The route names below are this client's working
-// assumption until the FINDER API publishes its own.
+// Routes (the FINDER API): GET /monitor/now, /monitor/log, /monitor/coverage, /monitor/stats, and the /finder/*
+// routes for candidates, votes and sensitivity. None is live yet, so MOCK mode serves public/data/monitor/*,
+// built by components/monitor/data/build_monitor_data.py from REAL data only: TESS light curves (hunt's test
+// fixtures and stars from the 2026-09-26 sweep), hunt's own search of each, the sweep's log, Gaia DR3 and VSX.
+// The sweep found no new candidate, so the mock's candidates are real TESS Objects of Interest shown as
+// stand-ins, each saying so (Candidate.stand_in). Mock mode is always a replay, never "live".
+
+export type DetectionKind = "periodic" | "duo" | "single";
+export type DetectionOutcome = "candidate" | "rejected" | "known";
+
+/** A dip the search found in a star's light curve. Times are BTJD (BJD - 2457000). */
+export type Detection = {
+  t0: number;
+  duration_h: number;
+  depth_ppm: number | null;
+  period_d: number | null;
+  kind: DetectionKind;
+  outcome: DetectionOutcome;
+  /** Why it was kept or turned down, in words. */
+  reason: string;
+};
+
+export type StarOutcome = DetectionOutcome | "none";
+
+/** A star the search looked at: its catalogue facts, its data, and what the search found. */
+export type MonitorStar = {
+  tic: number;
+  tmag: number | null;
+  teff: number | null;
+  radius_rsun: number | null;
+  ra: number;
+  dec: number;
+  sectors: number[];
+  /** First and last TESS observation used (ISO, UTC). */
+  observed_from: string | null;
+  observed_to: string | null;
+  /** Normalised flux against BTJD; null in the log. */
+  lightcurve: { t: number[]; f: number[] } | null;
+  detections: Detection[];
+  outcome: StarOutcome;
+  searched_at: string;
+};
+
+export type MonitorMode = "live" | "replay";
+
+export type MonitorNow = {
+  mode: MonitorMode;
+  star: MonitorStar;
+  /** Replay only: when the search being replayed ran (ISO). */
+  replay_of: string | null;
+  /** The star that comes after this one, so the client can fetch it early. */
+  next_tic: number | null;
+};
+
+export type LogStar = Omit<MonitorStar, "lightcurve">;
+export type MonitorLog = { stars: LogStar[] };
+export type CoverageStar = { tic: number; ra: number; dec: number; outcome: StarOutcome; sectors: number[] };
+export type MonitorCoverage = { stars: CoverageStar[] };
+export type MonitorStats = {
+  since: string;
+  updated_at: string;
+  stars_searched: number;
+  signals: number;
+  candidates: number;
+  rejected: number;
+  known: number;
+};
+
+const MON = "/data/monitor";
+type ReplayFile = { built_at: string; order: number[] };
+let replayFile: Promise<ReplayFile> | null = null;
+const replay = () => (replayFile ??= getJson<ReplayFile>(`${MON}/replay.json`));
+
+/** The date the mock replays: the day of the recorded sweep. */
+export const MOCK_REPLAY_OF = "2026-09-26T07:57:39Z";
+
+/**
+ * The star being searched now (live), or the next star of a replay. `after` asks for the star after that TIC,
+ * which is how a replay advances; a live server ignores it and answers with whatever it is searching.
+ */
+export async function getMonitorNow(opts: { after?: number | null; signal?: AbortSignal } = {}): Promise<MonitorNow> {
+  if (!API_MOCK) {
+    const q = opts.after != null ? `?after=${opts.after}` : "";
+    return getJson<MonitorNow>(`${API_BASE}/monitor/now${q}`, opts.signal);
+  }
+  const { order } = await replay();
+  const i = opts.after == null ? 0 : (order.indexOf(opts.after) + 1) % order.length;
+  const star = await getJson<MonitorStar>(`${MON}/stars/${order[i]}.json`, opts.signal);
+  return { mode: "replay", star, replay_of: MOCK_REPLAY_OF, next_tic: order[(i + 1) % order.length] };
+}
+
+export async function getMonitorLog(signal?: AbortSignal): Promise<MonitorLog> {
+  return getJson<MonitorLog>(API_MOCK ? `${MON}/log.json` : `${API_BASE}/monitor/log`, signal);
+}
+
+export async function getMonitorCoverage(signal?: AbortSignal): Promise<MonitorCoverage> {
+  return getJson<MonitorCoverage>(API_MOCK ? `${MON}/coverage.json` : `${API_BASE}/monitor/coverage`, signal);
+}
+
+export async function getMonitorStats(signal?: AbortSignal): Promise<MonitorStats> {
+  return getJson<MonitorStats>(API_MOCK ? `${MON}/stats.json` : `${API_BASE}/monitor/stats`, signal);
+}
+
+/** A searched star's light curve, when the mock has it (the log itself carries none). */
+export async function getStarCurve(tic: number, signal?: AbortSignal): Promise<MonitorStar | null> {
+  if (!API_MOCK) return null;
+  if (!(await replay()).order.includes(tic)) return null;
+  return getJson<MonitorStar>(`${MON}/stars/${tic}.json`, signal).catch(() => null);
+}
 
 export type CheckResult = { name: string; value: number | string | null; passed: boolean | null; reason: string };
 
@@ -371,6 +475,29 @@ export type Candidate = {
   folded: { phase: number[]; flux: number[] };
   unfolded: { time_btjd: number[]; flux: number[] };
   created_at: string;
+  /** Mock only: a real TESS Object of Interest shown in place of a new candidate, and why. */
+  stand_in?: StandIn | null;
+  /** A finer fold around the dip (hunt: 60 bins over three durations either side), when the API sends it. */
+  folded_zoom?: { hours_from_mid: number[]; flux: number[] } | null;
+  /** Candidate detail only: the vetting block (FINDER API). */
+  vetting?: Vetting;
+  /** The TIC row of the host star, when the API sends it. */
+  star?: { tmag: number | null; teff: number | null; rad: number | null; ra: number; dec: number } | null;
+};
+
+export type StandIn = { name: string; disposition: string | null; note: string };
+
+export type Vetting = {
+  leo: { ran: boolean; passed: boolean | null; flags: string[] };
+  triceratops: { ran: boolean; fpp: number | null; nfpp: number | null };
+  gaia: {
+    ruwe: number | null;
+    neighbours: { gaia_id: string; sep_arcsec: number; gmag: number; can_mimic?: boolean; needed_depth?: number }[];
+    binary_hint: boolean;
+    gaia_id?: string | null;
+  };
+  variability: { vsx_match: { name: string; type: string; sep_arcsec: number; period_d: number | null } | null; gaia_variable: boolean };
+  summary: { verdict: string; reasons: string[] };
 };
 
 export type PixelVerdict = "on target" | "possible neighbour" | "off target" | "inconclusive";
@@ -409,27 +536,48 @@ export type Sensitivity = {
   stars_used: number;
   radius_edges_rearth: number[];
   period_edges_d: number[];
-  /** recovery_pct[radius bin][period bin], 0 to 100. */
-  recovery_pct: number[][];
+  /** recovery_pct[radius bin][period bin], 0 to 100; null where nothing was injected. */
+  recovery_pct: (number | null)[][];
   n_injected: number[][];
+  /** What "detected" and "recovered" mean, in words (hunt's sensitivity run). */
+  definition?: Record<string, string>;
+  overall_recovery_pct?: number;
 };
 
 export type FunnelStep = { key: string; label: string; count: number };
 
 /** A row in the candidate list: the Candidate without its curves and checks, plus its pixel verdict and votes. */
-export type CandidateRow = Omit<Candidate, "folded" | "unfolded" | "checks"> & {
+export type CandidateRow = Omit<Candidate, "folded" | "unfolded" | "checks" | "vetting"> & {
   checks_passed: number;
   checks_total: number;
   pixel_verdict: PixelVerdict | null;
   votes: Votes;
+  /** The vetting summary's verdict, when vetting has run. */
+  verdict?: string | null;
 };
 
 export type CandidateList = { run_at: string; funnel: FunnelStep[]; candidates: CandidateRow[]; demo: boolean };
 export type CandidateReport = { candidate: Candidate; pixels: PixelVet | null; votes: Votes; demo: boolean };
 
-type FinderIndexMock = { meta: { run_at: string; funnel: FunnelStep[] }; candidates: CandidateRow[] };
-let finderIndex: Promise<FinderIndexMock> | null = null;
-const finderMockIndex = () => (finderIndex ??= getJson<FinderIndexMock>("/data/finder/index.mock.json"));
+
+type CandidateIndexMock = { run_at: string; candidates: CandidateRow[] };
+let candIndex: Promise<CandidateIndexMock> | null = null;
+const candMockIndex = () => (candIndex ??= getJson<CandidateIndexMock>(`${MON}/candidates/index.json`));
+type StatsMock = MonitorStats & { sweep_2026_09_26?: Record<string, number | Record<string, number> | string[]> };
+
+/** The search's funnel, from the recorded sweep's own counts. */
+async function mockFunnel(): Promise<FunnelStep[]> {
+  const s = await getJson<StatsMock>(`${MON}/stats.json`);
+  const f = (s.sweep_2026_09_26 ?? {}) as Record<string, number>;
+  return [
+    { key: "stars", label: "Stars searched", count: f.stars_searched ?? s.stars_searched },
+    { key: "signals", label: "Repeating dips found", count: f.signals_found ?? s.signals },
+    { key: "snr", label: "Strong enough", count: f.after_snr ?? 0 },
+    { key: "sde", label: "Stand out from other periods", count: f.after_sde ?? 0 },
+    { key: "checks", label: "Passed the checks", count: f.after_checks ?? 0 },
+    { key: "candidates", label: "New candidates", count: f.candidates ?? s.candidates },
+  ];
+}
 
 /** Demo votes: this browser's own vote, kept per candidate on top of the mock's counts. */
 const myVotes = {
@@ -461,14 +609,14 @@ function withMyVote(id: string, base: Votes): Votes {
 
 export async function getCandidates(signal?: AbortSignal): Promise<CandidateList> {
   if (!API_MOCK) return { ...(await getJson<Omit<CandidateList, "demo">>(`${API_BASE}/finder/candidates`, signal)), demo: false };
-  const ix = await finderMockIndex();
-  return { run_at: ix.meta.run_at, funnel: ix.meta.funnel, candidates: ix.candidates.map((c) => ({ ...c, votes: withMyVote(c.id, c.votes) })), demo: true };
+  const [ix, funnel] = await Promise.all([candMockIndex(), mockFunnel()]);
+  return { run_at: ix.run_at, funnel, candidates: ix.candidates.map((c) => ({ ...c, votes: withMyVote(c.id, c.votes) })), demo: true };
 }
 
 export async function getCandidate(id: string, signal?: AbortSignal): Promise<CandidateReport> {
   if (!API_MOCK) return { ...(await getJson<Omit<CandidateReport, "demo">>(`${API_BASE}/finder/candidates/${encodeURIComponent(id)}`, signal)), demo: false };
   if (!/^[a-z0-9-]+$/i.test(id)) throw new ApiError(404, `No candidate ${id}`);
-  const r = await getJson<Omit<CandidateReport, "demo">>(`/data/finder/c/${id}.json`, signal).catch((e: unknown) => {
+  const r = await getJson<Omit<CandidateReport, "demo">>(`${MON}/candidates/${id}.json`, signal).catch((e: unknown) => {
     throw e instanceof ApiError && e.status === 404 ? new ApiError(404, `No candidate ${id}`) : e;
   });
   return { ...r, votes: withMyVote(id, r.votes), demo: true };
@@ -485,7 +633,7 @@ export async function submitVote(id: string, vote: VoteChoice | null, reasons: s
     if (!res.ok) throw new ApiError(res.status, `vote: ${res.status}`);
     return res.json();
   }
-  const base = (await finderMockIndex()).candidates.find((c) => c.id === id)?.votes;
+  const base = (await candMockIndex()).candidates.find((c) => c.id === id)?.votes;
   if (!base) throw new ApiError(404, `No candidate ${id}`);
   await new Promise((ok) => setTimeout(ok, 250));
   myVotes.write(id, vote ? { vote, reasons } : null);
@@ -494,14 +642,7 @@ export async function submitVote(id: string, vote: VoteChoice | null, reasons: s
 
 export async function getSensitivity(signal?: AbortSignal): Promise<Served<Sensitivity>> {
   if (!API_MOCK) return { data: await getJson<Sensitivity>(`${API_BASE}/finder/sensitivity`, signal), demo: false, standIn: null };
-  return { data: await getJson<Sensitivity>("/data/finder/sensitivity.mock.json", signal), demo: true, standIn: null };
-}
-
-/** Which TICs are planet hosts on the sky map, so their candidates can link to a star lab and a flight. */
-let hostTics: Promise<Set<number>> | null = null;
-export function getMapHostTics(): Promise<Set<number>> {
-  hostTics ??= getJson<{ tic: number[] }>("/data/hosts.json").then((h) => new Set(h.tic));
-  return hostTics;
+  return { data: await getJson<Sensitivity>(`${MON}/sensitivity.json`, signal), demo: true, standIn: null };
 }
 
 /** Admin: the selected candidates as an ExoFOP CTOI upload file. The API checks the token; the demo builds it here and sends nothing. */

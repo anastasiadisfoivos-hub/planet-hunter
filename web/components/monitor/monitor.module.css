@@ -1,0 +1,262 @@
+/* The monitor (DESIGN.md: The monitor). */
+
+.monitor {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: calc(100dvh - var(--bar-h));
+}
+
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-5);
+  align-items: start;
+  padding-top: var(--s-6);
+  padding-bottom: var(--s-4);
+}
+
+.starHead {
+  display: grid;
+  gap: var(--s-2);
+  min-height: 150px;
+  animation: arrive var(--d-panel) var(--ease-out);
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.starName {
+  font-size: var(--t-display) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.025em !important;
+  font-variant-numeric: lining-nums;
+  white-space: nowrap;
+}
+
+.tic {
+  font-style: italic;
+  color: var(--ink-2);
+}
+
+.starKind {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-4);
+  font-size: var(--t-body);
+}
+
+.facts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  color: var(--ink-2);
+}
+
+.observed {
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.mode {
+  display: grid;
+  justify-items: end;
+  gap: var(--s-2);
+  text-align: right;
+}
+
+.modeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  font-variation-settings: "wdth" 87;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  padding: 5px 10px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+}
+
+.modeTag[data-mode="live"] {
+  border-color: var(--pen);
+  color: var(--pen);
+}
+
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pen);
+}
+
+.modeLine {
+  font-size: var(--t-small);
+  font-style: italic;
+  color: var(--ink-2);
+}
+
+.controls {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+
+.paper {
+  position: relative;
+  min-height: 360px;
+  border-top: 1px solid var(--grid-strong);
+  border-bottom: 1px solid var(--grid-strong);
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+
+.canvas:focus-visible {
+  outline-offset: -3px;
+}
+
+.foot {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--s-6);
+  padding-top: var(--s-5);
+  padding-bottom: var(--s-6);
+}
+
+.tally {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  align-items: baseline;
+  align-content: start;
+}
+
+.tally .num {
+  font-size: 1.0625rem;
+  color: var(--ink);
+}
+
+.pen {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+  min-height: 3.5em;
+}
+
+.note {
+  font-size: var(--t-small);
+}
+
+.notes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-3);
+}
+
+.noteRow {
+  display: grid;
+  gap: 2px;
+  animation: arrive var(--d-tick) var(--ease-out);
+}
+
+.noteHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+}
+
+.noteHead [data-outcome="candidate"] {
+  color: var(--pen);
+}
+
+.noteHead [data-outcome="known"] {
+  color: var(--known);
+}
+
+.reason {
+  font-size: var(--t-small);
+  color: var(--ink-2);
+  max-width: 68ch;
+}
+
+.more {
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+/* The tick glyph, the same as on the canvas: filled pen, blue with a bar, hollow ink. */
+.tick {
+  position: relative;
+  display: inline-block;
+  width: 10px;
+  height: 9px;
+  flex: none;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: var(--pen);
+}
+
+.tick[data-outcome="known"] {
+  background: var(--known);
+}
+
+.tick[data-outcome="rejected"] {
+  background: var(--ink-3);
+}
+
+.tick[data-outcome="rejected"]::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px 2.2px 2.6px;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: var(--paper);
+}
+
+@media (max-width: 719px) {
+  .head {
+    grid-template-columns: 1fr;
+    padding-top: var(--s-4);
+    gap: var(--s-3);
+  }
+
+  .starHead {
+    min-height: 0;
+  }
+
+  .mode {
+    grid-auto-flow: column;
+    justify-content: start;
+    justify-items: start;
+    align-items: center;
+    text-align: left;
+    gap: var(--s-3);
+  }
+
+  .controls {
+    margin-top: 0;
+  }
+
+  .paper {
+    min-height: 0;
+    height: 56dvh;
+  }
+
+  .foot {
+    grid-template-columns: 1fr;
+    gap: var(--s-4);
+  }
+}

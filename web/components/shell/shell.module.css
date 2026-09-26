@@ -1,177 +1,120 @@
-/* The top bar and "Find a star" (DESIGN.md, Components: Top bar). */
+/* The top bar, the page frame and the footer (DESIGN.md, Components: Top bar). */
 
 .bar {
   position: sticky;
   top: 0;
   z-index: var(--z-bar);
-  height: var(--topbar-h);
-  background: var(--bg);
-  border-bottom: 1px solid var(--line-faint);
-}
-
-.bar[data-over] {
-  position: absolute;
-  inset: 0 0 auto;
-  background: transparent;
-  border-bottom-color: transparent;
+  height: var(--bar-h);
+  min-height: 0;
+  background: var(--paper);
+  border-bottom: 1px solid var(--grid-strong);
 }
 
 .inner {
   height: 100%;
   display: flex;
   align-items: center;
-  gap: var(--s-10);
+  gap: var(--s-6);
 }
 
 .wordmark {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--ink);
-  font-weight: 500;
-  text-decoration: none;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.25rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
   white-space: nowrap;
-  min-height: 44px;
+  text-decoration: none !important;
+  color: var(--ink);
 }
 
 .nav {
   display: flex;
-  gap: 28px;
+  align-items: stretch;
+  gap: var(--s-5);
+  height: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
 }
 
 .link {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  height: var(--topbar-h);
-  color: var(--ink-secondary);
-  text-decoration: none;
+  min-height: var(--tap);
+  font-size: 1.0625rem;
   white-space: nowrap;
-  transition: color var(--dur-fast) var(--ease);
+  color: var(--ink-2);
+  text-decoration: none !important;
+  transition: color var(--d-hover) var(--ease-out);
 }
 
-.bar[data-over] .link {
-  color: rgb(255 255 255 / 0.86);
-}
-
-.link:hover,
-.link[aria-current="page"] {
+.link:hover {
   color: var(--ink);
 }
 
 .link[aria-current="page"] {
-  box-shadow: inset 0 -1px 0 var(--ink);
+  color: var(--ink);
+}
+
+.link[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--pen);
 }
 
 .end {
   margin-left: auto;
-}
-
-.find {
   display: flex;
   align-items: center;
-  gap: var(--s-2);
-  height: var(--control-h);
-  padding: 0 var(--s-3);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--ink-muted);
-  font-size: var(--text-13);
-  transition:
-    border-color var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease);
-}
-
-.bar[data-over] .find {
-  border-color: rgb(255 255 255 / 0.24);
-  color: rgb(255 255 255 / 0.86);
-}
-
-.find:hover {
-  border-color: var(--line-strong);
-  color: var(--ink);
-}
-
-/* Native popover: light dismiss and Escape come free. Anchored under the button's corner of the bar. */
-.findPop {
-  position: fixed;
-  inset: calc(var(--topbar-h) + var(--s-2)) var(--margin) auto auto;
-  width: min(420px, calc(100vw - 2 * var(--margin)));
-  margin: 0;
-  padding: var(--s-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
-  background: var(--raised);
-  color: var(--ink);
-}
-
-.search {
-  display: grid;
   gap: var(--s-3);
+  white-space: nowrap;
 }
 
-.searchInput {
-  height: 44px;
-  padding: 0 var(--s-3);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-control);
-  background: var(--bg);
-  color: var(--ink);
-  font-size: var(--text-14);
+.main {
+  padding-bottom: var(--section);
 }
 
-.searchInput::placeholder {
-  color: var(--ink-muted);
+.bleed {
+  padding-bottom: 0;
 }
 
-.options {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.option {
+.foot {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-3);
-  min-height: 44px;
-  padding: var(--s-2) var(--s-2);
-  border-radius: var(--radius-tag);
-  cursor: pointer;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-6);
+  padding-top: var(--s-5);
+  padding-bottom: var(--s-6);
+  border-top: 1px solid var(--grid-strong);
 }
 
-.option[aria-selected="true"],
-.option:hover {
-  background: var(--accent-tint);
+.foot a {
+  color: var(--ink-2);
 }
 
-.searchNote {
-  color: var(--ink-muted);
-  font-size: var(--text-12);
-}
-
-@media (max-width: 639px) {
+@media (max-width: 719px) {
   .inner {
-    gap: var(--s-5);
+    gap: var(--s-4);
   }
-  .wordmarkText,
-  .findText {
-    display: none;
-  }
+
   .wordmark {
-    min-width: 44px;
+    font-size: 1.0625rem;
   }
+
   .nav {
-    gap: 4px;
-    font-size: var(--text-13);
+    gap: var(--s-4);
   }
-  .find {
-    width: 44px;
-    height: 44px;
-    justify-content: center;
-    padding: 0;
+
+  .link {
+    font-size: 1rem;
   }
 }

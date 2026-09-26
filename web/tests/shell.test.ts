@@ -5,28 +5,29 @@ import { dayGroup, eventHref, longUtc, shortName } from "../components/gallery/t
 import nextConfig from "../next.config.ts";
 import type { SkyEvent } from "../lib/contract.ts";
 
-test("top bar: the wordmark goes home and the sections are Events, Sky, Lab, Finder", () => {
+test("top bar: the wordmark goes home and the sections are Monitor, Candidates, Log, Methods", () => {
   assert.equal(HOME.href, "/");
   assert.deepEqual(
     NAV.map((n) => [n.label, n.href]),
     [
-      ["Events", "/events"],
-      ["Sky", "/sky"],
-      ["Lab", "/lab"],
-      ["Finder", "/finder"],
+      ["Monitor", "/"],
+      ["Candidates", "/candidates"],
+      ["Log", "/log"],
+      ["Methods", "/methods"],
     ],
   );
+  assert.ok(!NAV.some((n) => ["/events", "/sky", "/lab"].includes(n.href)), "the retired sections are gone from the nav");
 });
 
 test("top bar: the current section covers its sub-pages", () => {
-  assert.equal(currentSection("/events"), "/events");
-  assert.equal(currentSection("/events/tns%3A2026abvs"), "/events");
-  assert.equal(currentSection("/lab/star/100100827"), "/lab");
-  assert.equal(currentSection("/finder/sensitivity"), "/finder");
-  assert.equal(currentSection("/sky"), "/sky");
-  assert.equal(currentSection("/"), null);
+  assert.equal(currentSection("/"), "/");
+  assert.equal(currentSection("/candidates"), "/candidates");
+  assert.equal(currentSection("/candidates/tic415739607-01"), "/candidates");
+  assert.equal(currentSection("/log"), "/log");
+  assert.equal(currentSection("/sensitivity"), "/methods");
+  assert.equal(currentSection("/methods"), "/methods");
   assert.equal(currentSection("/credits"), null);
-  assert.equal(currentSection("/skyline"), null, "a prefix of a word is not a section");
+  assert.equal(currentSection("/logbook"), null, "a prefix of a word is not a section");
 });
 
 test("/map redirects to /sky permanently (Next keeps the query, so shared filter links still work)", async () => {
