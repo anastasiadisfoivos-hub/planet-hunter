@@ -35,7 +35,7 @@ from . import cache
 from .lightcurve import LightCurve
 
 VALIDATED_FPP, VALIDATED_NFPP, LIKELY_NFP_NFPP, LIKELY_FP_FPP = 0.015, 0.001, 0.1, 0.5
-DEFAULT_N = 1_000_000
+DEFAULT_N = 100_000  # TRICERATOPS itself defaults to 1e6; see README (runtime)
 DEFAULT_BUDGET_S = 900.0
 SEED = 20260926
 SEARCH_RADIUS_PIX = 10
@@ -116,6 +116,8 @@ def folded(lc: LightCurve, period: float, t0: float, duration_d: float) -> tuple
 
 def _worker(path_in: str, path_out: str) -> None:
     try:
+        if cache.offline():
+            cache.forbid_network()
         with open(path_in, "rb") as f:
             job = pickle.load(f)
         np.random.seed(job["seed"])
@@ -128,7 +130,7 @@ def _worker(path_in: str, path_out: str) -> None:
             raise RuntimeError("calc_probs stopped early: TRICERATOPS needs the target's mass, radius, Teff and "
                                "parallax in the TIC")
         probs = t.probs.sort_values("prob", ascending=False)
-        top = [{"scenario": r["scenario"], "tic": str(r["ID"]), "prob": float(r["prob"])}
+        top = [{"scenario": r["scenario"], "tic": str(r["ID"]), "prob": float(f"{r['prob']:.3g}")}
                for _, r in probs.head(5).iterrows()]
         res = {"ok": True, "fpp": float(t.FPP), "nfpp": float(t.NFPP), "top_scenarios": top,
                "n_stars_considered": int((t.stars["tdepth"] > 0).sum())}
@@ -184,7 +186,7 @@ def run(cand: dict, lc: LightCurve, budget_s: float = DEFAULT_BUDGET_S, n: int =
         call = "likely false positive (FPP > 0.5)"
     else:
         call = "not validated, not ruled out"
-    return {**out, "ran": True, "fpp": round(fpp, 6), "nfpp": round(nfpp, 6), "classification": call,
+    return {**out, "ran": True, "fpp": float(f"{fpp:.3g}"), "nfpp": float(f"{nfpp:.3g}"), "classification": call,
             "top_scenarios": res["top_scenarios"], "n_stars_considered": res["n_stars_considered"],
             "sectors": lc.sectors, "depth_used_ppm": round(depth * 1e6, 1), "n_points": len(tb),
             "bin_minutes": round(width * 1440, 2),

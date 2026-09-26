@@ -49,8 +49,11 @@ def products(tic: int) -> list[dict]:
         out = []
         for row in res.table:
             author, exptime = str(row["author"]), float(row["exptime"])
-            sector = int(str(row["mission"]).split()[-1]) if "Sector" in str(row["mission"]) else None
-            if sector is None or _rank(author, exptime) is None:
+            try:  # MAST's sequence_number is the sector; multi-sector products have none
+                sector = int(row["sequence_number"])
+            except (TypeError, ValueError, np.ma.MaskError):
+                continue
+            if _rank(author, exptime) is None:
                 continue
             out.append({"sector": sector, "author": author, "exptime": exptime})
         return out

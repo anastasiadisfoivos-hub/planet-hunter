@@ -17,7 +17,7 @@ def test_offline_cache_miss_raises_instead_of_downloading(tmp_path, monkeypatch)
 
 def test_cache_stores_and_replays(tmp_path, monkeypatch):
     monkeypatch.setenv("SKYVET_CACHE_DIR", str(tmp_path))
-    monkeypatch.delenv("SKYVET_OFFLINE", raising=False)
+    monkeypatch.delenv("SKYVET_OFFLINE", raising=False)  # the fetch functions below are local
     assert cache.cached("x", "k", lambda: {"a": 1}) == {"a": 1}
     assert cache.cached("x", "k", lambda: pytest.fail("cached")) == {"a": 1}
     assert cache.cached("y", "k", lambda: [1, 2], fmt="pickle") == [1, 2]
@@ -26,6 +26,7 @@ def test_cache_stores_and_replays(tmp_path, monkeypatch):
 
 def test_cache_does_not_retry_code_errors(tmp_path, monkeypatch):
     monkeypatch.setenv("SKYVET_CACHE_DIR", str(tmp_path))
+    monkeypatch.delenv("SKYVET_OFFLINE", raising=False)
     calls = []
 
     def boom():
@@ -41,6 +42,15 @@ def test_cache_does_not_retry_code_errors(tmp_path, monkeypatch):
                                                (2.0, 2.1, None), (2.0, None, None)])
 def test_period_match(p, q, want):
     assert period_match(p, q) == want
+
+
+def test_network_is_blocked_in_tests():
+    import socket
+
+    with pytest.raises(ConnectionRefusedError):
+        socket.create_connection(("mast.stsci.edu", 443), timeout=5)
+    assert cache.NETWORK_ATTEMPTS[-1] == ("mast.stsci.edu", 443)
+    cache.NETWORK_ATTEMPTS.pop()
 
 
 def test_min_companion_mass_jupiter():

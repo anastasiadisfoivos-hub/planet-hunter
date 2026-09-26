@@ -1,0 +1,9 @@
+{
+ "id": "proof:25155310:1",
+ "tic": 25155310,
+ "period_d": 3.28878982693448,
+ "t0_btjd": 1327.519958,
+ "duration_h": 3.43677173022605,
+ "depth_ppm": 7005.72479018588,
+ "source": "ExoFOP TOI-114.01 (WASP-126 b, TFOPWG KP): ephemeris, duration and depth as listed; an extra confirmed planet with no strong phase curve"
+}

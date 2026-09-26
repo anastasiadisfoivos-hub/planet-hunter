@@ -9,8 +9,10 @@ import os
 import sys
 import warnings
 
-from . import tri
-from .core import vet_candidate
+warnings.simplefilter("ignore")  # before the imports below: lightkurve and pytransit warn at import time
+
+from . import tri  # noqa: E402
+from .core import vet_candidate  # noqa: E402
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -29,7 +31,6 @@ def main(argv: list[str] | None = None) -> int:
     a = ap.parse_args(argv)
     with open(a.candidate) as f:
         cand = json.load(f)
-    warnings.simplefilter("ignore")
     with _quiet():
         out = vet_candidate(cand, triceratops=not a.no_triceratops, tri_budget_s=a.tri_budget, tri_n=a.tri_n,
                             pixel=not a.no_pixel, max_sectors=a.max_sectors)

@@ -45,7 +45,8 @@ KEY_INPUT = {
 }
 APPLIES = {"chases": lambda m: m.get("N_transit", 0) <= 5, "single_event": lambda m: m.get("N_transit", 0) <= 10}
 KEEP_METRICS = ("MES", "SES", "N_transit", "new_N_transit", "dep", "Rp", "Rp_err", "transit_b", "transit_RpRs",
-                "sig_pri", "sig_sec", "dep_sec", "albedo", "Fred", "SHP", "CHI", "DMM", "V_shape", "sig_oe",
+                "sig_pri", "sig_sec", "dep_sec", "albedo", "Fred", "SHP", "CHI", "DMM", "sine_sig",
+                "odd_dep", "even_dep", "sig_dep", "trap_sig_dep", "transit_sig_dep", "trap_sig_epo", "transit_sig_epo",
                 "offset_mean", "offset_qual")
 PIXEL_MAX_SECTORS = 3
 N_PIX = 21
@@ -179,7 +180,7 @@ def difference_image(star: dict, planet: dict, sector: int, cam: int, ccd: int) 
             sd["planetData"] = [dict(planet)]
             sd.update(sector=sector, cam=cam, ccd=ccd)
             tdi = tessDiffImage.tessDiffImage(sd, nPixOnSide=N_PIX, outputDir=tmp, cleanFiles=False)
-            with contextlib.redirect_stdout(io.StringIO()):
+            with _quiet_fds():  # it shells out to curl and unzip, which write progress to the terminal
                 tdi.make_ffi_difference_image(thisPlanet=0, allowedBadCadences=0)
             _keep_cutout(work, tmp, star["tic"], sector)
             f = os.path.join(tmp, f"tic{star['tic']}", f"imageData_{planet['planetID']}_sector{sector}.pickle")
@@ -195,6 +196,28 @@ def difference_image(star: dict, planet: dict, sector: int, cam: int, ccd: int) 
                 "catalogue": catalogue, "n_transits_used": len(data[5]) if len(data) > 5 else None}
 
     return cache.cached("diffimage", key, fetch, fmt="pickle")
+
+
+@contextlib.contextmanager
+def _quiet_fds():
+    """Silence file descriptors 1 and 2 (child processes included), restoring them afterwards."""
+    import sys
+
+    sys.stdout.flush()
+    sys.stderr.flush()
+    saved = [os.dup(1), os.dup(2)]
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    try:
+        os.dup2(devnull, 1)
+        os.dup2(devnull, 2)
+        yield
+    finally:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os.dup2(saved[0], 1)
+        os.dup2(saved[1], 2)
+        for fd in (*saved, devnull):
+            os.close(fd)
 
 
 def _link_cutout(work, tmp: str, tic: int, sector: int) -> None:

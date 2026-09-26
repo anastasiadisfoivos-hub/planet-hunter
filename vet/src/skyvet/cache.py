@@ -43,6 +43,26 @@ def offline() -> bool:
     return os.environ.get("SKYVET_OFFLINE", "") not in ("", "0")
 
 
+NETWORK_ATTEMPTS: list[tuple] = []  # (host, port) of every connection refused by forbid_network
+
+
+def forbid_network() -> None:
+    """Refuse every socket connection in this process and record where it was going (NETWORK_ATTEMPTS), so a
+    library that reaches the network on its own is caught, not only our cache. It raises ConnectionRefusedError,
+    which libraries already handle. The one attempt the tests allow is astroquery.gaia's import-time status
+    ping to the ESA archive, which carries no data."""
+    import socket
+
+    def refuse(*args, **kwargs):
+        addr = next((a for a in args if isinstance(a, tuple)), args)
+        NETWORK_ATTEMPTS.append(tuple(addr)[:2])
+        raise ConnectionRefusedError(f"skyvet offline: refused connection to {addr}")
+
+    socket.socket.connect = refuse
+    socket.socket.connect_ex = refuse
+    socket.create_connection = refuse
+
+
 def path_for(ns: str, key: str, fmt: str = "json") -> Path:
     slug = re.sub(r"[^A-Za-z0-9._-]+", "_", key)[:80]
     digest = hashlib.sha1(key.encode()).hexdigest()[:10]
