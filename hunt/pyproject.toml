@@ -1,0 +1,39 @@
+[project]
+name = "hunt"
+version = "0.1.0"
+description = "planet-hunter PLANET FINDER: systematic TESS search for new planet candidates (candidates, never planets)"
+readme = "README.md"
+authors = [
+    { name = "Foivos Anastasiadis", email = "anastasiadis.foivos@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "hunter",
+    "astropy>=8.0.1",
+    "astroquery>=0.4.11",
+    "lightkurve>=2.6.0",
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.3",
+    "requests>=2.34.2",
+    "scipy>=1.18.1",
+]
+
+[project.scripts]
+hunt = "hunt.cli:main"
+
+[tool.uv.sources]
+hunter = { path = "../pipeline", editable = true }
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
