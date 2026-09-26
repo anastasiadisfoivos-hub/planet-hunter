@@ -52,7 +52,7 @@ SINGLE_PERIOD_EDGES = [100.0, 300.0, 1000.0]  # days (only one transit is inject
 GRIDS = {"grid": PERIOD_EDGES, "long_period": LONG_PERIOD_EDGES, "single": SINGLE_PERIOD_EDGES}
 REARTH_PER_RSUN = 109.076
 MAX_IMPACT = 0.7
-STAR_TIMEOUT_S = 3600  # every injection re-runs the whole stitched search
+STAR_TIMEOUT_S = 7200  # every injection re-runs the whole stitched search (8 searches per star)
 
 
 def bins(grid: str = "grid") -> list[tuple[int, int]]:

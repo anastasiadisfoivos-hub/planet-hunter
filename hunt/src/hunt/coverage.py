@@ -5,7 +5,7 @@ star's direction is rotated into camera coordinates with tess-point's own rotati
 as observed when it falls inside the camera's field (+-12.0 deg) and outside the strips (+-0.3 deg) along the
 camera axes where its four CCDs meet. tess_stars2px_function_entry does the exact pixel mapping star by star in
 Python, which takes over 10 minutes per 100k stars; this takes about a second. Checked against it on 600 random
-stars not used to choose the two numbers: see tests/test_deep.py and the README for the agreement.
+stars not used to choose the two numbers: see tests/test_dips.py and the README for the agreement.
 
 Only sectors up to the newest public one are counted. tess-point's table ends at its own last planned sector
 (132 in 0.9.5); later sectors are not counted until the package is updated.
