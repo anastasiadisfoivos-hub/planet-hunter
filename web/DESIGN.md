@@ -122,11 +122,19 @@ Scale (fluid, `clamp()`), in `styles/tokens.css`:
 - **Detections**: when the pen reaches the middle of a dip the search found, the pen writes a tick in the margin
   lane above the trace (ECG annotation style: a 1px vertical rule down to the trace at that time) and a label in
   mono: kind, period, depth, outcome. For a periodic signal, every later dip of that period gets a smaller tick as
-  the pen reaches it. Ticks fade in over 160ms, never bounce.
-- **Handover**: at the end of a star the trace finishes, the readout holds for 1.8 s, then the paper advances by
-  one screen (a 900ms ease-out slide) and the next star's name types in over its top-left label. The line never
-  resets from nothing on screen.
-- **Mode**: top right, in mono caps. `● LIVE` (pen dot) when the API streams the star being searched now;
+  the pen reaches it. Candidate and known dips are redrawn in their colour with a wash across the band (pen wash
+  for candidates, grid tint for known); rejected dips keep the ink line and get a hollow tick, and only their first
+  dip a dashed rule. Ticks fade in over 160ms, never bounce. The notes under the monitor list each signal as the
+  pen reaches it, with hunt's reason.
+- **Handover**: at the end of a star the trace finishes, the readout holds for 1.8 s, then the paper advances (the
+  finished trace slides off to the left in 900ms, `--ease-in-out`) and the grid runs on without a jump. Only then does
+  the header change: the next star's name crossfades in over 240ms with a 2px blur to mask the swap. A skip the
+  viewer asks for ("Next star", or →) advances in 240ms: keyboard actions are never slow.
+- **Notes stay readable**: each signal's note (outcome, period, depth) sits by its first dip, and once that dip has
+  scrolled away it stays pinned at the lane's left edge while the signal's later dips are on screen. Rules and ticks
+  pass behind notes, which are knocked out of the paper.
+- **Gaps**: where TESS has no data the pen lifts: no dot, no line, only the stylus rule moving over blank paper.
+- **Mode**: top right of the monitor, in mono caps, above Pause and Next star. `● LIVE` (pen dot) when the API streams the star being searched now;
   `REPLAY` with the recording date ("replay of the 26 Sep 2026 search") otherwise. Mock data is always replay.
 - **Tally**: bottom left, one mono line: stars searched, signals, candidates. It updates when a star finishes,
   with no counting animation.
@@ -159,7 +167,7 @@ Scale (fluid, `clamp()`), in `styles/tokens.css`:
 
 - **Top bar**: 56px, on paper, a `--grid-strong` rule below. Left: "Planet Hunter" set in Newsreader italic 20px.
   Then Monitor, Candidates, Log, Methods in Newsreader 17px, `--ink-2`, current page in `--ink` with a 2px pen
-  underline. Right: the mode label on the monitor only. Phone: the links stay in one scrollable row, no hamburger.
+  underline. Phone: the links stay in one scrollable row, no hamburger.
 - **Buttons**: text in Martian Mono 12px caps, 1px `--ink` outline, 2px radius, 44px min height. Pressed state
   inverts (ink fill, paper text). Hover: 1px shift down, 120ms. No pills, no nested icon circles.
 - **Links in prose**: ink, underlined 1px at 0.2em offset; hover turns the underline pen.
