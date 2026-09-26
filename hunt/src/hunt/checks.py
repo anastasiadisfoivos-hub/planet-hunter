@@ -132,6 +132,18 @@ def odd_even_scale(ep: "Epochs") -> float:
     return float(max(1.0, math.sqrt(chi2 / dof))) if dof > 0 else 1.0
 
 
+def odd_even_signal(sig: Signal, ep: "Epochs", scale: float) -> Signal:
+    """The signal with odd / even depths from the per-dip depths (each against its own local baseline, errors
+    inflated for red noise) when both parities have a dip, else BLS's; errors times the over-dispersion scale.
+    A global baseline mis-measures a dip next to a sector edge (TOI-2180 b's sector-48 transit starts 0.35 d
+    after the first cadence) and, with three transits, that alone looked like an odd/even difference."""
+    odd, even = ep.epoch % 2 == 1, ep.epoch % 2 == 0
+    if odd.any() and even.any():
+        (do, eo), (de, ee) = _wmean(ep.depth[odd], ep.err[odd]), _wmean(ep.depth[even], ep.err[even])
+        return replace(sig, depth_odd=do, depth_odd_err=eo * scale, depth_even=de, depth_even_err=ee * scale)
+    return replace(sig, depth_odd_err=sig.depth_odd_err * scale, depth_even_err=sig.depth_even_err * scale)
+
+
 def _wmean(d: np.ndarray, e: np.ndarray) -> tuple[float, float]:
     w = 1 / e**2
     return float(np.sum(w * d) / np.sum(w)), float(1 / math.sqrt(np.sum(w)))
@@ -324,7 +336,7 @@ def run_all(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal, star: Star
     sec_frac = sec["depth"] / max(sig.depth, 1e-12)
     ep = epoch_depths(t, f, g, sig)
     scale = odd_even_scale(ep)
-    oe = odd_even(replace(sig, depth_odd_err=sig.depth_odd_err * scale, depth_even_err=sig.depth_even_err * scale))
+    oe = odd_even(odd_even_signal(sig, ep, scale))
     if scale > 1:
         oe = replace(oe, reason=oe.reason + f" (Errors widened x{scale:.1f}: dips of the same parity already differ "
                                             f"that much from each other, e.g. between sectors.)")

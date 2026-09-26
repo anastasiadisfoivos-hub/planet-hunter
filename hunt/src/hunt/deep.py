@@ -106,6 +106,30 @@ def make_signal(time, flux, period, t0, duration, sde) -> Signal | None:
                   depth_odd=odd, depth_odd_err=odd_err, depth_even=even, depth_even_err=even_err)
 
 
+def refine(time: np.ndarray, flux: np.ndarray, sig: Signal) -> Signal:
+    """Fine period / epoch / duration around a find from the coarse grids (bls_long, tls): BLS on P +- (one duration
+    of phase drift over the baseline) in 101 steps and 5 durations. A few transits over years need this: 0.02 d
+    of period error moves TOI-2180 b's third transit by 2 h."""
+    baseline = float(np.ptp(time))
+    if baseline <= 0 or len(time) < 50:
+        return sig
+    dp = sig.duration * sig.period / baseline
+    periods = np.linspace(max(sig.period - dp, 0.5), sig.period + dp, 101)
+    durs = sig.duration * np.array([0.8, 0.9, 1.0, 1.1, 1.25])
+    durs = durs[durs < 0.5 * periods.min()]
+    if len(durs) == 0:
+        return sig
+    bt, bf, cnt = bin_by_time(time, flux, min(10 / 1440, sig.duration / 6))
+    dy = (robust_sigma(bf - np.median(bf)) or 1e-3) * np.sqrt(np.median(cnt) / cnt)
+    try:
+        res = BoxLeastSquares(bt, bf, dy).power(periods, durs, objective="likelihood", oversample=10)
+    except Exception:
+        return sig
+    i = int(np.argmax(np.nan_to_num(np.asarray(res.power), nan=-np.inf)))
+    from dataclasses import replace
+    return replace(sig, period=float(res.period[i]), t0=float(res.transit_time[i]), duration=float(res.duration[i]))
+
+
 # ---- long-period BLS ---------------------------------------------------------------------------------------
 
 def _grid_block(p_lo: float, p_hi: float, baseline: float, dmin_of) -> np.ndarray:

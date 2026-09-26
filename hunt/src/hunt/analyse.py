@@ -267,6 +267,7 @@ def analyse(star: Star, lc: StarLC, catalogue: Catalogue | None, list_kind: str 
                "duration_h": round(sig.duration * 24, 3), "depth_ppm": round(sig.depth * 1e6, 1),
                "snr": round(sig.snr, 2), "sde": round(sig.sde, 2), "n_transits": sig.n_transits,
                "failed_stage": stage, "failed_checks": failed,
+               "failed_reasons": {c.name: c.reason for c in checks if c.name in failed},
                "known_status": None if known is None else known["status"],
                "known_names": [] if known is None else [m["name"] for m in known["same_star"] + known["neighbours"]],
                "score": sc["score"], "found_by": method.get("found_by"), "kept": method.get("kept")}

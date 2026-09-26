@@ -83,9 +83,10 @@ stars, never less than 0.9 d), and 0.5 / 1.5 / 3 d for the dip search's 1–4 h 
 | `bls_long` | 15 d – half the baseline | astropy BLS on a frequency grid whose step lets a transit of half the central-transit duration drift at most a third of that over the baseline (the Ofir 2014 / TLS convention); factor-2 period blocks, each with durations from 0.35× the central duration for 3× the star's density up to 1.5× it for ⅓ (1–24 h), its own bin width, and astropy phase bins of a third of the shortest duration. Blocks run in increasing period within a 180-s budget per round; the longest period reached is recorded (`bls_long_pmax_d`, `bls_long_stopped_by_budget`) |
 | `tls` | 0.5 d – half the baseline | transitleastsquares (limb-darkened template, better than a box for small planets), single-threaded. Its cost (points × periods) is predicted first; if the whole curve would take over 60 s, TLS runs on the newest sectors that fit and the BLS searches still cover everything. What it ran on is recorded per star (`search.periodic.runtime.tls_runs`) |
 
-Each find is re-measured on the native curve (depth, odd/even depths, epochs with data, the pipeline's
-red-noise SNR; depth errors scaled by the red-noise factor at the transit duration), and the one with the highest
-SNR is kept. `found_by` lists every search that found the same period. Another round follows while the last
+Each find is re-measured on the native curve (finds from `bls_long` and `tls` first get a fine period / epoch /
+duration: BLS over ± one duration of phase drift across the baseline, since 0.02 d of period error moves a third
+transit years later by hours; then depth, odd/even depths, epochs with data, the pipeline's red-noise SNR, with
+depth errors scaled by the red-noise factor at the transit duration), and the one with the highest SNR is kept. `found_by` lists every search that found the same period. Another round follows while the last
 signal had SNR ≥ 7 and SDE ≥ 7 (a low-SDE bump from the long search is not worth masking). "Periodic" still
 needs ≥ 3 transits with data, and the new `three_dips` check makes sure three dips are real.
 
@@ -121,7 +122,7 @@ Every check has `value`, `passed` (true / false / null = could not run or a flag
 | Check | From | Fails when |
 |---|---|---|
 | `snr` | pipeline | SNR < 7 |
-| `odd_even` | pipeline | alternate dips differ by > 3σ and > 5%. DEEPHUNT widens the errors by the scatter *within* the odd and within the even dips (depths that change from sector to sector, e.g. with crowding corrections, are not an odd/even difference; an EB's alternation is between the groups and untouched) |
+| `odd_even` | pipeline | alternate dips differ by > 3σ and > 5%. DEEPHUNT measures the odd and even depths from the per-dip depths (each against its own local baseline, red-noise errors) instead of one global baseline, and widens the errors by the scatter *within* the odd and within the even dips. Why: TOI-2180 b has three transits in three sectors; one starts 0.35 d after its sector's first cadence and depths differ between sectors (crowding corrections), which on HUNT's version read as an odd/even difference. An EB's alternation is between the groups and stays visible |
 | `secondary_eclipse` | pipeline | a dip at phase 0.4–0.6 is > 3σ and > 10% of the main dip |
 | `size` | pipeline | even the low end of the radius range is > 2 R_Jup |
 | `period_alias` | hunt | P/2: a dip half an orbit later is > 50% as deep (> 3σ). 2P / 3P: the dips split into every-2nd / every-3rd groups, and one group is < 50% as deep as the rest (> 3σ) |

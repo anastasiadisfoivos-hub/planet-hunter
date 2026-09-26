@@ -201,15 +201,19 @@ def _short_round(t, f, g, mask) -> Signal | None:
     return search(t[use2], flat2[use2], g[use2]) or first
 
 
-def _remeasure(t, f, mask, sig: Signal, window: float, pipeline_flatten: bool = False) -> Signal:
-    """Measure a found signal on the native-cadence curve: re-flatten with its dips left out of the trend, then
-    depth, odd/even depths, epochs with data and SNR (deep.make_signal). Search periods and SDE are kept."""
+def _remeasure(t, f, mask, sig: Signal, window: float, pipeline_flatten: bool = False,
+               refine: bool = False) -> Signal:
+    """Measure a found signal on the native-cadence curve: re-flatten with its dips left out of the trend,
+    (refine=True: fine period, epoch and duration, deep.refine), then depth, odd/even depths, epochs with data and
+    SNR (deep.make_signal). The SDE of the search is kept."""
     trend_mask = mask | in_transit(t, sig.period, sig.t0, sig.duration, scale=2.0)
     if pipeline_flatten:
         flat, keep = flatten_for_search(t, f, window, transit_mask=trend_mask)
     else:
         flat, keep = detrend.flatten(t, f, window, trend_mask)
     use = keep & ~mask
+    if refine:
+        sig = deep.refine(t[use], flat[use], sig)
     again = deep.make_signal(t[use], flat[use], sig.period, sig.t0, sig.duration, sig.sde)
     return again or sig
 
@@ -275,8 +279,8 @@ def _deep_round(c: _Curves, mask, star, window, tls_left: float, runtime: dict) 
     if not found:
         return None, {}
     tic = _time.perf_counter()
-    cands = [(_remeasure(c.t, c.f, mask, sg, FLATTEN_WINDOW if m == "bls_short" else window, m == "bls_short"), m)
-             for sg, m in found]
+    cands = [(_remeasure(c.t, c.f, mask, sg, FLATTEN_WINDOW if m == "bls_short" else window, m == "bls_short",
+                         refine=m != "bls_short"), m) for sg, m in found]
     runtime["measure_s"] = runtime.get("measure_s", 0.0) + _time.perf_counter() - tic
     best, kept = max(cands, key=lambda x: x[0].snr)
     found_by = sorted({m for sg, m in cands if harmonically_related(sg.period, best.period)})
