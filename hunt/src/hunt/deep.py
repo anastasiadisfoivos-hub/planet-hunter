@@ -107,14 +107,15 @@ def make_signal(time, flux, period, t0, duration, sde) -> Signal | None:
 
 
 def refine(time: np.ndarray, flux: np.ndarray, sig: Signal) -> Signal:
-    """Fine period / epoch / duration around a find from the coarse grids (bls_long, tls): BLS on P +- (one duration
-    of phase drift over the baseline) in 101 steps and 5 durations. A few transits over years need this: 0.02 d
-    of period error moves TOI-2180 b's third transit by 2 h."""
+    """Fine period / epoch / duration around any find: BLS on P +- max(one duration of phase drift over the
+    baseline, 1e-4 P) in 401 steps and 5 durations. Long, gappy baselines need this: 0.02 d of period error moves
+    TOI-2180 b's third transit by 2 h, and the pipeline's BLS put an injected 1.38-d planet 6e-5 P off over a
+    2,935-d baseline, catching a tenth of its depth."""
     baseline = float(np.ptp(time))
     if baseline <= 0 or len(time) < 50:
         return sig
-    dp = sig.duration * sig.period / baseline
-    periods = np.linspace(max(sig.period - dp, 0.5), sig.period + dp, 101)
+    dp = max(sig.duration * sig.period / baseline, 1e-4 * sig.period)
+    periods = np.linspace(max(sig.period - dp, 0.5), sig.period + dp, 401)
     durs = sig.duration * np.array([0.8, 0.9, 1.0, 1.1, 1.25])
     durs = durs[(durs < 0.5 * periods.min()) & (durs <= LONG_DURATION_MAX_D)]
     if len(durs) == 0:

@@ -25,6 +25,7 @@ from .lightcurve import StarLC
 FLATTEN_WINDOW = 3 * float(DURATIONS.max())  # as in the pipeline
 MAX_SIGNALS = 3
 CONTINUE_MIN_SNR = 7.0  # keep looking for a further signal only while the last one was at least this strong
+MIN_TRANSITS_PERIODIC = 3
 CONTINUE_MIN_SDE = 7.0  # ... and (deep search) this clear a peak in its periodogram
 DEFAULT_KNOWN_DURATION_H = 3.0
 MASK_HALF_DURATIONS = 1.0  # fixed mask: +-1 listed duration (2x the transit) plus the timing allowance
@@ -202,7 +203,7 @@ def _short_round(t, f, g, mask) -> Signal | None:
 
 
 def _remeasure(t, f, mask, sig: Signal, window: float, pipeline_flatten: bool = False,
-               refine: bool = False) -> Signal:
+               refine: bool = False, g: np.ndarray | None = None, repeats: list | None = None) -> Signal:
     """Measure a found signal on the native-cadence curve: re-flatten with its dips left out of the trend,
     (refine=True: fine period, epoch and duration, deep.refine), then depth, odd/even depths, epochs with data and
     SNR (deep.make_signal). The SDE of the search is kept."""
@@ -214,6 +215,9 @@ def _remeasure(t, f, mask, sig: Signal, window: float, pipeline_flatten: bool = 
     use = keep & ~mask
     if refine:
         sig = deep.refine(t[use], flat[use], sig)
+    if repeats is not None:
+        from .checks import epoch_depths, three_dips
+        repeats.append(three_dips(epoch_depths(t[use], flat[use], g[use], sig)).passed is True)
     again = deep.make_signal(t[use], flat[use], sig.period, sig.t0, sig.duration, sig.sde)
     return again or sig
 
@@ -279,14 +283,20 @@ def _deep_round(c: _Curves, mask, star, window, tls_left: float, runtime: dict) 
     if not found:
         return None, {}
     tic = _time.perf_counter()
+    real: list[bool] = []
     cands = [(_remeasure(c.t, c.f, mask, sg, FLATTEN_WINDOW if m == "bls_short" else window, m == "bls_short",
-                         refine=m != "bls_short"), m) for sg, m in found]
+                         refine=True, g=c.g, repeats=real), m) for sg, m in found]
     runtime["measure_s"] = runtime.get("measure_s", 0.0) + _time.perf_counter() - tic
-    best, kept = max(cands, key=lambda x: x[0].snr)
+    # Prefer finds whose dips repeat (checks.three_dips), then >= 3 epochs with data, then the highest SNR.
+    # Otherwise one glitch (a 93%-deep drop in one sector had SNR 1,676), alone or folded with empty epochs,
+    # outranks a real 85-transit signal, and its low SDE then ends the search.
+    i_best = max(range(len(cands)), key=lambda i: (real[i], cands[i][0].n_transits >= MIN_TRANSITS_PERIODIC,
+                                                   cands[i][0].snr))
+    best, kept = cands[i_best]
     found_by = sorted({m for sg, m in cands if harmonically_related(sg.period, best.period)})
     others = {m: {"period_d": round(sg.period, 6), "snr": round(sg.snr, 2), "sde": round(sg.sde, 2)}
               for sg, m in cands}
-    return best, {"kept": kept, "found_by": found_by, "each_search": others}
+    return best, {"kept": kept, "found_by": found_by, "each_search": others, "repeats": real[i_best]}
 
 
 def find_signals(lc: StarLC, premask: np.ndarray | None = None, max_signals: int = MAX_SIGNALS,
@@ -297,8 +307,9 @@ def find_signals(lc: StarLC, premask: np.ndarray | None = None, max_signals: int
     deep_search=True: every round searches a 10-min binned copy with bls_short, bls_long (15 d to half the
     baseline) and TLS (within tls_budget_s over the whole star), measures each find on the native-cadence curve
     (binning smears transits under an hour), keeps the one with the highest SNR and records which searches found
-    the same period. Another round follows while the last signal had SNR >= 7 and (deep only) SDE >= 7: a
-    red-noise bump from the long-period search with a low SDE is not worth masking and searching around."""
+    the same period. Another round follows while the last signal had SNR >= 7 and (deep only) either SDE >= 7 or
+    dips that do not repeat: a low-SDE red-noise bump is not worth searching around, but a strong glitch is worth
+    masking, since it can hide a real signal."""
     t, f, g = lc.time, lc.flux, lc.sector
     premask = np.zeros(len(t), bool) if premask is None else premask
     signals: list[Signal] = []
@@ -312,14 +323,17 @@ def find_signals(lc: StarLC, premask: np.ndarray | None = None, max_signals: int
             return _short_round(t, f, g, mask), {"kept": "bls_short", "found_by": ["bls_short"]}
         return _deep_round(curves, mask, star, window, tls_budget_s - runtime.get("tls_s", 0.0), runtime)
 
-    def go_on(sig: Signal) -> bool:
-        return sig.snr >= CONTINUE_MIN_SNR and (not deep_search or sig.sde >= CONTINUE_MIN_SDE)
+    def go_on(sig: Signal, info: dict) -> bool:
+        # Deep: also go on after a strong signal that does not repeat (a glitch, alone or folded with empty
+        # epochs): masking it lets the next round find what it was hiding.
+        return sig.snr >= CONTINUE_MIN_SNR and (not deep_search or sig.sde >= CONTINUE_MIN_SDE
+                                                or not info.get("repeats", True))
 
     first, info = one_round(premask)
     if first is not None:
         signals.append(first)
         methods.append(info)
-    while signals and len(signals) < max_signals and go_on(signals[-1]):
+    while signals and len(signals) < max_signals and go_on(signals[-1], methods[-1]):
         nxt, info = one_round(_mask_of(t, signals, premask))
         if nxt is None or any(harmonically_related(nxt.period, s.period) for s in signals):
             break
