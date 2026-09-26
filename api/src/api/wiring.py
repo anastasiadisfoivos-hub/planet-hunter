@@ -2,21 +2,17 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 
-from api.ports import KnownLists, PixelVetter, PlanetArchive, StarAnalyzer, Storage
+from api.ports import KnownLists, PixelVetter, Storage
 from api.settings import Settings
-from api.spectra_index import SpectraIndex
 from api.storage.sqlite import SqliteStorage
 
 
 @dataclass
 class Services:
     storage: Storage
-    analyzer: StarAnalyzer
-    archive: PlanetArchive | None = None  # None: the lab lists no known planets
-    spectra: SpectraIndex = field(default_factory=lambda: SpectraIndex(None))
-    # Planet finder: only `python -m api.finder_ingest` uses these; web requests never do.
+    # Only `python -m api.finder_ingest` uses these; web requests never do.
     pixel_vetter: PixelVetter | None = None
     known_lists: KnownLists | None = None
 
@@ -45,28 +41,6 @@ def storage_from_cli(db: str | None, database_url: str | None) -> Storage:
     return build_storage(settings)
 
 
-def build_analyzer(settings: Settings) -> StarAnalyzer:
-    if settings.adapters == "real":
-        from api.adapters.real import PipelineAnalyzer
-
-        return PipelineAnalyzer()
-    if settings.adapters != "fake":
-        raise ValueError(f"PH_ADAPTERS must be 'fake' or 'real', got {settings.adapters!r}")
-    from api.fakes.tess import FakeAnalyzer
-
-    return FakeAnalyzer()
-
-
-def build_archive(settings: Settings) -> PlanetArchive:
-    if settings.adapters == "real":
-        from api.adapters.exoarchive import ExoplanetArchive
-
-        return ExoplanetArchive()
-    from api.fakes.archive import FakeArchive
-
-    return FakeArchive()
-
-
 def build_pixel_vetter(settings: Settings) -> PixelVetter:
     """Raises ImportError under PH_ADAPTERS=real when pixels/ isn't installed."""
     if settings.adapters == "real":
@@ -89,9 +63,6 @@ def build_known_lists(settings: Settings) -> KnownLists:
 
 
 def build_services(settings: Settings) -> Services:
-    return Services(
-        storage=build_storage(settings),
-        analyzer=build_analyzer(settings),
-        archive=build_archive(settings),
-        spectra=SpectraIndex(settings.spectra_index, settings.spectra_index_ttl_s),
-    )
+    if settings.adapters not in ("fake", "real"):
+        raise ValueError(f"PH_ADAPTERS must be 'fake' or 'real', got {settings.adapters!r}")
+    return Services(storage=build_storage(settings))

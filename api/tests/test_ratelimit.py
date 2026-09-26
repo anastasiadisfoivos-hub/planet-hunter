@@ -1,28 +1,27 @@
-"""Per-IP limits (analyze much tighter than reads), proxies, CORS."""
+"""Per-IP limits (ingest and votes apart from reads), proxies, CORS."""
 
 from __future__ import annotations
 
 from api.ratelimit import RateLimiter
-from tests.conftest import TIC
 
 
-def test_analyze_is_tighter_than_reads(make_client, clock):
-    client = make_client(rate_analyze_per_min=2, rate_read_per_min=5)
-    assert client.post("/analyze", json={"tic_id": TIC}).status_code == 202
-    assert client.post("/analyze", json={"tic_id": TIC}).status_code == 202
-    r = client.post("/analyze", json={"tic_id": TIC})
-    assert r.status_code == 429 and int(r.headers["Retry-After"]) >= 1
+def test_ingest_posts_have_their_own_bucket(make_client, clock):
+    client = make_client(ingest_token="t" * 32, rate_ingest_per_min=2, rate_read_per_min=5)
+    h = {"Authorization": "Bearer " + "t" * 32}
+    body = {"run_id": "1", "done": 0, "total": 10}
+    assert [client.post("/monitor/progress", json=body, headers=h).status_code
+            for _ in range(3)] == [200, 200, 429]  # fmt: skip
     # Reads have their own bucket.
-    assert [client.get("/events").status_code for _ in range(6)] == [200] * 5 + [429]
-    clock.t += 30  # refills one analyze token at 2/min
-    assert client.post("/analyze", json={"tic_id": TIC}).status_code in (200, 202)
+    assert [client.get("/monitor/now").status_code for _ in range(6)] == [200] * 5 + [429]
+    clock.t += 30  # refills one ingest token at 2/min
+    assert client.post("/monitor/progress", json=body, headers=h).status_code == 200
 
 
 def test_limits_are_per_ip_behind_a_trusted_proxy(make_client):
     client = make_client(rate_read_per_min=2, trusted_proxy_hops=1)
 
     def get(xff):
-        return client.get("/status", headers={"X-Forwarded-For": xff}).status_code
+        return client.get("/monitor/stats", headers={"X-Forwarded-For": xff}).status_code
 
     assert [get("1.1.1.1"), get("1.1.1.1"), get("1.1.1.1")] == [200, 200, 429]
     assert get("2.2.2.2") == 200
@@ -32,7 +31,7 @@ def test_limits_are_per_ip_behind_a_trusted_proxy(make_client):
 
 def test_forwarded_for_is_ignored_without_trusted_proxy(make_client):
     client = make_client(rate_read_per_min=2)
-    codes = [client.get("/status", headers={"X-Forwarded-For": f"10.0.0.{i}"}).status_code
+    codes = [client.get("/monitor/stats", headers={"X-Forwarded-For": f"10.0.0.{i}"}).status_code
              for i in range(3)]  # fmt: skip
     assert codes == [200, 200, 429]
 
@@ -40,14 +39,19 @@ def test_forwarded_for_is_ignored_without_trusted_proxy(make_client):
 def test_cors_for_the_web_origin(make_client):
     client = make_client(web_origins=("https://spotter.example",))
     pre = client.options(
-        "/analyze",
-        headers={"Origin": "https://spotter.example", "Access-Control-Request-Method": "POST"},
+        "/finder/candidates/1_1/vote",
+        headers={
+            "Origin": "https://spotter.example",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "x-voter-key",
+        },
     )
     assert pre.status_code == 200
     assert pre.headers["access-control-allow-origin"] == "https://spotter.example"
-    ok = client.get("/events", headers={"Origin": "https://spotter.example"})
+    assert "x-voter-key" in pre.headers["access-control-allow-headers"].lower()
+    ok = client.get("/monitor/now", headers={"Origin": "https://spotter.example"})
     assert ok.headers["access-control-allow-origin"] == "https://spotter.example"
-    other = client.get("/events", headers={"Origin": "https://evil.example"})
+    other = client.get("/monitor/now", headers={"Origin": "https://evil.example"})
     assert "access-control-allow-origin" not in other.headers
 
 

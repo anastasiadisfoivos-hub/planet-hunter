@@ -1,6 +1,7 @@
 # After each nightly planet sweep (hunt/ci/sweep.yml): download its candidates artifact and run
 # `python -m api.finder_ingest` against the production database: upsert candidates, dismiss the
-# ones now on a TOI/CTOI/confirmed/EB list, pixel-check new ones.
+# ones now on a TOI/CTOI/confirmed/EB list, pixel-check new ones, and load the run's monitor/
+# stars (the monitor's replay of last night).
 # DEPLOY: move to .github/workflows/finder.yml. Needs the repo secret PH_DATABASE_URL.
 # Two names below must match hunt/ci/sweep.yml once it is on main: the workflow `name:` under
 # `workflow_run.workflows` and the artifact name in SWEEP_ARTIFACT.
@@ -55,7 +56,9 @@ jobs:
                   --limit 1 --json databaseId --jq '.[0].databaseId')
           fi
           [ -n "$run" ] || { echo "no successful sweep run found"; exit 1; }
+          started=$(gh run view "$run" --repo "$GITHUB_REPOSITORY" --json startedAt --jq .startedAt)
           echo "id=$run" >> "$GITHUB_OUTPUT"
+          echo "started=$started" >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v4
         with:
           name: ${{ env.SWEEP_ARTIFACT }}
@@ -73,14 +76,20 @@ jobs:
           restore-keys: finder-http-
       - name: Ingest
         working-directory: api
+        env:
+          RUN_ID: ${{ steps.run.outputs.id }}
+          RUN_STARTED: ${{ steps.run.outputs.started }}
         run: |
-          # The candidates are the <tic>_<n>.json files, wherever the artifact put them.
-          first=$(find ../sweep -type f -regextype posix-extended \
-                  -regex '.*/[0-9]+_[0-9]+\.json' | head -1)
-          [ -n "$first" ] || { echo "no candidates in the artifact"; exit 1; }
+          # The artifact's root is where hunt's merge wrote summary.json, next to candidates/ and
+          # monitor/. A night with no candidates has no (or an empty) candidates/: still ingested,
+          # so the funnel and the monitor's replay move on to it.
+          summary=$(find ../sweep -type f -name summary.json | head -1)
+          root=$(dirname "${summary:-../sweep/summary.json}")
           sens=$(find ../sweep -type f -name 'sensitivity*.json' | head -1)
           uv sync --frozen --no-dev --extra finder
-          uv run --no-dev --extra finder python -m api.finder_ingest --dir "$(dirname "$first")" \
+          uv run --no-dev --extra finder python -m api.finder_ingest --dir "$root/candidates" \
+            --monitor-dir "$root/monitor" --run-id "$RUN_ID" \
+            ${RUN_STARTED:+--run-started-at "$RUN_STARTED"} \
             ${sens:+--sensitivity "$sens"} --pixel-limit 20 --time-budget-min 90 \
             | tee summary.json
       - name: Summary

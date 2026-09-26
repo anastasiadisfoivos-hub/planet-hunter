@@ -6,7 +6,6 @@ from typing import Annotated, Literal
 
 from fastapi import Depends, HTTPException, Request
 
-from api.jobs import AnalyzeQueue
 from api.ratelimit import RateLimiter
 from api.settings import Settings
 from api.wiring import Services
@@ -18,10 +17,6 @@ def services(request: Request) -> Services:
 
 def settings(request: Request) -> Settings:
     return request.app.state.settings
-
-
-def analyze_queue(request: Request) -> AnalyzeQueue:
-    return request.app.state.analyze_queue
 
 
 def client_ip(request: Request, hops: int) -> str:
@@ -36,17 +31,17 @@ def client_ip(request: Request, hops: int) -> str:
     return request.client.host if request.client else "unknown"
 
 
-def rate_limited(bucket: Literal["read", "analyze", "vote", "admin"]) -> Callable:
-    """Per-IP token bucket; `analyze` and `vote` have their own, smaller ones (reads stay
+def rate_limited(bucket: Literal["read", "vote", "admin", "ingest"]) -> Callable:
+    """Per-IP token bucket; `vote`, `admin` and `ingest` each have their own (reads stay
     available)."""
 
     def dep(request: Request, cfg: Annotated[Settings, Depends(settings)]) -> str:
         limiter: RateLimiter = request.app.state.limiter
         ip = client_ip(request, cfg.trusted_proxy_hops)
         per_min = {
-            "analyze": cfg.rate_analyze_per_min,
             "vote": cfg.rate_vote_per_min,
-            "admin": cfg.rate_analyze_per_min,
+            "admin": cfg.rate_admin_per_min,
+            "ingest": cfg.rate_ingest_per_min,
         }.get(bucket, cfg.rate_read_per_min)
         wait = limiter.hit(bucket, ip, per_min)
         if wait > 0:
@@ -61,8 +56,6 @@ def rate_limited(bucket: Literal["read", "analyze", "vote", "admin"]) -> Callabl
 
 
 Reader = Annotated[str, Depends(rate_limited("read"))]
-Analyzer = Annotated[str, Depends(rate_limited("analyze"))]
 Voter = Annotated[str, Depends(rate_limited("vote"))]
 ServicesDep = Annotated[Services, Depends(services)]
 SettingsDep = Annotated[Settings, Depends(settings)]
-QueueDep = Annotated[AnalyzeQueue, Depends(analyze_queue)]

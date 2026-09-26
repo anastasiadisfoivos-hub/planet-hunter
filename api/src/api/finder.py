@@ -1,10 +1,11 @@
 """Planet finder: HUNT's candidate JSON and PIXELS' PixelVet, as the API stores and serves them.
 
 Shapes (from hunt/ and pixels/):
-- Candidate (hunt/candidates/<tic>_<n>.json): {tic, period_d, t0_btjd, duration_h, depth_ppm, snr,
-  sde, n_transits, sectors, radius_rjup, radius_low, radius_high,
-  checks: [{name, value, passed, reason}], score, score_parts, known_lists, folded, unfolded,
-  created_at}
+- Candidate (hunt/candidates/<tic>_<n>.json; n is the signal number, or s<m> / d<m> for a single
+  or duo dip): {tic, period_d (null for a single dip), t0_btjd, duration_h, depth_ppm, snr, sde,
+  n_transits, sectors, radius_rjup ([low, high] or a number), radius_low, radius_high,
+  radius_rjup_best, checks: [{name, value, passed, reason}], score, score_parts, known_lists,
+  vetting (VET's block, any JSON object), folded, unfolded, created_at}
 - PixelVet: {verdict, reason, on_target_probability, centroid_offset_arcsec, offset_sigma,
   suspect_neighbours[], per_sector[], images: {out_of_transit, difference, markers}}
 
@@ -25,14 +26,15 @@ from api import honesty
 from api.ports import CandidateRow, KnownMatch
 from api.timeutil import parse
 
-CANDIDATE_ID = re.compile(r"^(\d{1,12})_(\d{1,4})$")
-REQUIRED = ("tic", "period_d", "t0_btjd", "duration_h")
+CANDIDATE_ID = re.compile(r"^(\d{1,12})_([a-z]?\d{1,4})$")
+REQUIRED = ("tic", "t0_btjd", "duration_h")
 PIXEL_VERDICTS = ("on target", "possible neighbour", "off target", "inconclusive")
 # The fields of a candidate the list endpoint returns (the folded/unfolded curves and the checks
 # are only in GET /candidates/{id}).
 SUMMARY_FIELDS = (
     "tic", "period_d", "t0_btjd", "duration_h", "depth_ppm", "snr", "sde", "n_transits",
-    "sectors", "radius_rjup", "radius_low", "radius_high", "known_lists",
+    "sectors", "radius_rjup", "radius_low", "radius_high", "radius_rjup_best", "known_lists",
+    "score_parts", "kind",
 )  # fmt: skip
 
 
@@ -59,8 +61,9 @@ def content_hash(record: dict[str, Any]) -> str:
 
 def ephemeris_key(record: dict[str, Any]) -> str:
     """What a pixel vet depends on. Rounded, so float noise in HUNT's output doesn't re-vet."""
+    period = _num(record.get("period_d"))
     eph = [
-        round(float(record["period_d"]), 6),
+        round(period, 6) if period is not None else None,
         round(float(record["t0_btjd"]), 4),
         round(float(record["duration_h"]), 3),
         sorted(int(s) for s in record.get("sectors") or []),
@@ -80,8 +83,14 @@ def parse_candidate(candidate_id: str, record: Any) -> dict[str, Any]:
         raise InvalidCandidate(f"missing or non-numeric: {', '.join(missing)}")
     if int(record["tic"]) != int(m.group(1)):
         raise InvalidCandidate(f"tic {record['tic']} does not match the file name")
-    if record["period_d"] <= 0 or record["duration_h"] <= 0:
-        raise InvalidCandidate("period_d and duration_h must be > 0")
+    period = record.get("period_d")
+    if period is not None and (_num(period) is None or period <= 0):
+        raise InvalidCandidate("period_d must be a number > 0, or null for a single dip")
+    if record["duration_h"] <= 0:
+        raise InvalidCandidate("duration_h must be > 0")
+    vetting = record.get("vetting")
+    if vetting is not None and not isinstance(vetting, dict):
+        raise InvalidCandidate("vetting must be a JSON object")
     if not isinstance(record.get("sectors", []), list):
         raise InvalidCandidate("sectors must be a list")
     return honesty.clean(record)
@@ -103,11 +112,33 @@ def candidate_row(candidate_id: str, record: dict[str, Any], now: datetime) -> C
         content_hash=content_hash(record),
         ephemeris_key=ephemeris_key(record),
         score=_num(record.get("score")) or 0.0,
-        radius_rjup=_num(record.get("radius_rjup")),
-        period_d=float(record["period_d"]),
+        radius_rjup=best_radius(record),
+        period_d=_num(record.get("period_d")),
+        vetting=record.get("vetting"),
         created_at=created,
         updated_at=now,
     )
+
+
+def best_radius(record: dict[str, Any]) -> float | None:
+    """The one radius (Jupiter radii) the list filters on: radius_rjup_best, else radius_rjup
+    when it is a number, else the middle of radius_low..radius_high (hunt's radius_rjup is the
+    [low, high] range)."""
+    for value in (record.get("radius_rjup_best"), record.get("radius_rjup")):
+        if (v := _num(value)) is not None:
+            return v
+    rng = record.get("radius_rjup")
+    lo, hi = (rng[0], rng[1]) if isinstance(rng, list) and len(rng) == 2 else (None, None)
+    lo, hi = _num(record.get("radius_low", lo)), _num(record.get("radius_high", hi))
+    if lo is not None and hi is not None:
+        return (lo + hi) / 2
+    return lo if lo is not None else hi
+
+
+def check_counts(checks: Any) -> tuple[int, int]:
+    """(passed, total) over the checks that ran: a check with passed null was not run."""
+    ran = [c for c in checks or [] if isinstance(c, dict) and c.get("passed") is not None]
+    return sum(1 for c in ran if c["passed"] is True), len(ran)
 
 
 # Known lists ------------------------------------------------------------------------------
@@ -240,7 +271,10 @@ def summary_view(row: dict[str, Any]) -> dict[str, Any]:
     rec = row["record"]
     out = {"id": row["id"], **{k: rec.get(k) for k in SUMMARY_FIELDS}}
     out["tic"] = row["tic"]
+    passed, total = check_counts(rec.get("checks"))
     out.update(
+        checks_passed=passed,
+        checks_total=total,
         score=row["score"],
         pixel_verdict=row["pixel_verdict"],
         status=row["status"],

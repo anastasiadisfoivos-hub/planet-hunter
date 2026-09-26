@@ -12,14 +12,10 @@ from fastapi.testclient import TestClient
 
 from api import honesty
 from api.app import create_app
-from api.fakes.archive import FakeArchive
-from api.fakes.tess import FakeAnalyzer
 from api.ratelimit import RateLimiter
 from api.settings import Settings
 from api.storage.sqlite import SqliteStorage
 from api.wiring import Services
-
-TIC = 25155310
 
 
 class FakeClock:
@@ -46,10 +42,14 @@ class HonestClient(TestClient):
 # else a disposable `postgres:16` Docker container started for the session.
 BACKENDS = [b.strip() for b in os.environ.get("PH_TEST_BACKENDS", "sqlite,postgres").split(",")]
 TABLES = (
-    "events, event_sources, ingest_status, star_analyses, star_names, analyze_jobs,"
-    " star_lightcurves, known_planets, candidates, pixel_vets, votes, sensitivity, finder_sweep"
+    "candidates, pixel_vets, votes, sensitivity, finder_sweep, monitor_runs, monitor_shards,"
+    " monitor_stars, monitor_seen, monitor_sectors, monitor_reasons"
 )
-OLD_TABLES = "traps, discoveries, catches, jobs"
+# Dropped by 0006, listed so a database left by an older test run starts clean.
+OLD_TABLES = (
+    "events, event_sources, ingest_status, star_analyses, star_names, analyze_jobs,"
+    " star_lightcurves, known_planets, traps, discoveries, catches, jobs"
+)
 
 
 def _start_postgres_container() -> tuple[str, str]:
@@ -138,13 +138,13 @@ def storage(backend, request):
 
 @pytest.fixture
 def services(storage) -> Services:
-    return Services(storage=storage, analyzer=FakeAnalyzer(), archive=FakeArchive())
+    return Services(storage=storage)
 
 
 @pytest.fixture
 def settings() -> Settings:
     # Generous limits here; tests/test_ratelimit.py checks the real ones.
-    return Settings(db_path=":memory:", rate_read_per_min=10_000, rate_analyze_per_min=10_000)
+    return Settings(db_path=":memory:", rate_read_per_min=10_000, rate_ingest_per_min=10_000)
 
 
 @pytest.fixture
@@ -171,23 +171,3 @@ def make_client(services, settings, clock):
 @pytest.fixture
 def client(make_client) -> HonestClient:
     return make_client()
-
-
-def wait_job(client: TestClient, job_id: str, timeout: float = 10.0) -> dict:
-    deadline = time.monotonic() + timeout
-    body: dict = {}
-    while time.monotonic() < deadline:
-        body = client.get(f"/jobs/{job_id}").json()
-        if body["status"] in ("done", "failed"):
-            return body
-        time.sleep(0.01)
-    raise AssertionError(f"job {job_id} did not finish in {timeout}s: {body}")
-
-
-def wait_until(predicate, timeout: float = 10.0) -> None:
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        if predicate():
-            return
-        time.sleep(0.01)
-    raise AssertionError("condition not met in time")

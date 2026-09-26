@@ -142,24 +142,6 @@ wheels = [
 ]
 
 [[package]]
-name = "astropy-healpix"
-version = "2.0.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "astropy" },
-    { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/15/c1/aeb3fe3be2ee863708d625014267c71abfe20ddaa293b3d4ddb72ee1d6e9/astropy_healpix-2.0.1.tar.gz", hash = "sha256:0e3f1c94064c45da779900cb90c938df7aef99a924abb23eeb893b16540e77e6", size = 112256, upload-time = "2026-07-20T21:07:30.004Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/46/b0/c1e87188a088ea8a2a56e5fe56c183573f8d25851fedcbe7d6630717a5ff/astropy_healpix-2.0.1-cp310-abi3-macosx_10_9_x86_64.whl", hash = "sha256:218549b1a73c58953b00628da6c5db0f5fbfd7ebe65eb8e376150ac6d5f9a955", size = 86464, upload-time = "2026-07-20T21:07:13.755Z" },
-    { url = "https://files.pythonhosted.org/packages/ee/7f/ec3ddbb15a681f1181412fe60cc1ad945a587110f4e5b9f1faadd41ea751/astropy_healpix-2.0.1-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:8528bd4040becee1b0d47a8b008b43ad007a47449860afe96f70cb2429d644f5", size = 83735, upload-time = "2026-07-20T21:07:15.215Z" },
-    { url = "https://files.pythonhosted.org/packages/e1/3d/0cde0db89ac8dd4e5347322470530298915739f7e9b356b01c1939de8c4f/astropy_healpix-2.0.1-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:179119d5a69e7b9245919cbe04c3e6bf0a485516b36c29f3402951aad5452251", size = 191178, upload-time = "2026-07-20T21:07:16.512Z" },
-    { url = "https://files.pythonhosted.org/packages/a0/c4/71cf2bd4374cc17e015413462be8051fe08bc49e077b7d48072fff4e465d/astropy_healpix-2.0.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c092c54124c48f8d98e04fb22f4b2aa4c8675e65d81c351523f41377f9a6df22", size = 193429, upload-time = "2026-07-20T21:07:18.015Z" },
-    { url = "https://files.pythonhosted.org/packages/fa/5c/3a50f68225b836b395da4fb8dfd3d702ded1916042490b16a613caa0e4a6/astropy_healpix-2.0.1-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:ce875a29c598c1a99f8f68351daeb4173463044dce4f1c7ebfe8c233ec5e9a49", size = 188694, upload-time = "2026-07-20T21:07:19.244Z" },
-    { url = "https://files.pythonhosted.org/packages/d7/55/b0dcf0e79c78122572832bca8959c50cbdbd9571a979c67564edd65fa75d/astropy_healpix-2.0.1-cp310-abi3-win_amd64.whl", hash = "sha256:82a2d5d285076e44be7cb26e0435cf5a42eec4be79d893fd61b570c7440d9e99", size = 55344, upload-time = "2026-07-20T21:07:20.502Z" },
-]
-
-[[package]]
 name = "astropy-iers-data"
 version = "0.2026.9.21.0.56.25"
 source = { registry = "https://pypi.org/simple" }
@@ -898,18 +880,15 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
-    { name = "hunter" },
     { name = "psycopg", extra = ["binary"] },
     { name = "psycopg-pool" },
     { name = "pydantic" },
-    { name = "skyevents" },
-    { name = "skypictures" },
-    { name = "skysources" },
     { name = "uvicorn" },
 ]
 
 [package.optional-dependencies]
 finder = [
+    { name = "hunter" },
     { name = "skypixels" },
 ]
 
@@ -923,14 +902,11 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
-    { name = "hunter", editable = "../pipeline" },
+    { name = "hunter", marker = "extra == 'finder'", editable = "../pipeline" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
     { name = "psycopg-pool", specifier = ">=3.2" },
     { name = "pydantic", specifier = ">=2.8" },
-    { name = "skyevents", editable = "../events" },
-    { name = "skypictures", editable = "../images" },
     { name = "skypixels", marker = "extra == 'finder'", editable = "../pixels" },
-    { name = "skysources", editable = "../sources" },
     { name = "uvicorn", specifier = ">=0.30" },
 ]
 provides-extras = ["finder"]
@@ -1023,21 +999,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/74/5e/c0664b968b102ff68b811d999c728546c48d5c1eec03e3bbaf88c0cb4472/psycopg_pool-3.3.3.tar.gz", hash = "sha256:df87b5d9d0ad7db37f6cdad4fa8ce113d250f5997f6db38e9a99192fb67f9e1d", size = 32006, upload-time = "2026-09-22T15:53:24.947Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/b4/452c6607a0f479465cd8a9b0d9956919fcb150050c1f83f9f11e6b8ee8dc/psycopg_pool-3.3.3-py3-none-any.whl", hash = "sha256:9b9cd6a4fcec47a410f7e82d408540e7f77b478509e91b44c1a5457a13e5ff37", size = 40304, upload-time = "2026-09-22T15:53:23.712Z" },
-]
-
-[[package]]
-name = "pyarrow"
-version = "25.0.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/3d/e3/27f57f80141379d60defe6703eb50a707325706f07fedfd1312c7a751995/pyarrow-25.0.1.tar.gz", hash = "sha256:9150a83248bfed9813ea3c3af74c3856c1984d444aa28e58bf7733b9750ddf6a", size = 1201653, upload-time = "2026-08-10T12:40:53.904Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/e2/9ab15b88cbfac28e16419ce5439ec29234c5172cb8259301b4ba639bdec0/pyarrow-25.0.1-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:df961f2e7ae9cf496459259d798652c70625f6c080650d6952f8c04053c58ee9", size = 35861559, upload-time = "2026-08-10T12:38:02.567Z" },
-    { url = "https://files.pythonhosted.org/packages/58/79/a0036dbe1eabe1f73127427342f1d99982584c4a2cde2651d6c93499c6f6/pyarrow-25.0.1-cp312-cp312-macosx_12_0_x86_64.whl", hash = "sha256:cc4aa407fde9fc660be3939e49ea31f50f3e9fec17c0ec63159f7711edd3efc9", size = 37628383, upload-time = "2026-08-10T12:38:09.083Z" },
-    { url = "https://files.pythonhosted.org/packages/13/49/d93a57d375f4bf0cf82913dd6bb54acafde83dd993be2282c81ac5616cad/pyarrow-25.0.1-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:4340f0ba6c1d2e13f21658de1d7c662ca2545018568d0030a1e9afca159d87e3", size = 46820190, upload-time = "2026-08-10T12:38:15.458Z" },
-    { url = "https://files.pythonhosted.org/packages/60/c9/711ca85d79f1ec98f29a5eae2b051e25b4ecec5de3e3c0e2d5c5dcb15664/pyarrow-25.0.1-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:5389cdf79447ed1515c9e31620e6e1e2302249564d603f2ad727d4f6d313e4c3", size = 50102437, upload-time = "2026-08-10T12:38:22.487Z" },
-    { url = "https://files.pythonhosted.org/packages/80/53/8fb8359ff17cfb6263a1cf3ebf7caec9fe197de118719e84fcb1d0618026/pyarrow-25.0.1-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:d51592cb7561e87877c506113e7adbf1342ab579e6c21f0ef44b8ba41cb74c80", size = 49942424, upload-time = "2026-08-10T12:38:28.755Z" },
-    { url = "https://files.pythonhosted.org/packages/e8/83/4e5ae02a9341571b18a6fca380ac7a58ce6ddae7ab3c060208c0a1e79f02/pyarrow-25.0.1-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:6109c94d8b9f3b17a041daca16cacb2f651ad8f1ef70a4232c2c0f37a23da2a8", size = 53144206, upload-time = "2026-08-10T12:38:34.862Z" },
-    { url = "https://files.pythonhosted.org/packages/65/ee/197cbf47e49f83e6ebeb946a5259a48a638dea27ac774db42fe78022179d/pyarrow-25.0.1-cp312-cp312-win_amd64.whl", hash = "sha256:8858d7bfc22e3f51529aeaa4077225029724623e4595dc9eff8c793935c34140", size = 27953934, upload-time = "2026-08-10T12:38:39.808Z" },
 ]
 
 [[package]]
@@ -1326,52 +1287,6 @@ wheels = [
 ]
 
 [[package]]
-name = "skyevents"
-version = "0.1.0"
-source = { editable = "../events" }
-dependencies = [
-    { name = "astropy" },
-    { name = "astropy-healpix" },
-    { name = "httpx" },
-    { name = "numpy" },
-    { name = "skysources" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "astropy", specifier = ">=8.0.1" },
-    { name = "astropy-healpix", specifier = ">=2.0.1" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "numpy", specifier = ">=2.5.3" },
-    { name = "skysources", editable = "../sources" },
-]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.1.1" }]
-
-[[package]]
-name = "skypictures"
-version = "0.1.0"
-source = { editable = "../images" }
-dependencies = [
-    { name = "httpx" },
-    { name = "pillow" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "pillow", specifier = ">=11.0.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.1.1" }]
-examples = [
-    { name = "astropy", specifier = ">=8.0.1" },
-    { name = "astropy-healpix", specifier = ">=2.0.1" },
-]
-
-[[package]]
 name = "skypixels"
 version = "0.1.0"
 source = { editable = "../pixels" }
@@ -1398,35 +1313,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=9.1.1" }]
-
-[[package]]
-name = "skysources"
-version = "0.1.0"
-source = { editable = "../sources" }
-dependencies = [
-    { name = "astropy" },
-    { name = "astropy-healpix" },
-    { name = "astroquery" },
-    { name = "httpx" },
-    { name = "numpy" },
-    { name = "pyarrow" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "astropy", specifier = ">=8.0.1" },
-    { name = "astropy-healpix", specifier = ">=2.0.1" },
-    { name = "astroquery", specifier = ">=0.4.11" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "numpy", specifier = ">=2.5.3" },
-    { name = "pyarrow", specifier = ">=25.0.1" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=9.1.1" },
-    { name = "respx", specifier = ">=0.23.1" },
-]
 
 [[package]]
 name = "soupsieve"

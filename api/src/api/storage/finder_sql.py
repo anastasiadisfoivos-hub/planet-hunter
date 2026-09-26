@@ -18,7 +18,7 @@ SORT_COLUMNS = {"score": "c.score", "newest": "c.created_at", "votes": "c.votes_
 LIST_COLUMNS = (
     "c.id, c.tic, c.record, c.score, c.pixel_verdict, c.status, c.status_reason,"
     " c.votes_planet, c.votes_fake, c.votes_unsure, c.votes_total, c.exported_at,"
-    " c.created_at, c.updated_at"
+    " c.vetting, c.created_at, c.updated_at"
 )
 DOC_TABLES = ("sensitivity", "finder_sweep")
 
@@ -66,14 +66,16 @@ class FinderSql:
                 return "unchanged"
             values = (
                 row.tic, self._j(row.record), row.content_hash, row.ephemeris_key, row.score,
-                row.radius_rjup, row.period_d, self._t(row.updated_at),
+                row.radius_rjup, row.period_d,
+                self._j(row.vetting) if row.vetting is not None else None,
+                self._t(row.updated_at),
             )  # fmt: skip
             if old is None:
                 self._exec(
                     self._sql(
                         "INSERT INTO candidates (tic, record, content_hash, ephemeris_key, score,"
-                        " radius_rjup, period_d, updated_at, created_at, id)"
-                        " VALUES (?,?,?,?,?,?,?,?,?,?)"
+                        " radius_rjup, period_d, vetting, updated_at, created_at, id)"
+                        " VALUES (?,?,?,?,?,?,?,?,?,?,?)"
                     ),
                     (*values, self._t(row.created_at), row.id),
                 )
@@ -81,8 +83,8 @@ class FinderSql:
             self._exec(
                 self._sql(
                     "UPDATE candidates SET tic = ?, record = ?, content_hash = ?,"
-                    " ephemeris_key = ?, score = ?, radius_rjup = ?, period_d = ?, updated_at = ?"
-                    " WHERE id = ?"
+                    " ephemeris_key = ?, score = ?, radius_rjup = ?, period_d = ?, vetting = ?,"
+                    " updated_at = ? WHERE id = ?"
                 ),
                 (*values, row.id),
             )
@@ -103,6 +105,7 @@ class FinderSql:
                 "unsure": r["votes_unsure"],
                 "total": r["votes_total"],
             },
+            "vetting": self._jo(r["vetting"]) if r["vetting"] is not None else None,
             "exported_at": self._to(r["exported_at"]),
             "created_at": self._to(r["created_at"]),
             "updated_at": self._to(r["updated_at"]),
@@ -201,12 +204,14 @@ class FinderSql:
 
     def candidates_to_vet(self, limit: int, max_attempts: int) -> list[VetTodo]:
         """Open candidates with no vet for their current ephemeris (never-vetted first, then by
-        score), plus failed ones with attempts left."""
+        score), plus failed ones with attempts left. A single dip (no period yet) can't be
+        pixel-checked: difference imaging needs every in-transit cadence."""
         rows = self._all(
             self._sql(
                 "SELECT c.id, c.record, c.ephemeris_key FROM candidates c"
                 " LEFT JOIN pixel_vets p ON p.candidate_id = c.id"
-                f" WHERE c.status IN ({self._in(OPEN)}) AND (p.candidate_id IS NULL"
+                f" WHERE c.status IN ({self._in(OPEN)}) AND c.period_d IS NOT NULL"
+                " AND (p.candidate_id IS NULL"
                 " OR p.ephemeris_key <> c.ephemeris_key"
                 " OR (p.state = 'failed' AND p.attempts < ?))"
                 " ORDER BY p.candidate_id IS NULL DESC, c.score DESC, c.id LIMIT ?"
@@ -283,11 +288,18 @@ class FinderSql:
     # Votes -------------------------------------------------------------------------------
 
     def put_vote(
-        self, candidate_id: str, voter_key: str, vote: Vote, reason_chips: list[str], at: datetime
+        self,
+        candidate_id: str,
+        voter_key: str,
+        vote: Vote | None,
+        reason_chips: list[str],
+        at: datetime,
     ) -> Vote | None:
-        """Cast or change a vote. Returns the previous vote (None if first). Raises KeyError for
-        an unknown candidate and PermissionError for a dismissed one. The candidate row is locked
-        first, so concurrent votes can't lose a count."""
+        """Cast, change or (vote None) withdraw a vote. Returns the previous vote (None if there
+        was none). Raises KeyError for an unknown candidate and PermissionError when casting on a
+        dismissed one (withdrawing is always allowed). The candidate row is locked first, so
+        concurrent votes can't lose a count. A candidate "under review" whose last vote is
+        withdrawn goes back to "new"."""
         with self.atomic():
             c = self._one(
                 self._sql(f"SELECT status FROM candidates WHERE id = ?{self.FOR_UPDATE}"),
@@ -295,13 +307,19 @@ class FinderSql:
             )
             if c is None:
                 raise KeyError(candidate_id)
-            if c["status"] == "dismissed":
+            if c["status"] == "dismissed" and vote is not None:
                 raise PermissionError(candidate_id)
             old = self._one(
                 self._sql("SELECT vote FROM votes WHERE candidate_id = ? AND voter_key = ?"),
                 (candidate_id, voter_key),
             )
-            if old is None:
+            if vote is None:
+                if old is not None:
+                    self._exec(
+                        self._sql("DELETE FROM votes WHERE candidate_id = ? AND voter_key = ?"),
+                        (candidate_id, voter_key),
+                    )
+            elif old is None:
                 self._exec(
                     self._sql(
                         "INSERT INTO votes (candidate_id, voter_key, vote, reason_chips,"
@@ -320,15 +338,17 @@ class FinderSql:
                 )
             # Recounted, not incremented: a changed vote moves between columns.
             count = "(SELECT COUNT(*) FROM votes v WHERE v.candidate_id = candidates.id{})"
+            total = count.format("")  # SET expressions see the old row: recount, don't reuse
             tallies = ", ".join(
                 f"votes_{v} = " + count.format(f" AND v.vote = '{v}'")
                 for v in ("planet", "fake", "unsure")
             )
             self._exec(
                 self._sql(
-                    f"UPDATE candidates SET {tallies}, votes_total = {count.format('')},"
-                    " status = CASE WHEN status = 'new' THEN 'under review' ELSE status END"
-                    " WHERE id = ?"
+                    f"UPDATE candidates SET {tallies}, votes_total = {total},"
+                    f" status = CASE WHEN status = 'new' AND {total} > 0 THEN 'under review'"
+                    f" WHEN status = 'under review' AND {total} = 0 THEN 'new'"
+                    " ELSE status END WHERE id = ?"
                 ),
                 (candidate_id,),
             )

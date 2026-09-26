@@ -18,6 +18,7 @@ from api.timeutil import utcnow
 router = APIRouter(prefix="/finder", tags=["admin"], include_in_schema=False)
 
 OFF_TARGET_REASON = "Dip comes from a neighbour; not exportable"
+DIP_REASON = "Single or duo dip: ExoFOP needs one period and a planet number; not exportable"
 
 
 _limit = rate_limited("admin")
@@ -60,6 +61,8 @@ def export_candidates(body: ExportIn, services: ServicesDep) -> PlainTextRespons
         raise HTTPException(409, {"reason": "dismissed candidates", "ids": dismissed})
     if off := [i for i in ids if rows[i]["pixel_verdict"] == "off target"]:
         raise HTTPException(422, {"reason": OFF_TARGET_REASON, "ids": off})
+    if dips := [i for i in ids if not i.split("_")[1].isdigit()]:
+        raise HTTPException(422, {"reason": DIP_REASON, "ids": dips})
     now = utcnow()
     text = build_file([rows[i] for i in ids], now, body.tag, body.paper_url)
     storage.mark_exported(ids, now)

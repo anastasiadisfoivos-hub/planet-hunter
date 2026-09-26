@@ -142,6 +142,7 @@ def get_candidate(
             "score": row["score"],
             "status": row["status"],
             "status_reason": row["status_reason"],
+            "vetting": row["vetting"],
             "exported_at": row["exported_at"],
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
@@ -155,7 +156,7 @@ def get_candidate(
 
 
 class VoteIn(BaseModel):
-    vote: Vote
+    vote: Vote | None  # null withdraws the sender's vote
     reason_chips: list[str] = Field(default_factory=list, max_length=MAX_CHIPS)
 
     @field_validator("reason_chips")
@@ -179,13 +180,13 @@ def vote(
     services: ServicesDep,
     x_voter_key: Annotated[str | None, Header()] = None,
 ) -> dict:
+    """Cast or change a vote; `"vote": null` withdraws it (reason_chips are then ignored)."""
     key = voter_hash(x_voter_key, required=True)
     if not CANDIDATE_ID.match(candidate_id):
         raise HTTPException(404, f"No candidate {candidate_id!r}.")
+    chips = body.reason_chips if body.vote is not None else []
     try:
-        previous = services.storage.put_vote(
-            candidate_id, key, body.vote, body.reason_chips, utcnow()
-        )
+        previous = services.storage.put_vote(candidate_id, key, body.vote, chips, utcnow())
     except KeyError:
         raise HTTPException(404, f"No candidate {candidate_id!r}.") from None
     except PermissionError:
@@ -194,7 +195,7 @@ def vote(
     return {
         "id": candidate_id,
         "vote": body.vote,
-        "reason_chips": body.reason_chips,
+        "reason_chips": chips,
         "previous_vote": previous,
         "status": row["status"],
         "votes": row["votes"],

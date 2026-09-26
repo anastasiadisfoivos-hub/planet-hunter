@@ -576,3 +576,126 @@ def test_cli_without_pixels_installed_still_ingests(tmp_path, cands, capsys, mon
     out = json.loads(capsys.readouterr().out)
     assert out["candidates"]["created"] == 3 and out["pixels"]["vetted"] == 0
     assert "skypixels" in out["pixels"]["unavailable"]
+
+
+# CONNECT fixes, v2 ---------------------------------------------------------------------------
+
+
+def test_vote_null_withdraws(client, ingested, storage):
+    cid, h = f"{TIC_A}_1", {"X-Voter-Key": KEY}
+    client.post(f"{C}/{cid}/vote", json={"vote": "planet", "reason_chips": ["clean-dip"]},
+                headers=h)  # fmt: skip
+    r = client.post(f"{C}/{cid}/vote", json={"vote": None, "reason_chips": ["ignored"]},
+                    headers=h)  # fmt: skip
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["vote"] is None and body["previous_vote"] == "planet"
+    assert body["reason_chips"] == [] and body["votes"]["total"] == 0
+    assert body["status"] == "new"  # its last vote gone: back from "under review"
+    detail = client.get(f"{C}/{cid}", headers=h).json()
+    assert detail["my_vote"] is None and detail["votes"]["reasons"] == {}
+    # Withdrawing again, or with no vote cast, is a no-op.
+    again = client.post(f"{C}/{cid}/vote", json={"vote": None}, headers=h).json()
+    assert again["previous_vote"] is None and again["votes"]["total"] == 0
+    # Another voter's vote keeps it under review.
+    client.post(f"{C}/{cid}/vote", json={"vote": "fake"}, headers={"X-Voter-Key": KEY2})
+    client.post(f"{C}/{cid}/vote", json={"vote": "planet"}, headers=h)
+    left = client.post(f"{C}/{cid}/vote", json={"vote": None}, headers=h).json()
+    assert left["status"] == "under review" and left["votes"]["fake"] == 1
+    # A dismissed candidate takes no new votes, but a vote can still be withdrawn.
+    storage.dismiss_candidate(cid, "matches TOI x", storage.get_candidate(cid)["created_at"])
+    assert client.post(f"{C}/{cid}/vote", json={"vote": "planet"}, headers=h).status_code == 409
+    gone = client.post(f"{C}/{cid}/vote", json={"vote": None}, headers={"X-Voter-Key": KEY2})
+    assert gone.status_code == 200 and gone.json()["status"] == "dismissed"
+    # The vote key is still required to withdraw.
+    assert client.post(f"{C}/{cid}/vote", json={"vote": None}).status_code == 400
+
+
+def test_rows_carry_checks_score_parts_and_radius_range(client, run, tmp_path):
+    folder = tmp_path / "c"
+    folder.mkdir()
+    write(folder, TIC_A, checks=[
+        {"name": "odd_even", "value": 0.1, "passed": True, "reason": "same depth"},
+        {"name": "secondary", "value": 3.0, "passed": False, "reason": "eclipse at phase 0.5"},
+        {"name": "centroid", "value": None, "passed": None, "reason": "not run"},
+    ])  # fmt: skip
+    run(folder)
+    item = client.get(C).json()["items"][0]
+    assert (item["checks_passed"], item["checks_total"]) == (1, 2)  # "not run" doesn't count
+    assert item["score_parts"] == {"snr": 0.3, "shape": 0.2}
+    assert (item["radius_low"], item["radius_high"]) == (0.38, 0.47)
+    assert "checks" not in item and "folded" not in item
+
+
+def test_hunt_shaped_radius_filters(client, run, tmp_path):
+    """hunt writes radius_rjup as [low, high] plus radius_rjup_best."""
+    folder = tmp_path / "c"
+    folder.mkdir()
+    write(folder, TIC_A, radius_rjup=[0.9, 1.3], radius_low=0.9, radius_high=1.3,
+          radius_rjup_best=1.1)  # fmt: skip
+    write(folder, TIC_B, radius_rjup=[0.2, 0.3], radius_low=0.2, radius_high=0.3)  # midpoint 0.25
+    run(folder)
+    assert _ids(client.get(f"{C}?min_radius=1").json()) == [f"{TIC_A}_1"]
+    assert _ids(client.get(f"{C}?max_radius=0.26").json()) == [f"{TIC_B}_1"]
+    item = client.get(f"{C}?min_radius=1").json()["items"][0]
+    assert item["radius_rjup"] == [0.9, 1.3] and item["radius_rjup_best"] == 1.1
+
+
+def test_single_and_duo_dip_ids(client, run, storage, make_client, tmp_path, vetter):
+    """DEEPHUNT names single/duo dips <tic>_s<m> / <tic>_d<m>; a single dip has no period."""
+    folder = tmp_path / "c"
+    folder.mkdir()
+    write(folder, TIC_A, 1)
+    (folder / f"{TIC_A}_s1.json").write_text(json.dumps(
+        candidate(TIC_A, 1, period_d=None, kind="single", score=0.95)))  # fmt: skip
+    (folder / f"{TIC_B}_d2.json").write_text(json.dumps(
+        candidate(TIC_B, 1, period_d=31.2, kind="duo")))  # fmt: skip
+    out = run(folder)
+    assert out["invalid"] == [] and out["candidates"]["created"] == 3
+    assert TIC_A in vetter.calls and vetter.calls.count(TIC_A) == 1  # s1 has no period: no vet
+    ids = _ids(client.get(C).json())
+    assert ids[0] == f"{TIC_A}_s1" and set(ids) == {f"{TIC_A}_1", f"{TIC_A}_s1", f"{TIC_B}_d2"}
+    assert client.get(f"{C}/{TIC_A}_s1").json()["candidate"]["kind"] == "single"
+    r = client.post(f"{C}/{TIC_B}_d2/vote", json={"vote": "planet"}, headers={"X-Voter-Key": KEY})
+    assert r.status_code == 200
+    assert client.get(f"{C}/{TIC_A}_S1").status_code == 404  # lower case only
+    admin = make_client(admin_token=TOKEN)
+    r = admin.post("/finder/export/ctoi", headers={"Authorization": f"Bearer {TOKEN}"},
+                   json={"ids": [f"{TIC_A}_1", f"{TIC_A}_s1"]})  # fmt: skip
+    assert r.status_code == 422 and r.json()["detail"]["ids"] == [f"{TIC_A}_s1"]
+    assert storage.get_candidate(f"{TIC_A}_1")["status"] == "new"
+
+
+def test_vetting_block_is_stored_and_returned(client, run, tmp_path, storage):
+    folder = tmp_path / "c"
+    folder.mkdir()
+    vetting = {"verdict": "passed", "tests": [{"name": "odd_even", "passed": True,
+               "reason": "Looks like a new planet"}]}  # fmt: skip
+    write(folder, TIC_A, vetting=vetting)
+    write(folder, TIC_B)
+    (folder / f"{TIC_C}_1.json").write_text(json.dumps(candidate(TIC_C, vetting=["no"])))
+    out = run(folder)
+    assert [i["file"] for i in out["invalid"]] == [f"{TIC_C}_1.json"]
+    got = client.get(f"{C}/{TIC_A}_1").json()["candidate"]["vetting"]
+    assert (
+        got["verdict"] == "passed" and got["tests"][0]["reason"] == "Looks like a planet candidate"
+    )
+    assert client.get(f"{C}/{TIC_B}_1").json()["candidate"]["vetting"] is None
+    assert storage.get_candidate(f"{TIC_A}_1")["vetting"] == got
+
+
+def test_empty_night(tmp_path, capsys, storage, run):
+    """No candidates at all: the artifact may have no candidates/ folder, or an empty one."""
+    root = tmp_path / "sweep"
+    root.mkdir()
+    (root / "summary.json").write_text(json.dumps({"funnel": {"stars searched": 4000}}))
+    out = run(root / "candidates")
+    assert out["candidates"] == {"created": 0, "updated": 0, "unchanged": 0}
+    assert out["invalid"] == [] and out["summary_stored"] is True
+    (root / "candidates").mkdir()
+    db = str(tmp_path / "f.db")
+    assert finder_ingest.main(["--dir", str(root / "candidates"), "--db", db]) == 0
+    assert json.loads(capsys.readouterr().out)["summary_stored"] is True
+    (root / "file").write_text("x")
+    with pytest.raises(SystemExit):
+        finder_ingest.main(["--dir", str(root / "file"), "--db", db])

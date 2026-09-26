@@ -1,7 +1,7 @@
 [project]
 name = "planet-hunter-api"
 version = "0.1.0"
-description = "planet-hunter phenomena spotter API: live sky events and Analyze a star"
+description = "planet-hunter planet finder API: candidates, votes and the live sweep monitor"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.115",
@@ -9,21 +9,15 @@ dependencies = [
     "pydantic>=2.8",
     "psycopg[binary]>=3.2",
     "psycopg-pool>=3.2",
-    "skyevents",
-    "skypictures",
-    "skysources",
-    "hunter",
 ]
 
 [project.optional-dependencies]
-# Only `python -m api.finder_ingest` pixel-checks candidates; the web API never imports it, so
-# its deploy stays small. CI: `uv sync --extra finder`.
-finder = ["skypixels"]
+# Only `python -m api.finder_ingest` pixel-checks candidates (pixels/) and re-checks the known
+# lists (pipeline/'s hunter.known); the web API never imports either, so its deploy stays small.
+# CI: `uv sync --extra finder`.
+finder = ["skypixels", "hunter"]
 
 [tool.uv.sources]
-skyevents = { path = "../events", editable = true }
-skypictures = { path = "../images", editable = true }
-skysources = { path = "../sources", editable = true }
 hunter = { path = "../pipeline", editable = true }
 skypixels = { path = "../pixels", editable = true }
 
