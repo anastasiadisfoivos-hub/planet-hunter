@@ -1,29 +1,22 @@
 /* Sky events map. Tokens: app/tokens.css. Rules: DESIGN.md. */
 
 .shell {
+  /* Motion (DESIGN.md, Motion): panels, popovers and sheets enter in up to 240 ms and leave in up to
+     160 ms; feed rows stagger by 30 ms, 150 ms at most. All zero under reduced motion. */
+  --dur-panel-in: 240ms;
+  --dur-panel-out: 160ms;
+  --stagger: 30ms;
+
   position: fixed;
   inset: 0;
   display: grid;
-  grid-template-columns: var(--layers-w) minmax(0, 1fr) var(--inspector-w);
+  grid-template-columns: minmax(0, 1fr) var(--inspector-w);
   grid-template-rows: minmax(0, 1fr) var(--statusbar-h);
   grid-template-areas:
-    "filters sky side"
-    "status status status";
+    "sky side"
+    "status status";
   background: var(--bg);
   overflow: hidden;
-}
-
-.filters {
-  grid-area: filters;
-  border-radius: 0;
-  border-width: 0 1px 0 0;
-}
-
-/* The filter list is longer than the screen: it scrolls, fades at the bottom edge so it is clear there
-   is more, and ends with room to spare above the status bar. */
-.filters > div:last-child {
-  padding-bottom: var(--s-12);
-  mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent);
 }
 
 .side {
@@ -144,20 +137,36 @@
 
 /* ---------- over the sky ---------- */
 
-.toolbar {
+/* Jump to, the data status, Lab and Finder: bottom right, out of the filters' way. */
+.utilities {
   position: absolute;
   z-index: var(--z-panel);
-  top: var(--s-3);
-  left: var(--s-3);
   right: var(--s-3);
+  bottom: var(--s-3);
+  left: calc(var(--s-3) + 120px);
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: flex-end;
+  justify-content: flex-end;
   gap: var(--s-2);
   pointer-events: none;
 }
 
-.toolbar > * {
+.utilities > label,
+.utilities > a {
+  flex: none;
+}
+
+.utilities .status {
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+}
+
+.utilities .statusButton {
+  flex: none;
+}
+
+.utilities > * {
   pointer-events: auto;
 }
 
@@ -186,15 +195,6 @@
   pointer-events: auto;
 }
 
-.statusText {
-  padding: 6px var(--s-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-control);
-  background: var(--bg);
-  color: var(--ink-secondary);
-  font-size: var(--text-12);
-}
-
 .statusButton {
   display: inline-flex;
   align-items: center;
@@ -216,17 +216,19 @@
   }
 }
 
-.statusShort,
 .statusPopLines {
-  display: none;
+  font-size: var(--text-13);
+  color: var(--ink-secondary);
 }
 
 .popover {
   position: fixed;
   inset: auto;
-  top: calc(var(--s-12) + var(--s-2));
+  bottom: calc(var(--statusbar-h) + var(--s-12) + var(--s-2));
   right: calc(var(--inspector-w) + var(--s-3));
   width: min(380px, calc(100vw - 32px));
+  max-height: calc(100dvh - var(--statusbar-h) - 120px);
+  overflow-y: auto;
   margin: 0;
   padding: var(--s-4);
   border: 1px solid var(--hairline);
@@ -235,20 +237,27 @@
   color: var(--ink);
   display: none;
   gap: var(--s-3);
-  opacity: 1;
+  opacity: 0;
+  transform: scale(0.96);
+  transform-origin: 85% 100%;
   transition:
-    opacity var(--dur) var(--ease),
-    display var(--dur) allow-discrete,
-    overlay var(--dur) allow-discrete;
+    opacity var(--dur-panel-out) var(--ease),
+    transform var(--dur-panel-out) var(--ease),
+    display var(--dur-panel-out) allow-discrete,
+    overlay var(--dur-panel-out) allow-discrete;
 }
 
 .popover:popover-open {
   display: grid;
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--dur-panel-in);
 }
 
 @starting-style {
   .popover:popover-open {
     opacity: 0;
+    transform: scale(0.96);
   }
 }
 
@@ -329,8 +338,8 @@
 .starHud {
   position: absolute;
   z-index: var(--z-panel);
-  left: var(--s-4);
-  bottom: var(--s-4);
+  left: var(--s-3);
+  bottom: calc(var(--s-3) + var(--control-h) + var(--s-3));
   display: grid;
   gap: var(--s-2);
   max-width: 360px;
@@ -390,7 +399,7 @@
   position: absolute;
   z-index: var(--z-panel);
   left: 50%;
-  bottom: var(--s-4);
+  bottom: calc(var(--s-3) + var(--control-h) + var(--s-3));
   transform: translateX(-50%);
   display: flex;
   align-items: center;
@@ -546,45 +555,12 @@
   color-scheme: dark;
 }
 
-.cats,
 .types,
 .sources {
   display: grid;
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.cat summary {
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  min-height: var(--control-h);
-  cursor: pointer;
-  list-style: none;
-  font-size: var(--text-13);
-}
-
-.cat summary::-webkit-details-marker {
-  display: none;
-}
-
-.catName {
-  color: var(--ink);
-}
-
-.caret {
-  flex: none;
-  color: var(--ink-faint);
-  transition: transform var(--dur-fast) var(--ease);
-}
-
-.cat[open] .caret {
-  transform: rotate(90deg);
-}
-
-.types {
-  padding: 0 0 var(--s-1) calc(16px + 12px + var(--s-2) * 2);
 }
 
 .typeRow {
@@ -1016,7 +992,6 @@
       "status";
   }
 
-  .filters,
   .side {
     position: absolute;
     z-index: var(--z-sheet);
@@ -1029,7 +1004,6 @@
     display: none;
   }
 
-  .shell[data-sheet="filters"] .filters,
   .shell[data-sheet="feed"] .side {
     display: flex;
   }
@@ -1062,7 +1036,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    height: 40px;
+    height: max(40px, var(--control-h));
     border: 1px solid var(--control-border);
     border-radius: var(--radius-control);
     background: transparent;
@@ -1085,28 +1059,48 @@
     display: none !important;
   }
 
-  .toolbar {
-    flex-wrap: wrap;
+  /* One row under the filter row: there is no room for a bottom-right cluster beside Layers. Lab and
+     Finder become icon buttons; their names stay for screen readers. */
+  .utilities {
+    top: calc(var(--s-2) + var(--control-h) + var(--s-2) + var(--s-2) + var(--s-1));
+    right: var(--s-2);
+    bottom: auto;
+    left: var(--s-2);
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .utilities > label {
+    flex: 1 1 0;
+    min-width: 88px;
+  }
+
+  .utilities .status {
+    flex: none;
+  }
+
+  .jump select {
+    width: 100%;
+  }
+
+  .utilities > a {
+    width: var(--control-h);
+    justify-content: center;
+    padding: 0;
+  }
+
+  .linkText {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
 
   .status {
     flex: 0 1 auto;
     justify-content: flex-start;
-  }
-
-  .statusText,
-  .statusLong {
-    display: none;
-  }
-
-  .statusShort {
-    display: inline;
-  }
-
-  .statusPopLines {
-    display: block;
-    font-size: var(--text-13);
-    color: var(--ink-secondary);
   }
 
   .popover {
@@ -1117,15 +1111,531 @@
     width: auto;
   }
 
+
+
   .starHud {
     left: var(--s-3);
     right: var(--s-3);
-    bottom: var(--s-3);
+    bottom: calc(var(--s-3) + var(--control-h) + var(--s-3));
     max-width: none;
     padding: var(--s-2) var(--s-3);
   }
 
   .starHudName {
     font-size: var(--text-17);
+  }
+}
+
+/* ---------- floating filter bar (top left over the sky) ---------- */
+
+.filterBar {
+  position: absolute;
+  z-index: var(--z-overlay);
+  top: var(--s-3);
+  left: var(--s-3);
+  right: var(--s-3);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-1);
+  width: fit-content;
+  max-width: calc(100% - var(--s-3) * 2);
+  padding: var(--s-1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-panel);
+  background: var(--bg);
+}
+
+.barScroll {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-1);
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+}
+
+.barTail {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.timeSeg {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+}
+
+.timeSeg button {
+  height: calc(var(--control-h) - 6px);
+  padding: 0 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.timeSeg button[aria-checked="true"] {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--control-border);
+}
+
+@media (hover: hover) {
+  .timeSeg button:hover {
+    color: var(--ink);
+  }
+}
+
+/* A chip is a toggle. On: raised, full ink, full-colour glyph. Off: flat, muted, faded glyph.
+   Mixed (some types, set in More): dashed border. The accent stays reserved for selection. */
+.chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  height: var(--control-h);
+  padding: 0 6px 0 8px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: var(--text-12);
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    opacity var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.chip > .glyph {
+  opacity: 0.4;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.chip[aria-pressed="true"],
+.chip[aria-pressed="mixed"] {
+  background: var(--raised);
+  border-color: var(--ink-faint);
+  color: var(--ink);
+}
+
+.chip[aria-pressed="mixed"] {
+  border-style: dashed;
+}
+
+.chip[aria-pressed="true"] > .glyph,
+.chip[aria-pressed="mixed"] > .glyph {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .chip:hover {
+    border-color: var(--ink-faint);
+    color: var(--ink);
+  }
+}
+
+/* Press feedback: a slight give under the finger or click. */
+.chip:active,
+.barButton:active,
+.timeSeg button:active {
+  transform: scale(0.97);
+}
+
+/* No events in range: dimmed, still a working toggle. The glyph and border recede; text stays at
+   --ink-muted so the label and its 0 keep AA contrast. */
+.chip[data-empty] {
+  border-color: var(--hairline);
+  color: var(--ink-muted);
+}
+
+.chip[data-empty] > .glyph {
+  opacity: 0.3;
+}
+
+.chip[data-empty] .chipCount {
+  color: var(--ink-muted);
+}
+
+.chipCount {
+  min-width: 2ch;
+  color: var(--ink-secondary);
+  font-size: var(--text-11);
+  text-align: right;
+}
+
+.chip[aria-pressed="false"] .chipCount {
+  color: var(--ink-muted);
+}
+
+.barButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--control-h);
+  padding: 0 10px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  color: var(--ink-secondary);
+  font-size: var(--text-12);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.barButton[aria-expanded="true"] {
+  background: var(--raised);
+  border-color: var(--ink-faint);
+  color: var(--ink);
+}
+
+@media (hover: hover) {
+  .barButton:hover {
+    border-color: var(--ink-faint);
+    color: var(--ink);
+  }
+}
+
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: var(--text-11);
+  line-height: 1;
+}
+
+.reset {
+  color: var(--ink-secondary);
+}
+
+/* ---------- popovers (desktop) and bottom sheets (phone) ---------- */
+
+.anchor {
+  position: relative;
+}
+
+.layersDock {
+  position: absolute;
+  z-index: var(--z-overlay);
+  left: var(--s-3);
+  bottom: var(--s-3);
+}
+
+.overlay {
+  position: absolute;
+  z-index: var(--z-sheet);
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  max-height: min(560px, calc(100dvh - 160px));
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-panel);
+  background: var(--raised);
+  color: var(--ink);
+  outline: none;
+  visibility: hidden;
+  opacity: 0;
+  transform: scale(0.96);
+  pointer-events: none;
+  /* Leaving: quick, then hidden. The origin is the opening button (set by Overlay.tsx). */
+  transition:
+    opacity var(--dur-panel-out) var(--ease),
+    transform var(--dur-panel-out) var(--ease),
+    visibility 0s linear var(--dur-panel-out);
+}
+
+.overlay[data-open="true"] {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition:
+    opacity var(--dur-panel-in) var(--ease),
+    transform var(--dur-panel-in) var(--ease),
+    visibility 0s;
+}
+
+.overlay[data-placement="below"] {
+  top: calc(100% + var(--s-2));
+  right: 0;
+}
+
+.overlay[data-placement="above"] {
+  bottom: calc(100% + var(--s-2));
+  left: 0;
+  width: 300px;
+  max-height: calc(100dvh - var(--statusbar-h) - 96px);
+}
+
+/* The bar and the Layers dock sit on the same level; the one with an open panel comes forward, so
+   its popover or sheet is never under the other's buttons. */
+.filterBar:has(.overlay[data-open="true"]),
+.layersDock:has(.overlay[data-open="true"]) {
+  z-index: var(--z-sheet);
+}
+
+.overlayHead {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  min-height: 44px;
+  padding: var(--s-1) var(--s-2) var(--s-1) var(--s-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.grabber {
+  display: none;
+}
+
+.overlayBody {
+  flex: 1;
+  min-height: 0;
+  padding: var(--s-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.typeGroups {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.typeGroup {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.typeLegend {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0;
+  margin-bottom: 2px;
+  color: var(--ink);
+  font-size: var(--text-13);
+  font-weight: 500;
+}
+
+.types {
+  padding-left: 18px;
+}
+
+/* Coarse pointers: every bar control is at least 44px tall (DESIGN.md, Shape and space). */
+@media (pointer: coarse) {
+  .timeSeg {
+    padding: 0;
+  }
+
+  .timeSeg button {
+    min-width: 44px;
+    height: var(--control-h);
+  }
+
+  .reset {
+    height: var(--control-h);
+  }
+
+  .barScroll,
+  .filterBar {
+    align-items: center;
+  }
+}
+
+@media (max-width: 899px) {
+  /* Time and chips: one row that scrolls sideways inside the bar; More and Reset stay put. */
+  .filterBar {
+    top: var(--s-2);
+    left: var(--s-2);
+    right: var(--s-2);
+    width: auto;
+    max-width: none;
+    align-items: center;
+  }
+
+  .barScroll {
+    flex: 1;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    scroll-padding-inline: var(--s-2);
+    /* The row continues past the edge: fade the last 24px so that reads as "scroll for more". */
+    mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+    padding-right: var(--s-4);
+  }
+
+  .barScroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chips {
+    flex-wrap: nowrap;
+  }
+
+  .overlay,
+  .overlay[data-placement="below"],
+  .overlay[data-placement="above"] {
+    position: fixed;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    max-height: 80dvh;
+    border-width: 1px 0 0;
+    border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    transform: translateY(24px) scale(0.98);
+  }
+
+  .overlay[data-open="true"] {
+    transform: none;
+  }
+
+  .grabber {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin-left: -18px;
+    border-radius: 2px;
+    background: var(--control-border);
+  }
+
+  .overlayHead {
+    position: relative;
+    padding-top: var(--s-3);
+  }
+
+  .layersDock {
+    left: var(--s-2);
+    bottom: var(--s-2);
+  }
+}
+
+/* ---------- motion: rolling counts, feed entrance ---------- */
+
+/* A count rolls to its new value: new digits in from below when it grows, from above when it shrinks. */
+.roll {
+  position: relative;
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.rollIn,
+.rollOut {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.rollOut {
+  opacity: 0;
+}
+
+.roll[data-dir="up"] .rollOut {
+  transform: translateY(-70%);
+}
+
+.roll[data-dir="down"] .rollOut {
+  transform: translateY(70%);
+}
+
+@starting-style {
+  .roll[data-dir="up"] .rollIn {
+    opacity: 0;
+    transform: translateY(70%);
+  }
+
+  .roll[data-dir="down"] .rollIn {
+    opacity: 0;
+    transform: translateY(-70%);
+  }
+
+  .roll[data-dir] .rollOut {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.chipCount.roll {
+  justify-items: end;
+}
+
+/* New feed rows fade up in turn (30 ms apart, 150 ms at most); rows that stay move by FLIP (motion.ts). */
+.feedList > li {
+  transition:
+    opacity var(--dur) var(--ease) calc(var(--i, 0) * var(--stagger)),
+    transform var(--dur) var(--ease) calc(var(--i, 0) * var(--stagger));
+}
+
+@starting-style {
+  .feedList > li {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.feedList {
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+/* The previous rows while new filters load: dimmed only if loading takes a moment, so quick changes don't flicker. */
+.feedList[aria-busy="true"] {
+  opacity: 0.6;
+  transition-delay: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    --dur-panel-in: 0ms;
+    --dur-panel-out: 0ms;
+    --stagger: 0ms;
+  }
+
+  .chip:active,
+  .barButton:active,
+  .timeSeg button:active {
+    transform: none;
   }
 }

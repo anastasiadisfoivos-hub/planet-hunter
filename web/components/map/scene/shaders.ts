@@ -126,6 +126,7 @@ export const eventVertex = /* glsl */ `
   attribute float aRecency;
   attribute float aFresh;
   attribute float aIndex;
+  attribute float aAlpha;
   uniform float uPx;
   uniform float uHover;
   uniform float uHoverT;
@@ -140,8 +141,10 @@ export const eventVertex = /* glsl */ `
   varying float vSize;
   varying float vMark;
   varying float vPulse;
+  varying float vFade;
   void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vFade = aAlpha;
     float hov = step(abs(aIndex - uHover), 0.5) * uHoverT;
     float sel = step(abs(aIndex - uSelected), 0.5);
     float ring = max(hov, sel);
@@ -170,6 +173,7 @@ export const eventFragment = /* glsl */ `
   varying float vSize;
   varying float vMark;
   varying float vPulse;
+  varying float vFade; // filter fade in/out, 0..1
 
   // Signed distances in device pixels (negative inside).
   float sdCircle(vec2 p, float r) { return length(p) - r; }
@@ -220,7 +224,7 @@ export const eventFragment = /* glsl */ `
     float ring = (1.0 - smoothstep(-0.5, 0.5, ringD)) * vRing;
     vec3 col = vColor * (shape + glow * 0.45 + pulse) * vA + cAccent * ring;
     float a = max(max(shape * vA, ring), max(sep * 0.7 * vA, max(glow * 0.45, pulse) * vA));
-    if (a < 0.003) discard;
-    gl_FragColor = vec4(col / max(a, 1e-3), a);
+    if (a * vFade < 0.003) discard;
+    gl_FragColor = vec4(col / max(a, 1e-3), a * vFade);
   }
 `;

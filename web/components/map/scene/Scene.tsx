@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
@@ -15,6 +15,7 @@ import { formatDec, formatRa, radecToVec, vecToRadec, type Vec3 } from "@/lib/sk
 import { useStore, type Layers, type StarRef, type State } from "@/state/store";
 import { bubbleVertex, eventFragment, eventVertex, skyFragment, skyVertex } from "./shaders";
 import { BASE_FOV, capUniform, displayRadius, EVENT_R, hud, MIN_DIST, MIN_FOV, SKY_R, tokenColor, view } from "./constants";
+import { leavers, stepFade } from "./markerFade";
 import { QUALITY_DESKTOP, QUALITY_PHONE, SkyBaker } from "./skyBake";
 import { applyLimits, createRig, currentPose, flyTo, interrupt, stepFlight, type Rig } from "./rig";
 import type { Pose, V3 } from "./flight";
@@ -154,9 +155,30 @@ function createEventUniforms() {
 }
 type EventUniforms = ReturnType<typeof createEventUniforms>;
 
-/** One marker per event: category colour and shape, prominence by recency. Always drawn on top. */
-function EventMarkers({ markers, uniforms, positionsRef }: { markers: Marker[]; uniforms: EventUniforms; positionsRef: React.RefObject<Float32Array | null> }) {
+/**
+ * One marker per event: category colour and shape, prominence by recency. Always drawn on top.
+ * `markers` is the live set followed by leavers (from `live` on), which fade out and cannot be picked;
+ * new markers fade in. Opacity carries over by id when the set changes mid-fade.
+ */
+function EventMarkers({
+  markers,
+  live,
+  uniforms,
+  positionsRef,
+  reduced,
+  onFaded,
+}: {
+  markers: Marker[];
+  live: number;
+  uniforms: EventUniforms;
+  positionsRef: React.RefObject<Float32Array | null>;
+  reduced: boolean;
+  onFaded: () => void;
+}) {
   const dpr = useThree((s) => s.viewport.dpr);
+  const invalidate = useThree((s) => s.invalidate);
+  // Fade progress (0..1) by event id, carried across marker-set changes.
+  const [fade] = useState(() => new Map<string, number>());
   const geometry = useMemo(() => {
     const n = markers.length;
     const pos = new Float32Array(n * 3);
@@ -165,6 +187,7 @@ function EventMarkers({ markers, uniforms, positionsRef }: { markers: Marker[]; 
     const rec = new Float32Array(n);
     const fresh = new Float32Array(n);
     const idx = new Float32Array(n);
+    const alpha = new Float32Array(n);
     const colors = new Map<string, THREE.Color>();
     markers.forEach((m, i) => {
       const [x, y, z] = radecToVec(m.ra, m.dec);
@@ -177,6 +200,7 @@ function EventMarkers({ markers, uniforms, positionsRef }: { markers: Marker[]; 
       rec[i] = m.recency;
       fresh[i] = m.fresh ? 1 : 0;
       idx[i] = i;
+      alpha[i] = fade.get(m.id) ?? 0;
     });
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
@@ -185,12 +209,42 @@ function EventMarkers({ markers, uniforms, positionsRef }: { markers: Marker[]; 
     g.setAttribute("aRecency", new THREE.BufferAttribute(rec, 1));
     g.setAttribute("aFresh", new THREE.BufferAttribute(fresh, 1));
     g.setAttribute("aIndex", new THREE.BufferAttribute(idx, 1));
+    g.setAttribute("aAlpha", new THREE.BufferAttribute(alpha, 1));
     return g;
-  }, [markers]);
+  }, [markers, fade]);
+  // Linear fade progress per marker; the eased opacity goes to aAlpha.
+  const progress = useMemo(() => Float32Array.from(markers, (m) => fade.get(m.id) ?? 0), [markers, fade]);
   useEffect(() => {
-    positionsRef.current = geometry.getAttribute("position").array as Float32Array;
+    // Pick only live markers: leavers get NaN positions, which never win the nearest-marker test.
+    const pos = geometry.getAttribute("position").array as Float32Array;
+    const pick = pos.slice();
+    pick.fill(NaN, live * 3);
+    positionsRef.current = pick;
     return () => geometry.dispose();
-  }, [geometry, positionsRef]);
+  }, [geometry, positionsRef, live]);
+  const faded = useRef(false);
+  const settled = useRef(false);
+  useEffect(() => {
+    faded.current = false;
+    settled.current = false;
+    invalidate();
+  }, [geometry, invalidate]);
+  useFrame((_, dt) => {
+    // Once every marker has arrived, stop touching the buffer (the loop may still run for the pulse).
+    if (settled.current) return;
+    const attr = geometry.getAttribute("aAlpha") as THREE.BufferAttribute;
+    const alpha = attr.array as Float32Array;
+    const moving = stepFade(progress, alpha, live, dt, reduced);
+    attr.needsUpdate = true;
+    markers.forEach((m, i) => fade.set(m.id, progress[i]));
+    if (moving) invalidate();
+    else if (markers.length === live) settled.current = true;
+    else if (!faded.current) {
+      faded.current = true;
+      for (const m of markers.slice(live)) fade.delete(m.id);
+      onFaded();
+    }
+  });
   const material = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -846,6 +900,15 @@ function SceneContent({
   const starUniforms = useMemo(() => createStarUniforms(), []);
   const eventUniforms = useMemo(() => createEventUniforms(), []);
   const { markers, sun } = useMemo(() => buildMarkers(events, now), [events, now]);
+  // Markers the filters just removed keep fading out after the live ones (see EventMarkers).
+  const [prevMarkers, setPrevMarkers] = useState(markers);
+  const [leaving, setLeaving] = useState<Marker[]>([]);
+  if (prevMarkers !== markers) {
+    setPrevMarkers(markers);
+    setLeaving(rig.reduced ? [] : leavers(prevMarkers, leaving, markers));
+  }
+  const drawn = useMemo(() => (leaving.length ? [...markers, ...leaving] : markers), [markers, leaving]);
+  const dropLeavers = useMemo(() => () => setLeaving([]), []);
   const selected = useMemo(() => events.find((e) => e.id === state.selectedEvent) ?? null, [events, state.selectedEvent]);
 
   // Feed hover and the selection highlight their markers; others dim a little while one is selected.
@@ -881,7 +944,7 @@ function SceneContent({
       <Hosts index={index} trueScale={state.trueScale} visible={state.layers.hosts} dim={state.layers.dimStars && state.selectedStar?.kind !== "host"} starUniforms={starUniforms} positionsRef={hostPositions} />
       <CloseUp index={index} selected={state.selectedStar?.kind === "host" ? state.selectedStar.i : null} positionsRef={hostPositions} starUniforms={starUniforms} rig={rig} octaves={phone ? 2 : 4} />
       <Earth />
-      <EventMarkers markers={markers} uniforms={eventUniforms} positionsRef={eventPositions} />
+      <EventMarkers markers={drawn} live={markers.length} uniforms={eventUniforms} positionsRef={eventPositions} reduced={rig.reduced} onFaded={dropLeavers} />
       <Input index={index} data={data} markers={markers} eventPositions={eventPositions} hostPositions={hostPositions} brightPositions={brightPositions} brightUniforms={brightUniforms} rig={rig} eventUniforms={eventUniforms} onPickEvent={onPickEvent} />
       <Anchors rig={rig} eventUniforms={eventUniforms} eventPositions={eventPositions} hostPositions={hostPositions} brightPositions={brightPositions} sun={sun} />
       <Invalidator deps={[state.selectedEvent, state.hoverEvent, state.selectedStar, state.layers, markers]} />

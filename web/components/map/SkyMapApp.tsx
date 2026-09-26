@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Flask, Funnel, ListBullets, MagnifyingGlass, Star, X } from "@phosphor-icons/react";
+import { Flask, ListBullets, MagnifyingGlass, Star, X } from "@phosphor-icons/react";
 import { Button, DemoTag, Panel } from "@/components/ui";
 import { API_MOCK, clockNow, getAllEvents, getStatus, type Status } from "@/lib/api";
 import type { SkyEvent } from "@/lib/contract";
@@ -16,9 +16,13 @@ import { StoreProvider, useStore } from "@/state/store";
 import { hud, view } from "./scene/constants";
 import { EventDetail } from "./EventDetail";
 import { Feed } from "./Feed";
-import { FiltersPanel } from "./FiltersPanel";
+import { FilterBar } from "./FilterBar";
+import { LayersControl } from "./LayersControl";
+import { pauseWhileHidden } from "./motion";
+import { RollingCount } from "./RollingCount";
 import { StarDetail } from "./StarDetail";
 import { StatusBanner } from "./StatusBanner";
+import { filtersFromParams, paramsWithFilters } from "./urlFilters";
 import s from "./map.module.css";
 import lab from "@/components/lab/lab.module.css";
 
@@ -44,9 +48,16 @@ export default function SkyMapApp() {
 }
 
 function SkyMap() {
+  const { dispatch } = useStore();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+
+  // Filters from a shared link, applied before the map and the feed first render.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    dispatch({ type: "filters", patch: filtersFromParams(params) });
+  }, [dispatch]);
 
   useEffect(() => {
     let live = true;
@@ -80,7 +91,6 @@ function SkyMap() {
   if (!loaded) {
     return (
       <main className={s.shell} aria-busy="true">
-        <div className={`${s.filters} ${s.skeletonPanel}`} aria-hidden />
         <div className={s.sky}>
           <p className={s.centerNote}>Loading the sky…</p>
         </div>
@@ -149,7 +159,7 @@ function Labels() {
   );
 }
 
-type Sheet = "closed" | "filters" | "feed";
+type Sheet = "closed" | "feed";
 
 function MapView({ map, events, now }: Loaded) {
   const { state, dispatch } = useStore();
@@ -169,9 +179,12 @@ function MapView({ map, events, now }: Loaded) {
     return () => ctl.abort();
   }, []);
 
+  // DESIGN.md: animation pauses while the tab is hidden (the 3D loop stops itself; this covers CSS and FLIP).
+  useEffect(() => pauseWhileHidden(), []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || document.querySelector(":popover-open")) return;
+      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector(":popover-open")) return;
       dispatch({ type: "selectEvent", id: null });
       dispatch({ type: "selectStar", star: null });
     };
@@ -198,6 +211,17 @@ function MapView({ map, events, now }: Loaded) {
     raf = requestAnimationFrame(wait);
     return () => cancelAnimationFrame(raf);
   }, [params, map, dispatch]);
+
+  // Keep the address bar in step with the filters, so the view can be shared. replaceState: filter
+  // changes are not pages, so Back still leaves the map.
+  useEffect(() => {
+    const cur = new URLSearchParams(window.location.search);
+    const next = paramsWithFilters(state.filters, cur);
+    if (next.toString() === cur.toString()) return;
+    // Commas are legal in a query string; keep shared links readable.
+    const q = next.toString().replace(/%2C/g, ",");
+    window.history.replaceState(window.history.state, "", `${window.location.pathname}${q ? `?${q}` : ""}${window.location.hash}`);
+  }, [state.filters]);
 
   // Test hook for screenshots and debugging.
   useEffect(() => {
@@ -241,7 +265,6 @@ function MapView({ map, events, now }: Loaded) {
   const statusRef = (key: "pointer" | "fov" | "fps") => (el: HTMLElement | null) => {
     hud[key] = el;
   };
-  const toggle = (tab: Exclude<Sheet, "closed">) => setSheet((cur) => (cur === tab ? "closed" : tab));
   const hostHud = state.selectedStar?.kind === "host" && state.layers.hosts;
   const star = state.selectedStar;
   const starsOff = !state.layers.stars && !state.layers.hosts;
@@ -250,12 +273,13 @@ function MapView({ map, events, now }: Loaded) {
     <main className={s.shell} data-sheet={sheet} data-detail={selected || star ? "open" : "closed"}>
       <h1 className="sr-only">Sky events map</h1>
 
-      <FiltersPanel data={map} events={events} now={now} />
-
       <div className={s.sky}>
         <Scene data={map} index={index} events={shown} now={now} showFps={showFps} noDetail={params.has("nodetail")} />
 
-        <div className={s.toolbar}>
+        <FilterBar events={events} now={now} />
+        <LayersControl data={map} now={now} />
+
+        <div className={s.utilities}>
           <label className={s.jump}>
             <span className="sr-only">Jump to</span>
             <select
@@ -275,14 +299,14 @@ function MapView({ map, events, now }: Loaded) {
               ))}
             </select>
           </label>
-          <StatusBanner status={status} now={now} demo={API_MOCK} />
+          <StatusBanner status={status} now={now} demo={API_MOCK} footprintUrl={map.footprint.source_url} />
           <Link href="/lab" className={lab.mapLab}>
             <Flask size={14} aria-hidden />
-            Lab
+            <span className={s.linkText}>Lab</span>
           </Link>
           <Link href="/finder" className={lab.mapLab}>
             <MagnifyingGlass size={14} aria-hidden />
-            Finder
+            <span className={s.linkText}>Finder</span>
           </Link>
         </div>
 
@@ -335,13 +359,9 @@ function MapView({ map, events, now }: Loaded) {
       </Panel>
 
       <nav className={s.sheetTabs} aria-label="Panels">
-        <button aria-pressed={sheet === "filters"} onClick={() => toggle("filters")}>
-          <Funnel size={16} aria-hidden />
-          Filters
-        </button>
-        <button aria-pressed={sheet === "feed"} onClick={() => toggle("feed")}>
+        <button aria-pressed={sheet === "feed"} onClick={() => setSheet((cur) => (cur === "feed" ? "closed" : "feed"))}>
           <ListBullets size={16} aria-hidden />
-          Feed <span className="mono">{shown.length}</span>
+          Feed <RollingCount value={shown.length} className="mono" />
         </button>
       </nav>
 
@@ -361,7 +381,7 @@ function MapView({ map, events, now }: Loaded) {
         <span className={s.statusItem}>
           <span className="label">Showing</span>
           <span className="mono">
-            {shown.length} {shown.length === 1 ? "event" : "events"}
+            <RollingCount value={shown.length} /> {shown.length === 1 ? "event" : "events"}
           </span>
         </span>
         {API_MOCK && (
