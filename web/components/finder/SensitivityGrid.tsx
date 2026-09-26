@@ -68,7 +68,7 @@ export function SensitivityGrid() {
                     const p = data.recovery_pct[i][j];
                     const n = data.n_injected[i][j];
                     return (
-                      <td key={j} className={s.cell} style={{ ["--p" as string]: p == null ? 0 : p / 100 }} data-dark={p != null && p >= 55 ? "" : undefined}>
+                      <td key={j} className={s.cell} style={{ ["--p" as string]: p == null ? 0 : p / 100 }}>
                         <span className={s.pct}>{p == null ? "–" : `${Math.round(p)}%`}</span>
                         <span className={s.n}>{n ? `of ${n}` : "none tried"}</span>
                       </td>

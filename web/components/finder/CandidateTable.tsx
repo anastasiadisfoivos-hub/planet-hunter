@@ -13,11 +13,10 @@ function Funnel({ list }: { list: CandidateList }) {
   return (
     <figure className={s.funnel}>
       <ol className={s.funnelRow}>
-        {list.funnel.map((f, i) => (
+        {list.funnel.map((f) => (
           <li key={f.key} className={s.funnelStep} data-zero={f.count === 0 || undefined}>
             <span className={s.funnelNum}>{thousands(f.count)}</span>
             <span className="label">{f.label}</span>
-            {i < list.funnel.length - 1 && <span className={s.funnelArrow} aria-hidden />}
           </li>
         ))}
       </ol>

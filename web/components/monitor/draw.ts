@@ -30,12 +30,12 @@ export function readInk(el: Element): Ink {
     paper: v("--paper", "#ede8dc"),
     ink: v("--ink", "#1c1a16"),
     ink2: v("--ink-2", "#4f4a41"),
-    ink3: v("--ink-3", "#6a6459"),
-    pen: v("--pen", "#b8321a"),
+    ink3: v("--ink-3", "#645e53"),
+    pen: v("--pen", "#ae2f18"),
     known: v("--known", "#2c5a86"),
     grid: v("--grid", "rgba(28,26,22,.07)"),
     gridStrong: v("--grid-strong", "rgba(28,26,22,.15)"),
-    wash: v("--pen-wash", "rgba(184,50,26,.08)"),
+    wash: v("--pen-wash", "rgba(174,47,24,.08)"),
     mono: v("--mono", "monospace"),
   };
 }

@@ -139,6 +139,9 @@
 
 .filter {
   min-height: 36px;
+  @media (pointer: coarse) {
+    min-height: var(--tap);
+  }
   padding: 0 var(--s-3);
   font-size: var(--t-small);
   color: var(--ink-2);

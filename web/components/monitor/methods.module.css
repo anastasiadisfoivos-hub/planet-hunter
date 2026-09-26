@@ -79,8 +79,8 @@
 .pending {
   font-size: var(--t-small);
   color: var(--ink-3);
-  padding: var(--s-3) 0 var(--s-3) var(--s-4);
-  border-left: 2px solid var(--grid-strong);
+  padding: var(--s-3) var(--s-4);
+  border: 1px dashed var(--grid-strong);
 }
 
 @media (max-width: 899px) {

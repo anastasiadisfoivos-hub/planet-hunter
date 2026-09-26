@@ -40,8 +40,8 @@ Tokens live in `styles/tokens.css` on `.site` (the new shell). Components use to
 | `--grid-strong` | ink at 15% | ink at 16% | major divisions, rules between rows |
 | `--ink` | `#1C1A16` (14.2:1) | `#ECE6D8` | the trace, headings, body text |
 | `--ink-2` | `#4F4A41` (7.2:1) | `#B3AC9D` | secondary text |
-| `--ink-3` | `#6A6459` (4.8:1) | `#8E887B` | edge labels and scale numbers only |
-| `--pen` | `#B8321A` (4.9:1) | `#FF7458` | **the observer's pen**: dips the search found, candidates, focus rings, the live dot. Never decoration. |
+| `--ink-3` | `#645E53` (5.3:1; 4.8:1 on paper-2) | `#8E887B` | edge labels and scale numbers only |
+| `--pen` | `#AE2F18` (5.3:1; 4.9:1 on paper-2) | `#FF7458` | **the observer's pen**: dips the search found, candidates, focus rings, the live dot. Never decoration. |
 | `--known` | `#2C5A86` (5.9:1) | `#8DB4DC` | objects already on a catalogue: known planets, TOIs, binaries |
 | `--rejected` | `--ink-3` | `--ink-3` | dips the checks turned down: drawn hollow, never red |
 

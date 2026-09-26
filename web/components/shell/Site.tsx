@@ -6,6 +6,9 @@ import s from "./shell.module.css";
 export function Site({ children, end, bleed = false }: { children: React.ReactNode; end?: React.ReactNode; bleed?: boolean }) {
   return (
     <div className="site">
+      <a href="#main" className={s.skip}>
+        Skip to the page
+      </a>
       <TopBar end={end} />
       <main id="main" className={bleed ? s.bleed : s.main}>
         {children}

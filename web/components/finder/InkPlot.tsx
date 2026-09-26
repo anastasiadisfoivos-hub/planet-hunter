@@ -48,8 +48,8 @@ export function InkPlot({
       const ink = readInk(canvas);
       const L = 8;
       const R = 8;
-      const T = 14;
-      const B = 30;
+      const T = 16;
+      const B = 24;
       const px = (x: number) => L + ((x - xRange[0]) / (xRange[1] - xRange[0])) * (w - L - R);
       const py = (y: number) => T + ((yRange[1] - y) / (yRange[1] - yRange[0])) * (h - T - B);
       ctx.fillStyle = ink.paper;
@@ -81,7 +81,7 @@ export function InkPlot({
         ctx.fillText(t.text, x, h - B + 16);
       }
       ctx.textAlign = "right";
-      ctx.fillText(xLabel.toUpperCase(), w - R, h - 4);
+      ctx.fillText(xLabel.toUpperCase(), w - R - 4, T - 3);
       ctx.textAlign = "left";
       ctx.fillText(yLabel.toUpperCase(), L + 4, T - 3);
       const col = { ink: ink.ink, pen: ink.pen, ink3: ink.ink3 };

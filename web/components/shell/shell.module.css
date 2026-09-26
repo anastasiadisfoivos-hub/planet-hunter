@@ -18,6 +18,9 @@
 }
 
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
   font-family: var(--serif);
   font-style: italic;
   font-size: 1.25rem;
@@ -117,4 +120,20 @@
   .link {
     font-size: 1rem;
   }
+}
+
+.skip {
+  position: fixed;
+  top: var(--s-2);
+  left: var(--s-2);
+  z-index: calc(var(--z-bar) + 1);
+  padding: var(--s-2) var(--s-3);
+  background: var(--ink);
+  color: var(--paper) !important;
+  text-decoration: none !important;
+  transform: translateY(-150%);
+}
+
+.skip:focus-visible {
+  transform: none;
 }

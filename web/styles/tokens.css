@@ -9,13 +9,13 @@
   --paper-2: #e5dfd1;
   --ink: #1c1a16;
   --ink-2: #4f4a41;
-  --ink-3: #6a6459;
-  --pen: #b8321a;
+  --ink-3: #645e53;
+  --pen: #ae2f18;
   --known: #2c5a86;
   --rejected: var(--ink-3);
   --grid: rgb(28 26 22 / 0.07);
   --grid-strong: rgb(28 26 22 / 0.15);
-  --pen-wash: rgb(184 50 26 / 0.08);
+  --pen-wash: rgb(174 47 24 / 0.08);
   --grain-opacity: 0.035;
 
   /* type */

@@ -82,15 +82,6 @@
   color: var(--pen);
 }
 
-.funnelArrow {
-  position: absolute;
-  top: -6px;
-  right: 10px;
-  width: 8px;
-  height: 10px;
-  background: var(--paper);
-}
-
 /* ---------- the list ---------- */
 
 .table {
@@ -518,6 +509,9 @@
 
 .chip {
   min-height: 36px;
+  @media (pointer: coarse) {
+    min-height: var(--tap);
+  }
   padding: 0 var(--s-3);
   font-size: var(--t-small);
   background: transparent;

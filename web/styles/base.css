@@ -189,6 +189,22 @@
   transform: none;
 }
 
+/* Touch: a link that stands alone on its line gets a full 44px target (inline links in prose are exempt). */
+@media (pointer: coarse) {
+  .site p > a:only-child,
+  .site li > a:only-child,
+  .site dd > a:only-child,
+  .site footer a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+
+  .site .tapRow {
+    min-height: var(--tap);
+  }
+}
+
 /* A sheet laid on the paper. */
 .site .sheet {
   background: var(--paper-2);
