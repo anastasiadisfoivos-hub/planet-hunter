@@ -7,7 +7,7 @@ scattered light, so the same cached FITS files are re-read here for TIME / QUALI
 
 Stitching (stitch()): every sector with a light curve, best product per sector (SPOC 2-min, else TESS-SPOC,
 else QLP FFI; hunter.fetch.choose_products), each normalised by its own median (hunter.fetch), quality-flagged
-cadences dropped (lightkurve "default" bitmask). The curve keeps its native cadence; the searches work on a copy
+cadences dropped (lightkurve "default" bitmask), and points more than 50% below the median dropped (defects). The curve keeps its native cadence; the searches work on a copy
 averaged into BIN_MINUTES bins inside each sector (bin_lc: a 40-sector star is ~150k points instead of ~650k;
 cadences already longer than a bin are kept as they are) and measure and vet on the native curve, because
 10-min bins smear transits shorter than about an hour. Detrending happens later (hunt.detrend), with a window
@@ -29,6 +29,7 @@ MOMENTUM_DUMP_BIT = 32  # "Desaturation event" (reaction-wheel momentum dump) in
 DEFAULT_BITMASK = 17087  # lightkurve TessQualityFlags.DEFAULT_BITMASK
 ALL_SECTORS = 999
 BIN_MINUTES = 10.0
+DROPOUT_FRACTION = 0.5  # normalised flux below this is dropped as a data defect
 
 
 @dataclass
@@ -140,7 +141,11 @@ def fetch(tic: int, max_sectors: int = 3, refresh: bool = False) -> StarLC:
             close = np.abs(tb[k] - lc.time[sel]) < 1e-4
             bkg[sel[close]] = b[k[close]]
     cat = (lambda xs: np.sort(np.concatenate(xs)) if xs else np.array([]))
-    return StarLC(lc.time, lc.flux, lc.flux_err, lc.sector, products, cat(dumps), cat(flagged), read_all, bkg)
+    # Dropouts: points more than half below their sector's median are data defects (QLP 200-s sectors show 65%
+    # "dips"); nothing that passes the size check (<= 2 R_Jup) can block half of even a 0.3 R_sun star.
+    ok = lc.flux > DROPOUT_FRACTION
+    return StarLC(lc.time[ok], lc.flux[ok], lc.flux_err[ok], lc.sector[ok], products, cat(dumps), cat(flagged),
+                  read_all, bkg[ok])
 
 
 def bin_lc(lc: StarLC, minutes: float = BIN_MINUTES) -> StarLC:

@@ -25,8 +25,9 @@ from .lightcurve import StarLC
 FLATTEN_WINDOW = 3 * float(DURATIONS.max())  # as in the pipeline
 MAX_SIGNALS = 3
 CONTINUE_MIN_SNR = 7.0  # keep looking for a further signal only while the last one was at least this strong
+CONTINUE_MIN_SDE = 7.0  # ... and (deep search) this clear a peak in its periodogram,
+CONTINUE_ANY_SNR = 30.0  # ... or this strong, whatever its SDE (a recurring data defect can hide a real signal)
 MIN_TRANSITS_PERIODIC = 3
-CONTINUE_MIN_SDE = 7.0  # ... and (deep search) this clear a peak in its periodogram
 DEFAULT_KNOWN_DURATION_H = 3.0
 MASK_HALF_DURATIONS = 1.0  # fixed mask: +-1 listed duration (2x the transit) plus the timing allowance
 TTV_ALLOWANCE_FRAC = 0.02  # extra timing allowance, as a fraction of P, for planets the archive flags with TTVs
@@ -327,7 +328,7 @@ def find_signals(lc: StarLC, premask: np.ndarray | None = None, max_signals: int
         # Deep: also go on after a strong signal that does not repeat (a glitch, alone or folded with empty
         # epochs): masking it lets the next round find what it was hiding.
         return sig.snr >= CONTINUE_MIN_SNR and (not deep_search or sig.sde >= CONTINUE_MIN_SDE
-                                                or not info.get("repeats", True))
+                                                or not info.get("repeats", True) or sig.snr >= CONTINUE_ANY_SNR)
 
     first, info = one_round(premask)
     if first is not None:
