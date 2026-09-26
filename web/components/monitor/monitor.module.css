@@ -22,10 +22,19 @@
   animation: arrive var(--d-panel) var(--ease-out);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .starHead,
+  .noteRow {
+    animation: none;
+  }
+}
+
+/* a new star's name: a short crossfade, the blur hides the swap of one number for another */
 @keyframes arrive {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    filter: blur(2px);
+    transform: translateY(3px);
   }
 }
 
@@ -112,6 +121,22 @@
   min-height: 360px;
   border-top: 1px solid var(--grid-strong);
   border-bottom: 1px solid var(--grid-strong);
+}
+
+.pausedTag {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--gutter);
+  margin: 0;
+  padding: 2px 6px;
+  background: var(--paper);
+  color: var(--ink);
+  pointer-events: none;
+}
+
+.paper:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: -2px;
 }
 
 .canvas {

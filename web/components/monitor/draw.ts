@@ -70,16 +70,17 @@ export function makeGeom(w: number, h: number, pxPerDay: number, originPx: numbe
 const fy = (g: Geom, tape: Pick<Tape, "yTop" | "yBottom">, f: number) => g.bandTop + ((tape.yTop - f) / (tape.yTop - tape.yBottom)) * (g.bandBottom - g.bandTop);
 
 /** The paper: ECG divisions, minor every day of tape and major every 5, moving with the data. */
-export function drawPaper(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink) {
+export function drawPaper(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, phase = 0) {
   ctx.fillStyle = ink.paper;
   ctx.fillRect(0, 0, g.w, g.h);
   const minorPx = g.pxPerDay;
   const step = minorPx < 14 ? (minorPx < 4 ? 10 : 5) : 1;
   ctx.lineWidth = 1;
-  const first = Math.floor(g.x0 / step) * step;
+  // `phase` is how far the paper has moved beyond this tape's start, so the grid runs on between stars
+  const first = Math.floor((g.x0 + phase) / step) * step - phase;
   for (let x = first; x <= g.x1; x += step) {
     const px = Math.round(g.sx(x)) + 0.5;
-    const major = Math.round(x) % (step * 5) === 0;
+    const major = Math.round(x + phase) % (step * 5) === 0;
     ctx.strokeStyle = major ? ink.gridStrong : ink.grid;
     ctx.beginPath();
     ctx.moveTo(px, g.laneH);
@@ -128,7 +129,7 @@ export function drawScale(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape
       const x = s.x0 + (tt - s.t0);
       if (x > upTo || x < g.x0 - 1 || x > g.x1 + 1) continue;
       const px = g.sx(x);
-      if (px - lastPx < 64) continue;
+      if (px < 2 || px - lastPx < 64) continue;
       if (Math.round(tt) % (g.pxPerDay < 30 ? 10 : 5) !== 0 && px - lastPx < 120) continue;
       label(ctx, ink, fmtDay(btjdToMs(tt)).toUpperCase(), px + 3, y, ink.ink3);
       lastPx = px;
@@ -157,7 +158,7 @@ export function drawMarks(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape
   const rowH = (g.laneH - 16) / rows;
   const visible = marks.filter(({ mark }) => {
     const px = g.sx(mark.x);
-    return px > -220 && px < g.w + 20;
+    return px > -20 && px < g.w + 20;
   });
   const ty = g.laneH;
   // pass 1: washes, ticks and rules
@@ -172,7 +173,7 @@ export function drawMarks(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape
     if (!rejected) {
       const x0 = g.sx(mark.x - mark.halfWidth);
       const x1 = g.sx(mark.x + mark.halfWidth);
-      ctx.fillStyle = ink.wash;
+      ctx.fillStyle = d.outcome === "candidate" ? ink.wash : ink.grid;
       ctx.fillRect(x0, g.bandTop, Math.max(1.5, x1 - x0), g.bandBottom - g.bandTop);
     }
 
@@ -215,17 +216,23 @@ export function drawMarks(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape
     }
     ctx.globalAlpha = 1;
   }
-  // pass 2: the notes, over everything, knocked out of the paper
-  for (const { mark, age } of visible) {
-    if (!mark.first) continue;
+  // pass 2: one note per signal, over everything, knocked out of the paper. It sits by the signal's first dip,
+  // and once that dip has scrolled away it stays pinned at the left edge while the signal's dips are on screen.
+  const noted = new Set<number>();
+  for (const { mark, age } of marks) {
+    if (noted.has(mark.det)) continue;
+    const firstPx = g.sx(marks.find((m) => m.mark.det === mark.det && m.mark.first)?.mark.x ?? mark.x);
+    const anyVisible = marks.some((m) => m.mark.det === mark.det && g.sx(m.mark.x) > 0 && g.sx(m.mark.x) < g.w);
+    if (!anyVisible) continue;
+    noted.add(mark.det);
     const d = dets[mark.det];
-    const px = g.sx(mark.x);
     const col = outcomeColour(ink, d.outcome);
     ctx.globalAlpha = Math.min(1, age / 0.16);
     const base = 14 + (mark.det % rows) * rowH;
     const word = d.outcome === "candidate" ? "CANDIDATE" : d.outcome === "known" ? "KNOWN" : "REJECTED";
-    const right = px + 210 > g.w;
-    const lx = right ? px - 7 : px + 7;
+    const pinned = firstPx < 8;
+    const right = !pinned && firstPx + 210 > g.w;
+    const lx = pinned ? 8 : right ? firstPx - 7 : firstPx + 7;
     const size = compact ? 10 : 11;
     label(ctx, ink, word, lx, base, col, right ? "right" : "left", size, true);
     if (rowH > 22) label(ctx, ink, detectionLabel(d), lx, base + 14, ink.ink2, right ? "right" : "left", size, true);
@@ -282,7 +289,7 @@ export function drawPen(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape: 
   ctx.moveTo(Math.round(px) + 0.5, g.laneH);
   ctx.lineTo(Math.round(px) + 0.5, g.bandBottom);
   ctx.stroke();
-  if (i < 0 || !tape.x.length) return;
+  if (i < 0 || !tape.x.length || x - tape.x[i] > 0.05) return; // in a gap in the data: the pen is lifted
   const py = fy(g, tape, tape.f[i]);
   ctx.fillStyle = ink.ink;
   ctx.beginPath();
@@ -305,4 +312,31 @@ export function drawFluxScale(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, 
   const floor = Math.round((tape.yBottom - 1) * 1e6);
   const text = `${floor < 0 ? "\u2212" : "+"}${Math.abs(floor).toLocaleString("en-GB").replace(/,/g, "\u2009")} PPM`;
   label(ctx, ink, text, x, g.bandBottom - 6, ink.ink3, "right", 10.5, true);
+}
+
+/** The reading under the pointer: a thin rule, and the time and brightness at that point. */
+export function drawCursor(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape: Tape, x: number) {
+  const i = Math.min(tape.x.length - 1, lowerBound(tape.x, x));
+  if (i < 0 || Math.abs(tape.x[i] - x) > 0.05) return;
+  const px = Math.round(g.sx(tape.x[i])) + 0.5;
+  const py = fy(g, tape, tape.f[i]);
+  ctx.strokeStyle = ink.ink2;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(px, g.laneH);
+  ctx.lineTo(px, g.bandBottom);
+  ctx.stroke();
+  ctx.fillStyle = ink.paper;
+  ctx.strokeStyle = ink.ink;
+  ctx.beginPath();
+  ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  const d = new Date(btjdToMs(tape.t[i]));
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mm = String(d.getUTCMinutes()).padStart(2, "0");
+  const ppm = Math.round((tape.f[i] - 1) * 1e6);
+  const text = `${fmtDay(d.getTime()).toUpperCase()} ${hh}:${mm} UTC   ${ppm >= 0 ? "+" : "\u2212"}${Math.abs(ppm)} PPM`;
+  const right = px + 240 > g.w;
+  label(ctx, ink, text, right ? px - 8 : px + 8, g.bandBottom - 8, ink.ink, right ? "right" : "left", 10.5, true);
 }

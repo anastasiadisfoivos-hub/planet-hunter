@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getMonitorNow, getMonitorStats, type Detection, type MonitorNow, type MonitorStats } from "@/lib/api";
+import { getMonitorNow, getMonitorStats, type Detection, type MonitorNow, type MonitorStar, type MonitorStats } from "@/lib/api";
 import { MonitorClient } from "./client";
-import { detectionLabel, modeLabel, modeShort, OUTCOME_WORD, plural, thousands } from "./format";
+import { btjdToMs, detectionLabel, detectionSentence, modeLabel, modeShort, observedLine, OUTCOME_WORD, plural, starKind, thousands } from "./format";
 import { StarHeader } from "./StarHeader";
-import { StillTrace } from "./Recorder";
+import { StillTrace, StreamTrace } from "./Recorder";
 import s from "./monitor.module.css";
 
 export function Tick({ outcome }: { outcome: Detection["outcome"] }) {
@@ -53,12 +53,31 @@ function Tally({ stats }: { stats: MonitorStats | null }) {
   );
 }
 
+/** True while the viewer asks for reduced motion; follows the setting live. */
+function useReducedMotion(): boolean | null {
+  const [rm, setRm] = useState<boolean | null>(null);
+  useEffect(() => {
+    const mq = matchMedia("(prefers-reduced-motion: reduce)");
+    const on = () => setRm(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return rm;
+}
+
 export function MonitorScreen() {
   const client = useRef<MonitorClient | null>(null);
   const [now, setNow] = useState<MonitorNow | null>(null);
   const [stats, setStats] = useState<MonitorStats | null>(null);
   const [failing, setFailing] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [paused, setPaused] = useState(false);
+  /** Detections the pen has reached on this star, in the order it reached them. */
+  const [reached, setReached] = useState<{ tic: number; dets: number[] }>({ tic: 0, dets: [] });
+  const [said, setSaid] = useState("");
+  const lastSaid = useRef(0);
+  const rm = useReducedMotion();
 
   useEffect(() => {
     const ac = new AbortController();
@@ -75,6 +94,25 @@ export function MonitorScreen() {
     return () => ac.abort();
   }, []);
 
+  const rmStill = rm === true;
+  /** The star on the paper: in a stream it changes when the paper has advanced, not when the data arrives. */
+  const [drawn, setDrawn] = useState<MonitorStar | null>(null);
+  const incoming = now?.star ?? null;
+  const star = rmStill ? incoming : (drawn ?? null);
+
+  // the live text twin: says each new star, and each dip, politely and not more than once every 2 s
+  const say = useCallback((text: string, force = false) => {
+    const t = Date.now();
+    if (!force && t - lastSaid.current < 2000) return;
+    lastSaid.current = t;
+    setSaid(text);
+  }, []);
+
+  useEffect(() => {
+    if (!star) return;
+    say(`Now drawing TIC ${star.tic}, ${starKind(star.teff, star.radius_rsun)}, ${observedLine(star.observed_from, star.observed_to, star.sectors)}.`, true);
+  }, [star, say]);
+
   const next = useCallback(() => {
     const c = client.current;
     if (!c || busy) return;
@@ -84,10 +122,33 @@ export function MonitorScreen() {
         setFailing(false);
         setNow(n);
       })
+      .catch(() => {})
       .finally(() => setBusy(false));
   }, [busy]);
 
-  const star = now?.star ?? null;
+  const onMark = useCallback(
+    (on: MonitorStar, det: number) => {
+      setReached((r) => (r.tic !== on.tic ? { tic: on.tic, dets: [det] } : r.dets.includes(det) ? r : { tic: on.tic, dets: [...r.dets, det] }));
+      const d = on.detections[det];
+      if (d) say(detectionSentence(d, btjdToMs(d.t0)));
+    },
+    [say],
+  );
+
+  const still = rmStill;
+  const shownDets = star ? (still ? star.detections : reached.tic === star.tic ? reached.dets.map((k) => star.detections[k]) : []) : [];
+  const label = star ? `Light curve of TIC ${star.tic}: brightness against time, ${plural(star.detections.length, "signal")} marked.` : "";
+
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === " " && !still) {
+      e.preventDefault();
+      setPaused((p) => !p);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      next();
+    }
+  };
+
   return (
     <section className={s.monitor} aria-label="Monitor">
       <div className={`wrap ${s.head}`}>
@@ -103,6 +164,11 @@ export function MonitorScreen() {
             </>
           )}
           <div className={s.controls}>
+            {!still && (
+              <button type="button" className="btn" onClick={() => setPaused((p) => !p)} aria-pressed={paused} disabled={!now}>
+                {paused ? "Resume" : "Pause"}
+              </button>
+            )}
             <button type="button" className="btn" onClick={next} disabled={!now || busy}>
               Next star
             </button>
@@ -110,23 +176,33 @@ export function MonitorScreen() {
         </div>
       </div>
 
-      <div className={s.paper}>
-        {star?.lightcurve ? (
-          <StillTrace
-            star={star}
-            label={`Light curve of TIC ${star.tic}: brightness against time. ${plural(star.detections.length, "signal")} marked.`}
-          />
+      <div className={s.paper} tabIndex={0} onKeyDown={onKey} aria-label="Light curve. Space pauses, the right arrow skips to the next star." role="group">
+        {incoming?.lightcurve && rm !== null ? (
+          still ? (
+            <StillTrace star={incoming} label={label} />
+          ) : (
+            <StreamTrace star={incoming} paused={paused} onFinished={next} onMark={onMark} onStart={setDrawn} label={label} />
+          )
         ) : (
           <div className={s.canvas} aria-hidden />
         )}
+        {paused && !still && <p className={`label ${s.pausedTag}`}>Paused</p>}
       </div>
+      <p className="sr-only" aria-live="polite">
+        {said}
+      </p>
 
       <div className={`wrap ${s.foot}`}>
         <Tally stats={stats} />
         <div className={s.pen}>
           {failing && <p className={`${s.note} italic quiet`} role="status">The monitor can&apos;t reach the search right now. Trying again.</p>}
-          {star && <DipNotes dets={star.detections} shown={star.detections.length} />}
-          {star && star.outcome !== "none" && (
+          {star &&
+            (star.detections.length > 0 && shownDets.length === 0 ? (
+              <p className={`${s.note} italic quiet`}>Reading this star&apos;s light.</p>
+            ) : (
+              <DipNotes dets={shownDets} shown={shownDets.length} />
+            ))}
+          {star && (
             <p className={s.more}>
               <Link href="/log">Every star searched</Link>
               {star.outcome === "candidate" && (
