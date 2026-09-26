@@ -212,8 +212,8 @@ function MoreFilters({ events, now }: { events: SkyEvent[]; now: number }) {
   );
 }
 
-/** Floating filters over the sky: time, the six categories, "More" and Reset. */
-export function FilterBar({ events, now }: { events: SkyEvent[]; now: number }) {
+/** Filters: time, the six categories, "More" and Reset. Floats over the sky; `inflow` places it in a page (/events). */
+export function FilterBar({ events, now, inflow = false }: { events: SkyEvent[]; now: number; inflow?: boolean }) {
   const { state, dispatch } = useStore();
   const f = state.filters;
   const counts = categoryCounts(events, f, now);
@@ -223,7 +223,7 @@ export function FilterBar({ events, now }: { events: SkyEvent[]; now: number }) 
   const close = useCallback(() => setOpen(false), []);
 
   return (
-    <div className={s.filterBar} role="group" aria-label="Filters">
+    <div className={s.filterBar} role="group" aria-label="Filters" data-inflow={inflow || undefined}>
       <div className={s.barScroll}>
         <TimeSegments value={f.time.kind} onChange={(kind) => dispatch({ type: "filters", patch: { time: { kind } } })} />
         <div className={s.chips}>

@@ -1639,3 +1639,9 @@
     transform: none;
   }
 }
+
+/* The same bar in a page (the /events gallery): in the flow, not floating over the sky. */
+.filterBar[data-inflow] {
+  position: static;
+  max-width: 100%;
+}

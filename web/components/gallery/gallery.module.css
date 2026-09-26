@@ -1,0 +1,326 @@
+/* Event tiles, the /events gallery and the event page (DESIGN.md, Pictures; docs/polish/DIRECTION.md, Events). */
+
+/* ---------- Tile ---------- */
+
+.tile {
+  margin: 0;
+  min-width: 0;
+}
+
+.hit {
+  display: block;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.pic img {
+  transition: opacity var(--dur) var(--ease);
+}
+
+.hit:hover .pic img {
+  opacity: 0.9;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  font-size: var(--text-14);
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.name b {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hit:hover .name b {
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+
+.capline {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 20px;
+  margin-top: 2px;
+}
+
+.capline > :global(.cap),
+.capline > span:first-child {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The big bento tile: its picture fills two rows. */
+.big {
+  display: flex;
+  flex-direction: column;
+}
+
+.big .hit {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.big .pic {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---------- /events ---------- */
+
+.page {
+  padding-bottom: var(--section);
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+  padding-top: var(--s-16);
+  margin-bottom: var(--s-8);
+}
+
+.h1 {
+  font-size: var(--t-h1);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.count {
+  margin-top: var(--s-2);
+  color: var(--ink-secondary);
+  font-size: var(--text-16);
+}
+
+.headEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+
+.view {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+
+.view a {
+  display: inline-flex;
+  align-items: center;
+  height: calc(var(--control-h) - 6px);
+  padding: 0 var(--s-3);
+  border-radius: 6px;
+  color: var(--ink-muted);
+  font-size: var(--text-13);
+  text-decoration: none;
+}
+
+.view a[aria-current="page"] {
+  background: var(--raised);
+  color: var(--ink);
+}
+
+.bar {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: var(--z-panel);
+  padding: var(--s-3) 0;
+  margin-bottom: var(--s-8);
+  background: var(--bg);
+}
+
+.day {
+  padding-top: var(--s-10);
+}
+
+.dayHead {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--s-3);
+  margin-bottom: var(--s-6);
+  border-top: 1px solid var(--line);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--tile-gap-y) var(--gap);
+}
+
+.skeleton {
+  aspect-ratio: 1;
+  border-radius: var(--radius-tag);
+  background: rgb(222 230 255 / 0.04);
+}
+
+.note {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-4);
+  padding: var(--s-16) 0;
+  color: var(--ink-secondary);
+  max-width: var(--measure);
+}
+
+@media (max-width: 1279px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1023px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .head {
+    padding-top: var(--s-10);
+  }
+}
+
+/* ---------- /events/[id] ---------- */
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  margin-top: var(--s-6);
+  color: var(--ink-secondary);
+  font-size: var(--text-13);
+  text-decoration: none;
+}
+
+.crumb:hover {
+  color: var(--ink);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: var(--s-24);
+  align-items: start;
+  margin-top: var(--s-6);
+}
+
+.split > * {
+  min-width: 0;
+}
+
+.side {
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--s-8));
+}
+
+.kind {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--s-4);
+}
+
+.meta {
+  margin-top: var(--s-3);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: var(--s-10) 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.facts > div {
+  padding: 14px var(--s-3) 0 0;
+}
+
+.facts dd {
+  margin: 6px 0 0;
+  font-size: var(--text-14);
+  white-space: nowrap;
+}
+
+.where {
+  margin: var(--s-10) 0 0;
+}
+
+.whereFrame {
+  position: relative;
+  aspect-ratio: 56 / 34;
+  overflow: hidden;
+  border-radius: var(--radius-tag);
+  background: #000;
+}
+
+.whereFrame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.whereFrame svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.whereLines {
+  fill: none;
+  stroke: rgb(220 228 255 / 0.35);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.whereName {
+  fill: rgb(220 228 255 / 0.6);
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  margin-top: var(--s-8);
+}
+
+.more {
+  margin-top: var(--section-app);
+}
+
+.sunNote {
+  margin-top: var(--s-10);
+  color: var(--ink-secondary);
+}
+
+@media (max-width: 1023px) {
+  .split {
+    grid-template-columns: 1fr;
+    gap: var(--s-12);
+  }
+  .side {
+    position: static;
+  }
+}

@@ -1,0 +1,219 @@
+/* Pictures, caption lines, the i, drawers and typographic tiles (DESIGN.md, Pictures and Drawers). */
+
+.figure {
+  margin: 0;
+  min-width: 0;
+}
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-tag);
+  background: var(--well);
+}
+
+.frame[data-fill] {
+  height: 100%;
+}
+
+.img {
+  display: block;
+}
+
+.crosshair {
+  position: absolute;
+  width: max(28px, 6%);
+  height: auto;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.crosshair path {
+  stroke: var(--ink);
+  stroke-width: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.capline {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 28px;
+  margin-top: 10px;
+}
+
+.capText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-muted);
+  font: 500 11px/1 var(--font-mono);
+  transition:
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+/* The visible ring stays 20px; the hit area is 44px on touch. */
+.info::after {
+  content: "";
+  position: absolute;
+  inset: -12px;
+}
+
+.info {
+  position: relative;
+}
+
+.info:hover {
+  color: var(--ink);
+  border-color: var(--ink-muted);
+}
+
+.pop {
+  position: fixed;
+  inset: auto var(--margin) var(--margin) auto;
+  width: min(320px, calc(100vw - 2 * var(--margin)));
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--raised);
+  color: var(--ink-secondary);
+  font-size: var(--text-12);
+  line-height: 18px;
+  display: none;
+  gap: var(--s-2);
+}
+
+.pop:popover-open {
+  display: grid;
+}
+
+.popTitle {
+  color: var(--ink);
+  font-size: var(--text-13);
+}
+
+.popLink {
+  color: var(--ink);
+  justify-self: start;
+}
+
+/* ---------- Drawer ---------- */
+
+.drawer {
+  border-top: 1px solid var(--line);
+}
+
+.drawer:last-of-type {
+  border-bottom: 1px solid var(--line);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  min-height: 56px;
+  font-size: var(--text-15);
+  cursor: pointer;
+  list-style: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.state {
+  margin-left: auto;
+}
+
+.marker {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+
+.marker::before,
+.marker::after {
+  content: "";
+  position: absolute;
+  inset: 5.5px 0;
+  height: 1px;
+  background: var(--ink-muted);
+  transition: transform var(--dur) var(--ease);
+}
+
+.marker::after {
+  transform: rotate(90deg);
+}
+
+.drawer[open] .marker::after {
+  transform: rotate(0deg);
+}
+
+.body {
+  padding-bottom: var(--s-8);
+  max-width: var(--measure);
+  color: var(--ink-secondary);
+  font-size: var(--text-14);
+  line-height: 22px;
+}
+
+.body > * + * {
+  margin-top: var(--s-3);
+}
+
+/* ---------- Typographic tile ---------- */
+
+.typo {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-tag);
+  background: var(--well);
+}
+
+.typoName {
+  margin-bottom: var(--s-2);
+  display: none;
+  font-size: var(--text-20);
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639px) {
+  .typo {
+    padding: var(--s-3);
+  }
+  .typoName {
+    font-size: var(--text-16);
+    line-height: 20px;
+  }
+}
+
+.typoName[data-show] {
+  display: block;
+}

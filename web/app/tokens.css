@@ -1,23 +1,26 @@
-/* Design tokens. Values come from DESIGN.md; change them there first. Owned by the SKYMAP session. */
+/* Design tokens. Values come from DESIGN.md; change them there first. */
 
 :root {
   color-scheme: dark;
 
-  /* Surfaces */
-  --bg: #09090b;
-  --bg-deep: #050506;
+  /* Surfaces: one black canvas; --raised only for things that float */
+  --bg: #000000;
   --space: #000000;
+  --well: #070708;
   --raised: #111214;
-  --hairline: #1c1d21;
-  --control-border: #26282d;
+
+  /* Hairlines: translucent, so one token reads the same on black, on --well, on --raised and over a picture */
+  --line-faint: rgb(222 230 255 / 0.06);
+  --line: rgb(222 230 255 / 0.1);
+  --line-strong: rgb(222 230 255 / 0.16);
 
   /* Text */
   --ink: #f4f4f5;
   --ink-secondary: #a1a6b0;
   --ink-muted: #8b909a;
-  --ink-faint: #737883;
+  --ink-disabled: #5d626b;
 
-  /* The one accent, plus data colours */
+  /* The one accent (selection, hover, focus), plus data colours */
   --accent: #a3b8ff;
   --accent-tint: rgb(163 184 255 / 0.12);
   --accent-line: rgb(163 184 255 / 0.4);
@@ -37,7 +40,13 @@
 
   /* Primary button */
   --primary-bg: var(--ink);
-  --primary-ink: var(--bg);
+  --primary-ink: #000000;
+
+  /* Retired names, kept as aliases while screens move to the v2 names */
+  --hairline: var(--line);
+  --control-border: var(--line-strong);
+  --ink-faint: var(--ink-muted);
+  --bg-deep: var(--well);
 
   /* Type */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
@@ -47,14 +56,18 @@
   --text-13: 13px;
   --text-14: 14px;
   --text-15: 15px;
+  --text-16: 16px;
   --text-17: 17px;
   --text-20: 20px;
   --text-24: 24px;
   --text-32: 32px;
+  --t-display: clamp(40px, 5.6vw, 80px);
+  --t-h1: clamp(32px, 3.6vw, 48px);
+  --t-h2: clamp(24px, 2.2vw, 32px);
   --heading-tracking: -0.035em;
-  --label-tracking: 0.06em;
+  --label-tracking: 0.04em;
 
-  /* Space */
+  /* Space: 4px base, with two large steps for air */
   --s-1: 4px;
   --s-2: 8px;
   --s-3: 12px;
@@ -62,28 +75,68 @@
   --s-5: 20px;
   --s-6: 24px;
   --s-8: 32px;
+  --s-10: 40px;
   --s-12: 48px;
+  --s-16: 64px;
+  --s-24: 96px;
+  --s-32: 128px;
+  --s-40: 160px;
+
+  /* Layout */
+  --content: 1312px;
+  --margin: 64px;
+  --measure: 560px;
+  --gap: 24px;
+  --tile-gap-y: 40px;
+  --section: 160px;
+  --section-app: 96px;
+  --topbar-h: 64px;
+  --layers-w: 248px;
+  --inspector-w: 360px;
+  --statusbar-h: 36px;
 
   /* Shape */
+  --radius-tag: 4px;
   --radius-control: 8px;
   --radius-panel: 12px;
   --radius-pill: 999px;
   --control-h: 32px;
 
-  /* Motion */
+  /* Motion (DESIGN.md, Motion) */
   --ease: cubic-bezier(0.2, 0, 0, 1);
   --dur-fast: 120ms;
   --dur: 200ms;
 
-  /* Layout */
-  --layers-w: 248px;
-  --inspector-w: 360px;
-  --statusbar-h: 36px;
-
   /* Stacking */
   --z-panel: 10;
+  --z-bar: 15;
   --z-overlay: 20;
   --z-sheet: 30;
+}
+
+@media (max-width: 1279px) {
+  :root {
+    --margin: 40px;
+  }
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --margin: 32px;
+    --section: 128px;
+    --section-app: 80px;
+  }
+}
+
+@media (max-width: 639px) {
+  :root {
+    --margin: 20px;
+    --gap: 12px;
+    --tile-gap-y: 28px;
+    --section: 96px;
+    --section-app: 64px;
+    --topbar-h: 56px;
+  }
 }
 
 @media (pointer: coarse) {

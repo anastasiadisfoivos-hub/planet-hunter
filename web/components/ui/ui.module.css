@@ -1,4 +1,4 @@
-/* Shared primitives. Owned by the SKYMAP session; see DESIGN.md. */
+/* Shared primitives; see DESIGN.md (Components). */
 
 /* ---------- Button ---------- */
 
@@ -38,7 +38,7 @@
 }
 
 .primary:hover:not(:disabled) {
-  background: #ffffff;
+  opacity: 0.9;
 }
 
 .ghost {
@@ -48,8 +48,7 @@
 }
 
 .ghost:hover:not(:disabled) {
-  background: var(--raised);
-  border-color: var(--ink-faint);
+  border-color: rgb(222 230 255 / 0.3);
 }
 
 .quiet {
@@ -138,9 +137,9 @@
   align-items: center;
   gap: 6px;
   height: 20px;
-  padding: 0 var(--s-2);
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius-pill);
+  padding: 0 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-tag);
   color: var(--ink-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-11);
@@ -169,7 +168,6 @@
 }
 
 .tag-demo {
-  border-style: dashed;
   color: var(--ink-muted);
 }
 

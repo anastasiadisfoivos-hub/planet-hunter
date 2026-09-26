@@ -9,16 +9,6 @@
   "height": 1594,
   "file": "https://cdn.eso.org/images/large/eso0733a.jpg"
  },
- "sky/eso0932a.jpg": {
-  "url": "https://www.eso.org/public/images/eso0932a/",
-  "title": "The Milky Way panorama",
-  "credit": "ESO/S. Brunier",
-  "licence": "CC BY 4.0",
-  "source": "ESO",
-  "width": 4000,
-  "height": 2000,
-  "file": "https://cdn.eso.org/images/large/eso0932a.jpg"
- },
  "feature/weic2205a.jpg": {
   "url": "https://esawebb.org/images/weic2205a/",
   "title": "Cosmic Cliffs in the Carina Nebula (NIRCam image)",
@@ -80,7 +70,11 @@
   "height": 768,
   "archive": true,
   "ra": 24.35446,
-  "dec": -45.67779
+  "dec": -45.67779,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic36734222.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=154.908190&dec=-9.806440&format=jpg",
@@ -92,7 +86,11 @@
   "height": 768,
   "archive": true,
   "ra": 154.90819,
-  "dec": -9.80644
+  "dec": -9.80644,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic150428135.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=97.095720&dec=-65.578610&format=jpg",
@@ -104,7 +102,11 @@
   "height": 768,
   "archive": true,
   "ra": 97.09572,
-  "dec": -65.57861
+  "dec": -65.57861,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic219345170.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=74.849252&dec=-49.840045&format=jpg",
@@ -116,7 +118,11 @@
   "height": 768,
   "archive": true,
   "ra": 74.8492522,
-  "dec": -49.8400446
+  "dec": -49.8400446,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic29781292.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=65.238051&dec=-68.102643&format=jpg",
@@ -128,7 +134,11 @@
   "height": 768,
   "archive": true,
   "ra": 65.23805051,
-  "dec": -68.10264278
+  "dec": -68.10264278,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic257060897.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=227.531957&dec=72.710346&format=jpg",
@@ -140,7 +150,11 @@
   "height": 768,
   "archive": true,
   "ra": 227.53195723,
-  "dec": 72.71034628
+  "dec": 72.71034628,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic1129033.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=37.155108&dec=-7.060664&format=jpg",
@@ -152,7 +166,11 @@
   "height": 768,
   "archive": true,
   "ra": 37.15510833,
-  "dec": -7.06066389
+  "dec": -7.06066389,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic1167538.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=70.997588&dec=-31.906501&format=jpg",
@@ -164,7 +182,11 @@
   "height": 768,
   "archive": true,
   "ra": 70.9975879,
-  "dec": -31.90650055
+  "dec": -31.90650055,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic356016119.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=254.143230&dec=70.027316&format=jpg",
@@ -176,7 +198,11 @@
   "height": 768,
   "archive": true,
   "ra": 254.14323036,
-  "dec": 70.02731624
+  "dec": 70.02731624,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic278683844.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=99.238002&dec=-58.015268&format=jpg",
@@ -188,7 +214,11 @@
   "height": 768,
   "archive": true,
   "ra": 99.23800201,
-  "dec": -58.01526814
+  "dec": -58.01526814,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic393831507.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=187.686475&dec=27.452146&format=jpg",
@@ -200,7 +230,11 @@
   "height": 768,
   "archive": true,
   "ra": 187.68647543,
-  "dec": 27.45214583
+  "dec": 27.45214583,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic1003831.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=130.295165&dec=-16.036280&format=jpg",
@@ -212,7 +246,11 @@
   "height": 768,
   "archive": true,
   "ra": 130.29516544,
-  "dec": -16.03628039
+  "dec": -16.03628039,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic307809773.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=99.294995&dec=17.564815&format=jpg",
@@ -224,7 +262,11 @@
   "height": 768,
   "archive": true,
   "ra": 99.29499501,
-  "dec": 17.56481478
+  "dec": 17.56481478,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic88863718.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=122.580486&dec=-5.513785&format=jpg",
@@ -236,7 +278,11 @@
   "height": 768,
   "archive": true,
   "ra": 122.58048644,
-  "dec": -5.5137852
+  "dec": -5.5137852,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic441462736.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=353.033635&dec=-21.801421&format=jpg",
@@ -248,7 +294,11 @@
   "height": 768,
   "archive": true,
   "ra": 353.03363479,
-  "dec": -21.80142057
+  "dec": -21.80142057,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic459837008.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=65.052681&dec=84.901743&format=jpg",
@@ -260,7 +310,11 @@
   "height": 768,
   "archive": true,
   "ra": 65.05268145,
-  "dec": 84.90174347
+  "dec": 84.90174347,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "stars/tic22529346.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FSkymapper-color-IRG&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=107.600230&dec=-39.097270&format=jpg",
@@ -272,7 +326,11 @@
   "height": 768,
   "archive": true,
   "ra": 107.60023,
-  "dec": -39.09727
+  "dec": -39.09727,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF26abeqbvy.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=153.526149&dec=36.948145&format=jpg",
@@ -283,7 +341,11 @@
   "width": 768,
   "height": 768,
   "event": "ztf:ZTF26abeqbvy",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF26abwpoui.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=80.160012&dec=-9.312645&format=jpg",
@@ -294,7 +356,11 @@
   "width": 768,
   "height": 768,
   "event": "ztf:ZTF26abwpoui",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/tns-2026abvs.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=73.084914&dec=5.150676&format=jpg",
@@ -305,7 +371,11 @@
   "width": 768,
   "height": 768,
   "event": "tns:2026abvs",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/donki-2026-09-25T11-09-00-CME-001.jpg": {
   "url": "https://api.helioviewer.org/v2/takeScreenshot/?date=2026-09-25T11%3A09%3A00Z&imageScale=2.42&layers=%5BSDO%2CAIA%2CAIA%2C193%2C1%2C100%5D&x0=0&y0=0&width=1024&height=1024&display=true&watermark=false",
@@ -326,7 +396,11 @@
   "width": 768,
   "height": 768,
   "event": "ztf:ZTF26abkjlpd",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF26abspxxp.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=52.262479&dec=16.690755&format=jpg",
@@ -337,7 +411,11 @@
   "width": 768,
   "height": 768,
   "event": "ztf:ZTF26abspxxp",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF26abnuiar.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=47.074983&dec=11.913258&format=jpg",
@@ -348,7 +426,11 @@
   "width": 768,
   "height": 768,
   "event": "ztf:ZTF26abnuiar",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/gcn-GRB_260925A.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=132.456740&dec=24.911820&format=jpg",
@@ -359,7 +441,11 @@
   "width": 768,
   "height": 768,
   "event": "gcn:GRB_260925A",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/tns-2026aagh.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=320.112397&dec=2.178175&format=jpg",
@@ -370,7 +456,11 @@
   "width": 768,
   "height": 768,
   "event": "tns:2026aagh",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF26abwacec.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=288.928260&dec=-4.041472&format=jpg",
@@ -381,7 +471,11 @@
   "width": 768,
   "height": 768,
   "event": "ztf:ZTF26abwacec",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/donki-2026-09-24T14-45-00-CME-001.jpg": {
   "url": "https://api.helioviewer.org/v2/takeScreenshot/?date=2026-09-24T14%3A45%3A00Z&imageScale=2.42&layers=%5BSDO%2CAIA%2CAIA%2C193%2C1%2C100%5D&x0=0&y0=0&width=1024&height=1024&display=true&watermark=false",
@@ -412,7 +506,11 @@
   "width": 768,
   "height": 768,
   "event": "tns:2026aajs",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/donki-2026-09-24T02-53-00-CME-001.jpg": {
   "url": "https://api.helioviewer.org/v2/takeScreenshot/?date=2026-09-24T02%3A53%3A00Z&imageScale=2.42&layers=%5BSDO%2CAIA%2CAIA%2C193%2C1%2C100%5D&x0=0&y0=0&width=1024&height=1024&display=true&watermark=false",
@@ -434,7 +532,11 @@
   "height": 800,
   "event": "gcn:GRB260924A",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/gcn-GRB_260924A.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=133.762800&dec=12.043250&format=jpg",
@@ -445,7 +547,11 @@
   "width": 768,
   "height": 768,
   "event": "gcn:GRB_260924A",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF26abussvm.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=87.254460&dec=31.041415&format=jpg",
@@ -456,7 +562,11 @@
   "width": 768,
   "height": 768,
   "event": "ztf:ZTF26abussvm",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF18abuvchc.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.025&projection=TAN&coordsys=icrs&ra=13.694810&dec=-24.924762&format=jpg",
@@ -468,7 +578,11 @@
   "height": 800,
   "event": "ztf:ZTF18abuvchc",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF26abxaktw.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.333333&projection=TAN&coordsys=icrs&ra=37.735278&dec=9.452927&format=jpg",
@@ -480,7 +594,11 @@
   "height": 800,
   "event": "ztf:ZTF26abxaktw",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF26abemjfk.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=800&height=800&fov=0.05&projection=TAN&coordsys=icrs&ra=288.630704&dec=12.064897&format=jpg",
@@ -492,7 +610,11 @@
   "height": 800,
   "event": "ztf:ZTF26abemjfk",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/gcn-GRB_260922A.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=227.908470&dec=14.219070&format=jpg",
@@ -503,7 +625,11 @@
   "width": 768,
   "height": 768,
   "event": "gcn:GRB_260922A",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF22abegjtx.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.025&projection=TAN&coordsys=icrs&ra=5.986808&dec=-14.423146&format=jpg",
@@ -515,7 +641,11 @@
   "height": 800,
   "event": "ztf:ZTF22abegjtx",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/jpl-2026_SA8.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.5&projection=TAN&coordsys=icrs&ra=12.002000&dec=-20.711890&format=jpg",
@@ -527,7 +657,11 @@
   "height": 800,
   "event": "jpl:2026 SA8",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/donki-2026-09-21T09-09-00-CME-001.jpg": {
   "url": "https://sdo.gsfc.nasa.gov/assets/img/browse/2026/09/21/20260921_090729_1024_0193.jpg",
@@ -560,7 +694,11 @@
   "width": 768,
   "height": 768,
   "event": "tns:2026acow",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/tns-2026acna.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.05&projection=TAN&coordsys=icrs&ra=27.216475&dec=10.586500&format=jpg",
@@ -571,7 +709,11 @@
   "width": 768,
   "height": 768,
   "event": "tns:2026acna",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/donki-2026-09-19T17-57-00-FLR-001.jpg": {
   "url": "https://sdo.gsfc.nasa.gov/assets/img/browse/2026/09/19/20260919_181456_1024_0131.jpg",
@@ -595,7 +737,11 @@
   "height": 800,
   "event": "icecube:143143_38400235",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF25abdfzfi.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.025&projection=TAN&coordsys=icrs&ra=309.282937&dec=-11.345592&format=jpg",
@@ -607,7 +753,11 @@
   "height": 800,
   "event": "ztf:ZTF25abdfzfi",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF18aaaaljy.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=800&height=800&fov=0.025&projection=TAN&coordsys=icrs&ra=82.952867&dec=13.092216&format=jpg",
@@ -619,7 +769,11 @@
   "height": 800,
   "event": "ztf:ZTF18aaaaljy",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/donki-2026-08-08T18-00-00-GST-001.jpg": {
   "url": "https://api.helioviewer.org/v2/takeScreenshot/?date=2026-08-08T18%3A00%3A00Z&imageScale=2.42&layers=%5BSDO%2CAIA%2CAIA%2C193%2C1%2C100%5D&x0=0&y0=0&width=1024&height=1024&display=true&watermark=false",
@@ -641,7 +795,11 @@
   "height": 800,
   "event": "rubin:obj:170587117839187981",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/rubin-170028485637046645.jpg": {
   "url": "https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304468943335&kind=Template&output-format=PNG",
@@ -737,7 +895,11 @@
   "height": 800,
   "event": "rubin:obj:170587117894238279",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/rubin-313677516805505078.jpg": {
   "url": "https://api.lsst.fink-portal.org/api/v1/cutouts?diaSourceId=170666304345210987&kind=Template&output-format=PNG",
@@ -761,7 +923,11 @@
   "height": 800,
   "event": "jpl:3I/ATLAS",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/gracedb-S251117dq.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDSS2%2Fcolor&width=800&height=800&fov=53.24&projection=TAN&coordsys=icrs&ra=57.546917&dec=-55.395153&format=jpg",
@@ -773,7 +939,11 @@
   "height": 800,
   "event": "gracedb:S251117dq",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/jpl-29P-Schwassmann-Wachmann.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.5&projection=TAN&coordsys=icrs&ra=180.149440&dec=-6.892780&format=jpg",
@@ -785,7 +955,11 @@
   "height": 800,
   "event": "jpl:29P/Schwassmann-Wachmann",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/ztf-ZTF18aahouhg.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.025&projection=TAN&coordsys=icrs&ra=147.485149&dec=24.502176&format=jpg",
@@ -797,7 +971,11 @@
   "height": 800,
   "event": "ztf:ZTF18aahouhg",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "events/tns-AT2017gfo.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=800&height=800&fov=0.0416667&projection=TAN&coordsys=icrs&ra=197.450374&dec=-23.381495&format=jpg",
@@ -809,7 +987,11 @@
   "height": 800,
   "event": "tns:AT2017gfo",
   "kind": "sky_context",
-  "archive": true
+  "archive": true,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
  },
  "data/wasp18-tess-pixels-s0104.png": {
   "url": "https://archive.stsci.edu/missions-and-data/tess",
@@ -822,12 +1004,636 @@
  },
  "sky/where/tns-2026abvs.jpg": {
   "url": "https://www.eso.org/public/images/eso0932a/",
-  "title": "The Milky Way panorama, cropped around SN 2026abvs (SN IIn)",
+  "title": "The Milky Way panorama around SN 2026abvs (SN IIn)",
   "credit": "ESO/S. Brunier",
   "licence": "CC BY 4.0",
   "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
   "width": 933,
   "height": 567,
-  "note": "Crop of eso0932a (galactic coordinates, equirectangular); constellation lines from d3-celestial (BSD-3-Clause)"
+  "event": "tns:2026abvs",
+  "note": "Crop of eso0932a"
+ },
+ "sky/eso0932a-6000.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 6000,
+  "height": 3000,
+  "note": "Equirectangular in galactic coordinates; lib/galactic.ts places everything on it"
+ },
+ "sky/eso0932a-3072.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 3072,
+  "height": 1536,
+  "note": "Equirectangular in galactic coordinates; lib/galactic.ts places everything on it"
+ },
+ "sky/where/ztf-ZTF26abeqbvy.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Supernova candidate ZTF26abeqbvy",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF26abeqbvy",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF26abwpoui.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Supernova candidate ZTF26abwpoui",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF26abwpoui",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF26abkjlpd.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Supernova candidate ZTF26abkjlpd",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF26abkjlpd",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF26abspxxp.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Supernova candidate ZTF26abspxxp",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF26abspxxp",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF26abnuiar.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Supernova candidate ZTF26abnuiar",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF26abnuiar",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/gcn-GRB_260925A.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Gamma-ray burst GRB 260925A",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "gcn:GRB_260925A",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/tns-2026aagh.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around SN 2026aagh (SN Ia)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "tns:2026aagh",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF26abwacec.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Variable star candidate ZTF26abwacec",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF26abwacec",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/mpc-A11H8ut.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Possible comet A11H8ut",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "mpc:A11H8ut",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/mpc-LSs0088.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Possible near-Earth object LSs0088",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "mpc:LSs0088",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/mpc-LSs0092.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Possible near-Earth object LSs0092",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "mpc:LSs0092",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/mpc-C46K1R1.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Possible comet C46K1R1",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "mpc:C46K1R1",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/tns-2026aajs.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around SN 2026aajs (SN Ia)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "tns:2026aajs",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/gcn-GRB260924A.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around GRB 260924A",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "gcn:GRB260924A",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/gcn-GRB_260924A.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Gamma-ray burst GRB 260924A",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "gcn:GRB_260924A",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/gcn-GRB_260923A.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Gamma-ray burst GRB 260923A",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "gcn:GRB_260923A",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/mpc-P22qwo3.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Possible near-Earth object P22qwo3",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "mpc:P22qwo3",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/mpc-P12qyGM.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Possible near-Earth object P12qyGM",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "mpc:P12qyGM",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/mpc-TR0000.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Possible near-Earth object TR0000",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "mpc:TR0000",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF26abussvm.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Variable star candidate ZTF26abussvm",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF26abussvm",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/mpc-A11Hfh5.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Possible near-Earth object A11Hfh5",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "mpc:A11Hfh5",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF18abuvchc.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around ZTF18abuvchc (blazar in high state)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF18abuvchc",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF26abxaktw.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around ZTF26abxaktw (known asteroid)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF26abxaktw",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF26abemjfk.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around ZTF26abemjfk (TNS nova)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF26abemjfk",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/mpc-JAN1359.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Possible near-Earth object JAN1359",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "mpc:JAN1359",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/gcn-GRB_260922A.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Gamma-ray burst GRB 260922A",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "gcn:GRB_260922A",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF22abegjtx.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around ZTF22abegjtx (TNS TDE)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF22abegjtx",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/jpl-2026_SA8.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around 2026 SA8",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "jpl:2026 SA8",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/gcn-GRB_260921B.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Gamma-ray burst GRB 260921B",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "gcn:GRB_260921B",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/tns-2026acow.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around SN 2026acow (SN Ia)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "tns:2026acow",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/tns-2026acna.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around SN 2026acna (SN Ia)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "tns:2026acna",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/icecube-143143_38400235.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Gold high-energy neutrino (IceCube run 143143_38400235)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "icecube:143143_38400235",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF25abdfzfi.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around ZTF25abdfzfi (microlensing candidate)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF25abdfzfi",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF18aaaaljy.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around ZTF18aaaaljy (flaring M dwarf)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF18aaaaljy",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/jpl-P-2026_R1.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around New comet P/2026 R1 (PANSTARRS)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "jpl:P/2026_R1",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/rubin-obj-170587117839187981.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around AT 2026rwd (unclassified TNS transient)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "rubin:obj:170587117839187981",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/rubin-170028485637046645.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Supernova candidate Rubin 170028485637046645",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "rubin:170028485637046645",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/rubin-170028485643862094.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Supernova candidate Rubin 170028485643862094",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "rubin:170028485643862094",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/rubin-170028485646483572.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Variable star candidate AT 2025rha",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "rubin:170028485646483572",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/rubin-170028485650153688.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Supernova candidate Rubin 170028485650153688",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "rubin:170028485650153688",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/rubin-170587117894238279.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Variable star candidate Rubin 170587117894238279",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "rubin:170587117894238279",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/rubin-313761043604045880.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Transient candidate AT 2025agpz",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "rubin:313761043604045880",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/rubin-314007345846812735.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Active galaxy flare candidate AT 2026ejp",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "rubin:314007345846812735",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/rubin-obj-170587117894238279.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around SN 2026qrh (TNS SN Ia)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "rubin:obj:170587117894238279",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/rubin-313677516805505078.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around Active galaxy flare candidate AT 2025alus",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "rubin:313677516805505078",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/jpl-3I-ATLAS.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around 3I/ATLAS",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "jpl:3I/ATLAS",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/gracedb-S251117dq.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around S251117dq",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "gracedb:S251117dq",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/jpl-29P-Schwassmann-Wachmann.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around 29P/Schwassmann-Wachmann",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "jpl:29P/Schwassmann-Wachmann",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/ztf-ZTF18aahouhg.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around ZTF18aahouhg (RR Lyrae star)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "ztf:ZTF18aahouhg",
+  "note": "Crop of eso0932a"
+ },
+ "sky/where/tns-AT2017gfo.jpg": {
+  "url": "https://www.eso.org/public/images/eso0932a/",
+  "title": "The Milky Way panorama around AT 2017gfo (GW170817 kilonova)",
+  "credit": "ESO/S. Brunier",
+  "licence": "CC BY 4.0",
+  "source": "ESO",
+  "file": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "width": 933,
+  "height": 567,
+  "event": "tns:AT2017gfo",
+  "note": "Crop of eso0932a"
  }
 }

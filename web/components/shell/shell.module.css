@@ -1,0 +1,172 @@
+/* The top bar and "Find a star" (DESIGN.md, Components: Top bar). */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-bar);
+  height: var(--topbar-h);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-faint);
+}
+
+.bar[data-over] {
+  position: absolute;
+  inset: 0 0 auto;
+  background: transparent;
+  border-bottom-color: transparent;
+}
+
+.inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s-10);
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  min-height: 44px;
+}
+
+.nav {
+  display: flex;
+  gap: 28px;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  height: var(--topbar-h);
+  color: var(--ink-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.bar[data-over] .link {
+  color: rgb(255 255 255 / 0.86);
+}
+
+.link:hover,
+.link[aria-current="page"] {
+  color: var(--ink);
+}
+
+.link[aria-current="page"] {
+  box-shadow: inset 0 -1px 0 var(--ink);
+}
+
+.end {
+  margin-left: auto;
+}
+
+.find {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  height: var(--control-h);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: var(--text-13);
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.bar[data-over] .find {
+  border-color: rgb(255 255 255 / 0.24);
+  color: rgb(255 255 255 / 0.86);
+}
+
+.find:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+/* Native popover: light dismiss and Escape come free. Anchored under the button's corner of the bar. */
+.findPop {
+  position: fixed;
+  inset: calc(var(--topbar-h) + var(--s-2)) var(--margin) auto auto;
+  width: min(420px, calc(100vw - 2 * var(--margin)));
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--raised);
+  color: var(--ink);
+}
+
+.search {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.searchInput {
+  height: 44px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--text-14);
+}
+
+.searchInput::placeholder {
+  color: var(--ink-muted);
+}
+
+.options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.option {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: var(--s-2) var(--s-2);
+  border-radius: var(--radius-tag);
+  cursor: pointer;
+}
+
+.option[aria-selected="true"],
+.option:hover {
+  background: var(--accent-tint);
+}
+
+.searchNote {
+  color: var(--ink-muted);
+  font-size: var(--text-12);
+}
+
+@media (max-width: 639px) {
+  .inner {
+    gap: var(--s-5);
+  }
+  .wordmarkText,
+  .findText {
+    display: none;
+  }
+  .nav {
+    gap: 18px;
+    font-size: var(--text-13);
+  }
+  .find {
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    padding: 0;
+  }
+}
