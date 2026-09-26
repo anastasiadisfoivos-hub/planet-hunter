@@ -42,6 +42,8 @@
 .link {
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-width: 44px;
   height: var(--topbar-h);
   color: var(--ink-secondary);
   text-decoration: none;
@@ -159,8 +161,11 @@
   .findText {
     display: none;
   }
+  .wordmark {
+    min-width: 44px;
+  }
   .nav {
-    gap: 18px;
+    gap: 4px;
     font-size: var(--text-13);
   }
   .find {

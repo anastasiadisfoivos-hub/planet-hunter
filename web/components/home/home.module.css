@@ -5,7 +5,7 @@
   height: min(100dvh, 920px);
   min-height: 640px;
   overflow: hidden;
-  background: #000;
+  background: var(--space);
 }
 
 .heroPic {

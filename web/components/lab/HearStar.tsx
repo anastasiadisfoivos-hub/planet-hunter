@@ -1,5 +1,6 @@
 "use client";
 
+import { Drawer } from "@/components/picture/Drawer";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { Info, Pause, Play, SpeakerHigh } from "@phosphor-icons/react";
 import { Button, Segmented } from "@/components/ui";
@@ -475,11 +476,9 @@ export function HearStar() {
         onRetry={retry}
         picker={<Segmented label="Star" block value={target} onChange={setTarget} options={TARGETS.map((t) => ({ value: t.value, label: t.label }))} />}
       />
-      <section className={s.section} style={{ marginTop: "var(--s-8)" }} aria-labelledby="how-h">
+      <div style={{ marginTop: "var(--s-16)" }}>
+        <Drawer title="Raw or folded" state="Explanation">
         <div className={s.sectionHead}>
-          <h2 id="how-h" className={s.h2}>
-            Raw or folded
-          </h2>
           <p className={s.body}>
             <strong>Raw</strong> plays the measurements in the order TESS took them, about {DURATION.raw} seconds for {data ? nf0.format(Math.round(data.discoveries[0].light_curve.time_btjd.at(-1)! - data.discoveries[0].light_curve.time_btjd[0])) : "50"} days. Listen for
             the regular drops: that rhythm is the planet&apos;s orbit. The quiet stretches are gaps in the data, while the spacecraft sends its
@@ -495,7 +494,8 @@ export function HearStar() {
           exposures processed by {data?.data[0]?.author ?? "SPOC"}, binned to 30 to 36 minute points by this project&apos;s analysis pipeline. Pitch runs
           from 196 Hz (the faintest point) to 784 Hz (the brightest), two octaves.
         </Note>
-      </section>
+        </Drawer>
+      </div>
     </>
   );
 }

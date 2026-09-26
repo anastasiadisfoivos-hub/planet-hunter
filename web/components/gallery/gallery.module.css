@@ -261,9 +261,10 @@
 .whereFrame {
   position: relative;
   aspect-ratio: 56 / 34;
-  overflow: hidden;
+  overflow: clip;
+  contain: paint;
   border-radius: var(--radius-tag);
-  background: #000;
+  background: var(--space);
 }
 
 .whereFrame img {
@@ -316,5 +317,20 @@
   }
   .side {
     position: static;
+  }
+}
+
+@media (pointer: coarse) {
+  .view a {
+    height: 44px;
+  }
+}
+
+@media (max-width: 639px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .facts > div:nth-child(3) {
+    grid-column: 1 / -1;
   }
 }

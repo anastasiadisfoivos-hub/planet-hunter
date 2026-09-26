@@ -1400,3 +1400,11 @@
   display: flex;
   margin-bottom: var(--s-10);
 }
+
+@media (pointer: coarse) {
+  .voteOption,
+  .chip {
+    min-height: 44px;
+    height: auto;
+  }
+}

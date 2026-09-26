@@ -1,5 +1,6 @@
 "use client";
 
+import { Drawer } from "@/components/picture/Drawer";
 import { useMemo, useRef, useState, type PointerEvent } from "react";
 import { Info } from "@phosphor-icons/react";
 import { Button, Segmented } from "@/components/ui";
@@ -183,7 +184,7 @@ export function Hubble() {
             <Skeleton label="Loading the supernovae" />
           )}
           <p className={s.help} style={{ padding: "var(--s-2) var(--s-1) 0" }}>
-            Drag anywhere on the plot to move the blue line until it runs through the middle of the dots.
+            Drag anywhere on the plot to move your dashed line until it runs through the middle of the dots.
           </p>
         </section>
 
@@ -238,11 +239,9 @@ export function Hubble() {
         </aside>
       </div>
 
-      <section className={s.section} style={{ marginTop: "var(--s-8)" }} aria-labelledby="ex-h">
+      <div style={{ marginTop: "var(--s-16)" }}>
+        <Drawer title="Why it expands" state="Explanation">
         <div className={s.sectionHead}>
-          <h2 id="ex-h" className={s.h2}>
-            Farther means faster, so the universe is expanding
-          </h2>
           <p className={s.body}>
             These are type Ia supernovae: exploding white dwarfs that all peak at about the same true brightness, magnitude{" "}
             {String(data?.abs_mag ?? -19.3).replace("-", "−")}. So how faint one looks tells us how far away it is. Its light is also stretched toward red on the way here,
@@ -259,7 +258,8 @@ export function Hubble() {
           Live supernovae from the Transient Name Server replace them later. Speeds use v = cz, which holds for nearby galaxies (z below about
           0.1).
         </Note>
-      </section>
+        </Drawer>
+      </div>
     </>
   );
 }

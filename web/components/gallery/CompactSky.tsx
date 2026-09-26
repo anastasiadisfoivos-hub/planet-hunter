@@ -65,7 +65,7 @@ export function CompactSky({ ra, dec, errorDeg, category, constellation, crop, p
                 {l.name}
               </text>
             ))}
-          <circle cx={ex} cy={ey} r={r} fill="none" stroke="#000" strokeWidth={win.w / 110} />
+          <circle cx={ex} cy={ey} r={r} fill="none" stroke="var(--space)" strokeWidth={win.w / 110} />
           <circle cx={ex} cy={ey} r={r} fill="none" stroke={`var(${token})`} strokeWidth={win.w / 240} />
         </svg>
       </div>

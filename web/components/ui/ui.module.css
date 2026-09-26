@@ -287,3 +287,16 @@
 .emptyAction {
   margin-top: var(--s-2);
 }
+
+/* DESIGN.md: every control is at least 44px on a coarse pointer. */
+@media (pointer: coarse) {
+  .sm {
+    height: 44px;
+  }
+  .sm.iconOnly {
+    width: 44px;
+  }
+  .segmented button {
+    height: 44px;
+  }
+}

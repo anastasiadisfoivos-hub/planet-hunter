@@ -1,5 +1,6 @@
 "use client";
 
+import { Drawer } from "@/components/picture/Drawer";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { ArrowRight, Info } from "@phosphor-icons/react";
@@ -395,11 +396,9 @@ export function Thermometer() {
         </aside>
       </div>
 
-      <section className={s.section} style={{ marginTop: "var(--s-8)" }} aria-labelledby="why-h">
+      <div style={{ marginTop: "var(--s-16)" }}>
+        <Drawer title="Why colour is heat" state="Explanation">
         <div className={s.sectionHead}>
-          <h2 id="why-h" className={s.h2}>
-            Why hot stars are blue and cool stars are red
-          </h2>
           <p className={s.body}>
             Anything hot glows, and a star glows at every colour at once, just not equally. Its light piles up around one wavelength, the peak. Heat
             the star and the peak slides toward shorter wavelengths, toward blue. Twice as hot means half the wavelength.
@@ -415,7 +414,8 @@ export function Thermometer() {
           TESS Input Catalog for planet hosts and are estimated from colour (B−V) for bright stars. Brightness is visible light only, from each
           star&apos;s magnitude and distance.
         </Note>
-      </section>
+        </Drawer>
+      </div>
     </>
   );
 }

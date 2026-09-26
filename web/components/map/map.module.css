@@ -1655,3 +1655,9 @@
       "status";
   }
 }
+
+@media (pointer: coarse) {
+  .timeSeg button {
+    height: 44px;
+  }
+}

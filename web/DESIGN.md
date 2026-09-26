@@ -283,25 +283,27 @@ them as: nothing is added to the photograph; the page around it is `#000`.
   title, "demo" as a tag.
 - No em dashes in UI copy.
 
-## Layout: map screen
-
-The feed column leaves the map: events live in the `/events` gallery (same filter bar and URL
-params: `time`, `from`, `to`, `types`, `src`, `conf`, `pics`, `rubin`) and open at `/events/[id]`. `/map` redirects
-to `/sky` with its query. The layout below is the current map, kept for reference until MAPUI updates it.
+## Layout: sky screen (/sky)
 
 ```
-┌──────────┬──────────────────────────────────┬──────────────┐
-│ Filters  │ Jump to · status banner · About  │ Feed         │
-│ + map    │                                  │ (or Detail)  │
-│ layers   │   3D sky (--space, faint grid)   │ 360px        │
-│ 248px    │                                  │              │
-├──────────┴──────────────────────────────────┴──────────────┤
+┌─────────────────────────────────────────────────────────────┐
+│ top bar 64px: Planet Hunter · Events · Sky · Lab · Finder   │
+├──────────────────────────────────────────────┬──────────────┤
+│ filter bar (time, categories, More)          │ Detail       │
+│                                              │ 360px, only  │
+│   3D sky: ESO's photograph on the sphere,    │ when an      │
+│   faint constellations, event shapes         │ event or a   │
+│                                              │ star is open │
+│ Layers                Jump to · paused · Pictures           │
+├──────────────────────────────────────────────┴──────────────┤
 │ status bar 36px: pointer RA/Dec, FOV, events shown, DEMO    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-Below 900px the sky is full screen; Filters and Feed are bottom sheets; an open event is a full sheet, and
-"Show on map" closes it so the flight is visible. The status banner collapses into its "About the data" button.
+With nothing selected the sky takes the full width; the list of events is the `/events` gallery (same filter bar and
+URL params: `time`, `from`, `to`, `types`, `src`, `conf`, `pics`, `rubin`). `/map` redirects to `/sky` with its query;
+`/sky?event=<id>` flies to an event and opens it; `/sky?host=<tic>` and `/sky?bright=<index>` fly to a star.
+Below 900px the sky is full screen and an open event or star is a sheet.
 
 ## Accessibility
 
