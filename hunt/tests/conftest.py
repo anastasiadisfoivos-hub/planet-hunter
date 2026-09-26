@@ -12,6 +12,8 @@ TOI_TIC, EB_TIC, QUIET_TIC = 415739607, 408512382, 175516858
 
 
 def load_fixture(tic: int) -> tuple[Star, StarLC]:
+    """Recorded star and light curve as recorded: native cadence for HUNT's fixtures (as the sweep searches it),
+    10-min bins for the two all-sector stars (TOI-813, TOI-2180), stored binned to keep the repository small."""
     lc, meta = StarLC.load(DATA / f"{tic}.npz")
     return Star.from_row(meta["star"]), lc
 

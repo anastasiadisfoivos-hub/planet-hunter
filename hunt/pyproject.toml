@@ -16,6 +16,10 @@ dependencies = [
     "numpy>=2.5.3",
     "requests>=2.34.2",
     "scipy>=1.18.1",
+    "transitleastsquares>=1.32",
+    "wotan>=1.10",
+    "setuptools>=84.0.0",
+    "tess-point>=0.9.5.post1",
 ]
 
 [project.scripts]

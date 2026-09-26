@@ -4,10 +4,19 @@ Shard i of N takes every N-th row of the (ranked) target file starting at row i,
 of the high-priority stars. Stars already done in the output directory are skipped (resumable). New stars
 stop being started once the budget is nearly used; whatever finished is written.
 
+Each star is stitched from every sector it has (lightcurve.stitch) and searched for periodic signals and for
+single / double dips (analyse.analyse).
+
 Layout of an output directory:
-  results/<tic>.json        every star searched: signals examined, stage each failed at, errors
-  candidates/<tic>_<n>.json full candidate record; candidates/<tic>_<n>.png plot
+  results/<tic>.json        every star searched: periodic signals and dips examined, the stage each failed at,
+                            its dip events (for the merge's nearby-star test), stitching, runtimes, errors
+  candidates/<tic>_<n>.json full candidate record (n = signal number, or s<m> / d<m> for a single / duo);
+                            candidates/<tic>_<n>.png plot
   shard.json                shard bookkeeping (assigned, done, stopped by budget, time used)
+
+Merge adds one test the per-star search cannot do: a single or double dip also seen at the same time in 2+
+nearby stars' light curves (within NEIGHBOUR_DIPS_DEG, same sector) is a spacecraft or sky artefact, not a
+transit, and is dropped (funnel stage "neighbour_dips").
 """
 
 from __future__ import annotations
@@ -24,12 +33,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from . import catalogs, lightcurve, stars, targets
-from .analyse import STAGES, analyse, plot_candidate
+from .analyse import DIP_STAGES, STAGES, analyse, plot_candidate
 from .checks import MUST_RUN
+from .singles import DUO_MUST_RUN, SINGLE_MUST_RUN
 
 _CATALOGUE = None
 SOCKET_TIMEOUT_S = 120
-STAR_TIMEOUT_S = 300  # hard wall-clock limit per star; the parent kills the star's process after this
+STAR_TIMEOUT_S = 900  # hard wall-clock limit per star; the parent kills the star's process after this
+# (a 40-sector continuous-viewing-zone star needs ~150 s to download and ~250 s to search on a CI runner)
+NEIGHBOUR_DIPS_DEG = 1.0  # stars this close, in the same sector, see the same scattered light and dumps
+NEIGHBOUR_DIPS_MIN_STARS = 2  # one other star with a dip at the same time can be chance; two is an artefact
 # Why a process per star: MAST sometimes stops answering mid-read, and requests passes timeout=None, which
 # overrides socket defaults; only killing the process reliably frees the slot.
 
@@ -53,7 +66,7 @@ def process_star(row: dict, out_dir: str, max_sectors: int, plots: bool) -> dict
     out = Path(out_dir)
     try:
         star = _star_from_row(row)
-        lc = lightcurve.fetch(tic, max_sectors=max_sectors)
+        lc = lightcurve.stitch(tic, max_sectors=max_sectors)
         t1 = time.perf_counter()
         res = analyse(star, lc, _CATALOGUE, kind)
         res.timings_s = {"fetch": t1 - t0, "analyse": time.perf_counter() - t1}
@@ -99,7 +112,7 @@ def shard_rows(rows: list[dict], shard: int, n_shards: int) -> list[dict]:
 
 
 def run(tic_file: Path, out_dir: Path, shard: int = 0, n_shards: int = 1, budget_min: float = 350.0,
-        workers: int | None = None, max_sectors: int = 3, limit: int | None = None, plots: bool = True,
+        workers: int | None = None, max_sectors: int = lightcurve.ALL_SECTORS, limit: int | None = None, plots: bool = True,
         catalogue_path: Path | None = None, star_timeout_s: float = STAR_TIMEOUT_S, log=print) -> dict:
     start = time.time()
     deadline = start + budget_min * 60
@@ -177,8 +190,9 @@ def run(tic_file: Path, out_dir: Path, shard: int = 0, n_shards: int = 1, budget
     return info
 
 
-def funnel(summaries: list[dict], assigned: int | None = None) -> dict:
-    """Counts at each stage. Signals are counted once per stage they survived."""
+def funnel(summaries: list[dict], assigned: int | None = None, merge_rejected: dict | None = None) -> dict:
+    """Counts at each stage. Signals are counted once per stage they survived. Periodic signals and single /
+    double dips have separate funnels; dips also get rates per 1,000 stars searched."""
     with_data = [s for s in summaries if not s.get("error")]
     errors = Counter((s["error"].split(":")[0]) for s in summaries if s.get("error"))
     signals = [sig for s in with_data for sig in s["signals"]]
@@ -189,6 +203,27 @@ def funnel(summaries: list[dict], assigned: int | None = None) -> dict:
         surviving -= fail_counts.get(st, 0)
         stages[f"after_{st}"] = surviving
     check_fails = Counter(c for sig in signals if sig["failed_stage"] == "checks" for c in sig["failed_checks"])
+    merge_rejected = merge_rejected or {}
+    dips = [{**d, "tic": s["tic"]} for s in with_data for d in s.get("dips", [])]
+    for d in dips:  # the merge-time stage
+        if d["failed_stage"] is None and f"{d['tic']}:{d['kind'][0]}{d['n']}" in merge_rejected:
+            d["failed_stage"] = "neighbour_dips"
+    dip_funnel = {}
+    n_stars = len(with_data)
+    for kind in ("single", "duo"):
+        ds = [d for d in dips if d["kind"] == kind]
+        fc = Counter(d["failed_stage"] for d in ds)
+        left = len(ds)
+        row = {"found": left}
+        for st in DIP_STAGES:
+            left -= fc.get(st, 0)
+            row[f"after_{st}"] = left
+        row["candidates"] = fc.get(None, 0)
+        row["candidates_per_1000_stars"] = round(1000 * fc.get(None, 0) / n_stars, 2) if n_stars else None
+        row["check_failures"] = dict(Counter(c for d in ds if d["failed_stage"] == "checks"
+                                             for c in d["failed_checks"]).most_common())
+        dip_funnel[kind] = row
+    events = [e for s in with_data for e in s.get("events", [])]
     return {
         "stars_in_list": assigned,
         "stars_searched": len(summaries),
@@ -196,12 +231,87 @@ def funnel(summaries: list[dict], assigned: int | None = None) -> dict:
         "stars_failed": dict(errors),
         "stars_with_a_signal": sum(1 for s in with_data if s["signals"]),
         **stages,
-        "candidates": fail_counts.get(None, 0),
-        "stars_with_candidates": sum(1 for s in with_data if any(sig["failed_stage"] is None for sig in s["signals"])),
+        "candidates": fail_counts.get(None, 0) + sum(dip_funnel[k]["candidates"] for k in dip_funnel),
+        "periodic_candidates": fail_counts.get(None, 0),
+        "stars_with_candidates": sum(1 for s in with_data
+                                     if any(sig["failed_stage"] is None for sig in s["signals"])
+                                     or any(d["failed_stage"] is None for d in s.get("dips", [])
+                                            if f"{s['tic']}:{d['kind'][0]}{d['n']}" not in merge_rejected)),
         "failed_at_stage": {st: fail_counts.get(st, 0) for st in STAGES},
         "check_failures_among_signals_rejected_by_checks": dict(check_fails.most_common()),
         "must_run_checks": list(MUST_RUN),
+        "dips": dip_funnel,
+        "dip_events": {"found": len(events),
+                       "rejected_by_a_dip_check": sum(1 for e in events if e.get("failed_checks")),
+                       "by_check": dict(Counter(c for e in events for c in e.get("failed_checks", [])).most_common())},
+        "dip_must_run_checks": {"single": list(SINGLE_MUST_RUN), "duo": list(DUO_MUST_RUN)},
+        "sectors_per_star": _sector_stats(with_data),
     }
+
+
+def _sector_stats(with_data: list[dict]) -> dict:
+    n = sorted(len(s.get("sectors", [])) for s in with_data)
+    if not n:
+        return {}
+    return {"median": n[len(n) // 2], "max": n[-1], "stars_with_5_or_more": sum(1 for x in n if x >= 5)}
+
+
+def neighbour_dips(cands: dict[str, dict], summaries: dict[int, dict]) -> dict[str, dict]:
+    """For each single / duo candidate: nearby stars (<= NEIGHBOUR_DIPS_DEG, same sector) with a dip event at the
+    same time (within a quarter of the longer duration, at least 1 h) and a duration within a factor 2. Returns
+    {candidate key: check dict}; the candidate is dropped when NEIGHBOUR_DIPS_MIN_STARS or more stars match."""
+    import math
+
+    pos = {}
+    for tic, s in summaries.items():
+        st = s.get("star") or {}
+        if st.get("ra") is not None and st.get("dec") is not None and not s.get("error"):
+            pos[tic] = (math.radians(float(st["ra"])), math.radians(float(st["dec"])))
+    out = {}
+    for key, c in cands.items():
+        if c.get("kind") not in ("single", "duo"):
+            continue
+        tic = int(c["tic"])
+        if tic not in pos:
+            continue
+        r0, d0 = pos[tic]
+        matches, compared = [], 0
+        for other, (r1, d1) in pos.items():
+            if other == tic:
+                continue
+            cosd = math.sin(d0) * math.sin(d1) + math.cos(d0) * math.cos(d1) * math.cos(r0 - r1)
+            sep = math.degrees(math.acos(max(-1.0, min(1.0, cosd))))
+            if sep > NEIGHBOUR_DIPS_DEG:
+                continue
+            so = summaries[other]
+            for dip in c["dips"]:
+                if dip["sector"] not in so.get("sectors", []):
+                    continue
+                compared += 1
+                for ev in so.get("events", []):
+                    dt = abs(ev["mid_btjd"] - dip["mid_btjd"]) * 24
+                    tol = max(0.25 * max(ev["duration_h"], dip["duration_h"]), 1.0)
+                    ratio = max(ev["duration_h"], dip["duration_h"]) / max(min(ev["duration_h"], dip["duration_h"]), 1e-3)
+                    if dt < tol and ratio < 2:
+                        matches.append({"tic": other, "separation_deg": round(sep, 3), "mid_btjd": ev["mid_btjd"],
+                                        "snr": ev["snr"]})
+                        break
+        n_stars = len({m["tic"] for m in matches})
+        if compared == 0:
+            chk = {"name": "neighbour_dips", "passed": None, "value": None, "margin": None,
+                   "reason": f"No other star within {NEIGHBOUR_DIPS_DEG} deg was searched in the dips' sectors."}
+        elif n_stars >= NEIGHBOUR_DIPS_MIN_STARS:
+            chk = {"name": "neighbour_dips", "passed": False, "value": n_stars, "margin": 0.0,
+                   "reason": f"{n_stars} nearby stars dip at the same time (e.g. TIC {matches[0]['tic']}, "
+                             f"{matches[0]['separation_deg']} deg away): a spacecraft or sky artefact, not a transit.",
+                   "matches": matches[:5]}
+        else:
+            chk = {"name": "neighbour_dips", "passed": True, "value": n_stars, "margin": None,
+                   "reason": f"Compared with {compared} light curve(s) of stars within {NEIGHBOUR_DIPS_DEG} deg: "
+                             f"{'no other star dips' if not n_stars else 'one other star dips (can be chance)'} "
+                             f"at the same time.", "matches": matches[:5]}
+        out[key] = chk
+    return out
 
 
 def merge(shard_dirs: list[Path], out_dir: Path, assigned: int | None = None,
@@ -220,13 +330,28 @@ def merge(shard_dirs: list[Path], out_dir: Path, assigned: int | None = None,
             png = p.with_suffix(".png")
             if png.exists():
                 (out_dir / "candidates" / png.name).write_bytes(png.read_bytes())
-    ranked = sorted(cands.items(), key=lambda kv: -kv[1]["score"])
-    index = [{"file": f"candidates/{stem}.json", "id": c["id"], "tic": c["tic"], "score": c["score"],
-              "score_parts": c.get("score_parts"), "period_d": c["period_d"], "depth_ppm": c["depth_ppm"], "snr": c["snr"], "sde": c["sde"],
-              "n_transits": c["n_transits"], "radius_rjup": c["radius_rjup"], "radius_rearth_best": c["radius_rearth_best"],
-              "single_sector_only": c["single_sector_only"], "search_list": c["search_list"]} for stem, c in ranked]
-    fun = funnel(list(summaries.values()), assigned)
-    out = {"created_at": datetime.now(UTC).isoformat(timespec="seconds"), "funnel": fun, "candidates": index}
+    nd = neighbour_dips(cands, summaries)
+    rejected = {}
+    for key, chk in nd.items():
+        c = cands[key]
+        c["checks"] = [x for x in c["checks"] if x["name"] != "neighbour_dips"] + [chk]
+        (out_dir / "candidates" / f"{key}.json").write_text(json.dumps(c, indent=1))
+        if chk["passed"] is False:
+            rejected[f"{c['tic']}:{c['id'].rsplit(':', 1)[1]}"] = chk["reason"]
+            (out_dir / "candidates" / f"{key}.json").unlink()
+            (out_dir / "candidates" / f"{key}.png").unlink(missing_ok=True)
+    kept = {k: c for k, c in cands.items() if f"{c['tic']}:{c['id'].rsplit(':', 1)[1]}" not in rejected}
+    ranked = sorted(kept.items(), key=lambda kv: -kv[1]["score"])
+    index = [{"file": f"candidates/{stem}.json", "id": c["id"], "tic": c["tic"], "kind": c.get("kind", "periodic"),
+              "score": c["score"], "score_parts": c.get("score_parts"), "period_d": c["period_d"],
+              "period_range_d": c.get("period_range_d"), "period_aliases_d": c.get("period_aliases_d"),
+              "depth_ppm": c["depth_ppm"], "snr": c["snr"], "sde": c["sde"], "n_transits": c["n_transits"],
+              "radius_rjup": c["radius_rjup"], "radius_rearth_best": c["radius_rearth_best"],
+              "single_sector_only": c["single_sector_only"], "search_list": c["search_list"],
+              "sectors_used": c.get("sectors_used"), "baseline_d": c.get("baseline_d")} for stem, c in ranked]
+    fun = funnel(list(summaries.values()), assigned, rejected)
+    out = {"created_at": datetime.now(UTC).isoformat(timespec="seconds"), "funnel": fun, "candidates": index,
+           "rejected_at_merge": rejected}
     (out_dir / "candidates.json").write_text(json.dumps(out, indent=1))
     (out_dir / "funnel.json").write_text(json.dumps(fun, indent=1))
     # summary.json next to candidates/ is what FINDER-API's ingest reads for GET /finder/funnel.

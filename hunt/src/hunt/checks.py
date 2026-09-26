@@ -6,7 +6,7 @@ reason, and a margin in [0, 1] (how comfortably it passed; 0 at the threshold) u
 Pipeline (hunter.vet): snr, odd_even, secondary_eclipse, size.
 Added here: period_alias (P/2, 2P, 3P), momentum_dump (transits on dumps / quality-flagged cadences),
 sector_depth (depth consistent between sectors), duration (plausible for the star's density),
-single_sector (flag only).
+three_dips (the signal does not rest on one dip), single_sector (flag only).
 """
 
 from __future__ import annotations
@@ -33,7 +33,10 @@ SECTOR_P_MIN = 1e-3
 SECTOR_MAX_SPREAD = 0.5
 DURATION_MIN_RATIO = 0.1
 DURATION_MAX_RATIO = 2.0  # BLS duration grid is coarse (~25% steps) and eccentric orbits run long
-MUST_RUN = ("snr", "odd_even", "secondary_eclipse", "size", "period_alias", "momentum_dump", "duration")
+THREE_DIPS_MIN_RATIO = 0.5  # without its strongest dip, the signal must keep half its depth ...
+THREE_DIPS_SIGMA = 3.0  # ... and still be this significant
+MUST_RUN = ("snr", "odd_even", "secondary_eclipse", "size", "period_alias", "momentum_dump", "duration",
+            "three_dips")
 
 
 @dataclass
@@ -260,6 +263,30 @@ def duration(sig: Signal, star: Star) -> Check:
     return Check("duration", True, ratio, f"{base}, so the length fits.", margin)
 
 
+def three_dips(ep: Epochs) -> Check:
+    """A periodic signal needs three real dips. Leave out the strongest one: the rest must keep half the depth and
+    stay 3 sigma deep; otherwise one dip (a single transit, or a glitch) is carrying a 'periodic' fold of empty
+    epochs. This matters for the long-period search, where 3 epochs with data are easy to line up."""
+    n = len(ep.epoch)
+    if n < 3:
+        return Check("three_dips", False if n else None, float(n),
+                     f"Only {n} dip(s) could be measured; a periodic signal needs three." if n else
+                     "No individual dips could be measured.", 0.0 if n else None)
+    all_d, _ = _wmean(ep.depth, ep.err)
+    k = int(np.argmax(ep.depth / ep.err))
+    rest = np.arange(n) != k
+    rest_d, rest_e = _wmean(ep.depth[rest], ep.err[rest])
+    ratio = rest_d / all_d if all_d > 0 else 0.0
+    if ratio < THREE_DIPS_MIN_RATIO or rest_d / rest_e < THREE_DIPS_SIGMA:
+        return Check("three_dips", False, ratio,
+                     f"Without its strongest dip (BTJD {ep.centre[k]:.2f}) the signal is only {ratio * 100:.0f}% as "
+                     f"deep ({rest_d / rest_e:.1f} sigma): one dip carries it, so it is not a repeating signal.", 0.0)
+    return Check("three_dips", True, ratio,
+                 f"Without its strongest dip the other {n - 1} keep {ratio * 100:.0f}% of the depth "
+                 f"({rest_d / rest_e:.1f} sigma): the signal repeats.",
+                 _clip01((ratio - THREE_DIPS_MIN_RATIO) / (1 - THREE_DIPS_MIN_RATIO)))
+
+
 def single_sector(ep: Epochs) -> Check:
     n = len(np.unique(ep.sector))
     if n <= 1:
@@ -288,6 +315,7 @@ def run_all(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal, star: Star
         momentum_dump(ep, sig, dumps, flagged, quality_read),
         sd,
         duration(sig, star),
+        three_dips(ep),
         single_sector(ep),
     ]
     extra = {
@@ -295,6 +323,7 @@ def run_all(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal, star: Star
         "radius_rearth": sz.radius_rearth, "per_sector": per_sector,
         "transit_times_btjd": [round(float(x), 5) for x in ep.centre],
         "transit_depths_ppm": [round(float(x) * 1e6, 1) for x in ep.depth],
+        "transit_depth_errs_ppm": [round(float(x) * 1e6, 1) for x in ep.err],
         "sectors_with_transits": sorted({int(s) for s in ep.sector}),
         "n_transits_measured": int(len(ep.epoch)),
     }

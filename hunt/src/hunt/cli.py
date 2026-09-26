@@ -96,7 +96,8 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--time-budget-min", type=float, default=350.0)
     r.add_argument("--out", default="out/shard")
     r.add_argument("--workers", type=int, default=None)
-    r.add_argument("--max-sectors", type=int, default=3)
+    r.add_argument("--max-sectors", type=int, default=999,
+                   help="cap on sectors stitched per star, best products then newest first (default: all)")
     r.add_argument("--limit", type=int, default=None, help="only the first N stars of this shard")
     r.add_argument("--catalogue", default=None, help="known-signal snapshot JSON (default: download)")
     r.add_argument("--no-plots", action="store_true")
@@ -115,7 +116,8 @@ def main(argv: list[str] | None = None) -> int:
     i.add_argument("--n-stars", type=int, default=200)
     i.add_argument("--per-star", type=int, default=10)
     i.add_argument("--workers", type=int, default=None)
-    i.add_argument("--max-sectors", type=int, default=3)
+    i.add_argument("--max-sectors", type=int, default=999,
+                   help="cap on sectors stitched per star, best products then newest first (default: all)")
     i.add_argument("--seed", type=int, default=1)
     i.set_defaults(fn=cmd_inject)
 
