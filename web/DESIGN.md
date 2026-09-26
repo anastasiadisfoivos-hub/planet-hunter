@@ -62,6 +62,7 @@ Rules:
 
 - UI: 120 to 200ms, `cubic-bezier(.2, 0, 0, 1)`, on opacity, transform and colour only. Motion is for feedback
   and state change only; no UI element loops. Under `prefers-reduced-motion`, every duration is 0.
+- Panels, popovers and sheets may use up to 240ms to enter and 160ms to exit. Map markers may fade over up to 240ms.
 - Camera: `camera-controls` gives damped orbit and dolly with inertia. Picking a planet host, "Jump to" and closing a
   close-up are **flights**: one eased (ease-in-out) timeline of 1.2 to 2 s that pulls back, turns toward the
   destination, then glides in. Any pointer or wheel input stops a flight where it is.
