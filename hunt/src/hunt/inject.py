@@ -167,15 +167,21 @@ def summarise(star_outputs: list[dict]) -> dict:
 
 
 def run(tic_file: Path, out_path: Path, n_stars: int = 200, per_star: int = 10, workers: int | None = None,
-        max_sectors: int = 3, seed: int = 1, log=print) -> dict:
+        max_sectors: int = 3, seed: int = 1, resume: bool = False, log=print) -> dict:
     """Use the first quiet stars of tic_file (in order) until n_stars have been injected."""
     rows = targets.read(tic_file)
     all_bins = bins()
     workers = workers or os.cpu_count() or 1
     outputs: list[dict] = []
     raw_path = out_path.with_name(out_path.stem + "_injections.jsonl")
-    raw_path.write_text("")
-    k = 0
+    if resume and raw_path.exists():  # keep finished stars (timeouts and crashes are tried again)
+        outputs += [o for o in map(json.loads, raw_path.read_text().splitlines())
+                    if o.get("skipped") != "timeout or crash"]
+        raw_path.write_text("".join(json.dumps(o) + "\n" for o in outputs))
+        log(f"resuming: {len(outputs)} stars already done")
+    else:
+        raw_path.write_text("")
+    done = {int(o["tic"]) for o in outputs}
     tmp = out_path.with_name(out_path.stem + "_work")
     tmp.mkdir(parents=True, exist_ok=True)
     ctx = mp.get_context("spawn")
@@ -192,8 +198,10 @@ def run(tic_file: Path, out_path: Path, n_stars: int = 200, per_star: int = 10, 
             if nxt is None:
                 break
             idx, row = nxt
-            bl = [all_bins[(k + j) % len(all_bins)] for j in range(per_star)]
-            k += per_star
+            if int(row["tic"]) in done:
+                continue
+            # Bins cycle with the row index, so a resumed run gives every star the same bins.
+            bl = [all_bins[(idx * per_star + j) % len(all_bins)] for j in range(per_star)]
             path = tmp / f"{int(row['tic'])}.json"
             path.unlink(missing_ok=True)
             p = ctx.Process(target=_child, args=(int(row["tic"]), row, bl, seed + idx, max_sectors, str(path)),

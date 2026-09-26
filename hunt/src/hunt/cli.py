@@ -51,7 +51,7 @@ def cmd_run(a) -> int:
 
     i, n = _shard(a.shard)
     info = sweep.run(Path(a.tic_file), Path(a.out), i, n, a.time_budget_min, a.workers, a.max_sectors, a.limit,
-                     not a.no_plots, Path(a.catalogue) if a.catalogue else None, log=_log)
+                     not a.no_plots, Path(a.catalogue) if a.catalogue else None, a.star_timeout_s, log=_log)
     _log(json.dumps(info, indent=1))
     return 0
 
@@ -70,7 +70,8 @@ def cmd_merge(a) -> int:
 def cmd_inject(a) -> int:
     from . import inject
 
-    s = inject.run(Path(a.tic_file), Path(a.out), a.n_stars, a.per_star, a.workers, a.max_sectors, a.seed, log=_log)
+    s = inject.run(Path(a.tic_file), Path(a.out), a.n_stars, a.per_star, a.workers, a.max_sectors, a.seed,
+                   a.resume, log=_log)
     _log(json.dumps({k: s[k] for k in ("n_stars", "n_injections", "overall_recovery_fraction", "by_radius",
                                        "by_period")}, indent=1))
     return 0
@@ -100,6 +101,7 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--limit", type=int, default=None, help="only the first N stars of this shard")
     r.add_argument("--catalogue", default=None, help="known-signal snapshot JSON (default: download)")
     r.add_argument("--no-plots", action="store_true")
+    r.add_argument("--star-timeout-s", type=float, default=300.0, help="kill a star's process after this long")
     r.set_defaults(fn=cmd_run)
 
     m = sub.add_parser("merge", help="merge shard outputs into ranked candidates + funnel")
@@ -117,6 +119,7 @@ def main(argv: list[str] | None = None) -> int:
     i.add_argument("--workers", type=int, default=None)
     i.add_argument("--max-sectors", type=int, default=3)
     i.add_argument("--seed", type=int, default=1)
+    i.add_argument("--resume", action="store_true", help="keep stars already in <out>_injections.jsonl")
     i.set_defaults(fn=cmd_inject)
 
     a = p.parse_args(argv)
