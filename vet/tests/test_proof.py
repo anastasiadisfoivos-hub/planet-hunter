@@ -94,7 +94,8 @@ def test_wasp18b_confirmed_planet():
     assert not any(f.startswith("FP") for f in v["leo"]["flags"])
     assert v["leo"]["pixel"]["offset_arcsec"] < 15
     if RUN_TRI:
-        assert v["triceratops"]["fpp"] < 0.5 and v["triceratops"]["nfpp"] < 0.1
+        assert v["triceratops"]["background_population"]
+        assert v["triceratops"]["fpp"] < 0.015 and v["triceratops"]["nfpp"] < 0.001  # validated
 
 
 def test_toi4257_01_nearby_eclipsing_binary():
@@ -104,8 +105,11 @@ def test_toi4257_01_nearby_eclipsing_binary():
     assert v["summary"]["verdict"] == "fail"
     assert "FP: off-target" in v["leo"]["flags"]
     assert v["leo"]["pixel"]["offset_arcsec"] > 15
+    src = v["leo"]["pixel"]["source"]
+    assert src["tic"] == "75208617"  # the star ExoFOP names: "offset on TIC 75208617 in SPOC s62"
+    assert src["gaia_dr3"] == "5423774792624492928" and src["sep_from_fit_arcsec"] < 5
     off = next(r for r in v["summary"]["reasons"] if "off-target" in r)
-    assert "5423774792624492928" in off  # the G = 14.3 star 25" away (TIC 75208617) sits under the fitted source
+    assert "TIC 75208617" in off
     if RUN_TRI:
         assert v["triceratops"]["nfpp"] > 0.1
         assert any("nearby false positive" in r for r in v["summary"]["reasons"])

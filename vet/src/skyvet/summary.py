@@ -8,7 +8,8 @@ fail: published evidence that the dip is not a planet on the target.
   - A catalogued eclipsing binary at the candidate's period (or x2, x1/2): VSX within 42" or Gaia DR3
     vari_eclipsing_binary within 63".
 flag: needs a person to look.
-  - Any tool or part that did not run, or LEO tests it could not evaluate.
+  - Any tool or part that did not run, LEO tests it could not evaluate, or TRICERATOPS without its background
+    population (it skips those scenarios silently otherwise).
   - LEO-vetter false-alarm (FA) tests. The candidate already passed HUNT's own detection cuts, so LEO doubting
     that the signal is a clean transit is a reason to look, not a disposition.
   - TRICERATOPS not validated (FPP >= 0.015 or NFPP >= 0.001) but not ruled out.
@@ -20,8 +21,6 @@ pass: every tool ran and none of the above applies.
 """
 
 from __future__ import annotations
-
-from .gaia import sep_to
 
 PLANET_TYPES = ("EP",)  # VSX / Gaia class for an exoplanet transit
 
@@ -53,6 +52,9 @@ def summarise(v: dict, gaia_rows: list[dict] | None, target: dict | None) -> dic
     if not tri.get("ran"):
         flag.append(f"TRICERATOPS did not run: {tri.get('reason', 'unknown')}")
     else:
+        if not tri.get("background_population", True):
+            flag.append("TRICERATOPS ran without a Gaia field-star population: its background scenarios (DTP, DEB, "
+                        "BTP, BEB and their x2P forms) were skipped")
         fpp, nfpp = tri["fpp"], tri["nfpp"]
         top = "; ".join(f"{s['scenario']} on TIC {s['tic']} {s['prob']:.2f}" for s in tri.get("top_scenarios", [])[:3])
         if nfpp > 0.1:
@@ -119,13 +121,11 @@ def summarise(v: dict, gaia_rows: list[dict] | None, target: dict | None) -> dic
 
 def _offset_text(px: dict, gaia_rows: list[dict] | None, target: dict | None) -> str:
     txt = f"the difference-image source is {px['offset_arcsec']}\" from the target (threshold 15\")"
-    if gaia_rows and px.get("source_ra") is not None:
-        best = min(gaia_rows, key=lambda r: sep_to(r, px["source_ra"], px["source_dec"]))
-        d_fit = sep_to(best, px["source_ra"], px["source_dec"])
-        if target is not None and best["source_id"] == target["source_id"]:
-            txt += "; the nearest Gaia source to the fitted position is the target itself"
-        else:
-            d_t = sep_to(best, target["ra"], target["dec"]) if target else float("nan")
-            txt += (f"; nearest Gaia DR3 source to the fitted position: {best['source_id']} "
-                    f"(G = {best['phot_g_mean_mag']:.2f}, {d_t:.1f}\" from the target, {d_fit:.1f}\" from the fit)")
+    src = px.get("source")
+    if src and src["is_target"]:
+        txt += "; the nearest Gaia source to the fitted position is the target itself"
+    elif src:
+        name = f"TIC {src['tic']} = " if src.get("tic") else ""
+        txt += (f"; the star at the fitted position is {name}Gaia DR3 {src['gaia_dr3']} (G = {src['gmag']:.2f}, "
+                f"{src['sep_from_target_arcsec']:.1f}\" from the target, {src['sep_from_fit_arcsec']:.1f}\" from the fit)")
     return txt

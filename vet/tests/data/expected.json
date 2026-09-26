@@ -10,6 +10,7 @@
    "tool": "LEO-vetter",
    "pixel": {
     "ran": true,
+    "tool": "transitDiffImage 0.1 + leo_vetter.pixel.prf_fit",
     "offset_arcsec": 1.01,
     "source_ra": 24.354666,
     "source_dec": -45.678004,
@@ -47,7 +48,14 @@
       "fit_dec": -45.676796
      }
     ],
-    "problems": []
+    "problems": [],
+    "source": {
+     "gaia_dr3": "4955371367334610048",
+     "gmag": 9.174,
+     "is_target": true,
+     "sep_from_fit_arcsec": 0.92,
+     "sep_from_target_arcsec": 0.0
+    }
    },
    "disposition": "FA",
    "not_evaluated": [],
@@ -97,7 +105,7 @@
   },
   "triceratops": {
    "ran": true,
-   "fpp": 7.66e-15,
+   "fpp": 0.0,
    "nfpp": 0.0,
    "version": "1.1.0",
    "tool": "TRICERATOPS",
@@ -105,16 +113,23 @@
    "budget_s": 900.0,
    "seed": 20260926,
    "classification": "validated (FPP < 0.015, NFPP < 0.001)",
+   "fpp_raw": -1.0436096431476471e-14,
+   "nfpp_raw": 0.0,
    "top_scenarios": [
     {
-     "scenario": "PTP",
+     "scenario": "DTP",
      "tic": "100100827",
      "prob": 1.0
     },
     {
+     "scenario": "PTP",
+     "tic": "100100827",
+     "prob": 1.47e-10
+    },
+    {
      "scenario": "TP",
      "tic": "100100827",
-     "prob": 3.48e-09
+     "prob": 5.11e-19
     },
     {
      "scenario": "EB",
@@ -123,11 +138,6 @@
     },
     {
      "scenario": "EBx2P",
-     "tic": "100100827",
-     "prob": 0.0
-    },
-    {
-     "scenario": "PEB",
      "tic": "100100827",
      "prob": 0.0
     }
@@ -146,7 +156,8 @@
     "105": "SPOC",
     "106": "SPOC"
    },
-   "runtime_s": 50.5
+   "background_population": true,
+   "runtime_s": 36.0
   },
   "gaia": {
    "ran": true,
@@ -292,7 +303,7 @@
    ],
    "notes": [
     "difference-image source is 1.01\" from the target (LEO threshold 15\")",
-    "TRICERATOPS FPP = 7.66e-15, NFPP = 0: meets the validation thresholds",
+    "TRICERATOPS FPP = 0, NFPP = 0: meets the validation thresholds",
     "Gaia DR3 SB1 orbit at the candidate's period needs only >= 10.5 M_Jup: the transiting companion's own reflex motion",
     "VSX lists WASP-18 as a transiting exoplanet at this period",
     "Gaia DR3 classifies the target's variability as an exoplanet transit (EP)"
@@ -321,15 +332,15 @@
   },
   "runtime_s": {
    "tic": 0.0,
-   "lightcurve": 7.3,
-   "leo": 75.8,
-   "triceratops": 50.5,
+   "lightcurve": 3.3,
+   "leo": 27.4,
+   "triceratops": 36.0,
    "gaia": 0.0,
    "variability": 0.0,
-   "total": 133.6
+   "total": 66.7
   },
   "skyvet_version": "0.1.0",
-  "vetted_at": "2026-09-26T19:59:53+00:00",
+  "vetted_at": "2026-09-26T20:42:58+00:00",
   "offline": false
  },
  "toi4257_01": {
@@ -343,6 +354,7 @@
    "tool": "LEO-vetter",
    "pixel": {
     "ran": true,
+    "tool": "transitDiffImage 0.1 + leo_vetter.pixel.prf_fit",
     "offset_arcsec": 23.1,
     "source_ra": 138.739355,
     "source_dec": -45.11665,
@@ -380,7 +392,15 @@
       "fit_dec": -45.11549
      }
     ],
-    "problems": []
+    "problems": [],
+    "source": {
+     "gaia_dr3": "5423774792624492928",
+     "gmag": 14.322,
+     "is_target": false,
+     "sep_from_fit_arcsec": 2.18,
+     "sep_from_target_arcsec": 25.03,
+     "tic": "75208617"
+    }
    },
    "disposition": "FP",
    "not_evaluated": [],
@@ -431,38 +451,40 @@
   "triceratops": {
    "ran": true,
    "fpp": 1.0,
-   "nfpp": 0.391,
+   "nfpp": 0.329,
    "version": "1.1.0",
    "tool": "TRICERATOPS",
    "N": 100000,
    "budget_s": 900.0,
    "seed": 20260926,
    "classification": "likely nearby false positive (NFPP > 0.1)",
+   "fpp_raw": 0.9999462948235083,
+   "nfpp_raw": 0.3293737120113774,
    "top_scenarios": [
     {
      "scenario": "SEBx2P",
      "tic": "75208638",
-     "prob": 0.605
-    },
-    {
-     "scenario": "NEBx2P",
-     "tic": "75208617",
-     "prob": 0.127
+     "prob": 0.606
     },
     {
      "scenario": "NEB",
      "tic": "75208648",
-     "prob": 0.0603
+     "prob": 0.0711
+    },
+    {
+     "scenario": "BEBx2P",
+     "tic": "75208638",
+     "prob": 0.0581
     },
     {
      "scenario": "NEBx2P",
-     "tic": "816133804",
-     "prob": 0.0429
+     "tic": "75208617",
+     "prob": 0.0535
     },
     {
      "scenario": "NEB",
      "tic": "75208623",
-     "prob": 0.0428
+     "prob": 0.0437
     }
    ],
    "n_stars_considered": 12,
@@ -479,7 +501,8 @@
     "63": "SPOC",
     "89": "5x5 default"
    },
-   "runtime_s": 126.0
+   "background_population": true,
+   "runtime_s": 79.5
   },
   "gaia": {
    "ran": true,
@@ -765,8 +788,8 @@
   "summary": {
    "verdict": "fail",
    "reasons": [
-    "LEO-vetter FP: off-target: the difference-image source is 23.1\" from the target (threshold 15\"); nearest Gaia DR3 source to the fitted position: 5423774792624492928 (G = 14.32, 25.0\" from the target, 2.2\" from the fit)",
-    "TRICERATOPS NFPP = 0.391 > 0.1: likely a nearby false positive (FPP = 1; most probable: SEBx2P on TIC 75208638 0.60; NEBx2P on TIC 75208617 0.13; NEB on TIC 75208648 0.06)"
+    "LEO-vetter FP: off-target: the difference-image source is 23.1\" from the target (threshold 15\"); the star at the fitted position is TIC 75208617 = Gaia DR3 5423774792624492928 (G = 14.32, 25.0\" from the target, 2.2\" from the fit)",
+    "TRICERATOPS NFPP = 0.329 > 0.1: likely a nearby false positive (FPP = 1; most probable: SEBx2P on TIC 75208638 0.61; NEB on TIC 75208648 0.07; BEBx2P on TIC 75208638 0.06)"
    ],
    "notes": [
     "6 Gaia DR3 neighbour(s) within 42\" could cause the dip (weighed by TRICERATOPS / the pixel test)"
@@ -795,15 +818,15 @@
   },
   "runtime_s": {
    "tic": 0.0,
-   "lightcurve": 0.5,
-   "leo": 13.5,
-   "triceratops": 126.0,
+   "lightcurve": 0.1,
+   "leo": 7.8,
+   "triceratops": 79.5,
    "gaia": 0.0,
    "variability": 0.0,
-   "total": 140.0
+   "total": 144.7
   },
   "skyvet_version": "0.1.0",
-  "vetted_at": "2026-09-26T20:02:13+00:00",
+  "vetted_at": "2026-09-26T20:45:22+00:00",
   "offline": false
  },
  "eb_408512382": {
@@ -818,6 +841,7 @@
    "tool": "LEO-vetter",
    "pixel": {
     "ran": true,
+    "tool": "transitDiffImage 0.1 + leo_vetter.pixel.prf_fit",
     "offset_arcsec": 1.31,
     "source_ra": 194.653902,
     "source_dec": -21.713792,
@@ -845,7 +869,14 @@
       "fit_dec": -21.713792
      }
     ],
-    "problems": []
+    "problems": [],
+    "source": {
+     "gaia_dr3": "3505334470549840896",
+     "gmag": 10.749,
+     "is_target": true,
+     "sep_from_fit_arcsec": 1.4,
+     "sep_from_target_arcsec": 0.0
+    }
    },
    "disposition": "FP",
    "not_evaluated": [],
@@ -902,6 +933,8 @@
    "budget_s": 900.0,
    "seed": 20260926,
    "classification": "likely false positive (FPP > 0.5)",
+   "fpp_raw": 1.0,
+   "nfpp_raw": 0.0,
    "top_scenarios": [
     {
      "scenario": "SEBx2P",
@@ -914,19 +947,19 @@
      "prob": 7.37e-12
     },
     {
+     "scenario": "DEBx2P",
+     "tic": "408512382",
+     "prob": 1.13e-93
+    },
+    {
      "scenario": "PEBx2P",
      "tic": "408512382",
      "prob": 4.01e-149
     },
     {
-     "scenario": "TP",
+     "scenario": "BEBx2P",
      "tic": "408512382",
-     "prob": 0.0
-    },
-    {
-     "scenario": "EB",
-     "tic": "408512382",
-     "prob": 0.0
+     "prob": 1.88e-206
     }
    ],
    "n_stars_considered": 1,
@@ -941,7 +974,8 @@
     "10": "SPOC",
     "64": "SPOC"
    },
-   "runtime_s": 40.8
+   "background_population": true,
+   "runtime_s": 24.0
   },
   "gaia": {
    "ran": true,
@@ -1071,7 +1105,7 @@
    "reasons": [
     "LEO-vetter FP: radius too large",
     "LEO-vetter FP: significant secondary",
-    "TRICERATOPS FPP = 1 > 0.5: likely a false positive (most probable: SEBx2P on TIC 408512382 1.00; EBx2P on TIC 408512382 0.00; PEBx2P on TIC 408512382 0.00)",
+    "TRICERATOPS FPP = 1 > 0.5: likely a false positive (most probable: SEBx2P on TIC 408512382 1.00; EBx2P on TIC 408512382 0.00; DEBx2P on TIC 408512382 0.00)",
     "Gaia DR3 SB1 orbit at P = 4.03187 d (same the candidate's) needs a companion >= 0.467 Msun: a stellar eclipsing binary"
    ],
    "notes": [
@@ -1096,15 +1130,15 @@
   },
   "runtime_s": {
    "tic": 0.0,
-   "lightcurve": 0.2,
-   "leo": 7.1,
-   "triceratops": 40.8,
+   "lightcurve": 0.1,
+   "leo": 4.2,
+   "triceratops": 24.0,
    "gaia": 0.0,
    "variability": 0.0,
-   "total": 48.1
+   "total": 28.2
   },
   "skyvet_version": "0.1.0",
-  "vetted_at": "2026-09-26T20:03:01+00:00",
+  "vetted_at": "2026-09-26T20:45:51+00:00",
   "offline": false
  },
  "wasp126b": {
@@ -1118,6 +1152,7 @@
    "tool": "LEO-vetter",
    "pixel": {
     "ran": true,
+    "tool": "transitDiffImage 0.1 + leo_vetter.pixel.prf_fit",
     "offset_arcsec": 1.17,
     "source_ra": 63.374404,
     "source_dec": -69.22629,
@@ -1155,7 +1190,14 @@
       "fit_dec": -69.226412
      }
     ],
-    "problems": []
+    "problems": [],
+    "source": {
+     "gaia_dr3": "4666498154837086208",
+     "gmag": 11.066,
+     "is_target": true,
+     "sep_from_fit_arcsec": 1.14,
+     "sep_from_target_arcsec": 0.0
+    }
    },
    "disposition": "FP",
    "not_evaluated": [],
@@ -1205,7 +1247,7 @@
   },
   "triceratops": {
    "ran": true,
-   "fpp": 1.67e-15,
+   "fpp": 2.55e-15,
    "nfpp": 0.0,
    "version": "1.1.0",
    "tool": "TRICERATOPS",
@@ -1213,30 +1255,32 @@
    "budget_s": 900.0,
    "seed": 20260926,
    "classification": "validated (FPP < 0.015, NFPP < 0.001)",
+   "fpp_raw": 2.55351295663786e-15,
+   "nfpp_raw": 0.0,
    "top_scenarios": [
     {
-     "scenario": "PTP",
+     "scenario": "DTP",
      "tic": "25155310",
      "prob": 1.0
     },
     {
+     "scenario": "PTP",
+     "tic": "25155310",
+     "prob": 8.27e-14
+    },
+    {
      "scenario": "TP",
      "tic": "25155310",
-     "prob": 2.13e-07
+     "prob": 1.77e-20
     },
     {
      "scenario": "STP",
      "tic": "25155310",
-     "prob": 2.72e-58
+     "prob": 2.25e-71
     },
     {
-     "scenario": "DEB",
+     "scenario": "EBx2P",
      "tic": "25155310",
-     "prob": 0.0
-    },
-    {
-     "scenario": "NEB",
-     "tic": "25155316",
      "prob": 0.0
     }
    ],
@@ -1254,7 +1298,8 @@
     "97": "SPOC",
     "98": "SPOC"
    },
-   "runtime_s": 51.7
+   "background_population": true,
+   "runtime_s": 25.7
   },
   "gaia": {
    "ran": true,
@@ -1420,7 +1465,7 @@
    ],
    "notes": [
     "difference-image source is 1.17\" from the target (LEO threshold 15\")",
-    "TRICERATOPS FPP = 1.67e-15, NFPP = 0: meets the validation thresholds",
+    "TRICERATOPS FPP = 2.55e-15, NFPP = 0: meets the validation thresholds",
     "1 Gaia DR3 neighbour(s) within 42\" could cause the dip (weighed by TRICERATOPS / the pixel test)",
     "VSX lists WASP-126 as a transiting exoplanet at this period"
    ]
@@ -1448,15 +1493,15 @@
   },
   "runtime_s": {
    "tic": 0.0,
-   "lightcurve": 0.3,
-   "leo": 57.7,
-   "triceratops": 51.7,
+   "lightcurve": 2.7,
+   "leo": 28.5,
+   "triceratops": 25.7,
    "gaia": 0.0,
    "variability": 0.0,
-   "total": 109.7
+   "total": 56.8
   },
   "skyvet_version": "0.1.0",
-  "vetted_at": "2026-09-26T20:04:51+00:00",
+  "vetted_at": "2026-09-26T20:46:48+00:00",
   "offline": false
  }
 }

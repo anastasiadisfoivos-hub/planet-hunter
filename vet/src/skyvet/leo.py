@@ -147,7 +147,8 @@ def run_pixel(cand: dict, star: dict, lc: LightCurve, tlc) -> dict:
     tlc.metrics["offset_mean"] = float(np.nansum(off * q) / np.nansum(q))
     tlc.metrics["offset_qual"] = float(off[int(np.nanargmax(q))])
     best = per_sector[int(np.nanargmax(q))]
-    return {"ran": True, "offset_arcsec": round(tlc.metrics["offset_qual"], 2),
+    return {"ran": True, "tool": "transitDiffImage " + version("transit-diffimage") + " + leo_vetter.pixel.prf_fit",
+            "offset_arcsec": round(tlc.metrics["offset_qual"], 2),
             "source_ra": best["fit_ra"], "source_dec": best["fit_dec"],
             "offset_mean_arcsec": round(tlc.metrics["offset_mean"], 2), "threshold_arcsec": 15.0,
             "sectors": per_sector, "problems": problems}

@@ -48,18 +48,29 @@ def record_inputs(tic: int, sectors: list[int]) -> dict:
     def fetch() -> dict:
         from triceratops.triceratops import target
 
+        _use_certifi()
         with contextlib.redirect_stdout(io.StringIO()):
             t = target(ID=int(tic), sectors=np.array(sectors), search_radius=SEARCH_RADIUS_PIX)
-        bg = None
-        if isinstance(t.trilegal_fname, str) and os.path.exists(t.trilegal_fname):
-            with open(t.trilegal_fname) as f:
-                bg = f.read()
-            os.remove(t.trilegal_fname)
+        if not (isinstance(t.trilegal_fname, str) and os.path.exists(t.trilegal_fname)):
+            # TRICERATOPS would carry on without its background scenarios; do not record (or cache) that.
+            raise ConnectionError("TRICERATOPS' Gaia DR3 field-star query failed (no background population)")
+        with open(t.trilegal_fname) as f:
+            bg = f.read()
+        os.remove(t.trilegal_fname)
         return {"ID": int(tic), "sectors": list(map(int, sectors)), "stars": t.stars.to_dict(orient="list"),
                 "TESS_images": t.TESS_images, "col0s": t.col0s, "row0s": t.row0s, "pix_coords": t.pix_coords,
                 "background_csv": bg, "triceratops_version": version("triceratops")}
 
     return cache.cached("triceratops", f"{int(tic)}:{','.join(map(str, sectors))}", fetch, fmt="pickle")
+
+
+def _use_certifi() -> None:
+    """astroquery's Gaia client verifies TLS with Python's default context, which on a python.org build has no CA
+    bundle unless "Install Certificates" was run. Point it at certifi's bundle (verification stays on)."""
+    if not os.environ.get("SSL_CERT_FILE"):
+        import certifi
+
+        os.environ["SSL_CERT_FILE"] = certifi.where()
 
 
 def replay_target(rec: dict, workdir: str):
@@ -177,7 +188,9 @@ def run(cand: dict, lc: LightCurve, budget_s: float = DEFAULT_BUDGET_S, n: int =
             res = pickle.load(f)
     if not res["ok"]:
         return {**out, "reason": res["error"], "trace": res["trace"]}
-    fpp, nfpp = res["fpp"], res["nfpp"]
+    # FPP = 1 - (planet scenarios); when those sum to 1 it can come out a hair below 0. Report 0, keep the raw.
+    fpp_raw, nfpp_raw = res["fpp"], res["nfpp"]
+    fpp, nfpp = max(fpp_raw, 0.0), max(nfpp_raw, 0.0)
     if fpp < VALIDATED_FPP and nfpp < VALIDATED_NFPP:
         call = "validated (FPP < 0.015, NFPP < 0.001)"
     elif nfpp > LIKELY_NFP_NFPP:
@@ -187,8 +200,11 @@ def run(cand: dict, lc: LightCurve, budget_s: float = DEFAULT_BUDGET_S, n: int =
     else:
         call = "not validated, not ruled out"
     return {**out, "ran": True, "fpp": float(f"{fpp:.3g}"), "nfpp": float(f"{nfpp:.3g}"), "classification": call,
+            "fpp_raw": fpp_raw, "nfpp_raw": nfpp_raw,
             "top_scenarios": res["top_scenarios"], "n_stars_considered": res["n_stars_considered"],
             "sectors": lc.sectors, "depth_used_ppm": round(depth * 1e6, 1), "n_points": len(tb),
             "bin_minutes": round(width * 1440, 2),
             "apertures": {s: "SPOC" if lc.apertures.get(s) else "5x5 default" for s in rec["sectors"]},
+            # Without a field-star population TRICERATOPS silently skips DTP/DEB/BTP/BEB (and x2P) scenarios.
+            "background_population": bool(rec["background_csv"]),
             "runtime_s": round(time.time() - t_start, 1)}

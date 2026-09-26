@@ -38,3 +38,15 @@ def _plain(v):
     if isinstance(v, str):
         return v.strip() or None
     return v
+
+
+def by_gaia(source_id: str) -> str | None:
+    """TIC ID of a Gaia source (TIC 8.2 carries Gaia DR2 ids, which equal DR3 ids for almost all stars)."""
+
+    def fetch() -> dict:
+        from astroquery.mast import Catalogs
+
+        tab = Catalogs.query_criteria(catalog="Tic", GAIA=str(source_id))
+        return {"tic": str(tab[0]["ID"]) if len(tab) else None}
+
+    return cache.cached("tic-by-gaia", str(source_id), fetch)["tic"]

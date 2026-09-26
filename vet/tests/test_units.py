@@ -89,6 +89,13 @@ def test_leo_test_that_could_not_be_evaluated_is_a_flag():
     assert summarise(v, None, None)["verdict"] == "flag"
 
 
+def test_triceratops_without_background_population_is_a_flag():
+    v = _ok_blocks()
+    v["triceratops"]["background_population"] = False
+    s = summarise(v, None, None)
+    assert s["verdict"] == "flag" and "background scenarios" in s["reasons"][0]
+
+
 def test_leo_fp_fails_and_fa_flags():
     v = _ok_blocks()
     v["leo"]["flags"] = ["FA: sinusoidal variations"]

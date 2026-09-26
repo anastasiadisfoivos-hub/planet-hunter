@@ -61,6 +61,10 @@ newest 3 of the candidate's sectors. They are flattened with a Savitzky-Golay fi
 - **TRICERATOPS** runs in a child process with a wall-clock budget (default 900 s, `--tri-budget`). Past
   the budget it is killed and reported as not run. It uses a fixed seed, so a replay reproduces the numbers.
   N defaults to TRICERATOPS' own 10⁶ (`--tri-n`).
+- **TRICERATOPS needs its Gaia background population.** Without it, TRICERATOPS silently drops its
+  background scenarios (DTP, DEB, BTP, BEB), so skyvet refuses to record such inputs. astroquery's Gaia
+  client needs a CA bundle; on a python.org Python without one, skyvet points `SSL_CERT_FILE` at certifi's
+  bundle, and verification stays on.
 - **SPOC apertures for TRICERATOPS** are read from the light-curve file's APERTURE extension. TRICERATOPS'
   own lookup scrapes an archive listing that no longer answers. QLP sectors use TRICERATOPS' default
   5×5 box.
@@ -88,21 +92,21 @@ MAST, TESScut, ESA Gaia archive, VizieR/CDS and archive.stsci.edu.
 `tests/data/record.py`. Every tool re-runs on the recorded inputs and must reproduce
 `tests/data/expected.json`. Sockets are blocked during the tests: the only connection allowed (and refused) is
 astroquery.gaia's import-time status ping, which carries no data. `SKYVET_TEST_TRICERATOPS=0` skips the slow
-TRICERATOPS replay. The recorded cache is 4.8 MB.
+TRICERATOPS replay. The recorded cache is 5.4 MB.
 
 ## Proof (recorded real data, `tests/data/expected.json`)
 
 | Candidate | Verdict | LEO-vetter | Pixel offset | TRICERATOPS FPP / NFPP | Gaia DR3 | Why |
 |---|---|---|---|---|---|---|
-| **WASP-18 b** (TOI-185.01, confirmed) | **flag** | FA: sinusoidal variations | 1.0″ | 7.7e-15 / 0: validated | SB1 orbit at P, ≥ 10.5 M_Jup (planetary); RUWE 0.95 | Every FP test and TRICERATOPS clear it. LEO's SWEET test picks up WASP-18 b's real phase curve (ellipsoidal + beaming from a 10 M_Jup planet on a 0.94 d orbit). |
-| **TOI-4257.01** (TFOPWG FP, NEB) | **fail** | FP: off-target | 23.1″ (sectors 89, 63, 62: 24.5″, 23.1″, 27.2″) | 1.0 / 0.391: likely nearby FP | nearest source to the fitted position: Gaia DR3 5423774792624492928, G = 14.32, 25.0″ away, 2.2″ from the fit | Matches ExoFOP: "offset on TIC 75208617". TRICERATOPS' nearby-EB scenario also names TIC 75208617. |
+| **WASP-18 b** (TOI-185.01, confirmed) | **flag** | FA: sinusoidal variations | 1.0″ | 0 / 0: validated (raw FPP −1.0e-14, rounding) | SB1 orbit at P, ≥ 10.5 M_Jup (planetary); RUWE 0.95 | Every FP test and TRICERATOPS clear it. LEO's SWEET test picks up WASP-18 b's real phase curve (ellipsoidal + beaming from a 10 M_Jup planet on a 0.94 d orbit). |
+| **TOI-4257.01** (TFOPWG FP, NEB) | **fail** | FP: off-target | 23.1″ (sectors 89, 63, 62: 24.5″, 23.1″, 27.2″) | 1.0 / 0.329: likely nearby FP | the star at the fitted position is TIC 75208617 = Gaia DR3 5423774792624492928 (G = 14.32), 25.0″ from the target, 2.2″ from the fit | ExoFOP: "offset on TIC 75208617 in SPOC s62; retired as TFOP FP/NEB". The pixel test names that same star. TRICERATOPS spreads NFPP over several neighbours, TIC 75208617 among them (NEBx2P 0.054). |
 | **TIC 408512382** (HUNT's EB test star) | **fail** | FP: radius too large, FP: significant secondary | 1.3″ | 1.0 / 0: likely FP | SB1 orbit at P = 4.03187 d needing ≥ 0.467 M☉ | An on-target stellar eclipsing binary, found independently by three tools. |
-| WASP-126 b (TOI-114.01, confirmed; extra) | **fail** | FP: odd-even transit differences | 1.2″ | 1.7e-15 / 0: validated | RUWE 0.75 | Odd 5,834 vs even 5,992 ppm: 2.7 % apart at 3.2 σ (box), 3.5 σ (trapezoid), 3.6 σ (transit fit). LEO fails anything over 3 σ, with no fractional floor (HUNT's own check needs > 5 % as well), so at MES 240 a 2.7 % difference trips it. |
+| WASP-126 b (TOI-114.01, confirmed; extra) | **fail** | FP: odd-even transit differences | 1.2″ | 2.6e-15 / 0: validated | RUWE 0.75 | Odd 5,834 vs even 5,992 ppm: 2.7 % apart at 3.2 σ (box), 3.5 σ (trapezoid), 3.6 σ (transit fit). LEO fails anything over 3 σ, with no fractional floor (HUNT's own check needs > 5 % as well), so at MES 240 a 2.7 % difference trips it. |
 
-**Runtime** per candidate, as `runtime_s`. The machine had a load average of 70–100 on 10 cores throughout
-(other sessions' sweeps), so these are pessimistic.
+**Runtime** per candidate, as `runtime_s`. The machine had a load average of 70–100 on 10 cores for most of
+this work (other sessions' sweeps), so these are pessimistic.
 
 - **First run** (network, cold cache): 263–540 s. Most of it is the TESScut FFI cutouts for the pixel test,
-  about 100 MB per sector (WASP-18 b LEO took 358 s), plus TRICERATOPS' own cutouts and field.
-- **Replay from cache:** 40–148 s, of which TRICERATOPS (N = 10⁵) takes 32–134 s.
-- **Offline tests:** the whole suite takes about 6 min.
+  about 100 MB per sector (WASP-18 b LEO took 358 s). TRICERATOPS' own inputs take another 40–730 s.
+- **Replay from cache:** 28–145 s, of which TRICERATOPS (N = 10⁵) takes 24–80 s.
+- **Offline tests:** the whole suite takes about 4 min.

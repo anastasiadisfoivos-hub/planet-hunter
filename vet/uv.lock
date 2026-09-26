@@ -2575,6 +2575,7 @@ source = { editable = "." }
 dependencies = [
     { name = "astropy" },
     { name = "astroquery" },
+    { name = "certifi" },
     { name = "leo-vetter" },
     { name = "lightkurve" },
     { name = "numpy" },
@@ -2595,6 +2596,7 @@ dev = [
 requires-dist = [
     { name = "astropy", specifier = ">=8.0.1" },
     { name = "astroquery", specifier = ">=0.4.11" },
+    { name = "certifi", specifier = ">=2026.7.22" },
     { name = "leo-vetter", specifier = ">=1.2.0" },
     { name = "lightkurve", specifier = ">=2.6.0" },
     { name = "numpy", specifier = ">=2.5.3" },

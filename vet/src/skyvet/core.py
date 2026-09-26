@@ -84,6 +84,7 @@ def vet_candidate(candidate_json: dict, *, triceratops: bool = True, tri_budget_
         ra, dec = gaia.epoch2016(tic_row)
         v["variability"] = step("variability", lambda: variability.run(cand, ra, dec, rows, target), var_default)
 
+    _pixel_source(v, rows, target)
     v["summary"] = summary.summarise(v, rows, target)
     runtime["total"] = round(time.time() - t_all, 1)
     v["light_curve"] = (None if lc is None else
@@ -95,3 +96,21 @@ def vet_candidate(candidate_json: dict, *, triceratops: bool = True, tri_budget_
     v["offline"] = cache.offline()
     cand["vetting"] = v
     return cand
+
+
+def _pixel_source(v: dict, rows: list[dict] | None, target: dict | None) -> None:
+    """Name the star under LEO's difference-image fit: the nearest Gaia DR3 source, with its TIC ID."""
+    px = (v.get("leo") or {}).get("pixel") or {}
+    if not px.get("ran") or not rows or target is None or px.get("source_ra") is None:
+        return
+    best = min(rows, key=lambda r: gaia.sep_to(r, px["source_ra"], px["source_dec"]))
+    src = {"gaia_dr3": str(best["source_id"]), "gmag": round(best["phot_g_mean_mag"], 3),
+           "is_target": best["source_id"] == target["source_id"],
+           "sep_from_fit_arcsec": round(gaia.sep_to(best, px["source_ra"], px["source_dec"]), 2),
+           "sep_from_target_arcsec": round(gaia.sep_to(best, target["ra"], target["dec"]), 2)}
+    if not src["is_target"]:
+        try:
+            src["tic"] = tic.by_gaia(src["gaia_dr3"])
+        except Exception as e:  # noqa: BLE001
+            src["tic"], src["tic_error"] = None, f"{type(e).__name__}: {e}"
+    px["source"] = src
