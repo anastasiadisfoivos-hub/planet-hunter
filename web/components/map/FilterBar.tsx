@@ -10,6 +10,7 @@ import { useStore } from "@/state/store";
 import { CategoryGlyph } from "./CategoryGlyph";
 import { CATEGORY_KEYS, categoryCounts, chipState, isDefault, moreCount, setTypes, toggleCategory } from "./filterModel";
 import { Overlay } from "./Overlay";
+import { RollingCount } from "./RollingCount";
 import s from "./map.module.css";
 
 type Preset = "24h" | "7d" | "30d";
@@ -68,9 +69,7 @@ function Chip({ category, state, count, onToggle }: { category: Category; state:
     >
       <CategoryGlyph category={category} size={11} />
       <span>{CATEGORY_LABEL[category]}</span>
-      <span className={`mono ${s.chipCount}`} data-count={count}>
-        {count}
-      </span>
+      <RollingCount value={count} className={`mono ${s.chipCount}`} />
     </button>
   );
 }

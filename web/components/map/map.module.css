@@ -1,6 +1,12 @@
 /* Sky events map. Tokens: app/tokens.css. Rules: DESIGN.md. */
 
 .shell {
+  /* Motion (DESIGN.md, Motion): panels, popovers and sheets enter in up to 240 ms and leave in up to
+     160 ms; feed rows stagger by 30 ms, 150 ms at most. All zero under reduced motion. */
+  --dur-panel-in: 240ms;
+  --dur-panel-out: 160ms;
+  --stagger: 30ms;
+
   position: fixed;
   inset: 0;
   display: grid;
@@ -246,20 +252,27 @@
   color: var(--ink);
   display: none;
   gap: var(--s-3);
-  opacity: 1;
+  opacity: 0;
+  transform: scale(0.96);
+  transform-origin: 85% 100%;
   transition:
-    opacity var(--dur) var(--ease),
-    display var(--dur) allow-discrete,
-    overlay var(--dur) allow-discrete;
+    opacity var(--dur-panel-out) var(--ease),
+    transform var(--dur-panel-out) var(--ease),
+    display var(--dur-panel-out) allow-discrete,
+    overlay var(--dur-panel-out) allow-discrete;
 }
 
 .popover:popover-open {
   display: grid;
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--dur-panel-in);
 }
 
 @starting-style {
   .popover:popover-open {
     opacity: 0;
+    transform: scale(0.96);
   }
 }
 
@@ -1204,7 +1217,8 @@
   cursor: pointer;
   transition:
     background-color var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease);
+    color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
 }
 
 .timeSeg button[aria-checked="true"] {
@@ -1240,7 +1254,8 @@
     background-color var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease),
-    opacity var(--dur-fast) var(--ease);
+    opacity var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
 }
 
 .chip > .glyph {
@@ -1269,6 +1284,13 @@
     border-color: var(--ink-faint);
     color: var(--ink);
   }
+}
+
+/* Press feedback: a slight give under the finger or click. */
+.chip:active,
+.barButton:active,
+.timeSeg button:active {
+  transform: scale(0.97);
 }
 
 /* No events in range: dimmed, still a working toggle. */
@@ -1304,7 +1326,8 @@
   transition:
     color var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease),
-    background-color var(--dur-fast) var(--ease);
+    background-color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
 }
 
 .barButton[aria-expanded="true"] {
@@ -1364,13 +1387,24 @@
   outline: none;
   visibility: hidden;
   opacity: 0;
+  transform: scale(0.96);
   pointer-events: none;
+  /* Leaving: quick, then hidden. The origin is the opening button (set by Overlay.tsx). */
+  transition:
+    opacity var(--dur-panel-out) var(--ease),
+    transform var(--dur-panel-out) var(--ease),
+    visibility 0s linear var(--dur-panel-out);
 }
 
 .overlay[data-open="true"] {
   visibility: visible;
   opacity: 1;
+  transform: none;
   pointer-events: auto;
+  transition:
+    opacity var(--dur-panel-in) var(--ease),
+    transform var(--dur-panel-in) var(--ease),
+    visibility 0s;
 }
 
 .overlay[data-placement="below"] {
@@ -1478,6 +1512,11 @@
     border-width: 1px 0 0;
     border-radius: var(--radius-panel) var(--radius-panel) 0 0;
     padding-bottom: env(safe-area-inset-bottom);
+    transform: translateY(24px) scale(0.98);
+  }
+
+  .overlay[data-open="true"] {
+    transform: none;
   }
 
   .grabber {
@@ -1500,5 +1539,94 @@
   .layersDock {
     left: var(--s-2);
     bottom: var(--s-2);
+  }
+}
+
+/* ---------- motion: rolling counts, feed entrance ---------- */
+
+/* A count rolls to its new value: new digits in from below when it grows, from above when it shrinks. */
+.roll {
+  position: relative;
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.rollIn,
+.rollOut {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.rollOut {
+  opacity: 0;
+}
+
+.roll[data-dir="up"] .rollOut {
+  transform: translateY(-70%);
+}
+
+.roll[data-dir="down"] .rollOut {
+  transform: translateY(70%);
+}
+
+@starting-style {
+  .roll[data-dir="up"] .rollIn {
+    opacity: 0;
+    transform: translateY(70%);
+  }
+
+  .roll[data-dir="down"] .rollIn {
+    opacity: 0;
+    transform: translateY(-70%);
+  }
+
+  .roll[data-dir] .rollOut {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.chipCount.roll {
+  justify-items: end;
+}
+
+/* New feed rows fade up in turn (30 ms apart, 150 ms at most); rows that stay move by FLIP (motion.ts). */
+.feedList > li {
+  transition:
+    opacity var(--dur) var(--ease) calc(var(--i, 0) * var(--stagger)),
+    transform var(--dur) var(--ease) calc(var(--i, 0) * var(--stagger));
+}
+
+@starting-style {
+  .feedList > li {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.feedList {
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+/* The previous rows while new filters load: dimmed only if loading takes a moment, so quick changes don't flicker. */
+.feedList[aria-busy="true"] {
+  opacity: 0.6;
+  transition-delay: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    --dur-panel-in: 0ms;
+    --dur-panel-out: 0ms;
+    --stagger: 0ms;
+  }
+
+  .chip:active,
+  .barButton:active,
+  .timeSeg button:active {
+    transform: none;
   }
 }

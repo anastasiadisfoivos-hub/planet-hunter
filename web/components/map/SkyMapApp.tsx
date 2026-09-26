@@ -18,6 +18,8 @@ import { EventDetail } from "./EventDetail";
 import { Feed } from "./Feed";
 import { FilterBar } from "./FilterBar";
 import { LayersControl } from "./LayersControl";
+import { pauseWhileHidden } from "./motion";
+import { RollingCount } from "./RollingCount";
 import { StarDetail } from "./StarDetail";
 import { StatusBanner } from "./StatusBanner";
 import { filtersFromParams, paramsWithFilters } from "./urlFilters";
@@ -176,6 +178,9 @@ function MapView({ map, events, now }: Loaded) {
       .catch(() => setStatus(null));
     return () => ctl.abort();
   }, []);
+
+  // DESIGN.md: animation pauses while the tab is hidden (the 3D loop stops itself; this covers CSS and FLIP).
+  useEffect(() => pauseWhileHidden(), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -356,7 +361,7 @@ function MapView({ map, events, now }: Loaded) {
       <nav className={s.sheetTabs} aria-label="Panels">
         <button aria-pressed={sheet === "feed"} onClick={() => setSheet((cur) => (cur === "feed" ? "closed" : "feed"))}>
           <ListBullets size={16} aria-hidden />
-          Feed <span className="mono">{shown.length}</span>
+          Feed <RollingCount value={shown.length} className="mono" />
         </button>
       </nav>
 
@@ -376,7 +381,7 @@ function MapView({ map, events, now }: Loaded) {
         <span className={s.statusItem}>
           <span className="label">Showing</span>
           <span className="mono">
-            {shown.length} {shown.length === 1 ? "event" : "events"}
+            <RollingCount value={shown.length} /> {shown.length === 1 ? "event" : "events"}
           </span>
         </span>
         {API_MOCK && (

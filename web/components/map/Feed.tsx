@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { Button, DemoTag, EmptyState } from "@/components/ui";
 import { getEvents, API_MOCK, type EventsPage } from "@/lib/api";
 import { CATEGORY_OF, type SkyEvent } from "@/lib/contract";
@@ -9,9 +9,13 @@ import { formatAgo } from "@/lib/format";
 import { useStore } from "@/state/store";
 import { CategoryGlyph } from "./CategoryGlyph";
 import { CLEAR_LABEL, EMPTY_TITLE } from "./filterModel";
+import { flip, reducedMotion } from "./motion";
+import { RollingCount } from "./RollingCount";
 import s from "./map.module.css";
 
 const PAGE = 30;
+/** New rows enter one after another, at most this many steps (30 ms each: 150 ms in all). */
+const STAGGER_STEPS = 5;
 
 /** Thumbnail for a feed row: the event's first picture (thumb_url), or its category glyph. */
 function Thumb({ e }: { e: SkyEvent }) {
@@ -56,11 +60,26 @@ export function Feed({ now, onOpen }: { now: number; onOpen: (id: string) => voi
     return () => ctl.abort();
   }, [state.filters, key]);
 
+  // While new filters load, the previous list stays up (so rows can move to their new places) instead
+  // of flashing to skeletons; skeletons show only before the first page.
   const loading = !pages || pages.key !== key;
   const first = pages?.data;
   const extra = more && more.key === key ? more : null;
   const events = [...(first?.events ?? []), ...(extra?.events ?? [])];
   const next = extra ? extra.next : (first?.next ?? null);
+
+  // FLIP: rows that stay slide from their old place to their new one; new rows fade in (CSS).
+  const listRef = useRef<HTMLUListElement>(null);
+  const tops = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const ul = listRef.current;
+    if (!ul) {
+      tops.current = new Map();
+      return;
+    }
+    const items = [...ul.querySelectorAll<HTMLElement>(":scope > li[data-id]")].map((el) => ({ id: el.dataset.id!, el }));
+    tops.current = flip(tops.current, items, !reducedMotion() && !document.hidden);
+  });
 
   const loadMore = () => {
     if (!next) return;
@@ -72,12 +91,12 @@ export function Feed({ now, onOpen }: { now: number; onOpen: (id: string) => voi
   return (
     <div className={s.feed}>
       <div className={s.feedHead}>
-        <p className={s.feedCount}>
-          {loading ? (
+        <p className={s.feedCount} aria-live="polite">
+          {!first ? (
             <span className={s.muted}>Loading…</span>
           ) : (
             <>
-              <span className="mono">{first?.total ?? 0}</span> {first?.total === 1 ? "event" : "events"}, newest first
+              <RollingCount value={first.total} className="mono" /> {first.total === 1 ? "event" : "events"}, newest first
             </>
           )}
         </p>
@@ -97,13 +116,13 @@ export function Feed({ now, onOpen }: { now: number; onOpen: (id: string) => voi
             {error}
           </EmptyState>
         </div>
-      ) : loading ? (
+      ) : !first ? (
         <ul className={s.feedList} aria-busy="true" aria-label="Loading events">
           {Array.from({ length: 6 }, (_, i) => (
             <li key={i} className={s.rowSkeleton} />
           ))}
         </ul>
-      ) : events.length === 0 ? (
+      ) : events.length === 0 && !loading ? (
         <div className={s.feedPad}>
           <EmptyState
             title={EMPTY_TITLE}
@@ -115,11 +134,11 @@ export function Feed({ now, onOpen }: { now: number; onOpen: (id: string) => voi
           />
         </div>
       ) : (
-        <ul className={s.feedList} onMouseLeave={() => dispatch({ type: "hoverEvent", id: null })}>
-          {events.map((e) => {
+        <ul ref={listRef} className={s.feedList} aria-busy={loading || undefined} onMouseLeave={() => dispatch({ type: "hoverEvent", id: null })}>
+          {events.map((e, i) => {
             const note = pictureNote(e);
             return (
-              <li key={e.id}>
+              <li key={e.id} data-id={e.id} style={{ "--i": Math.min(i, STAGGER_STEPS) } as CSSProperties}>
                 <button
                   className={s.row}
                   aria-current={state.selectedEvent === e.id || undefined}

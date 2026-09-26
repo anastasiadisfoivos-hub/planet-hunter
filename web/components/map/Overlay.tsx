@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode, type RefObject } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 import { X } from "@phosphor-icons/react";
 import { Button } from "@/components/ui";
 import { listenDismiss } from "./dismiss";
@@ -31,6 +31,20 @@ export function Overlay({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const headingId = useId();
+
+  // Grow from the button that opened it: the transform origin is the button's centre, measured in the
+  // panel's own box (on a phone the sheet grows up from the bottom edge, below the button).
+  useLayoutEffect(() => {
+    const panel = ref.current;
+    const trigger = triggerRef.current;
+    if (!open || !panel || !trigger) return;
+    const p = panel.getBoundingClientRect();
+    const t = trigger.getBoundingClientRect();
+    const sheet = getComputedStyle(panel).position === "fixed";
+    const x = Math.min(Math.max(t.left + t.width / 2 - p.left, 0), p.width);
+    const y = sheet ? p.height : t.top + t.height / 2 - p.top;
+    panel.style.transformOrigin = `${x.toFixed(0)}px ${y.toFixed(0)}px`;
+  }, [open, triggerRef]);
 
   useEffect(() => {
     const panel = ref.current;
