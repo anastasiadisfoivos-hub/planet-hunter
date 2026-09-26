@@ -71,6 +71,8 @@ export function Feed({ now, onOpen }: { now: number; onOpen: (id: string) => voi
   // FLIP: rows that stay slide from their old place to their new one; new rows fade in (CSS).
   const listRef = useRef<HTMLUListElement>(null);
   const tops = useRef(new Map<string, number>());
+  // Only when the rows themselves change (not on hover re-renders), so layout is read once per change.
+  const order = events.map((e) => e.id).join(",");
   useLayoutEffect(() => {
     const ul = listRef.current;
     if (!ul) {
@@ -79,7 +81,7 @@ export function Feed({ now, onOpen }: { now: number; onOpen: (id: string) => voi
     }
     const items = [...ul.querySelectorAll<HTMLElement>(":scope > li[data-id]")].map((el) => ({ id: el.dataset.id!, el }));
     tops.current = flip(tops.current, items, !reducedMotion() && !document.hidden);
-  });
+  }, [order, error]);
 
   const loadMore = () => {
     if (!next) return;

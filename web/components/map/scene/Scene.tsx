@@ -223,18 +223,23 @@ function EventMarkers({
     return () => geometry.dispose();
   }, [geometry, positionsRef, live]);
   const faded = useRef(false);
+  const settled = useRef(false);
   useEffect(() => {
     faded.current = false;
+    settled.current = false;
     invalidate();
   }, [geometry, invalidate]);
   useFrame((_, dt) => {
+    // Once every marker has arrived, stop touching the buffer (the loop may still run for the pulse).
+    if (settled.current) return;
     const attr = geometry.getAttribute("aAlpha") as THREE.BufferAttribute;
     const alpha = attr.array as Float32Array;
     const moving = stepFade(progress, alpha, live, dt, reduced);
     attr.needsUpdate = true;
     markers.forEach((m, i) => fade.set(m.id, progress[i]));
     if (moving) invalidate();
-    else if (markers.length > live && !faded.current) {
+    else if (markers.length === live) settled.current = true;
+    else if (!faded.current) {
       faded.current = true;
       for (const m of markers.slice(live)) fade.delete(m.id);
       onFaded();

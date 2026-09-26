@@ -1051,7 +1051,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    height: 40px;
+    height: max(40px, var(--control-h));
     border: 1px solid var(--control-border);
     border-radius: var(--radius-control);
     background: transparent;
@@ -1293,9 +1293,19 @@
   transform: scale(0.97);
 }
 
-/* No events in range: dimmed, still a working toggle. */
+/* No events in range: dimmed, still a working toggle. The glyph and border recede; text stays at
+   --ink-muted so the label and its 0 keep AA contrast. */
 .chip[data-empty] {
-  opacity: 0.55;
+  border-color: var(--hairline);
+  color: var(--ink-muted);
+}
+
+.chip[data-empty] > .glyph {
+  opacity: 0.3;
+}
+
+.chip[data-empty] .chipCount {
+  color: var(--ink-muted);
 }
 
 .chipCount {
@@ -1416,6 +1426,14 @@
   bottom: calc(100% + var(--s-2));
   left: 0;
   width: 300px;
+  max-height: calc(100dvh - var(--statusbar-h) - 96px);
+}
+
+/* The bar and the Layers dock sit on the same level; the one with an open panel comes forward, so
+   its popover or sheet is never under the other's buttons. */
+.filterBar:has(.overlay[data-open="true"]),
+.layersDock:has(.overlay[data-open="true"]) {
+  z-index: var(--z-sheet);
 }
 
 .overlayHead {
@@ -1466,6 +1484,27 @@
 
 .types {
   padding-left: 18px;
+}
+
+/* Coarse pointers: every bar control is at least 44px tall (DESIGN.md, Shape and space). */
+@media (pointer: coarse) {
+  .timeSeg {
+    padding: 0;
+  }
+
+  .timeSeg button {
+    min-width: 44px;
+    height: var(--control-h);
+  }
+
+  .reset {
+    height: var(--control-h);
+  }
+
+  .barScroll,
+  .filterBar {
+    align-items: center;
+  }
 }
 
 @media (max-width: 899px) {
