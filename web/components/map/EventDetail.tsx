@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowLeft, ArrowSquareOut, Crosshair } from "@phosphor-icons/react";
-import { Button, DataGrid, Tag } from "@/components/ui";
+import { ArrowSquareOut, Crosshair, X } from "@phosphor-icons/react";
+import { Button, ButtonLink, DataGrid, Tag } from "@/components/ui";
 import { EventImage } from "@/components/events/EventImage";
 import { CATEGORY_OF, type Image, type SkyEvent } from "@/lib/contract";
 import { BASIS_LABEL, SOURCE_LABEL, TYPE_LABEL } from "@/lib/events";
@@ -88,10 +88,13 @@ export function EventDetail({ event: e, now, onBack, onShow }: { event: SkyEvent
   return (
     <article className={s.detail} aria-label={e.title}>
       <div className={s.detailHead}>
-        <Button variant="quiet" size="sm" icon={<ArrowLeft size={16} />} onClick={onBack}>
-          Feed
+        <Button variant="quiet" size="sm" icon={<X size={16} />} onClick={onBack}>
+          Close
         </Button>
         {e.source === "rubin" && e.raw?.from_latest_observed_window === true && <Tag>Rubin, latest nights</Tag>}
+        <ButtonLink href={`/events/${encodeURIComponent(e.id)}`} variant="quiet" size="sm">
+          Event page →
+        </ButtonLink>
       </div>
 
       <div className={s.stackTight}>

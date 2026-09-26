@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowSquareOut, CheckCircle, Circle, CircleNotch, Flask } from "@phosphor-icons/react";
+import { ArrowSquareOut, CheckCircle, Circle, CircleNotch, Flask, X } from "@phosphor-icons/react";
 import { ChemicalFingerprint } from "@/components/lab/ChemicalFingerprint";
 import { Button, DataGrid, DemoTag, Tag } from "@/components/ui";
 import { analyze, API_MOCK, getJob, type AnalyzeJob, type AnalyzeTarget } from "@/lib/api";
@@ -201,8 +201,8 @@ export function StarDetail({ data, star, onBack }: { data: MapData; star: StarRe
   return (
     <article className={s.detail} aria-label={f.name}>
       <div className={s.detailHead}>
-        <Button variant="quiet" size="sm" icon={<ArrowLeft size={16} />} onClick={onBack}>
-          Feed
+        <Button variant="quiet" size="sm" icon={<X size={16} />} onClick={onBack}>
+          Close
         </Button>
       </div>
       <div className={s.stackTight}>

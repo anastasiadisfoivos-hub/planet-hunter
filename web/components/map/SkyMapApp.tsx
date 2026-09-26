@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Flask, ListBullets, MagnifyingGlass, Star, X } from "@phosphor-icons/react";
+import { Images, Star } from "@phosphor-icons/react";
 import { Button, DemoTag, Panel } from "@/components/ui";
 import { API_MOCK, clockNow, getAllEvents, getStatus, type Status } from "@/lib/api";
 import type { SkyEvent } from "@/lib/contract";
@@ -15,7 +15,6 @@ import { starColor } from "@/lib/starColor";
 import { StoreProvider, useStore } from "@/state/store";
 import { hud, view } from "./scene/constants";
 import { EventDetail } from "./EventDetail";
-import { Feed } from "./Feed";
 import { FilterBar } from "./FilterBar";
 import { LayersControl } from "./LayersControl";
 import { pauseWhileHidden } from "./motion";
@@ -212,6 +211,24 @@ function MapView({ map, events, now }: Loaded) {
     return () => cancelAnimationFrame(raf);
   }, [params, map, dispatch]);
 
+  // Deep link from an event page: /sky?event=<id> selects the event and flies to it once the scene is ready.
+  useEffect(() => {
+    const id = params.get("event");
+    const e = id ? events.find((x) => x.id === id) : null;
+    if (!e) return;
+    let raf = 0;
+    let frames = 0;
+    const wait = () => {
+      if (view.jumpTo && ++frames > 10) {
+        dispatch({ type: "selectEvent", id: e.id });
+        const t = eventTarget(e, now);
+        if (t) view.jumpTo(t.ra, t.dec, eventFov(e));
+      } else raf = requestAnimationFrame(wait);
+    };
+    raf = requestAnimationFrame(wait);
+    return () => cancelAnimationFrame(raf);
+  }, [params, events, now, dispatch]);
+
   // Keep the address bar in step with the filters, so the view can be shared. replaceState: filter
   // changes are not pages, so Back still leaves the map.
   useEffect(() => {
@@ -234,14 +251,6 @@ function MapView({ map, events, now }: Loaded) {
       view,
     };
   }, [dispatch]);
-
-  const open = useCallback(
-    (id: string) => {
-      dispatch({ type: "selectEvent", id });
-      setSheet("feed");
-    },
-    [dispatch],
-  );
 
   const showOnMap = useCallback(
     (e: SkyEvent) => {
@@ -271,7 +280,7 @@ function MapView({ map, events, now }: Loaded) {
 
   return (
     <main className={s.shell} data-sheet={sheet} data-detail={selected || star ? "open" : "closed"}>
-      <h1 className="sr-only">Sky events map</h1>
+      <h1 className="sr-only">Sky</h1>
 
       <div className={s.sky}>
         <Scene data={map} index={index} events={shown} now={now} showFps={showFps} noDetail={params.has("nodetail")} />
@@ -300,13 +309,9 @@ function MapView({ map, events, now }: Loaded) {
             </select>
           </label>
           <StatusBanner status={status} now={now} demo={API_MOCK} footprintUrl={map.footprint.source_url} />
-          <Link href="/lab" className={lab.mapLab}>
-            <Flask size={14} aria-hidden />
-            <span className={s.linkText}>Lab</span>
-          </Link>
-          <Link href="/finder" className={lab.mapLab}>
-            <MagnifyingGlass size={14} aria-hidden />
-            <span className={s.linkText}>Finder</span>
+          <Link href={`/events${window.location.search}`} className={lab.mapLab}>
+            <Images size={14} aria-hidden />
+            <span className={s.linkText}>See them as pictures</span>
           </Link>
         </div>
 
@@ -329,17 +334,12 @@ function MapView({ map, events, now }: Loaded) {
         <Labels />
       </div>
 
+      {(selected || star) && (
       <Panel
-        key={selected ? `event:${selected.id}` : star ? `star:${star.kind}:${star.i}` : "feed"}
+        key={selected ? `event:${selected.id}` : `star:${star!.kind}:${star!.i}`}
         as="aside"
         className={s.side}
-        aria-label={selected ? "Event details" : star ? "Star details" : "Feed"}
-        title={selected || star ? undefined : "Feed"}
-        actions={
-          selected || star ? undefined : (
-            <Button variant="quiet" size="sm" className={s.sheetClose} icon={<X size={16} />} aria-label="Close feed" onClick={() => setSheet("closed")} />
-          )
-        }
+        aria-label={selected ? "Event details" : "Star details"}
         flush
       >
         {selected ? (
@@ -351,19 +351,11 @@ function MapView({ map, events, now }: Loaded) {
             }}
             onShow={showOnMap}
           />
-        ) : star ? (
-          <StarDetail data={map} star={star} onBack={() => dispatch({ type: "selectStar", star: null })} />
         ) : (
-          <Feed now={now} onOpen={open} />
+          <StarDetail data={map} star={star!} onBack={() => dispatch({ type: "selectStar", star: null })} />
         )}
       </Panel>
-
-      <nav className={s.sheetTabs} aria-label="Panels">
-        <button aria-pressed={sheet === "feed"} onClick={() => setSheet((cur) => (cur === "feed" ? "closed" : "feed"))}>
-          <ListBullets size={16} aria-hidden />
-          Feed <RollingCount value={shown.length} className="mono" />
-        </button>
-      </nav>
+      )}
 
       <footer className={s.statusbar}>
         <span className={s.statusItem}>

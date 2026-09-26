@@ -13,13 +13,7 @@
   text-decoration: none;
 }
 
-.pic img {
-  transition: opacity var(--dur) var(--ease);
-}
 
-.hit:hover .pic img {
-  opacity: 0.9;
-}
 
 .name {
   display: flex;

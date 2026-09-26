@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SkyMapApp from "@/components/map/SkyMapApp";
+import { TopBar } from "@/components/shell/TopBar";
 
 export const metadata: Metadata = {
   title: "Sky · Planet Hunter",
@@ -7,5 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function SkyPage() {
-  return <SkyMapApp />;
+  return (
+    <>
+      <TopBar />
+      <SkyMapApp />
+    </>
+  );
 }

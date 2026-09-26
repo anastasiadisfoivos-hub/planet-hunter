@@ -32,6 +32,9 @@ export const skyFragment = /* glsl */ `
   uniform vec3 cRubin;
   uniform vec3 cAccent;
   uniform vec3 cHeatHi;
+  uniform sampler2D uPano;
+  uniform float uPanoOn;
+  uniform mat3 uToGal;
   varying vec3 vDir;
 
   const float PI = 3.14159265359;
@@ -45,6 +48,16 @@ export const skyFragment = /* glsl */ `
     vec4 t = texture2D(uTex, vec2(ra / (2.0 * PI), dec / PI + 0.5));
 
     vec3 col = cDeep;
+
+    // ESO's all-sky photograph (eso0932a), equirectangular in galactic coordinates: turn the view direction
+    // into galactic l and b, then l = 0 is the middle of the image and l grows to the left.
+    if (uPanoOn > 0.5) {
+      vec3 g = uToGal * d;
+      float l = atan(g.y, g.x);
+      float b = asin(clamp(g.z, -1.0, 1.0));
+      vec2 uv = vec2(fract(0.5 - l / (2.0 * PI)), b / PI + 0.5);
+      col = texture2D(uPano, uv).rgb;
+    }
 
     // Illustrated sky (baked). The glow layer drifts very slightly when motion is allowed.
     if (uArt > 0.5 && uBaked > 0.5) {

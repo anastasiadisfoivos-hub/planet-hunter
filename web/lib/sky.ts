@@ -70,3 +70,12 @@ export function formatDec(decDeg: number): string {
   const s = decDeg < 0 ? "-" : "+";
   return `${s}${Math.abs(decDeg).toFixed(1)}°`;
 }
+
+/**
+ * Scene vector (x = RA 0h, y = north pole, z = -RA 6h) to galactic unit vector, as a row-major 3 × 3 matrix.
+ * The scene's (x, y, z) is the astronomical (x, -z, y), so each row is EQ_TO_GAL's row with its columns permuted.
+ * The sky shader uses it to place ESO's all-sky photograph, which is in galactic coordinates.
+ */
+export function sceneToGalacticMatrix(): number[] {
+  return EQ_TO_GAL.flatMap((r) => [r[0], r[2], -r[1]]);
+}

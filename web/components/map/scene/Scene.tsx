@@ -11,7 +11,7 @@ import type { HostIndex } from "@/lib/hosts";
 import { CATEGORY_STYLE, SHAPE_INDEX } from "@/lib/eventStyle";
 import { buildMarkers, type Marker } from "@/lib/markers";
 import { TEX_H, TEX_W } from "@/lib/skyTexture";
-import { formatDec, formatRa, radecToVec, vecToRadec, type Vec3 } from "@/lib/sky";
+import { formatDec, formatRa, radecToVec, sceneToGalacticMatrix, vecToRadec, type Vec3 } from "@/lib/sky";
 import { useStore, type Layers, type StarRef, type State } from "@/state/store";
 import { bubbleVertex, eventFragment, eventVertex, skyFragment, skyVertex } from "./shaders";
 import { BASE_FOV, capUniform, displayRadius, EVENT_R, hud, MIN_DIST, MIN_FOV, SKY_R, tokenColor, view } from "./constants";
@@ -19,6 +19,7 @@ import { leavers, stepFade } from "./markerFade";
 import { QUALITY_DESKTOP, QUALITY_PHONE, SkyBaker } from "./skyBake";
 import { applyLimits, createRig, currentPose, flyTo, interrupt, stepFlight, type Rig } from "./rig";
 import type { Pose, V3 } from "./flight";
+import { Constellations } from "./Constellations";
 import { CatalogStars, CloseUp, createStarUniforms, Hosts, Sun, type StarUniforms } from "./stars";
 
 type SceneProps = {
@@ -106,14 +107,41 @@ function SkyShell({
           cRubin: { value: tokenColor("--rubin", "#6fd6c6") },
           cAccent: { value: tokenColor("--accent", "#a3b8ff") },
           cHeatHi: { value: tokenColor("--ink", "#f4f4f5") },
+          uPano: { value: null as THREE.Texture | null },
+          uPanoOn: { value: 0 },
+          uToGal: { value: new THREE.Matrix3().fromArray(sceneToGalacticMatrix()).transpose() },
         },
       }),
     [texture, baker],
   );
   useEffect(() => () => material.dispose(), [material]);
 
+  // ESO's all-sky photograph: 6000 × 3000 on desktop, 3072 × 1536 on phones or GPUs that cannot hold 6000 wide.
+  useEffect(() => {
+    const big = !isPhone() && gl.capabilities.maxTextureSize >= 6000;
+    let tex: THREE.Texture | null = null;
+    let live = true;
+    new THREE.TextureLoader().load(`/images/sky/eso0932a-${big ? 6000 : 3072}.jpg`, (t) => {
+      if (!live) return t.dispose();
+      t.colorSpace = THREE.NoColorSpace; // the shader treats colours as sRGB and linearises once at the end
+      t.wrapS = THREE.RepeatWrapping;
+      t.minFilter = THREE.LinearFilter;
+      t.magFilter = THREE.LinearFilter;
+      t.generateMipmaps = false;
+      t.anisotropy = gl.capabilities.getMaxAnisotropy();
+      tex = t;
+      material.uniforms.uPano.value = t;
+      invalidate();
+    });
+    return () => {
+      live = false;
+      tex?.dispose();
+    };
+  }, [gl, material, invalidate]);
+
   useEffect(() => {
     const u = material.uniforms;
+    u.uPanoOn.value = layers.photo && u.uPano.value ? 1 : 0;
     u.uZone.value = layers.coverage ? 1 : 0;
     u.uHeat.value = layers.heatmap ? 1 : 0;
     u.uArt.value = layers.art ? 1 : 0;
@@ -136,6 +164,7 @@ function SkyShell({
       invalidate();
     }
     material.uniforms.uTime.value = clock.elapsedTime;
+    material.uniforms.uPanoOn.value = layers.photo && material.uniforms.uPano.value ? 1 : 0;
     material.uniforms.uDetailOn.value = baker.detailOn ? 1 : 0;
     // Render targets can be re-created on resize: keep the uniforms pointing at the live textures.
     material.uniforms.uDetailBase.value = baker.detailBase.texture;
@@ -352,6 +381,46 @@ function Director({
     c.setLookAt(...HOME.pos, ...HOME.target, false);
     return c;
   }, [camera, gl, rig.reduced]);
+
+  // Fling: a quick drag keeps the sky turning for a moment after release, easing to rest (DESIGN.md, Motion:
+  // damped orbit with inertia). The velocity is measured over the last 80 ms of the drag; a slow release just stops.
+  useEffect(() => {
+    if (rig.reduced) return;
+    let samples: { t: number; az: number; pol: number }[] = [];
+    const onStart = () => {
+      samples = [];
+      controls.smoothTime = 0.22;
+    };
+    const onControl = () => {
+      const t = performance.now();
+      samples.push({ t, az: controls.azimuthAngle, pol: controls.polarAngle });
+      while (samples.length > 2 && t - samples[0].t > 80) samples.shift();
+    };
+    const onEnd = () => {
+      if (samples.length < 2) return;
+      const a = samples[0];
+      const b = samples[samples.length - 1];
+      const dt = (b.t - a.t) / 1000;
+      if (dt <= 0 || performance.now() - b.t > 60) return; // the pointer rested before release
+      const vAz = (b.az - a.az) / dt;
+      const vPol = (b.pol - a.pol) / dt;
+      if (Math.hypot(vAz, vPol) < 0.25) return;
+      // Glide about a third of a second's worth of travel, eased out by camera-controls' smoothing.
+      controls.smoothTime = 0.45;
+      controls.rotate(vAz * 0.3, vPol * 0.3, true);
+    };
+    controls.addEventListener("controlstart", onStart);
+    controls.addEventListener("control", onControl);
+    controls.addEventListener("controlend", onEnd);
+    const onRest = () => (controls.smoothTime = 0.22);
+    controls.addEventListener("rest", onRest);
+    return () => {
+      controls.removeEventListener("rest", onRest);
+      controls.removeEventListener("controlstart", onStart);
+      controls.removeEventListener("control", onControl);
+      controls.removeEventListener("controlend", onEnd);
+    };
+  }, [controls, rig.reduced]);
 
   useEffect(() => {
     rig.controls = controls;
@@ -939,6 +1008,7 @@ function SceneContent({
     <>
       <Director rig={rig} index={index} data={data} hostPositions={hostPositions} starUniforms={starUniforms} eventUniforms={eventUniforms} baker={baker} noDetail={noDetail} />
       <SkyShell data={data} layers={state.layers} baker={baker} drift={drift} selected={selected} />
+      <Constellations visible={state.layers.constellations} />
       <CatalogStars data={data} visible={state.layers.stars} dim={state.layers.dimStars} uniforms={brightUniforms} positionsRef={brightPositions} />
       <Sun ra={sun.ra} dec={sun.dec} />
       <Hosts index={index} trueScale={state.trueScale} visible={state.layers.hosts} dim={state.layers.dimStars && state.selectedStar?.kind !== "host"} starUniforms={starUniforms} positionsRef={hostPositions} />

@@ -8,7 +8,7 @@
   --stagger: 30ms;
 
   position: fixed;
-  inset: 0;
+  inset: var(--topbar-h) 0 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--inspector-w);
   grid-template-rows: minmax(0, 1fr) var(--statusbar-h);
@@ -1644,4 +1644,14 @@
 .filterBar[data-inflow] {
   position: static;
   max-width: 100%;
+}
+
+/* With nothing selected the sky takes the whole width (events are listed in the /events gallery). */
+@media (min-width: 900px) {
+  .shell[data-detail="closed"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "sky"
+      "status";
+  }
 }

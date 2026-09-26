@@ -71,7 +71,8 @@ export function LayersControl({ data, now }: { data: MapData; now: number }) {
                   </>
                 }
               />
-              <LayerSwitch layer="art" label="Milky Way & nebulae" note={<p>Shapes are illustrations; positions are real.</p>} />
+              <LayerSwitch layer="photo" label="Milky Way photograph" note={<p>ESO&apos;s photograph of the whole sky (ESO/S. Brunier, CC BY 4.0).</p>} />
+              <LayerSwitch layer="constellations" label="Constellations" note={<p>Faint lines and the names of the major constellations.</p>} />
             </div>
           </section>
           <section className={s.fSection} aria-label="Scale">

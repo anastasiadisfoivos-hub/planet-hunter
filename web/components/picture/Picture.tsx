@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { FadeImage } from "./FadeImage";
 import type { Pic } from "@/lib/pictures";
 import { Info } from "./Info";
 import s from "./picture.module.css";
@@ -27,19 +28,14 @@ type Props = {
 /** A real picture in a frame, with its crosshair and, optionally, its caption line and i. */
 export function Picture({ pic, alt, sizes, aspect, preload, mark, caption, note, objectPosition, className, fit = "cover", quality = 75 }: Props) {
   const showMark = (mark ?? true) && pic.mark;
+  // The one preloaded hero picture shows at once; everything else fades in when decoded.
   const frame = (
     <div className={s.frame} style={aspect ? { aspectRatio: aspect } : undefined} data-fill={aspect ? undefined : true}>
-      <Image
-        src={pic.src}
-        alt={alt}
-        fill
-        sizes={sizes}
-        quality={quality}
-        preload={preload}
-        loading={preload ? undefined : "lazy"}
-        className={s.img}
-        style={{ objectFit: fit, objectPosition }}
-      />
+      {preload ? (
+        <Image data-loaded src={pic.src} alt={alt} fill sizes={sizes} quality={quality} preload className={s.img} style={{ objectFit: fit, objectPosition }} />
+      ) : (
+        <FadeImage src={pic.src} alt={alt} fill sizes={sizes} quality={quality} loading="lazy" className={s.img} style={{ objectFit: fit, objectPosition }} />
+      )}
       {showMark && <Crosshair u={pic.mark!.u} v={pic.mark!.v} />}
     </div>
   );

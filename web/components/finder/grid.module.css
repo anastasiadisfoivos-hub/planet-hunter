@@ -69,13 +69,7 @@
   text-decoration: none;
 }
 
-.hit img {
-  transition: opacity var(--dur) var(--ease);
-}
 
-.hit:hover img {
-  opacity: 0.9;
-}
 
 .spark {
   display: block;

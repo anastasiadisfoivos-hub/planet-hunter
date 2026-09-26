@@ -102,3 +102,17 @@ test("a window that straddles l = 180 (Taurus/Auriga) still draws its lines", ()
   const win = windowAround(84, 26, 56, 34, W, H); // near the galactic anticentre
   assert.ok(constellationPath(lines, win).length > 200);
 });
+
+test("the shader's scene-to-galactic matrix agrees with galactic()", async () => {
+  const { radecToVec, sceneToGalacticMatrix, galactic } = await import("../lib/sky.ts");
+  const m = sceneToGalacticMatrix();
+  for (const [ra, dec] of [[0, 0], [83.8, -5.4], [266.4, -29], [10.7, 41.3], [300, 60]]) {
+    const v = radecToVec(ra, dec);
+    const g = [0, 1, 2].map((i) => m[i * 3] * v[0] + m[i * 3 + 1] * v[1] + m[i * 3 + 2] * v[2]);
+    const l = ((Math.atan2(g[1], g[0]) * 180) / Math.PI + 360) % 360;
+    const b = (Math.asin(g[2]) * 180) / Math.PI;
+    const want = galactic(ra, dec);
+    close(((l - want.l + 540) % 360) - 180, 0, 1e-6, "l");
+    close(b, want.b, 1e-6, "b");
+  }
+});

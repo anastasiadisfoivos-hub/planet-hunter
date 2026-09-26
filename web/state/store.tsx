@@ -14,8 +14,12 @@ export type Layers = {
   hosts: boolean;
   /** One recorded night of Rubin alerts, binned on the sky. */
   heatmap: boolean;
-  /** Procedural Milky Way and nebulae. */
+  /** Procedural Milky Way and nebulae. Kept off: DESIGN.md allows only real pictures (see `photo`). */
   art: boolean;
+  /** ESO's real all-sky photograph (eso0932a) as the sky's background. */
+  photo: boolean;
+  /** Faint constellation lines and the major constellations' names. */
+  constellations: boolean;
 };
 
 /** A selected star: a planet host (hosts.json index) or a bright catalogue star (sky-objects index). */
@@ -43,7 +47,7 @@ export type Action =
   | { type: "selectStar"; star: StarRef | null };
 
 export const initialState: State = {
-  layers: { coverage: true, stars: true, dimStars: true, hosts: true, heatmap: false, art: false },
+  layers: { coverage: false, stars: true, dimStars: true, hosts: true, heatmap: false, art: false, photo: true, constellations: true },
   trueScale: false,
   filters: DEFAULT_FILTERS,
   selectedEvent: null,
