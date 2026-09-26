@@ -1,0 +1,13 @@
+{
+ "id": "proof:408512382:1",
+ "tic": 408512382,
+ "period_d": 4.031906,
+ "t0_btjd": 1572.66701,
+ "duration_h": 2.376,
+ "depth_ppm": 48720.9,
+ "sectors": [
+  10,
+  64
+ ],
+ "source": "HUNT's own signal on its recorded EB fixture (hunt/tests/data/408512382.npz, TESS EB catalogue, P = 4.0317118 d); HUNT rejects it on secondary_eclipse and size"
+}

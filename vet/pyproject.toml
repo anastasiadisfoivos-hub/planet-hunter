@@ -1,0 +1,41 @@
+[project]
+name = "skyvet"
+version = "0.1.0"
+description = "planet-hunter VET: citable vetting of Planet Finder candidates (LEO-vetter, TRICERATOPS, Gaia DR3, VSX)"
+readme = "README.md"
+authors = [
+    { name = "Foivos Anastasiadis", email = "anastasiadis.foivos@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "astropy>=8.0.1",
+    "astroquery>=0.4.11",
+    "leo-vetter>=1.2.0",
+    "lightkurve>=2.6.0",
+    "numpy>=2.5.3",
+    "pandas>=2.3.3",
+    "requests>=2.34.2",
+    "scanf>=1.6.0",
+    "spiceypy>=8.2.0",
+    "transit-diffimage",
+    "triceratops>=1.1.0",
+]
+
+[project.scripts]
+skyvet = "skyvet.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+transit-diffimage = { git = "https://github.com/stevepur/transit-diffImage" }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning", "ignore::FutureWarning"]

@@ -1,0 +1,14 @@
+{
+ "id": "proof:75208638:1",
+ "tic": 75208638,
+ "period_d": 4.6512523,
+ "t0_btjd": 2990.712909,
+ "duration_h": 2.251,
+ "depth_ppm": 3110.0,
+ "sectors": [
+  62,
+  63,
+  89
+ ],
+ "source": "ExoFOP TOI-4257.01 (TFOPWG FP; 'offset on TIC 75208617 in SPOC s62; retired as TFOP FP/NEB')"
+}
