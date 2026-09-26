@@ -7,40 +7,23 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "data:footprint": "python3 scripts/rubin_footprint.py",
-    "data:hosts": "node scripts/build-hosts.mjs",
     "test": "node --test \"tests/**/*.test.ts\"",
-    "typecheck": "tsc --noEmit",
-    "data:events": "node scripts/build-events-mock.mjs",
-    "data:land": "node scripts/build-land.mjs",
-    "data:colors": "node scripts/build-star-colors.mjs",
-    "data:bright": "node scripts/build-bright-stars.mjs"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@hscmap/healpix": "^1.4.12",
     "@phosphor-icons/react": "^2.1.10",
-    "@react-three/drei": "^10.7.8",
-    "@react-three/fiber": "^9.8.1",
-    "@react-three/postprocessing": "^3.1.2",
-    "camera-controls": "^3.1.2",
     "geist": "^1.7.2",
     "next": "16.3.6",
-    "postprocessing": "^6.39.5",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "three": "^0.186.1"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/three": "^0.186.0",
-    "@types/topojson-client": "^3.1.5",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
-    "topojson-client": "^3.1.0",
-    "typescript": "^5",
-    "world-atlas": "^2.0.2"
+    "typescript": "^5"
   },
   "type": "module"
 }

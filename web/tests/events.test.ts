@@ -1,6 +1,5 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { applyFilters, countBySource, countByType, DEFAULT_FILTERS, matches, page, recency, timeWindow, type EventFilters } from "../lib/events.ts";
 import { CATEGORIES, CATEGORY_OF, EVENT_TYPES, type SkyEvent } from "../lib/contract.ts";
 
@@ -81,47 +80,4 @@ test("recency: 1 now, fading to 0.35 by 30 days", () => {
   assert.ok(Math.abs(recency("2026-09-25T16:03:00Z", NOW) - 1) < 1e-9);
   assert.ok(recency("2026-09-24T16:03:00Z", NOW) > recency("2026-09-18T16:03:00Z", NOW));
   assert.equal(recency("2026-01-01T00:00:00Z", NOW), 0.35);
-});
-
-test("the mock: real events, every category, all contract-shaped", () => {
-  const { meta, events } = JSON.parse(readFileSync(new URL("../public/data/events.mock.json", import.meta.url), "utf8"));
-  assert.equal(meta.demo, true);
-  assert.ok(events.length >= 55 && events.length <= 70);
-  const cats = new Set(events.map((e: SkyEvent) => CATEGORY_OF[e.type]));
-  assert.deepEqual(cats, new Set(Object.keys(CATEGORIES)));
-  for (const e of events as SkyEvent[]) {
-    assert.ok(EVENT_TYPES.includes(e.type));
-    assert.ok(["official_report", "catalogue_match", "machine_guess"].includes(e.confidence_basis));
-    for (const img of e.images) assert.ok("thumb_url" in img && img.url.startsWith("https://"));
-  }
-  const now = Date.parse(meta.recorded_until);
-  assert.ok(applyFilters(events, DEFAULT_FILTERS, now).length >= 25, "the default 7 days is not empty");
-});
-
-test("mock times: nothing observed after it was reported, or after the mock clock", () => {
-  const { meta, events } = JSON.parse(readFileSync(new URL("../public/data/events.mock.json", import.meta.url), "utf8"));
-  const clock = Date.parse(meta.recorded_until);
-  for (const e of events as SkyEvent[]) {
-    assert.ok(Date.parse(e.observed_at) <= Date.parse(e.reported_at), `${e.id}: observed ${e.observed_at} after reported ${e.reported_at}`);
-    assert.ok(Date.parse(e.observed_at) <= clock, `${e.id}: observed ${e.observed_at} after the mock clock ${meta.recorded_until}`);
-    assert.ok(Date.parse(e.reported_at) <= clock, `${e.id}: reported ${e.reported_at} after the mock clock`);
-  }
-});
-
-test("mock times: no event is stamped with a load or ingest time", () => {
-  const { meta, events } = JSON.parse(readFileSync(new URL("../public/data/events.mock.json", import.meta.url), "utf8"));
-  const clock = Date.parse(meta.recorded_until);
-  // The recording ran 2026-09-25 16:00 to 16:07 UTC. A real observation can land there, but not three
-  // at the same minute from JPL: that was the Horizons position epoch (fixed in build-events-mock.mjs).
-  const stamped = (events as SkyEvent[]).filter((e) => Math.abs(Date.parse(e.observed_at) - clock) < 10 * 60000);
-  assert.deepEqual(stamped.map((e) => e.id), []);
-  const jpl = (events as SkyEvent[]).filter((e) => e.source === "jpl");
-  for (const e of jpl) assert.ok(e.observed_at.endsWith("T00:00:00Z"), `${e.id}: JPL observed_at is a last-observation date`);
-});
-
-test("sources that publish no report time are flagged", () => {
-  const { events } = JSON.parse(readFileSync(new URL("../public/data/events.mock.json", import.meta.url), "utf8"));
-  for (const e of events as SkyEvent[]) {
-    if (["cneos", "tns", "jpl"].includes(e.source)) assert.equal(e.raw.reported_at_known, false, e.id);
-  }
 });

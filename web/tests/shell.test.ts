@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { currentSection, HOME, NAV } from "../components/shell/nav.ts";
 import { dayGroup, eventHref, longUtc, shortName } from "../components/gallery/text.ts";
-import nextConfig from "../next.config.ts";
 import type { SkyEvent } from "../lib/contract.ts";
 
 test("top bar: the wordmark goes home and the sections are Events, Sky, Lab, Finder", () => {
@@ -27,14 +26,6 @@ test("top bar: the current section covers its sub-pages", () => {
   assert.equal(currentSection("/"), null);
   assert.equal(currentSection("/credits"), null);
   assert.equal(currentSection("/skyline"), null, "a prefix of a word is not a section");
-});
-
-test("/map redirects to /sky permanently (Next keeps the query, so shared filter links still work)", async () => {
-  const redirects = await nextConfig.redirects!();
-  assert.deepEqual(
-    redirects.find((r) => r.source === "/map"),
-    { source: "/map", destination: "/sky", permanent: true },
-  );
 });
 
 const ev = (title: string, type: SkyEvent["type"] = "supernova") => ({ title, type }) as SkyEvent;

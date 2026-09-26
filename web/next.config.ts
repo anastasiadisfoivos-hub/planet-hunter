@@ -9,10 +9,6 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 828, 1080, 1440, 1920, 2400],
     imageSizes: [96, 160, 256, 384, 480],
   },
-  // The events view moved: the sky is /sky, and the map's shared links (filters, host, bright) still work.
-  async redirects() {
-    return [{ source: "/map", destination: "/sky", permanent: true }];
-  },
 };
 
 export default nextConfig;
