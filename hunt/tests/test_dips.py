@@ -212,3 +212,15 @@ def test_merge_drops_a_dip_seen_in_two_nearby_stars(tmp_path):
     assert "1:s1" in out["rejected_at_merge"]
     assert out["funnel"]["dips"]["single"]["after_neighbour_dips"] == 0
     assert not (tmp_path / "m" / "candidates" / "1_s1.json").exists()
+
+
+def test_a_dip_in_a_light_curve_full_of_artefacts_is_not_isolated():
+    def ev(tc, ses, bad):
+        e = singles.Event(tc, 0.1, 1e-3, 1e-4, ses, 1, 50, 1.0)
+        e.checks = [checks.Check("shape", not bad, 0.0, "")]
+        return e
+    target = ev(3000.0, 12.0, False)
+    busy = [target, ev(3001.0, 40.0, True), ev(3002.0, 11.0, True), ev(3003.0, 5.0, True)]
+    assert singles.check_isolated(target, busy).passed is False  # two artefacts at >= 80% of its SNR
+    quiet = [target, ev(3001.0, 40.0, True), ev(3003.0, 5.0, True)]
+    assert singles.check_isolated(target, quiet).passed is True

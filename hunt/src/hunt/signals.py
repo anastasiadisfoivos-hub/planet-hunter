@@ -257,6 +257,8 @@ def _deep_round(c: _Curves, mask, star, window, tls_left: float, runtime: dict) 
     runtime["bls_long_s"] = runtime.get("bls_long_s", 0.0) + lr.seconds
     runtime["bls_long_periods"] = max(runtime.get("bls_long_periods", 0), lr.n_periods)
     runtime["bls_long_pmax_d"] = round(lr.pmax, 2)
+    runtime["bls_long_target_pmax_d"] = round(lr.pmax_target, 2)
+    runtime["bls_long_stopped_by_budget"] = runtime.get("bls_long_stopped_by_budget", False) or lr.stopped_by_budget
     if lr.signal is not None:
         found.append((lr.signal, "bls_long"))
     if tls_left >= TLS_MIN_BUDGET_S:

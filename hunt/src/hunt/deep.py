@@ -4,11 +4,12 @@ Three searches, all on the same flattened, stitched curve (every sector, see lig
 
   bls_short  hunter.search.search: 0.5-15 d, per-sector BLS powers summed then refined on the full
              baseline (unchanged pipeline code).
-  bls_long   15 d up to half the baseline, BLS on a frequency grid fine enough that a transit of the shortest
-             plausible duration (half the central-transit duration for 3x the star's density) cannot drift out
-             of phase over the baseline. The range is split in factor-of-2 period blocks; each block gets
-             durations 0.35-1.5x the central duration for its periods and its own bin width (a third of the
-             shortest duration, 10-60 min), which keeps a 42-sector continuous-viewing-zone star tractable.
+  bls_long   15 d up to half the baseline, BLS on a frequency grid fine enough that a transit of half the
+             central-transit duration cannot drift more than a third of that out of phase over the baseline.
+             The range is split in factor-of-2 period blocks; each block gets durations from 0.35x the central
+             duration for 3x the star's density to 1.5x that for a third of it (1-24 h) and its own bin width.
+             Blocks run in increasing period while they fit a LONG_BUDGET_S time budget; the longest period
+             reached is recorded (stars with sectors spread over many years have huge grids).
   tls        transitleastsquares (limb-darkened transit template: better than a box for small planets) from
              0.5 d up to half the baseline. TLS costs about (points x periods); its cost is predicted before it
              runs and, if it would exceed TLS_BUDGET_S, TLS runs on the newest sectors that fit instead of the
@@ -44,6 +45,7 @@ LONG_DURATION_MAX_D = 1.0  # 24 h, the same limit as the single-dip search
 # astropy's BLS scans phase bins of (shortest duration / oversample); its cost per period grows with the period.
 # A third of the shortest duration is the same tolerance the period grid is built on (default is a tenth).
 BLS_PHASE_OVERSAMPLE = 3
+LONG_BUDGET_S = 180.0  # per round; beyond the period it reaches, long periods are left to the dip search
 TLS_BUDGET_S = 60.0
 TLS_RATE = 2.0e6  # (points x periods) per second, single thread: measured 1.8-2.7e6 (6 and 13 sectors, loaded laptop)
 TLS_OVERSAMPLE = 3
@@ -141,41 +143,57 @@ class LongResult:
     signal: Signal | None
     n_periods: int
     seconds: float
-    pmax: float
+    pmax: float  # longest period actually searched
+    pmax_target: float = 0.0  # half the baseline
+    stopped_by_budget: bool = False
 
 
 def bls_long(time: np.ndarray, flux: np.ndarray, rho: float, pmin: float = SHORT_PMAX,
-             pmax: float | None = None) -> LongResult:
+             pmax: float | None = None, budget_s: float | None = None) -> LongResult:
+    """Blocks in increasing period. The grid step uses half the central-transit duration at the star's density
+    (the Ofir 2014 / TLS convention; shorter, grazing durations are still searched, on the same grid). A block
+    starts only if its predicted time (the last block's time per period x its periods x 2, as the phase-bin
+    count doubles) fits in budget_s; the longest period reached is reported."""
     t_start = _time.perf_counter()
+    budget = LONG_BUDGET_S if budget_s is None else budget_s
     baseline = float(np.ptp(time)) if len(time) else 0.0
-    pmax = baseline / 2 if pmax is None else min(pmax, baseline / 2)
-    if pmax <= pmin or len(time) < 200:
-        return LongResult(None, 0, 0.0, pmax)
+    target = baseline / 2 if pmax is None else min(pmax, baseline / 2)
+    if target <= pmin or len(time) < 200:
+        return LongResult(None, 0, 0.0, min(pmin, target), target)
     all_p, all_pow, best = [], [], None
-    for lo, hi, durs in long_blocks(pmin, pmax, rho):
+    reached, stopped, per_period = pmin, False, None
+    for lo, hi, durs in long_blocks(pmin, target, rho):
+        periods = _grid_block(lo, hi, baseline, lambda p: 0.5 * central_duration(p, rho))
+        if len(periods) == 0:
+            continue
+        if per_period is not None:
+            predicted = per_period * 2 * len(periods)
+            if _time.perf_counter() - t_start + predicted > budget:
+                stopped = True
+                break
+        tb = _time.perf_counter()
         bin_d = min(max(durs[0] / 3, LONG_MIN_BIN_MIN / 1440), LONG_MAX_BIN_MIN / 1440)
         bt, bf, cnt = bin_by_time(time, flux, bin_d)
         sigma = robust_sigma(bf - np.median(bf)) or 1e-3
         dy = sigma * np.sqrt(np.median(cnt) / cnt)
-        periods = _grid_block(lo, hi, baseline, lambda p, d0=durs[0]: d0 * (p / lo) ** (1 / 3))
-        if len(periods) == 0:
-            continue
         res = BoxLeastSquares(bt, bf, dy).power(periods, durs, objective="likelihood",
                                                 oversample=BLS_PHASE_OVERSAMPLE)
+        per_period = (_time.perf_counter() - tb) / len(periods)
         pw = np.nan_to_num(np.asarray(res.power), nan=0.0)
         all_p.append(periods)
         all_pow.append(pw)
+        reached = hi
         i = int(np.argmax(pw))
         if best is None or pw[i] > best[0]:
             best = (float(pw[i]), float(res.period[i]), float(res.transit_time[i]), float(res.duration[i]))
     n_periods = int(sum(len(p) for p in all_p))
     if best is None:
-        return LongResult(None, n_periods, _time.perf_counter() - t_start, pmax)
+        return LongResult(None, n_periods, _time.perf_counter() - t_start, reached, target, stopped)
     power = np.concatenate(all_pow)
     sde = float((power.max() - power.mean()) / power.std()) if power.std() > 0 else 0.0
     _, period, t0, dur = best
     sig = make_signal(time, flux, period, t0, dur, sde)
-    return LongResult(sig, n_periods, _time.perf_counter() - t_start, pmax)
+    return LongResult(sig, n_periods, _time.perf_counter() - t_start, reached, target, stopped)
 
 
 # ---- TLS -----------------------------------------------------------------------------------------------------

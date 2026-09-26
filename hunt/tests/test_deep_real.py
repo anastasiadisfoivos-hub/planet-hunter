@@ -98,3 +98,27 @@ def test_toi2180_b_with_every_sector_is_periodic_from_three_transits():
     assert abs(cand["period_d"] - 260.167) < 0.05  # within the published 260.79 +- 0.59 d
     assert cand["n_transits"] == 3 and "bls_long" in cand["found_by"]
     assert {round(d["mid_btjd"]) for d in cand["dips"]} == {1831, 2611, 2871}
+
+
+FALSE_ALARM_TIC = 121490076
+
+
+@pytest.fixture(scope="module")
+def false_alarms(catalogue):
+    """Sector 96 of TIC 121490076 (Tmag 9.0), as the 2026-09-26 calibration sweep searched it (list B)."""
+    star, lc = load_fixture(FALSE_ALARM_TIC)
+    return analyse.analyse(star, lc, catalogue, "B")
+
+
+@pytest.mark.parametrize("mid,check,words,min_snr", [
+    # a 3.6-h, 6800-ppm dip made of quality-flagged cadences: SNR 12 here, 13 in the 6-sector sweep
+    (3927.09, "momentum_dump", "quality-flagged", 10.0),
+    # a 1.1-h dip on a scattered-light spike (background +21 sigma): SNR 9 on this sector alone, 11 in the sweep
+    (3933.28, "background", "background rises", 9.0),
+])
+def test_strong_false_alarms_are_rejected_with_the_reason(false_alarms, mid, check, words, min_snr):
+    ev = next(e for e in false_alarms.events if abs(e["mid_btjd"] - mid) < 0.05)
+    assert ev["snr"] > min_snr
+    assert check in ev["failed_checks"] and words in ev["rejected_because"][check]
+    assert not any(c["kind"] != "periodic" and any(abs(d["mid_btjd"] - mid) < 0.05 for d in c["dips"])
+                   for c in false_alarms.candidates)

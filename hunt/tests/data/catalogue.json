@@ -225,6 +225,51 @@
 "disposition": "PC",
 "tmag": 8.56854,
 "ttv_flag": false
+},
+{
+"tic": 121490076,
+"name": "HIP 113103 b",
+"kind": "confirmed",
+"period": 7.610303,
+"period_err": 1.8e-05,
+"t0_btjd": 1325.5965999998152,
+"t0_err": 0.0033,
+"duration_h": 2.1384,
+"ra": 343.5723794,
+"dec": -43.0102291,
+"disposition": "transiting",
+"tmag": 8.9988,
+"ttv_flag": false
+},
+{
+"tic": 121490076,
+"name": "HIP 113103 c",
+"kind": "confirmed",
+"period": 14.245648,
+"period_err": 1.9e-05,
+"t0_btjd": 1337.0559000000358,
+"t0_err": 0.0019,
+"duration_h": 4.2336,
+"ra": 343.5723794,
+"dec": -43.0102291,
+"disposition": "transiting",
+"tmag": 8.9988,
+"ttv_flag": false
+},
+{
+"tic": 121490076,
+"name": "TOI-6726.01",
+"kind": "toi",
+"period": 14.2456603,
+"period_err": 4.1e-05,
+"t0_btjd": 3160.495920999907,
+"t0_err": 0.002794,
+"duration_h": 3.403,
+"ra": 343.572379,
+"dec": -43.010229,
+"disposition": "KP",
+"tmag": 8.9988,
+"ttv_flag": false
 }
 ]
 }
