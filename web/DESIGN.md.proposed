@@ -1,6 +1,6 @@
 # planet-hunter web: DESIGN.md
 
-> **Proposed by the POLISH session, 26 Sep 2026. Not yet adopted.** Change markers:
+> **Proposed by the POLISH session, 26 Sep 2026 (v2, image-led). Not yet adopted.** Change markers:
 > **[CHANGED]** a rule that replaces an existing one, **[NEW]** a rule that did not exist, **[REMOVED]** a rule
 > that goes. Unmarked text is unchanged from the current DESIGN.md. The Motion section is copied verbatim and
 > not proposed for change (another session owns it). Evidence and reasoning: `docs/polish/DIRECTION.md`.
@@ -12,8 +12,10 @@ this file wins.
 with real pictures, plus every star clickable and analyzable. Think instrument or observatory software, **not a
 game**: no watches, points or scores.
 The UI is quiet and exact, with flat surfaces and hairlines. Data carries the colour; chrome stays neutral.
-**[NEW]** Home, lab, finder and map are one instrument: one top bar, one page-header pattern, one grid. Black is
-the canvas, hairlines are the structure, and every claim carries its basis in one caption grammar.
+**[NEW]** Home, events, sky, lab and finder are one instrument that **shows** the sky: every surface leads with a real
+photograph or real instrument data, words shrink to a title, a name and one mono caption line, and every
+explanation is one tap away. Black is the canvas, hairlines are the structure, and the page has generous air.
+**[CHANGED]** Events are a gallery of their own pictures (`/events`); the sky (`/sky`) is where they are.
 
 Tokens live in `app/tokens.css` as CSS custom properties. Components use tokens, never raw hex.
 Shared primitives live in `components/ui/`. This file, `app/tokens.css`, `app/layout.tsx`, `app/globals.css`,
@@ -29,7 +31,7 @@ Dark only.
 | `--bg` | **[CHANGED]** `#000000` (was `#09090B`) | page canvas on every route; the same black as the sky |
 | `--well` | **[NEW]** `#070708` | rare: an area that must read as "inside" (pixel images, code) |
 | ~~`--bg-deep`~~ | **[REMOVED]** use `--well` | |
-| `--space` | `#000000` | the 3D sky: pure black space |
+| `--space` | `#000000` | the 3D sky's space. **[CHANGED]** The sky's background is ESO's real all-sky photograph (eso0932a, "ESO/S. Brunier", CC BY 4.0) on this black; see The sky |
 | `--raised` | `#111214` | **[CHANGED]** floating things only: popovers, sheets, the vote panel, the map's panels. Never a section background. |
 | `--line-faint` | **[NEW]** `rgb(222 230 255 / 0.06)` | row separators, the top bar's bottom edge, chart gridlines |
 | `--line` | **[NEW, replaces `--hairline`]** `rgb(222 230 255 / 0.10)` | section rules, fact-grid rules, panel borders |
@@ -70,12 +72,13 @@ Rules:
   | body | 14 / 20 | 0 | the UI default |
   | read | 16 / 26 | 0 | ledes and reading text |
   | h3 | 20 / 26 | -0.015em | panel titles |
-  | h2 | 28 / 32 (24 / 28 below 640px) | -0.025em | section headings |
-  | h1 | 40 / 44 (32 / 36 below 640px) | -0.03em | page titles |
-  | display | clamp(36px, 5.2vw, 56px) / 1.04 | -0.035em | home hero only |
+  | line | 16 / 24 | 0 | the one line under a heading (max 560px) |
+  | h2 | clamp(24px, 2.2vw, 32px) / 1.1 | -0.03em | section headings (≤ 3 words) |
+  | h1 | clamp(32px, 3.6vw, 48px) / 1.05 | -0.035em | page titles |
+  | display | clamp(40px, 5.6vw, 80px) / 1.0 | -0.04em | the hero statement on a photograph (≤ 12 words); home and lab only |
 
   **[REMOVED]** 15, 17 and the 24/32 desktop heading sizes.
-- **[NEW]** Every paragraph has `max-width: 640px`. Headings use `text-wrap: balance`, prose `text-wrap: pretty`.
+- **[NEW]** No paragraphs on landing surfaces (home, /events, /lab, /finder). Elsewhere every paragraph has `max-width: 560px`. Headings use `text-wrap: balance`, prose `text-wrap: pretty`.
 - Uppercase appears only in mono labels. **[NEW]** A mono label names data: it sits above a value, heads a table
   column, or is a picture's source line. It is never a kicker above a section heading. The one exception is the
   kind label in a detail page's header ("PLANET CANDIDATE").
@@ -96,16 +99,19 @@ Rules:
 - 1px hairline borders. **[CHANGED]** Radius: 4px for tags, picture corners and placeholders; 8px for controls
   and cards; 12px for floating panels and sheets only; 50% for dots and colour discs. **[REMOVED]** pills.
   Flat surfaces, no shadows **[NEW]** (and no inset box-shadows standing in for borders).
-- **[CHANGED]** The spacing scale is 4, 8, 12, 16, 24, 32, 48, 64, 96, from a 4px base. 2 and 6 only as optical steps
-  (label to value, icon to text). **[REMOVED]** 20.
+- **[CHANGED]** The spacing scale is 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 160, from a 4px base. 2 and 6 only as optical
+  steps (label to value, icon to text). **[REMOVED]** 20.
+- **[NEW]** Section padding: 160 on landing surfaces (128 at 640 to 1023, 96 on phones); 96 on app pages (80, 64).
+  Section head to content 40. Picture grids: 24 column gap (12 on phones), 40 row gap (28 on phones). Picture to name 12,
+  name to caption line 2. Editorial split gap 96.
 - Controls are 32px tall (`--control-h`), or 44px on coarse pointers. **[NEW]** A large control (hero search,
   vote options) is 40px, also 44px on coarse pointers. The segmented control and nav links follow this too.
 
 ### Grid **[NEW]**
 
-- Container: 1200px content, with margins of 40px (≥1024), 24px (640 to 1023) and 16px (<640). The top bar
-  uses the same container.
-- 12 columns, 24px gutter (16px on phones). Reading measure 640px, wide figures 880px, aside 320px.
+- Container: 1312px content, with margins of 64px (≥1280), 40px (1024 to 1279), 32px (640 to 1023) and 20px (<640).
+  The top bar uses the same container.
+- Picture grids: 5 columns ≥1280, 4 ≥1024, 3 ≥640, 2 on phones. Reading measure 560px; side columns 360 to 400px.
 - Breakpoints: 640 and 1024. Below 1024 an aside moves up under the page header, never to the end of the page.
 
 ### Surfaces and cards **[NEW]**
@@ -120,13 +126,13 @@ Rules:
 ### Top bar
 
 - 56px, `#000`, a `--line-faint` bottom edge, sticky on app pages. On home it overlays the hero with no edge.
-- Left: glyph plus "Planet Hunter", always linking to `/`. Then **Sky map · Lab · Finder**. These are the only names
-  for the sections, everywhere. 14px `--ink-secondary`; the current section is `--ink` with a 1px `--ink` rule
+- Left: glyph plus "Planet Hunter", always linking to `/`. Then **[CHANGED] Events · Sky · Lab · Finder**. These are
+  the only names for the sections, everywhere. 64px tall (56 on phones); transparent over a hero photograph. 14px `--ink-secondary`; the current section is `--ink` with a 1px `--ink` rule
   on the bar's bottom edge (not the accent).
 - Right: "Find a star", a 240px field with a `/` shortcut that opens the star search. On phones it becomes an icon
   button.
 - Section navigation (lab experiments, finder views) lives in the page header as tabs, not in the bar.
-- On the map, the same bar is the top row above the sky.
+- On `/sky`, the same bar is the top row above the sky.
 
 ### Page header
 
@@ -171,12 +177,29 @@ Mono label step, 20px high (24 in page headers), 4px radius, 1px `--line-strong`
   this star yet", never an error and never developer copy.
 - **Demo**: one `DEMO DATA` tag on the smallest demo thing, plus one caption sentence. "REAL DATA" tags are not used.
 
-### Pictures
+### Pictures **[CHANGED]**
 
-- Tiles: 1:1 (or 4:3), 4px radius, cover, no border, no text over the picture.
-- Caption grammar: the source line in the label step ("NASA SDO/AIA 131 Å · 2 min before peak",
-  "DESI Legacy Surveys DR10 · archive"), then an optional meta sentence. Credits wrap and are never truncated.
-- Drawings are 1 to 1.5px line art.
+- **Only real pictures:** photographs and instrument images from NASA, SDO/Helioviewer, ESA/Webb, ESA/Hubble, ESO,
+  NOIRLab and ESA/Gaia; hips2fits survey cutouts; our own renders of real data. Never generated images, artist's
+  impressions shown as photographs, stock space art, tinting or text burned into a crop.
+- Every picture lives in `public/images/` with an entry in `public/images/credits.json` (url, title, credit, licence,
+  source, size, archive?, event?).
+- **Hero:** one full-bleed photograph (100vh, at most 920px). Only the page title may sit on it, in its dark negative
+  space.
+- **Tiles:** 1:1 in grids (3:4 or 4:3 for lab pictures), `cover`, 4px radius, no border, no overlay. Astronomical
+  objects are shown whole unless the viewport edge cuts a planet on purpose.
+- **Caption line:** one mono line (label step) under every picture: source · date or time · flag (`archive`,
+  `guess 82%`, `candidate`, `demo`), with an **i** at its end that opens the credit, licence, source link and one
+  honesty sentence.
+- **Typographic tile:** for an event with no picture and no precise position. A 1:1 `--well` square with a `--line`
+  border, its category shape, its name and "TYPE · DATE". Never a stand-in image.
+- **Data as picture:** light curves and pixel maps render large, labels at 1:1, with a caption line.
+
+### Drawers **[NEW]**
+
+Every explanation lives in a closed `<details>` drawer: a 56px row with a summary of ≤ 3 words, a mono state on
+the right ("6 of 6 passed") and a + / − marker. Science pages (lab experiments, the candidate report) keep their
+full explanations, collapsed; the picture or chart leads.
 
 ## Motion
 
@@ -195,9 +218,14 @@ Mono label step, 20px high (24 in page headers), 4px radius, 1px `--line-strong`
 
 ## The sky
 
-> **[NEW]** Unchanged below, except: map panels use `--raised` with `--line` borders, and the shared top bar sits above
-> the sky as its top row (see Components, Top bar). MAPUI owns the implementation.
-
+> **[CHANGED, v2]** The sky becomes secondary: a full-screen page at `/sky` and a compact "where is it" on each
+> event. Its background is ESO's real all-sky photograph, eso0932a ("ESO/S. Brunier", CC BY 4.0), which is
+> equirectangular in galactic coordinates: it maps directly onto the celestial sphere rotated from galactic
+> to ICRS. Faint constellation lines (22 to 35%) and names (label style, 55%) come from d3-celestial (BSD-3-Clause),
+> so a position reads as "in Orion, near the Milky Way". Events are their category shapes. The compact sky is a
+> 56° × 34° crop around the event. Map panels use `--raised` with `--line` borders, and the shared top bar is the
+> sky's top row. MAPUI owns the implementation. Where the rules below say "pure black space" or "no haze", read
+> them as: nothing is added to the photograph; the page around it is `#000`.
 
 - The sky is where the beauty lives. Panels stay flat and minimal.
 - Reference: NASA's Eyes on Exoplanets. Pure black space (`--space`), jewel-like stars in their true colours, and
@@ -244,9 +272,18 @@ Mono label step, 20px high (24 in page headers), 4px radius, 1px `--line-strong`
   source publishes no report time (`raw.reported_at_known === false`), say "Report time not published".
 - Mock data shows a visible `DEMO DATA` tag.
 - **[NEW]** No developer copy in the UI (file names, services, "for building the UI").
+- **[NEW]** Word budgets: home hero ≤ 12 words; a landing section is a heading of ≤ 3 words plus at most one line of
+  ≤ 8 words; no paragraphs on landing surfaces; a caption line is ≤ 8 mono tokens; a tile is a name of ≤ 4 words
+  plus its caption line.
+- **[NEW]** Honesty stays one tap away at most: "archive" and "guess" in the caption line, "candidate" under the
+  title, "demo" as a tag.
 - No em dashes in UI copy.
 
 ## Layout: map screen
+
+> **[CHANGED, v2]** The feed column leaves the map: events live in the `/events` gallery (same filter bar and URL
+> params: `time`, `from`, `to`, `types`, `src`, `conf`, `pics`, `rubin`) and open at `/events/[id]`. `/map` redirects
+> to `/sky` with its query. The layout below is the current map, kept for reference until MAPUI updates it.
 
 ```
 ┌──────────┬──────────────────────────────────┬──────────────┐
