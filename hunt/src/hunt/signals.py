@@ -14,7 +14,8 @@ from dataclasses import dataclass
 import numpy as np
 
 from hunter.clean import flatten_for_search
-from hunter.search import DURATIONS, Signal, harmonically_related, in_transit, search
+from hunter.search import DURATIONS, Signal, harmonically_related, in_transit
+from hunter.search import search as _bls_search
 
 from .catalogs import KnownSignal
 from .lightcurve import StarLC
@@ -24,6 +25,15 @@ MAX_SIGNALS = 3
 CONTINUE_MIN_SNR = 7.0  # keep looking for a further signal only while the last one was at least this strong
 DEFAULT_KNOWN_DURATION_H = 3.0
 MAX_TIMING_PAD_D = 0.5  # beyond this the ephemeris is too uncertain to mask usefully
+
+
+def search(time: np.ndarray, flux: np.ndarray, groups: np.ndarray) -> Signal | None:
+    """hunter.search.search, but None instead of an IndexError when a very wide box leaves no
+    out-of-transit points to measure the noise on (happens on heavily masked data)."""
+    try:
+        return _bls_search(time, flux, groups)
+    except IndexError:
+        return None
 
 
 @dataclass
