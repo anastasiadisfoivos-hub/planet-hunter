@@ -1,6 +1,8 @@
 # ASSUMES A PUBLIC REPOSITORY. Public repos get standard GitHub-hosted runners free and unmetered.
 # One night uses about 7,100 runner-minutes (20 shards x ~355 min, plus ~15 min for targets and merge),
 # about 215,000 a month: a private repo on the free plan (2,000 min/month) would run out on the first night.
+# DEEPHUNT: every sector is stitched and searched (long periods, TLS, single/double dips): ~250 s per star per
+# worker, so a night covers ~4,000-7,000 stars (HUNT: ~90k); the 350-min budget keeps the minutes the same.
 #
 # planet-hunter PLANET FINDER nightly sweep (hunt/).
 # Copy to .github/workflows/sweep.yml (the DEPLOY session wires it up). FINDER-API's finder.yml depends

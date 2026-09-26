@@ -270,6 +270,54 @@ cuts are run.
 - `sensitivity.json` holds per-bin counts and fractions, marginals by radius and by period, and the star list.
   `sensitivity_injections.jsonl` holds every injection.
 
+## 7b. Runtime, stars per night and false alarms (measured)
+
+**Calibration run** (2026-09-26): the first 360 stars of HUNT's 2026-09-25 target list re-ranked with the
+new groups (list B siblings interleaved with list A, i.e. what a night would search first), every sector
+stitched, 8 workers on a 10-core M-series laptop shared with an injection run and other jobs (so these times
+are on the slow side). 360 finished, 0 timeouts, 1 crash (TLS on an all-masked curve; fixed since).
+
+| Per star (s) | median | mean |
+|---|---|---|
+| download + stitch | 18 | 19 |
+| `bls_short` (0.5–15 d) | 17 | 22 |
+| `bls_long` (15 d – ½ baseline) | 91 | 98 |
+| `tls` | 64 | 75 |
+| native re-measuring | 17 | 21 |
+| single / duo search | 2 | 3 |
+| **whole star** | **225** | **251** |
+
+Stars had a median of 6 sectors (90th percentile 10, max 12) over baselines of ~2,500–2,900 d; `bls_long`
+reached half the baseline on 318 of 359 stars (median 1,425 d) and stopped at its 180-s budget on the rest.
+TLS fitted its 60-s budget only on the newest ~2 sectors (median) for all but 1 star: with sectors spread over
+eight years its period grid is huge, so on stitched curves TLS mainly helps small planets in recent data, and
+BLS covers the whole baseline. For comparison, HUNT's 3-sector BLS took a median 18 s per star.
+
+**Nightly CI** (public repo, 20 shards × 350-min budget, 4 workers per `ubuntu-latest` runner): the budget,
+not the list, sets the minutes, which stay at about 20 × 355 + 15 ≈ **7,100 runner-minutes a night** (as
+HUNT). At 251 s per star per worker that is 20 × 350 × 60 × 4 / 251 ≈ **6,700 stars a night** (HUNT: ~90k at
+~18 s). A runner vCPU may be slower than an unloaded laptop core, so plan on **4,000–7,000**; the time budget
+keeps a slow night inside 350 minutes either way. The 19,489 group-0 stars take about 3–5 nights, the
+536k stars with ≥ 5 sectors about 80–130 nights.
+
+**False alarms** (same 359 stars; recomputed with the final rules for all of them):
+
+| Kind, threshold | pass every check, not on a list | per 1,000 stars | per night (6,700 stars) |
+|---|---|---|---|
+| single, SES ≥ 10 | 3 | 8.4 | ~56 |
+| **single, SES ≥ 12 (used)** | **1** | **2.8** | **~19** |
+| single, SES ≥ 15 | 0 | < 2.8 | – |
+| duo, combined ≥ 10 (used) | 0 | < 2.8 | – |
+| periodic (SNR ≥ 10, SDE ≥ 9 or SNR ≥ 30) | 0 | < 2.8 | – |
+
+The single threshold is **SES ≥ 12** so the nightly list stays near 20 singles plus a few duos. This rests on
+very few events: one single at SES ≥ 12 in 359 stars puts the rate anywhere from about 0.5 to 9 per 1,000 (68%
+Poisson interval), i.e. roughly 3–60 a night, so the first real nights' `funnel.json`
+(`dips.single.candidates_per_1000_stars`) should be used to re-set it. None of the 3 singles above SES 10 is
+known to be real. This run's `funnel.json` records 3,599 dip events with SES ≥ 7 on these stars, of which 98%
+failed a dip check (`isolated` 2,920, `background` 2,249, `shape` 1,685, `edge` 1,430,
+`momentum_dump` 193; several per event).
+
 ## 8. CI
 
 `ci/sweep.yml` is the nightly GitHub Actions workflow. The DEPLOY session installs it as
@@ -280,7 +328,7 @@ non-fatal, 350-minute budget each) → merge → artifact.
   (`workflow_run.workflows: ["sweep"]`, `gh run list --workflow sweep.yml`, `SWEEP_ARTIFACT: candidates`).
 - The latest `sensitivity.json` is committed at `hunt/results/sensitivity.json` and shipped in each artifact.
 - **It assumes a public repository.** A night uses about 7,100 runner-minutes (20 × ~355 + ~15), roughly
-  215,000 a month. That is free and unmetered on a public repo; the private free plan's 2,000 minutes a
+  215,000 a month, and covers about 4,000–7,000 stars with the deep search (section 7b). That is free and unmetered on a public repo; the private free plan's 2,000 minutes a
   month would run out on the first night.
 
 ## Cache
