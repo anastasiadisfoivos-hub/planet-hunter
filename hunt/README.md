@@ -154,6 +154,13 @@ cuts are run.
 - `sensitivity.json` holds per-bin counts and fractions, marginals by radius and by period, and the star list.
   `sensitivity_injections.jsonl` holds every injection.
 
+Latest run (2026-09-26, `results/sensitivity.json`): 200 quiet stars (mostly M dwarfs and small stars from
+the top of list A), 2,000 injections, overall recovery 0.61. By radius, 1–2 R⊕ 0.28, 2–3 R⊕ 0.55,
+≥ 3 R⊕ 0.66–0.72. By period, < 2 d 0.82–0.84, 7–10 d 0.45, 10–15 d 0.07.
+
+Beyond about 7 d, the SDE ≥ 9 cut is the limit, not the search: 77% of 10–15 d injections are still
+detected, and 425 of the 480 detected-but-rejected injections failed only on SDE.
+
 ## 8. CI
 
 `ci/sweep.yml` is the nightly GitHub Actions workflow. The DEPLOY session installs it as
