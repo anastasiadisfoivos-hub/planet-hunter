@@ -1,0 +1,207 @@
+{
+  "$defs": {
+    "CatchType": {
+      "enum": [
+        "asteroid",
+        "near_earth_object",
+        "trans_neptunian_object",
+        "comet",
+        "interstellar_object",
+        "supernova",
+        "active_galaxy",
+        "tidal_disruption_event",
+        "microlensing",
+        "kilonova",
+        "variable_star",
+        "flare",
+        "eclipsing_binary",
+        "planet_candidate",
+        "unknown"
+      ],
+      "title": "CatchType",
+      "type": "string"
+    },
+    "ExpectedCount": {
+      "additionalProperties": false,
+      "properties": {
+        "mean_count": {
+          "minimum": 0,
+          "title": "Mean Count",
+          "type": "number"
+        },
+        "type": {
+          "$ref": "#/$defs/CatchType"
+        }
+      },
+      "required": [
+        "type",
+        "mean_count"
+      ],
+      "title": "ExpectedCount",
+      "type": "object"
+    },
+    "KnownSolarSystemObject": {
+      "additionalProperties": false,
+      "properties": {
+        "dec_deg": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Dec Deg",
+          "type": "number"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "ra_deg": {
+          "exclusiveMaximum": 360,
+          "minimum": 0,
+          "title": "Ra Deg",
+          "type": "number"
+        },
+        "type": {
+          "$ref": "#/$defs/CatchType"
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "ra_deg",
+        "dec_deg"
+      ],
+      "title": "KnownSolarSystemObject",
+      "type": "object"
+    },
+    "Sphere": {
+      "additionalProperties": false,
+      "properties": {
+        "dec_deg": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Dec Deg",
+          "type": "number"
+        },
+        "ra_deg": {
+          "exclusiveMaximum": 360,
+          "minimum": 0,
+          "title": "Ra Deg",
+          "type": "number"
+        },
+        "radius_deg": {
+          "maximum": 10,
+          "minimum": 0.05,
+          "title": "Radius Deg",
+          "type": "number"
+        }
+      },
+      "required": [
+        "ra_deg",
+        "dec_deg",
+        "radius_deg"
+      ],
+      "title": "Sphere",
+      "type": "object"
+    },
+    "Visit": {
+      "additionalProperties": false,
+      "properties": {
+        "band": {
+          "title": "Band",
+          "type": "string"
+        },
+        "time": {
+          "format": "date-time",
+          "title": "Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "time",
+        "band"
+      ],
+      "title": "Visit",
+      "type": "object"
+    },
+    "Window": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "Window",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "expected": {
+      "items": {
+        "$ref": "#/$defs/ExpectedCount"
+      },
+      "title": "Expected",
+      "type": "array"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "inputs_used": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Inputs Used",
+      "type": "array"
+    },
+    "known_solar_system_objects": {
+      "items": {
+        "$ref": "#/$defs/KnownSolarSystemObject"
+      },
+      "title": "Known Solar System Objects",
+      "type": "array"
+    },
+    "rubin_visit_probability": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Rubin Visit Probability",
+      "type": "number"
+    },
+    "sphere": {
+      "$ref": "#/$defs/Sphere"
+    },
+    "visits": {
+      "items": {
+        "$ref": "#/$defs/Visit"
+      },
+      "title": "Visits",
+      "type": "array"
+    },
+    "window": {
+      "$ref": "#/$defs/Window"
+    }
+  },
+  "required": [
+    "sphere",
+    "window",
+    "rubin_visit_probability",
+    "visits",
+    "expected",
+    "known_solar_system_objects",
+    "generated_at",
+    "inputs_used"
+  ],
+  "title": "Forecast",
+  "type": "object"
+}

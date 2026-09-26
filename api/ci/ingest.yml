@@ -1,0 +1,50 @@
+# Hourly: fetch every sky-event source, add real pictures, upsert into the events table.
+# DEPLOY: move to .github/workflows/ingest.yml (it replaces events/ci/ingest.yml's JSON output
+# for the site). Needs the repo secret PH_DATABASE_URL.
+name: ingest-events
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "7 * * * *"
+
+concurrency:
+  group: ingest-events
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120  # the first run checks every picture URL (~30-40 min); later runs reuse them
+    env:
+      PH_DATABASE_URL: ${{ secrets.PH_DATABASE_URL }}
+      PH_DB_POOL_MAX: "2"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+      # skysources' HTTP cache (GCN circulars and GraceDB files never change) and skypictures'
+      # URL checks (good answers kept 7 days), so hourly runs stay short.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/skysources
+            ~/.cache/skypictures
+          key: sky-http-${{ github.run_id }}
+          restore-keys: sky-http-
+      - name: Ingest
+        working-directory: api
+        run: |
+          uv sync --frozen --no-dev
+          uv run --no-dev python -m api.ingest --since 7d | tee summary.json
+      - name: Summary
+        if: always()
+        working-directory: api
+        run: |
+          { echo '### Ingest'; echo '```json'; cat summary.json 2>/dev/null; echo '```'; } \
+            >> "$GITHUB_STEP_SUMMARY"

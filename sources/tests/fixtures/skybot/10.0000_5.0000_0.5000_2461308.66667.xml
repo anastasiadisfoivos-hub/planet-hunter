@@ -1,0 +1,1504 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<vot:VOTABLE version="1.3" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:vot="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:stc="http://www.ivoa.net/xml/STC">
+<vot:COOSYS ID="J2000" equinox="J2000" epoch="J2000" system="eq_FK5"/>
+<vot:INFO ID="status" name="QUERY_STATUS" value="OK"/>
+<vot:INFO ID="ticket" name="Ticket" value="187731536084367911"/>
+<vot:INFO ID="reqTarget" name="-c" value="10+5,rs=1800"/>
+<vot:INFO ID="reqEpoch" name="Epoch" value="2461308.6666666665"/>
+<vot:INFO ID="supplier" name="Supplier" value="Provided by LTE/OBSPM/CNRS"/>
+<vot:GROUP utype="stc:AstroCoordSystem" ID="IMCCE-INPOP-GEO"><vot:GROUP utype="stc:AstroCoordSystem.TimeFrame"><vot:PARAM name="TimeScale" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.TimeFrame.TimeScale" value="UTC"/>
+<vot:PARAM name="RefPosition" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.TimeFrame.ReferencePosition" value="GEOCENTER"/>
+</vot:GROUP>
+<vot:GROUP utype="stc:AstroCoordSystem.SpaceFrame"><vot:PARAM name="CooFrame" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.CoordRefFrame" value="ICRS"/>
+<vot:PARAM name="CooFrameOrigin" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.ReferencePosition" value="GEOCENTER"/>
+<vot:PARAM name="Ephemeris" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.ReferencePosition.PlanetaryEphem" value="IMCCE-INPOP"><vot:DESCRIPTION>Planetary theory used to compute the ephemeris</vot:DESCRIPTION>
+</vot:PARAM>
+<vot:PARAM name="CooType" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.CoordFlavor" value="SPHERICAL"/>
+<vot:PARAM name="Naxes" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.coord_naxes" value="3"/>
+</vot:GROUP>
+</vot:GROUP>
+<vot:GROUP utype="stc:AstroCoordSystem" ID="IMCCE-INPOP-HELIO"><vot:GROUP utype="stc:AstroCoordSystem.TimeFrame"><vot:PARAM name="TimeScale" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.TimeFrame.TimeScale" value="TT"/>
+<vot:PARAM name="RefPosition" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.TimeFrame.ReferencePosition" value="HELIOCENTER"/>
+</vot:GROUP>
+<vot:GROUP utype="stc:AstroCoordSystem.SpaceFrame"><vot:PARAM name="CooFrame" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.CoordRefFrame" value="ICRS"/>
+<vot:PARAM name="CooFrameOrigin" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.ReferencePosition" value="HELIOCENTER"/>
+<vot:PARAM name="Ephemeris" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.ReferencePosition.PlanetaryEphem" value="IMCCE-INPOP"><vot:DESCRIPTION>Planetary theory used to compute the ephemeris</vot:DESCRIPTION>
+</vot:PARAM>
+<vot:PARAM name="CooType" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.CoordFlavor" value="CARTESIAN"/>
+<vot:PARAM name="Naxes" datatype="char" arraysize="*" utype="stc:AstroCoordSystem.SpaceFrame.coord_naxes" value="3"/>
+</vot:GROUP>
+</vot:GROUP>
+<vot:RESOURCE name="Skybot.ConeSearch"><vot:DESCRIPTION>SkyBoT - List of the targets located in the FOV</vot:DESCRIPTION>
+<vot:INFO name="QUERY_STATUS" value="OK"/>
+<vot:PARAM ID="epoch" name="Epoch" datatype="char" arraysize="*" ucd="time.epoch" unit="d" value="2026-09-25 03:59:60.00"><vot:DESCRIPTION>Requested epoch</vot:DESCRIPTION>
+</vot:PARAM>
+<vot:PARAM ID="fovRA" name="RA" datatype="double" ucd="pos.eq.ra" unit="deg" value="10"><vot:DESCRIPTION>Right ascension of the FOV center</vot:DESCRIPTION>
+</vot:PARAM>
+<vot:PARAM ID="fovDEC" name="DEC" datatype="double" ucd="pos.eq.dec" unit="deg" value="5"><vot:DESCRIPTION>Declination of the FOV center</vot:DESCRIPTION>
+</vot:PARAM>
+<vot:PARAM ID="fovSR" name="FOV" datatype="double" ucd="instr.fov" unit="arcsec" value="1800"><vot:DESCRIPTION>Size of the FOV</vot:DESCRIPTION>
+</vot:PARAM>
+<vot:PARAM ID="filter" name="Filter" datatype="double" ucd="pos.angDistance;stat.max" unit="arcsec" value="120"/>
+<vot:PARAM ID="observer" name="Observer" datatype="char" arraysize="*" ucd="meta.code;obs.observer" value="500"><vot:DESCRIPTION>Observer location code</vot:DESCRIPTION>
+</vot:PARAM>
+<vot:PARAM ID="refsys" name="RefSys" datatype="char" ucd="meta.code;obs.observer" value="EQJ2000"><vot:DESCRIPTION>Reference system (EQJ2000|ECJ2000)</vot:DESCRIPTION>
+</vot:PARAM>
+<vot:TABLE ID="SkybotConeSearch_results" name="SkybotConeSearch" nrows="56"><vot:GROUP ID="Ephemeris" utype="stc:AstroCoords" ref="IMCCE-INPOP-GEO"><vot:PARAM name="GeoCoordinates" datatype="char" arraysize="*" utype="stc:AstroCoords.coord_sys_id" value="UTC-ICRS-GEO"/>
+</vot:GROUP>
+<vot:GROUP ID="StateVector" utype="stc:AstroCoords" ref="IMCCE-INPOP-HELIO"><vot:PARAM name="HelioCoordinates" datatype="char" arraysize="*" utype="stc:AstroCoords.coord_sys_id" value="TT-ICRS-HELIO"/>
+</vot:GROUP>
+<vot:FIELD ID="num" name="Num" ucd="meta.id;meta.number" datatype="char" arraysize="6"><vot:DESCRIPTION>Solar system object number</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="name" name="Name" ucd="meta.id;meta.main" datatype="char" arraysize="32"><vot:DESCRIPTION>Solar system object name</vot:DESCRIPTION>
+<vot:LINK href="https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/${Name}"/>
+</vot:FIELD>
+<vot:FIELD ID="ra" name="RA" ucd="pos.eq.ra;meta.main" ref="Ephemeris" utype="stc:AstroCoords.Position3D.Value3.C1" datatype="char" arraysize="13" unit="h:m:s"><vot:DESCRIPTION>Astrometric J2000 right ascension</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="de" name="DEC" ucd="pos.eq.dec;meta.main" ref="Ephemeris" utype="stc:AstroCoords.Position3D.Value3.C2" datatype="char" arraysize="13" unit="d:m:s"><vot:DESCRIPTION>Astrometric J2000 declination</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="class" name="Class" ucd="meta.code.class;src.class" datatype="char" arraysize="24"><vot:DESCRIPTION>Object classification</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="magV" name="Mv" ucd="phot.mag;em.opt.V" datatype="float" width="13" precision="2"><vot:DESCRIPTION>Visual magnitude</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="errpos" name="ErrPos" ucd="stat.error.sys" datatype="float" width="10" precision="3" unit="arcsec"><vot:DESCRIPTION>Uncertainty on the (RA,DEC) coordinates</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="angdist" name="d" ucd="pos.ang" datatype="float" width="8" precision="3" unit="arcsec"><vot:DESCRIPTION>Body-to-center angular distance</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="dracosdec" name="dRAcosDec" ucd="pos.pm;pos.eq.ra" datatype="double" width="12" unit="arcsec/h"><vot:DESCRIPTION>Motion in right ascension d(RA)cos(DEC)</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="ddec" name="dDEC" ucd="pos.pm;pos.eq.dec" datatype="double" width="12" unit="arcsec/h"><vot:DESCRIPTION>Motion in declination d(DEC)</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="dgeo" name="Dgeo" ucd="phys.distance" ref="Ephemeris" utype="stc:AstroCoords.Position3D.Value3.C3" datatype="double" width="15" unit="AU"><vot:DESCRIPTION>Distance from observer</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="dhelio" name="Dhelio" ucd="phys.distance" datatype="double" width="15" unit="AU"><vot:DESCRIPTION>Distance from the Sun</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="phase" name="Phase" ucd="pos.phaseAng" datatype="double" width="6" precision="2" unit="deg"><vot:DESCRIPTION>Phase angle, e.g. elongation of earth from sun as seen from object</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="solelong" name="SolElong" ucd="pos.angDistance" datatype="double" width="6" precision="2" unit="deg"><vot:DESCRIPTION>Solar elongation, e.g. elongation of object from sun as seen from Earth</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="px" name="Px" ucd="src.orbital.pos;meta.id.x" ref="StateVector" utype="stc:AstroCoords.Position3D.Value3.C1" datatype="double" width="15" unit="AU"><vot:DESCRIPTION>Mean J2000 heliocentric position vector, x component</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="py" name="Py" ucd="src.orbital.pos;meta.id.y" ref="StateVector" utype="stc:AstroCoords.Position3D.Value3.C2" datatype="double" width="15" unit="AU"><vot:DESCRIPTION>Mean J2000 heliocentric position vector, y component</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="pz" name="Pz" ucd="src.orbital.pos;meta.id.z" ref="StateVector" utype="stc:AstroCoords.Position3D.Value3.C3" datatype="double" width="15" unit="AU"><vot:DESCRIPTION>Mean J2000 heliocentric position vector, z component</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="vx" name="Vx" ucd="src.veloc.orbital;meta.id.x" ref="StateVector" utype="stc:AstroCoords.Velocity3D.Value3.C1" datatype="double" width="15" unit="AU/d"><vot:DESCRIPTION>Mean J2000 heliocentric velocity vector, x component</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="vy" name="Vy" ucd="src.veloc.orbital;meta.id.y" ref="StateVector" utype="stc:AstroCoords.Velocity3D.Value3.C2" datatype="double" width="15" unit="AU/d"><vot:DESCRIPTION>Mean J2000 heliocentric velocity vector, y component</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="vz" name="Vz" ucd="src.veloc.orbital;meta.id.z" ref="StateVector" utype="stc:AstroCoords.Velocity3D.Value3.C3" datatype="double" width="15" unit="AU/d"><vot:DESCRIPTION>Mean J2000 heliocentric velocity vector, z component</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="jdref" name="JDRef" ucd="time.epoch" ref="StateVector" utype="stc:AstroCoords.Time.TimeInstant.JDTime" datatype="double" width="15" unit="d"><vot:DESCRIPTION>Reference epoch of the position/velocity vector</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="_raj2000" name="_RAJ2000" ucd="pos.eq.ra" ref="Ephemeris" utype="stc:AstroCoords.Position3D.Value3.C1" datatype="double" precision="9" width="13" unit="deg" type="hidden"><vot:DESCRIPTION>Astrometric J2000 right ascension</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="_decj2000" name="_DECJ2000" ucd="pos.eq.dec" ref="Ephemeris" utype="stc:AstroCoords.Position3D.Value3.C2" datatype="double" precision="9" width="13" unit="deg" type="hidden"><vot:DESCRIPTION>Astrometric J2000 declination</vot:DESCRIPTION>
+</vot:FIELD>
+<vot:FIELD ID="externallink" name="ExternalLink" ucd="meta.ref.url" datatype="char" arraysize="*" type="hidden"><vot:DESCRIPTION>External link to hint the target</vot:DESCRIPTION>
+<vot:LINK href="${ExternalLink}"/>
+</vot:FIELD>
+<vot:DATA><vot:TABLEDATA><vot:TR><vot:TD>388540</vot:TD>
+<vot:TD>2007 HG81</vot:TD>
+<vot:TD>00 40 0.1510</vot:TD>
+<vot:TD>+04 56 1.017</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>21.67</vot:TD>
+<vot:TD>0.105</vot:TD>
+<vot:TD>238.993</vot:TD>
+<vot:TD>-34.5049</vot:TD>
+<vot:TD>-15.544</vot:TD>
+<vot:TD>1.515077883</vot:TD>
+<vot:TD>2.509932782</vot:TD>
+<vot:TD>3.74</vot:TD>
+<vot:TD>9.40</vot:TD>
+<vot:TD>2.486763087</vot:TD>
+<vot:TD>0.206112717</vot:TD>
+<vot:TD>0.107351404</vot:TD>
+<vot:TD>0.000465182</vot:TD>
+<vot:TD>0.009728749</vot:TD>
+<vot:TD>0.004063543</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.000629009142802</vot:TD>
+<vot:TD>4.9336159083798954</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2007_HG81</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2005 OG19</vot:TD>
+<vot:TD>00 39 44.4739</vot:TD>
+<vot:TD>+04 55 33.717</vot:TD>
+<vot:TD>Mars-Crosser</vot:TD>
+<vot:TD>20.20</vot:TD>
+<vot:TD>1.029</vot:TD>
+<vot:TD>353.184</vot:TD>
+<vot:TD>-26.9882</vot:TD>
+<vot:TD>-30.355</vot:TD>
+<vot:TD>0.761280675</vot:TD>
+<vot:TD>1.758505178</vot:TD>
+<vot:TD>5.31</vot:TD>
+<vot:TD>9.33</vot:TD>
+<vot:TD>1.733314017</vot:TD>
+<vot:TD>0.040136243</vot:TD>
+<vot:TD>0.040364334</vot:TD>
+<vot:TD>0.002300749</vot:TD>
+<vot:TD>0.013730374</vot:TD>
+<vot:TD>0.004302213</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.9353081117420814</vot:TD>
+<vot:TD>4.9260325014182067</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2005_OG19</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2017 DL152</vot:TD>
+<vot:TD>00 40 11.2377</vot:TD>
+<vot:TD>+05 05 49.388</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>22.34</vot:TD>
+<vot:TD>0.159</vot:TD>
+<vot:TD>387.642</vot:TD>
+<vot:TD>-23.9903</vot:TD>
+<vot:TD>-20.296</vot:TD>
+<vot:TD>2.305279765</vot:TD>
+<vot:TD>3.298622892</vot:TD>
+<vot:TD>2.88</vot:TD>
+<vot:TD>9.51</vot:TD>
+<vot:TD>3.288016624</vot:TD>
+<vot:TD>0.352375476</vot:TD>
+<vot:TD>0.207822436</vot:TD>
+<vot:TD>-0.002722478</vot:TD>
+<vot:TD>0.008824196</vot:TD>
+<vot:TD>0.001063467</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.046823564644507</vot:TD>
+<vot:TD>5.0970522672640683</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2017_DL152</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2015 TD468</vot:TD>
+<vot:TD>00 39 47.0314</vot:TD>
+<vot:TD>+05 05 38.867</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>21.10</vot:TD>
+<vot:TD>5.797</vot:TD>
+<vot:TD>390.358</vot:TD>
+<vot:TD>-31.0430</vot:TD>
+<vot:TD>-7.959</vot:TD>
+<vot:TD>0.918115692</vot:TD>
+<vot:TD>1.914604785</vot:TD>
+<vot:TD>4.92</vot:TD>
+<vot:TD>9.42</vot:TD>
+<vot:TD>1.916242256</vot:TD>
+<vot:TD>0.080409525</vot:TD>
+<vot:TD>0.043221642</vot:TD>
+<vot:TD>-0.001152631</vot:TD>
+<vot:TD>0.012211264</vot:TD>
+<vot:TD>0.005835467</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.9459643538114477</vot:TD>
+<vot:TD>5.0941297058080135</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2015_TD468</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>671468</vot:TD>
+<vot:TD>2014 LQ28</vot:TD>
+<vot:TD>00 39 33.4526</vot:TD>
+<vot:TD>+05 02 20.261</vot:TD>
+<vot:TD>KBO>Resonant>7:4</vot:TD>
+<vot:TD>21.85</vot:TD>
+<vot:TD>0.036</vot:TD>
+<vot:TD>420.752</vot:TD>
+<vot:TD>-2.8925</vot:TD>
+<vot:TD>-1.237</vot:TD>
+<vot:TD>38.512675462</vot:TD>
+<vot:TD>39.502664142</vot:TD>
+<vot:TD>0.24</vot:TD>
+<vot:TD>9.35</vot:TD>
+<vot:TD>38.801273331</vot:TD>
+<vot:TD>6.595015179</vot:TD>
+<vot:TD>3.385855974</vot:TD>
+<vot:TD>-0.000589481</vot:TD>
+<vot:TD>0.00259289</vot:TD>
+<vot:TD>0.001064185</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.8893857146308104</vot:TD>
+<vot:TD>5.0389614291691052</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2014_LQ28</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>687506</vot:TD>
+<vot:TD>2011 US408</vot:TD>
+<vot:TD>00 39 55.9989</vot:TD>
+<vot:TD>+04 50 57.173</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.85</vot:TD>
+<vot:TD>0.500</vot:TD>
+<vot:TD>546.112</vot:TD>
+<vot:TD>-29.0603</vot:TD>
+<vot:TD>-10.963</vot:TD>
+<vot:TD>1.981579088</vot:TD>
+<vot:TD>2.975696236</vot:TD>
+<vot:TD>3.14</vot:TD>
+<vot:TD>9.34</vot:TD>
+<vot:TD>2.953374435</vot:TD>
+<vot:TD>0.293189121</vot:TD>
+<vot:TD>0.1435139</vot:TD>
+<vot:TD>-0.000582378</vot:TD>
+<vot:TD>0.008930068</vot:TD>
+<vot:TD>0.004183825</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.9833288854180111</vot:TD>
+<vot:TD>4.8492146369111007</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2011_US408</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>118365</vot:TD>
+<vot:TD>1999 FQ52</vot:TD>
+<vot:TD>00 40 23.6904</vot:TD>
+<vot:TD>+04 52 46.727</vot:TD>
+<vot:TD>MB>Middle</vot:TD>
+<vot:TD>19.93</vot:TD>
+<vot:TD>0.075</vot:TD>
+<vot:TD>559.526</vot:TD>
+<vot:TD>-32.7953</vot:TD>
+<vot:TD>-9.424</vot:TD>
+<vot:TD>1.809506046</vot:TD>
+<vot:TD>2.803681564</vot:TD>
+<vot:TD>3.37</vot:TD>
+<vot:TD>9.46</vot:TD>
+<vot:TD>2.788881682</vot:TD>
+<vot:TD>0.269755248</vot:TD>
+<vot:TD>0.125691539</vot:TD>
+<vot:TD>-0.001151395</vot:TD>
+<vot:TD>0.008615347</vot:TD>
+<vot:TD>0.004672928</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.09871020030166</vot:TD>
+<vot:TD>4.8796463734670041</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/1999_FQ52</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>685004</vot:TD>
+<vot:TD>2009 BM205</vot:TD>
+<vot:TD>00 40 45.1465</vot:TD>
+<vot:TD>+05 03 33.689</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.61</vot:TD>
+<vot:TD>0.163</vot:TD>
+<vot:TD>707.629</vot:TD>
+<vot:TD>-29.1522</vot:TD>
+<vot:TD>-10.986</vot:TD>
+<vot:TD>1.902998538</vot:TD>
+<vot:TD>2.896713367</vot:TD>
+<vot:TD>3.32</vot:TD>
+<vot:TD>9.62</vot:TD>
+<vot:TD>2.880111365</vot:TD>
+<vot:TD>0.285073679</vot:TD>
+<vot:TD>0.143536029</vot:TD>
+<vot:TD>-0.001225221</vot:TD>
+<vot:TD>0.009058343</vot:TD>
+<vot:TD>0.004217572</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.188110402482254</vot:TD>
+<vot:TD>5.0593581817929074</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2009_BM205</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>305674</vot:TD>
+<vot:TD>2009 BX93</vot:TD>
+<vot:TD>00 40 46.5641</vot:TD>
+<vot:TD>+04 57 3.443</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>21.34</vot:TD>
+<vot:TD>0.053</vot:TD>
+<vot:TD>717.882</vot:TD>
+<vot:TD>-32.3682</vot:TD>
+<vot:TD>-14.789</vot:TD>
+<vot:TD>1.733969464</vot:TD>
+<vot:TD>2.728064699</vot:TD>
+<vot:TD>3.51</vot:TD>
+<vot:TD>9.58</vot:TD>
+<vot:TD>2.717434409</vot:TD>
+<vot:TD>0.25669212</vot:TD>
+<vot:TD>0.130377391</vot:TD>
+<vot:TD>-0.001528051</vot:TD>
+<vot:TD>0.00892309</vot:TD>
+<vot:TD>0.003638399</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.194017004911693</vot:TD>
+<vot:TD>4.9509564502664309</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2009_BX93</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2008 WD159</vot:TD>
+<vot:TD>00 40 29.8741</vot:TD>
+<vot:TD>+04 49 20.944</vot:TD>
+<vot:TD>MB>Middle</vot:TD>
+<vot:TD>21.37</vot:TD>
+<vot:TD>0.122</vot:TD>
+<vot:TD>779.570</vot:TD>
+<vot:TD>-28.5049</vot:TD>
+<vot:TD>-14.592</vot:TD>
+<vot:TD>1.562172070</vot:TD>
+<vot:TD>2.556819962</vot:TD>
+<vot:TD>3.70</vot:TD>
+<vot:TD>9.46</vot:TD>
+<vot:TD>2.552745631</vot:TD>
+<vot:TD>0.213278246</vot:TD>
+<vot:TD>0.109227492</vot:TD>
+<vot:TD>-0.00186681</vot:TD>
+<vot:TD>0.010229676</vot:TD>
+<vot:TD>0.003965542</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.124475349168907</vot:TD>
+<vot:TD>4.822484523411485</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2008_WD159</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>290253</vot:TD>
+<vot:TD>2005 SB111</vot:TD>
+<vot:TD>00 40 55.7548</vot:TD>
+<vot:TD>+05 03 14.737</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>20.63</vot:TD>
+<vot:TD>0.117</vot:TD>
+<vot:TD>855.567</vot:TD>
+<vot:TD>-27.8131</vot:TD>
+<vot:TD>-12.048</vot:TD>
+<vot:TD>1.825900962</vot:TD>
+<vot:TD>2.819678270</vot:TD>
+<vot:TD>3.42</vot:TD>
+<vot:TD>9.66</vot:TD>
+<vot:TD>2.797378863</vot:TD>
+<vot:TD>0.266838354</vot:TD>
+<vot:TD>0.136981158</vot:TD>
+<vot:TD>-0.000417705</vot:TD>
+<vot:TD>0.009755539</vot:TD>
+<vot:TD>0.004170195</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.232311695110479</vot:TD>
+<vot:TD>5.0540935086720564</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2005_SB111</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>99790</vot:TD>
+<vot:TD>2002 KS2</vot:TD>
+<vot:TD>00 39 40.8755</vot:TD>
+<vot:TD>+05 14 39.708</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>20.79</vot:TD>
+<vot:TD>0.279</vot:TD>
+<vot:TD>924.951</vot:TD>
+<vot:TD>-35.4201</vot:TD>
+<vot:TD>-16.538</vot:TD>
+<vot:TD>1.457253443</vot:TD>
+<vot:TD>2.452110722</vot:TD>
+<vot:TD>3.86</vot:TD>
+<vot:TD>9.47</vot:TD>
+<vot:TD>2.441349693</vot:TD>
+<vot:TD>0.195349893</vot:TD>
+<vot:TD>0.111894009</vot:TD>
+<vot:TD>-0.000873005</vot:TD>
+<vot:TD>0.009570735</vot:TD>
+<vot:TD>0.003874571</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.9203146673990741</vot:TD>
+<vot:TD>5.2443633638415292</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2002_KS2</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>281034</vot:TD>
+<vot:TD>2006 HP12</vot:TD>
+<vot:TD>00 41 3.2506</vot:TD>
+<vot:TD>+05 02 36.035</vot:TD>
+<vot:TD>MB>Middle</vot:TD>
+<vot:TD>21.00</vot:TD>
+<vot:TD>0.060</vot:TD>
+<vot:TD>957.918</vot:TD>
+<vot:TD>-28.4191</vot:TD>
+<vot:TD>-15.665</vot:TD>
+<vot:TD>2.005931183</vot:TD>
+<vot:TD>2.999361663</vot:TD>
+<vot:TD>3.22</vot:TD>
+<vot:TD>9.68</vot:TD>
+<vot:TD>2.979723593</vot:TD>
+<vot:TD>0.307231147</vot:TD>
+<vot:TD>0.162632188</vot:TD>
+<vot:TD>-0.001133411</vot:TD>
+<vot:TD>0.008893863</vot:TD>
+<vot:TD>0.002995813</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.263544156227892</vot:TD>
+<vot:TD>5.0433430138994737</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2006_HP12</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>313992</vot:TD>
+<vot:TD>2004 TA183</vot:TD>
+<vot:TD>00 39 21.7600</vot:TD>
+<vot:TD>+04 46 59.602</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>20.57</vot:TD>
+<vot:TD>0.063</vot:TD>
+<vot:TD>967.295</vot:TD>
+<vot:TD>-30.6642</vot:TD>
+<vot:TD>-4.243</vot:TD>
+<vot:TD>2.436368139</vot:TD>
+<vot:TD>3.430207832</vot:TD>
+<vot:TD>2.68</vot:TD>
+<vot:TD>9.19</vot:TD>
+<vot:TD>3.401586447</vot:TD>
+<vot:TD>0.383417718</vot:TD>
+<vot:TD>0.167936321</vot:TD>
+<vot:TD>-0.000692399</vot:TD>
+<vot:TD>0.006898241</vot:TD>
+<vot:TD>0.005480684</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.8406668715226466</vot:TD>
+<vot:TD>4.7832226684224075</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2004_TA183</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>385698</vot:TD>
+<vot:TD>2005 TB114</vot:TD>
+<vot:TD>00 41 3.2981</vot:TD>
+<vot:TD>+04 56 7.903</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>21.18</vot:TD>
+<vot:TD>0.215</vot:TD>
+<vot:TD>973.971</vot:TD>
+<vot:TD>-35.9789</vot:TD>
+<vot:TD>-12.196</vot:TD>
+<vot:TD>1.541595338</vot:TD>
+<vot:TD>2.535979199</vot:TD>
+<vot:TD>3.79</vot:TD>
+<vot:TD>9.63</vot:TD>
+<vot:TD>2.517503754</vot:TD>
+<vot:TD>0.221986895</vot:TD>
+<vot:TD>0.105475748</vot:TD>
+<vot:TD>-0.000228945</vot:TD>
+<vot:TD>0.009227695</vot:TD>
+<vot:TD>0.004549168</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.263742173879637</vot:TD>
+<vot:TD>4.9355285956256809</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2005_TB114</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>205334</vot:TD>
+<vot:TD>2000 UF94</vot:TD>
+<vot:TD>00 39 1.2107</vot:TD>
+<vot:TD>+05 07 7.785</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>19.38</vot:TD>
+<vot:TD>0.089</vot:TD>
+<vot:TD>977.040</vot:TD>
+<vot:TD>-34.4109</vot:TD>
+<vot:TD>-8.245</vot:TD>
+<vot:TD>1.148086125</vot:TD>
+<vot:TD>2.144057018</vot:TD>
+<vot:TD>4.32</vot:TD>
+<vot:TD>9.26</vot:TD>
+<vot:TD>2.137846016</vot:TD>
+<vot:TD>0.126557519</vot:TD>
+<vot:TD>0.066029506</vot:TD>
+<vot:TD>-0.000688799</vot:TD>
+<vot:TD>0.011018092</vot:TD>
+<vot:TD>0.005617301</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.7550446751208852</vot:TD>
+<vot:TD>5.1188292276608349</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2000_UF94</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>11446</vot:TD>
+<vot:TD>Betankur</vot:TD>
+<vot:TD>00 38 57.8817</vot:TD>
+<vot:TD>+04 54 42.330</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>16.75</vot:TD>
+<vot:TD>0.037</vot:TD>
+<vot:TD>981.148</vot:TD>
+<vot:TD>-26.6210</vot:TD>
+<vot:TD>-12.232</vot:TD>
+<vot:TD>1.489820670</vot:TD>
+<vot:TD>2.485136734</vot:TD>
+<vot:TD>3.68</vot:TD>
+<vot:TD>9.16</vot:TD>
+<vot:TD>2.479196731</vot:TD>
+<vot:TD>0.18498294</vot:TD>
+<vot:TD>0.100415263</vot:TD>
+<vot:TD>-0.001381779</vot:TD>
+<vot:TD>0.010899228</vot:TD>
+<vot:TD>0.00454798</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.7411739123565866</vot:TD>
+<vot:TD>4.9117581964573969</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/Betankur</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>403395</vot:TD>
+<vot:TD>2009 QA59</vot:TD>
+<vot:TD>00 39 56.0060</vot:TD>
+<vot:TD>+04 43 39.997</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>20.43</vot:TD>
+<vot:TD>0.066</vot:TD>
+<vot:TD>981.827</vot:TD>
+<vot:TD>-29.4882</vot:TD>
+<vot:TD>-5.711</vot:TD>
+<vot:TD>2.201253722</vot:TD>
+<vot:TD>3.195167547</vot:TD>
+<vot:TD>2.90</vot:TD>
+<vot:TD>9.29</vot:TD>
+<vot:TD>3.175970271</vot:TD>
+<vot:TD>0.339860165</vot:TD>
+<vot:TD>0.14882627</vot:TD>
+<vot:TD>-0.001369069</vot:TD>
+<vot:TD>0.007929951</vot:TD>
+<vot:TD>0.005177906</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.9833581412159873</vot:TD>
+<vot:TD>4.727776850454581</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2009_QA59</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2013 FX42</vot:TD>
+<vot:TD>00 40 29.4860</vot:TD>
+<vot:TD>+05 14 39.923</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>22.68</vot:TD>
+<vot:TD>4.417</vot:TD>
+<vot:TD>984.043</vot:TD>
+<vot:TD>-26.8150</vot:TD>
+<vot:TD>-9.005</vot:TD>
+<vot:TD>2.793241114</vot:TD>
+<vot:TD>3.785756409</vot:TD>
+<vot:TD>2.54</vot:TD>
+<vot:TD>9.65</vot:TD>
+<vot:TD>3.744670788</vot:TD>
+<vot:TD>0.457083941</vot:TD>
+<vot:TD>0.234947638</vot:TD>
+<vot:TD>-0.000364953</vot:TD>
+<vot:TD>0.006929623</vot:TD>
+<vot:TD>0.003764881</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.122858478886824</vot:TD>
+<vot:TD>5.2444229629113739</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2013_FX42</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2015 TW59</vot:TD>
+<vot:TD>00 40 29.5272</vot:TD>
+<vot:TD>+04 44 51.773</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.00</vot:TD>
+<vot:TD>0.500</vot:TD>
+<vot:TD>1009.774</vot:TD>
+<vot:TD>-24.6945</vot:TD>
+<vot:TD>-36.995</vot:TD>
+<vot:TD>1.665264199</vot:TD>
+<vot:TD>2.659766024</vot:TD>
+<vot:TD>3.54</vot:TD>
+<vot:TD>9.42</vot:TD>
+<vot:TD>2.62487116</vot:TD>
+<vot:TD>0.222624006</vot:TD>
+<vot:TD>0.152407593</vot:TD>
+<vot:TD>0.001492016</vot:TD>
+<vot:TD>0.011234721</vot:TD>
+<vot:TD>-0.000269377</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.123030114696892</vot:TD>
+<vot:TD>4.7477147847785641</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2015_TW59</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2015 RE57</vot:TD>
+<vot:TD>00 39 45.2039</vot:TD>
+<vot:TD>+04 43 29.540</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.12</vot:TD>
+<vot:TD>0.097</vot:TD>
+<vot:TD>1014.855</vot:TD>
+<vot:TD>-24.5527</vot:TD>
+<vot:TD>-20.226</vot:TD>
+<vot:TD>1.770577176</vot:TD>
+<vot:TD>2.765205841</vot:TD>
+<vot:TD>3.34</vot:TD>
+<vot:TD>9.25</vot:TD>
+<vot:TD>2.746213424</vot:TD>
+<vot:TD>0.24088619</vot:TD>
+<vot:TD>0.135798685</vot:TD>
+<vot:TD>-0.000483803</vot:TD>
+<vot:TD>0.010609921</vot:TD>
+<vot:TD>0.002572919</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.9383494782887851</vot:TD>
+<vot:TD>4.7248722512254009</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2015_RE57</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>694447</vot:TD>
+<vot:TD>2015 RA296</vot:TD>
+<vot:TD>00 39 34.3999</vot:TD>
+<vot:TD>+04 44 10.858</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.64</vot:TD>
+<vot:TD>0.069</vot:TD>
+<vot:TD>1023.369</vot:TD>
+<vot:TD>-23.9888</vot:TD>
+<vot:TD>-24.048</vot:TD>
+<vot:TD>2.051917024</vot:TD>
+<vot:TD>3.046178457</vot:TD>
+<vot:TD>3.02</vot:TD>
+<vot:TD>9.21</vot:TD>
+<vot:TD>3.028267986</vot:TD>
+<vot:TD>0.294537844</vot:TD>
+<vot:TD>0.173608162</vot:TD>
+<vot:TD>-0.001164908</vot:TD>
+<vot:TD>0.009818721</vot:TD>
+<vot:TD>0.000929166</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.8933328185896361</vot:TD>
+<vot:TD>4.7363493865436386</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2015_RA296</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2015 DP57</vot:TD>
+<vot:TD>00 41 6.3150</vot:TD>
+<vot:TD>+05 08 5.954</vot:TD>
+<vot:TD>MB>Middle</vot:TD>
+<vot:TD>22.25</vot:TD>
+<vot:TD>0.126</vot:TD>
+<vot:TD>1103.599</vot:TD>
+<vot:TD>-31.2126</vot:TD>
+<vot:TD>-10.303</vot:TD>
+<vot:TD>1.792261641</vot:TD>
+<vot:TD>2.785956400</vot:TD>
+<vot:TD>3.49</vot:TD>
+<vot:TD>9.73</vot:TD>
+<vot:TD>2.77115637</vot:TD>
+<vot:TD>0.268789499</vot:TD>
+<vot:TD>0.133727751</vot:TD>
+<vot:TD>-0.001248191</vot:TD>
+<vot:TD>0.008994086</vot:TD>
+<vot:TD>0.004494859</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.276312484596042</vot:TD>
+<vot:TD>5.1349872230463944</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2015_DP57</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2012 TL184</vot:TD>
+<vot:TD>00 41 10.9703</vot:TD>
+<vot:TD>+05 06 34.244</vot:TD>
+<vot:TD>MB>Middle</vot:TD>
+<vot:TD>21.27</vot:TD>
+<vot:TD>2.719</vot:TD>
+<vot:TD>1131.341</vot:TD>
+<vot:TD>-27.8895</vot:TD>
+<vot:TD>-18.543</vot:TD>
+<vot:TD>1.480743383</vot:TD>
+<vot:TD>2.475077923</vot:TD>
+<vot:TD>3.93</vot:TD>
+<vot:TD>9.74</vot:TD>
+<vot:TD>2.452443857</vot:TD>
+<vot:TD>0.196546044</vot:TD>
+<vot:TD>0.112833397</vot:TD>
+<vot:TD>0.000344099</vot:TD>
+<vot:TD>0.011003145</vot:TD>
+<vot:TD>0.003613081</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.295709683698339</vot:TD>
+<vot:TD>5.1095122165688451</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2012_TL184</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2014 HW18</vot:TD>
+<vot:TD>00 40 7.9049</vot:TD>
+<vot:TD>+05 18 45.633</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>21.63</vot:TD>
+<vot:TD>0.008</vot:TD>
+<vot:TD>1131.822</vot:TD>
+<vot:TD>-34.6065</vot:TD>
+<vot:TD>-14.626</vot:TD>
+<vot:TD>1.343618908</vot:TD>
+<vot:TD>2.338527761</vot:TD>
+<vot:TD>4.10</vot:TD>
+<vot:TD>9.60</vot:TD>
+<vot:TD>2.31376564</vot:TD>
+<vot:TD>0.170478796</vot:TD>
+<vot:TD>0.097088204</vot:TD>
+<vot:TD>0.000942262</vot:TD>
+<vot:TD>0.010488005</vot:TD>
+<vot:TD>0.004569304</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.032937261545932</vot:TD>
+<vot:TD>5.3126758171300743</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2014_HW18</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>399246</vot:TD>
+<vot:TD>2014 HJ25</vot:TD>
+<vot:TD>00 40 56.6679</vot:TD>
+<vot:TD>+04 47 24.338</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>21.74</vot:TD>
+<vot:TD>0.135</vot:TD>
+<vot:TD>1135.042</vot:TD>
+<vot:TD>-33.1589</vot:TD>
+<vot:TD>-16.293</vot:TD>
+<vot:TD>1.576100594</vot:TD>
+<vot:TD>2.570566213</vot:TD>
+<vot:TD>3.71</vot:TD>
+<vot:TD>9.54</vot:TD>
+<vot:TD>2.561265904</vot:TD>
+<vot:TD>0.22585125</vot:TD>
+<vot:TD>0.112140215</vot:TD>
+<vot:TD>-0.001328583</vot:TD>
+<vot:TD>0.009409362</vot:TD>
+<vot:TD>0.003661902</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.236116145756345</vot:TD>
+<vot:TD>4.7900939633292579</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2014_HJ25</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>438865</vot:TD>
+<vot:TD>2009 FR73</vot:TD>
+<vot:TD>00 40 27.8865</vot:TD>
+<vot:TD>+04 42 13.656</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.00</vot:TD>
+<vot:TD>0.094</vot:TD>
+<vot:TD>1144.918</vot:TD>
+<vot:TD>-28.2678</vot:TD>
+<vot:TD>-11.832</vot:TD>
+<vot:TD>1.911162826</vot:TD>
+<vot:TD>2.905281790</vot:TD>
+<vot:TD>3.23</vot:TD>
+<vot:TD>9.40</vot:TD>
+<vot:TD>2.881848714</vot:TD>
+<vot:TD>0.281461387</vot:TD>
+<vot:TD>0.133385033</vot:TD>
+<vot:TD>-0.000338149</vot:TD>
+<vot:TD>0.009390425</vot:TD>
+<vot:TD>0.004107707</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.116193823500623</vot:TD>
+<vot:TD>4.7037934026597474</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2009_FR73</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>408224</vot:TD>
+<vot:TD>2013 EO90</vot:TD>
+<vot:TD>00 40 37.6898</vot:TD>
+<vot:TD>+04 42 51.378</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>21.39</vot:TD>
+<vot:TD>0.029</vot:TD>
+<vot:TD>1172.782</vot:TD>
+<vot:TD>-32.4443</vot:TD>
+<vot:TD>-14.661</vot:TD>
+<vot:TD>1.770157294</vot:TD>
+<vot:TD>2.764436185</vot:TD>
+<vot:TD>3.41</vot:TD>
+<vot:TD>9.44</vot:TD>
+<vot:TD>2.748060967</vot:TD>
+<vot:TD>0.262368847</vot:TD>
+<vot:TD>0.125979935</vot:TD>
+<vot:TD>-0.000877782</vot:TD>
+<vot:TD>0.008887487</vot:TD>
+<vot:TD>0.003664964</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.15704085274656</vot:TD>
+<vot:TD>4.7142717510740111</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2013_EO90</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>572943</vot:TD>
+<vot:TD>2008 UG377</vot:TD>
+<vot:TD>00 38 38.9628</vot:TD>
+<vot:TD>+04 57 29.242</vot:TD>
+<vot:TD>MB>Middle</vot:TD>
+<vot:TD>21.16</vot:TD>
+<vot:TD>0.145</vot:TD>
+<vot:TD>1220.334</vot:TD>
+<vot:TD>-32.2810</vot:TD>
+<vot:TD>-7.338</vot:TD>
+<vot:TD>1.627757910</vot:TD>
+<vot:TD>2.622887586</vot:TD>
+<vot:TD>3.47</vot:TD>
+<vot:TD>9.11</vot:TD>
+<vot:TD>2.61300879</vot:TD>
+<vot:TD>0.218828366</vot:TD>
+<vot:TD>0.107217017</vot:TD>
+<vot:TD>-0.001183371</vot:TD>
+<vot:TD>0.009420005</vot:TD>
+<vot:TD>0.00527769</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.6623448399378518</vot:TD>
+<vot:TD>4.9581227691633991</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2008_UG377</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>105778</vot:TD>
+<vot:TD>2000 SW114</vot:TD>
+<vot:TD>00 40 2.3610</vot:TD>
+<vot:TD>+04 37 55.934</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>19.03</vot:TD>
+<vot:TD>0.046</vot:TD>
+<vot:TD>1324.554</vot:TD>
+<vot:TD>-30.4078</vot:TD>
+<vot:TD>-16.444</vot:TD>
+<vot:TD>1.121386556</vot:TD>
+<vot:TD>2.117420266</vot:TD>
+<vot:TD>4.38</vot:TD>
+<vot:TD>9.27</vot:TD>
+<vot:TD>2.127961145</vot:TD>
+<vot:TD>0.124492018</vot:TD>
+<vot:TD>0.064425775</vot:TD>
+<vot:TD>-0.002575796</vot:TD>
+<vot:TD>0.011317662</vot:TD>
+<vot:TD>0.004431215</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.009837542708397</vot:TD>
+<vot:TD>4.6322040072163269</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2000_SW114</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2003 BJ98</vot:TD>
+<vot:TD>00 38 57.0470</vot:TD>
+<vot:TD>+04 44 12.910</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>22.27</vot:TD>
+<vot:TD>0.332</vot:TD>
+<vot:TD>1335.027</vot:TD>
+<vot:TD>-34.4525</vot:TD>
+<vot:TD>-14.058</vot:TD>
+<vot:TD>1.633954670</vot:TD>
+<vot:TD>2.629130230</vot:TD>
+<vot:TD>3.45</vot:TD>
+<vot:TD>9.07</vot:TD>
+<vot:TD>2.614000787</vot:TD>
+<vot:TD>0.225012134</vot:TD>
+<vot:TD>0.112167317</vot:TD>
+<vot:TD>-0.000576497</vot:TD>
+<vot:TD>0.009079942</vot:TD>
+<vot:TD>0.004041882</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.7376959370730916</vot:TD>
+<vot:TD>4.7369195253864165</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2003_BJ98</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>483982</vot:TD>
+<vot:TD>2006 BC279</vot:TD>
+<vot:TD>00 38 46.4201</vot:TD>
+<vot:TD>+05 13 19.375</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>21.95</vot:TD>
+<vot:TD>0.238</vot:TD>
+<vot:TD>1359.241</vot:TD>
+<vot:TD>-34.2437</vot:TD>
+<vot:TD>-12.578</vot:TD>
+<vot:TD>1.604570896</vot:TD>
+<vot:TD>2.599480436</vot:TD>
+<vot:TD>3.56</vot:TD>
+<vot:TD>9.26</vot:TD>
+<vot:TD>2.584800637</vot:TD>
+<vot:TD>0.217365185</vot:TD>
+<vot:TD>0.120591167</vot:TD>
+<vot:TD>-0.000643335</vot:TD>
+<vot:TD>0.009227382</vot:TD>
+<vot:TD>0.004352822</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.6934169926208096</vot:TD>
+<vot:TD>5.222048517542186</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2006_BC279</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>349348</vot:TD>
+<vot:TD>2007 VZ117</vot:TD>
+<vot:TD>00 39 55.8569</vot:TD>
+<vot:TD>+05 22 40.616</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>20.75</vot:TD>
+<vot:TD>0.072</vot:TD>
+<vot:TD>1362.042</vot:TD>
+<vot:TD>-29.2892</vot:TD>
+<vot:TD>-10.926</vot:TD>
+<vot:TD>1.641661503</vot:TD>
+<vot:TD>2.635915860</vot:TD>
+<vot:TD>3.63</vot:TD>
+<vot:TD>9.59</vot:TD>
+<vot:TD>2.62279364</vot:TD>
+<vot:TD>0.225277215</vot:TD>
+<vot:TD>0.126411693</vot:TD>
+<vot:TD>-0.001041586</vot:TD>
+<vot:TD>0.009963244</vot:TD>
+<vot:TD>0.004584331</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.9827371099700137</vot:TD>
+<vot:TD>5.3779488227075776</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2007_VZ117</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>342474</vot:TD>
+<vot:TD>2008 UJ140</vot:TD>
+<vot:TD>00 39 50.6661</vot:TD>
+<vot:TD>+05 22 39.467</vot:TD>
+<vot:TD>MB>Middle</vot:TD>
+<vot:TD>21.48</vot:TD>
+<vot:TD>0.095</vot:TD>
+<vot:TD>1366.619</vot:TD>
+<vot:TD>-29.2584</vot:TD>
+<vot:TD>-13.199</vot:TD>
+<vot:TD>1.766833452</vot:TD>
+<vot:TD>2.760882986</vot:TD>
+<vot:TD>3.46</vot:TD>
+<vot:TD>9.57</vot:TD>
+<vot:TD>2.748358497</vot:TD>
+<vot:TD>0.250384937</vot:TD>
+<vot:TD>0.143893121</vot:TD>
+<vot:TD>-0.001371849</vot:TD>
+<vot:TD>0.009482847</vot:TD>
+<vot:TD>0.003919096</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.9611087117999464</vot:TD>
+<vot:TD>5.3776296617244244</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2008_UJ140</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2020 KX47</vot:TD>
+<vot:TD>00 41 4.8955</vot:TD>
+<vot:TD>+04 41 14.785</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.87</vot:TD>
+<vot:TD>0.127</vot:TD>
+<vot:TD>1485.596</vot:TD>
+<vot:TD>-29.0163</vot:TD>
+<vot:TD>-12.259</vot:TD>
+<vot:TD>1.819133760</vot:TD>
+<vot:TD>2.813156835</vot:TD>
+<vot:TD>3.39</vot:TD>
+<vot:TD>9.53</vot:TD>
+<vot:TD>2.792200016</vot:TD>
+<vot:TD>0.269181789</vot:TD>
+<vot:TD>0.125119825</vot:TD>
+<vot:TD>-0.000497483</vot:TD>
+<vot:TD>0.009503948</vot:TD>
+<vot:TD>0.00413096</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.270397726112391</vot:TD>
+<vot:TD>4.6874402085748024</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2020_KX47</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>392610</vot:TD>
+<vot:TD>2011 SM255</vot:TD>
+<vot:TD>00 39 46.7744</vot:TD>
+<vot:TD>+04 35 19.024</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.59</vot:TD>
+<vot:TD>0.228</vot:TD>
+<vot:TD>1494.139</vot:TD>
+<vot:TD>-28.0383</vot:TD>
+<vot:TD>-13.165</vot:TD>
+<vot:TD>1.967911484</vot:TD>
+<vot:TD>2.962324029</vot:TD>
+<vot:TD>3.10</vot:TD>
+<vot:TD>9.20</vot:TD>
+<vot:TD>2.944488884</vot:TD>
+<vot:TD>0.287817477</vot:TD>
+<vot:TD>0.137866507</vot:TD>
+<vot:TD>-0.000994168</vot:TD>
+<vot:TD>0.009142757</vot:TD>
+<vot:TD>0.003671946</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.9448934137593845</vot:TD>
+<vot:TD>4.5886176392498861</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2011_SM255</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2020 OD96</vot:TD>
+<vot:TD>00 40 46.5257</vot:TD>
+<vot:TD>+04 37 34.400</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>22.18</vot:TD>
+<vot:TD>2.448</vot:TD>
+<vot:TD>1514.706</vot:TD>
+<vot:TD>-24.6108</vot:TD>
+<vot:TD>-18.436</vot:TD>
+<vot:TD>1.960078209</vot:TD>
+<vot:TD>2.954048530</vot:TD>
+<vot:TD>3.19</vot:TD>
+<vot:TD>9.44</vot:TD>
+<vot:TD>2.931606874</vot:TD>
+<vot:TD>0.28712146</vot:TD>
+<vot:TD>0.148487752</vot:TD>
+<vot:TD>-0.000576633</vot:TD>
+<vot:TD>0.010031151</vot:TD>
+<vot:TD>0.002521096</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.193857067753886</vot:TD>
+<vot:TD>4.6262223553371307</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2020_OD96</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>401109</vot:TD>
+<vot:TD>2011 UE245</vot:TD>
+<vot:TD>00 38 56.9372</vot:TD>
+<vot:TD>+05 19 50.109</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>20.94</vot:TD>
+<vot:TD>0.111</vot:TD>
+<vot:TD>1517.891</vot:TD>
+<vot:TD>-32.1290</vot:TD>
+<vot:TD>-12.981</vot:TD>
+<vot:TD>1.210253018</vot:TD>
+<vot:TD>2.205917690</vot:TD>
+<vot:TD>4.24</vot:TD>
+<vot:TD>9.35</vot:TD>
+<vot:TD>2.21473926</vot:TD>
+<vot:TD>0.138739203</vot:TD>
+<vot:TD>0.083900791</vot:TD>
+<vot:TD>-0.002578346</vot:TD>
+<vot:TD>0.010772182</vot:TD>
+<vot:TD>0.004709553</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.7372385334060834</vot:TD>
+<vot:TD>5.3305859701652523</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2011_UE245</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>266336</vot:TD>
+<vot:TD>2007 DT59</vot:TD>
+<vot:TD>00 38 17.2552</vot:TD>
+<vot:TD>+04 59 58.317</vot:TD>
+<vot:TD>MB>Middle</vot:TD>
+<vot:TD>21.99</vot:TD>
+<vot:TD>0.071</vot:TD>
+<vot:TD>1535.337</vot:TD>
+<vot:TD>-31.5404</vot:TD>
+<vot:TD>-11.324</vot:TD>
+<vot:TD>2.106760046</vot:TD>
+<vot:TD>3.101260026</vot:TD>
+<vot:TD>2.92</vot:TD>
+<vot:TD>9.05</vot:TD>
+<vot:TD>3.091240964</vot:TD>
+<vot:TD>0.31103706</vot:TD>
+<vot:TD>0.163031394</vot:TD>
+<vot:TD>-0.002088615</vot:TD>
+<vot:TD>0.007640311</vot:TD>
+<vot:TD>0.003787872</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.5718966372164367</vot:TD>
+<vot:TD>4.9995323856683624</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2007_DT59</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>1999 RG215</vot:TD>
+<vot:TD>00 41 12.3423</vot:TD>
+<vot:TD>+04 41 49.206</vot:TD>
+<vot:TD>KBO>Classical>Main</vot:TD>
+<vot:TD>23.69</vot:TD>
+<vot:TD>0.192</vot:TD>
+<vot:TD>1535.910</vot:TD>
+<vot:TD>-2.6477</vot:TD>
+<vot:TD>-1.123</vot:TD>
+<vot:TD>42.647792190</vot:TD>
+<vot:TD>43.637132203</vot:TD>
+<vot:TD>0.22</vot:TD>
+<vot:TD>9.56</vot:TD>
+<vot:TD>42.827160766</vot:TD>
+<vot:TD>7.608862788</vot:TD>
+<vot:TD>3.495675331</vot:TD>
+<vot:TD>-0.000622036</vot:TD>
+<vot:TD>0.002391989</vot:TD>
+<vot:TD>0.001039121</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.301426295614744</vot:TD>
+<vot:TD>4.69700171966557</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/1999_RG215</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>292021</vot:TD>
+<vot:TD>2006 QE152</vot:TD>
+<vot:TD>00 39 25.1078</vot:TD>
+<vot:TD>+04 35 38.469</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>20.48</vot:TD>
+<vot:TD>0.104</vot:TD>
+<vot:TD>1551.830</vot:TD>
+<vot:TD>-29.3838</vot:TD>
+<vot:TD>-10.866</vot:TD>
+<vot:TD>1.827188960</vot:TD>
+<vot:TD>2.821961023</vot:TD>
+<vot:TD>3.23</vot:TD>
+<vot:TD>9.12</vot:TD>
+<vot:TD>2.80450992</vot:TD>
+<vot:TD>0.258827369</vot:TD>
+<vot:TD>0.120451556</vot:TD>
+<vot:TD>-0.00071388</vot:TD>
+<vot:TD>0.009366342</vot:TD>
+<vot:TD>0.00440295</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.8546159805358489</vot:TD>
+<vot:TD>4.5940192235006769</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2006_QE152</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>525956</vot:TD>
+<vot:TD>2005 UL136</vot:TD>
+<vot:TD>00 40 19.8467</vot:TD>
+<vot:TD>+04 34 10.806</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.54</vot:TD>
+<vot:TD>0.110</vot:TD>
+<vot:TD>1577.373</vot:TD>
+<vot:TD>-27.5870</vot:TD>
+<vot:TD>-11.721</vot:TD>
+<vot:TD>2.037815220</vot:TD>
+<vot:TD>3.031906251</vot:TD>
+<vot:TD>3.07</vot:TD>
+<vot:TD>9.31</vot:TD>
+<vot:TD>3.01016021</vot:TD>
+<vot:TD>0.305381734</vot:TD>
+<vot:TD>0.14058747</vot:TD>
+<vot:TD>-0.000750602</vot:TD>
+<vot:TD>0.009060921</vot:TD>
+<vot:TD>0.003925915</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.082694517319174</vot:TD>
+<vot:TD>4.5696684690791516</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2005_UL136</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>92860</vot:TD>
+<vot:TD>2000 QP206</vot:TD>
+<vot:TD>00 40 46.2245</vot:TD>
+<vot:TD>+04 35 55.240</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>18.51</vot:TD>
+<vot:TD>0.071</vot:TD>
+<vot:TD>1601.507</vot:TD>
+<vot:TD>-35.0857</vot:TD>
+<vot:TD>-7.546</vot:TD>
+<vot:TD>1.206360848</vot:TD>
+<vot:TD>2.201919733</vot:TD>
+<vot:TD>4.28</vot:TD>
+<vot:TD>9.43</vot:TD>
+<vot:TD>2.20608923</vot:TD>
+<vot:TD>0.150646511</vot:TD>
+<vot:TD>0.060873838</vot:TD>
+<vot:TD>-0.002058105</vot:TD>
+<vot:TD>0.01043595</vot:TD>
+<vot:TD>0.005551607</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.192602000838862</vot:TD>
+<vot:TD>4.5986777777480761</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2000_QP206</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>323631</vot:TD>
+<vot:TD>2004 VC94</vot:TD>
+<vot:TD>00 41 4.9503</vot:TD>
+<vot:TD>+04 38 33.432</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>19.49</vot:TD>
+<vot:TD>0.046</vot:TD>
+<vot:TD>1611.777</vot:TD>
+<vot:TD>-22.4832</vot:TD>
+<vot:TD>-26.372</vot:TD>
+<vot:TD>1.565515393</vot:TD>
+<vot:TD>2.560057162</vot:TD>
+<vot:TD>3.71</vot:TD>
+<vot:TD>9.51</vot:TD>
+<vot:TD>2.564340968</vot:TD>
+<vot:TD>0.209912953</vot:TD>
+<vot:TD>0.123809765</vot:TD>
+<vot:TD>-0.002863896</vot:TD>
+<vot:TD>0.01114643</vot:TD>
+<vot:TD>0.001748699</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.270626058388117</vot:TD>
+<vot:TD>4.6426199691210579</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2004_VC94</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2015 RD140</vot:TD>
+<vot:TD>00 38 56.5115</vot:TD>
+<vot:TD>+04 37 54.548</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>20.99</vot:TD>
+<vot:TD>5.838</vot:TD>
+<vot:TD>1630.174</vot:TD>
+<vot:TD>-26.8199</vot:TD>
+<vot:TD>-11.229</vot:TD>
+<vot:TD>1.446454377</vot:TD>
+<vot:TD>2.442073855</vot:TD>
+<vot:TD>3.69</vot:TD>
+<vot:TD>9.03</vot:TD>
+<vot:TD>2.433036057</vot:TD>
+<vot:TD>0.176030002</vot:TD>
+<vot:TD>0.087225593</vot:TD>
+<vot:TD>-0.000891083</vot:TD>
+<vot:TD>0.011084013</vot:TD>
+<vot:TD>0.004828381</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.7354645867444631</vot:TD>
+<vot:TD>4.6318188380574243</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2015_RD140</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>156196</vot:TD>
+<vot:TD>2001 UZ11</vot:TD>
+<vot:TD>00 41 40.9244</vot:TD>
+<vot:TD>+05 10 21.131</vot:TD>
+<vot:TD>MB>Middle</vot:TD>
+<vot:TD>20.00</vot:TD>
+<vot:TD>0.044</vot:TD>
+<vot:TD>1630.856</vot:TD>
+<vot:TD>-30.0011</vot:TD>
+<vot:TD>-15.479</vot:TD>
+<vot:TD>1.603907952</vot:TD>
+<vot:TD>2.597709988</vot:TD>
+<vot:TD>3.80</vot:TD>
+<vot:TD>9.88</vot:TD>
+<vot:TD>2.599599359</vot:TD>
+<vot:TD>0.233849365</vot:TD>
+<vot:TD>0.125524555</vot:TD>
+<vot:TD>-0.00282388</vot:TD>
+<vot:TD>0.009619451</vot:TD>
+<vot:TD>0.003616725</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.42051836363715</vot:TD>
+<vot:TD>5.1725363272770775</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2001_UZ11</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2019 JT22</vot:TD>
+<vot:TD>00 40 26.5204</vot:TD>
+<vot:TD>+05 26 22.447</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.29</vot:TD>
+<vot:TD>0.172</vot:TD>
+<vot:TD>1631.315</vot:TD>
+<vot:TD>-24.6504</vot:TD>
+<vot:TD>-20.145</vot:TD>
+<vot:TD>1.805278921</vot:TD>
+<vot:TD>2.798956270</vot:TD>
+<vot:TD>3.47</vot:TD>
+<vot:TD>9.73</vot:TD>
+<vot:TD>2.781144707</vot:TD>
+<vot:TD>0.25357227</vot:TD>
+<vot:TD>0.162170281</vot:TD>
+<vot:TD>-0.000923858</vot:TD>
+<vot:TD>0.010408758</vot:TD>
+<vot:TD>0.002449049</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.11050175766912</vot:TD>
+<vot:TD>5.4395686419348772</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2019_JT22</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2014 EZ252</vot:TD>
+<vot:TD>00 38 32.5994</vot:TD>
+<vot:TD>+04 43 11.060</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>22.27</vot:TD>
+<vot:TD>0.372</vot:TD>
+<vot:TD>1650.600</vot:TD>
+<vot:TD>-34.2203</vot:TD>
+<vot:TD>-14.743</vot:TD>
+<vot:TD>1.573897949</vot:TD>
+<vot:TD>2.569350729</vot:TD>
+<vot:TD>3.49</vot:TD>
+<vot:TD>8.98</vot:TD>
+<vot:TD>2.563678032</vot:TD>
+<vot:TD>0.211030455</vot:TD>
+<vot:TD>0.10761146</vot:TD>
+<vot:TD>-0.001510846</vot:TD>
+<vot:TD>0.009208613</vot:TD>
+<vot:TD>0.003940979</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.6358307424132033</vot:TD>
+<vot:TD>4.7197389773805032</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2014_EZ252</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>612925</vot:TD>
+<vot:TD>2005 CT3</vot:TD>
+<vot:TD>00 40 51.4656</vot:TD>
+<vot:TD>+04 35 30.957</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>22.14</vot:TD>
+<vot:TD>0.096</vot:TD>
+<vot:TD>1658.311</vot:TD>
+<vot:TD>-35.1147</vot:TD>
+<vot:TD>-9.576</vot:TD>
+<vot:TD>1.636807571</vot:TD>
+<vot:TD>2.631332603</vot:TD>
+<vot:TD>3.59</vot:TD>
+<vot:TD>9.44</vot:TD>
+<vot:TD>2.632136831</vot:TD>
+<vot:TD>0.243342534</vot:TD>
+<vot:TD>0.102343912</vot:TD>
+<vot:TD>-0.002582823</vot:TD>
+<vot:TD>0.008570114</vot:TD>
+<vot:TD>0.004726217</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.214439912485878</vot:TD>
+<vot:TD>4.5919326126243343</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2005_CT3</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>694677</vot:TD>
+<vot:TD>2015 TE152</vot:TD>
+<vot:TD>00 40 10.1937</vot:TD>
+<vot:TD>+04 32 7.020</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.17</vot:TD>
+<vot:TD>0.048</vot:TD>
+<vot:TD>1679.942</vot:TD>
+<vot:TD>-24.6446</vot:TD>
+<vot:TD>-18.757</vot:TD>
+<vot:TD>1.951975604</vot:TD>
+<vot:TD>2.946288217</vot:TD>
+<vot:TD>3.14</vot:TD>
+<vot:TD>9.26</vot:TD>
+<vot:TD>2.934486546</vot:TD>
+<vot:TD>0.282230036</vot:TD>
+<vot:TD>0.145977184</vot:TD>
+<vot:TD>-0.001694953</vot:TD>
+<vot:TD>0.009851162</vot:TD>
+<vot:TD>0.002378713</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.042473772196276</vot:TD>
+<vot:TD>4.5352834721329209</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2015_TE152</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2013 RP158</vot:TD>
+<vot:TD>00 41 0.8109</vot:TD>
+<vot:TD>+04 35 51.493</vot:TD>
+<vot:TD>KBO>Resonant>9:5</vot:TD>
+<vot:TD>23.43</vot:TD>
+<vot:TD>0.045</vot:TD>
+<vot:TD>1710.123</vot:TD>
+<vot:TD>-2.7041</vot:TD>
+<vot:TD>-1.150</vot:TD>
+<vot:TD>41.774410576</vot:TD>
+<vot:TD>42.763996151</vot:TD>
+<vot:TD>0.22</vot:TD>
+<vot:TD>9.48</vot:TD>
+<vot:TD>41.980808934</vot:TD>
+<vot:TD>7.419559084</vot:TD>
+<vot:TD>3.351886656</vot:TD>
+<vot:TD>-0.000391442</vot:TD>
+<vot:TD>0.00243035</vot:TD>
+<vot:TD>0.001045837</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>10.25337855224244</vot:TD>
+<vot:TD>4.5976368750084262</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2013_RP158</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>540254</vot:TD>
+<vot:TD>2017 RH32</vot:TD>
+<vot:TD>00 38 45.9768</vot:TD>
+<vot:TD>+04 37 59.063</vot:TD>
+<vot:TD>MB>Middle</vot:TD>
+<vot:TD>20.84</vot:TD>
+<vot:TD>0.109</vot:TD>
+<vot:TD>1723.133</vot:TD>
+<vot:TD>-31.6278</vot:TD>
+<vot:TD>-9.874</vot:TD>
+<vot:TD>1.473197150</vot:TD>
+<vot:TD>2.468825241</vot:TD>
+<vot:TD>3.64</vot:TD>
+<vot:TD>8.99</vot:TD>
+<vot:TD>2.456758411</vot:TD>
+<vot:TD>0.186921221</vot:TD>
+<vot:TD>0.087582897</vot:TD>
+<vot:TD>-0.000579487</vot:TD>
+<vot:TD>0.010219017</vot:TD>
+<vot:TD>0.005040126</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.691570148538915</vot:TD>
+<vot:TD>4.6330730014179986</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2017_RH32</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>452243</vot:TD>
+<vot:TD>2015 TG3</vot:TD>
+<vot:TD>00 38 4.9949</vot:TD>
+<vot:TD>+04 53 9.776</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>20.90</vot:TD>
+<vot:TD>0.048</vot:TD>
+<vot:TD>1766.983</vot:TD>
+<vot:TD>-24.6674</vot:TD>
+<vot:TD>-19.011</vot:TD>
+<vot:TD>2.231722778</vot:TD>
+<vot:TD>3.226253151</vot:TD>
+<vot:TD>2.77</vot:TD>
+<vot:TD>8.95</vot:TD>
+<vot:TD>3.216060225</vot:TD>
+<vot:TD>0.318414869</vot:TD>
+<vot:TD>0.188178353</vot:TD>
+<vot:TD>-0.002256093</vot:TD>
+<vot:TD>0.008960558</vot:TD>
+<vot:TD>0.001631917</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.5208122794093786</vot:TD>
+<vot:TD>4.8860488748788251</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2015_TG3</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2011 GA71</vot:TD>
+<vot:TD>00 38 44.8505</vot:TD>
+<vot:TD>+05 23 2.020</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>21.46</vot:TD>
+<vot:TD>0.702</vot:TD>
+<vot:TD>1780.563</vot:TD>
+<vot:TD>-31.0244</vot:TD>
+<vot:TD>-45.102</vot:TD>
+<vot:TD>1.278898722</vot:TD>
+<vot:TD>2.274408913</vot:TD>
+<vot:TD>4.10</vot:TD>
+<vot:TD>9.33</vot:TD>
+<vot:TD>2.240813108</vot:TD>
+<vot:TD>0.142894617</vot:TD>
+<vot:TD>0.130003249</vot:TD>
+<vot:TD>0.002188818</vot:TD>
+<vot:TD>0.011497702</vot:TD>
+<vot:TD>0.000262486</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.6868770346232242</vot:TD>
+<vot:TD>5.3838945810727346</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2011_GA71</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>-</vot:TD>
+<vot:TD>2015 RD356</vot:TD>
+<vot:TD>00 38 17.9343</vot:TD>
+<vot:TD>+04 44 7.420</vot:TD>
+<vot:TD>MB>Outer</vot:TD>
+<vot:TD>21.56</vot:TD>
+<vot:TD>0.150</vot:TD>
+<vot:TD>1798.502</vot:TD>
+<vot:TD>-27.7467</vot:TD>
+<vot:TD>-10.852</vot:TD>
+<vot:TD>1.815170871</vot:TD>
+<vot:TD>2.810297755</vot:TD>
+<vot:TD>3.18</vot:TD>
+<vot:TD>8.93</vot:TD>
+<vot:TD>2.806960319</vot:TD>
+<vot:TD>0.246770896</vot:TD>
+<vot:TD>0.12485947</vot:TD>
+<vot:TD>-0.00222913</vot:TD>
+<vot:TD>0.009508168</vot:TD>
+<vot:TD>0.004298465</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.5747261148031768</vot:TD>
+<vot:TD>4.7353943707504316</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2015_RD356</vot:TD>
+</vot:TR>
+<vot:TR><vot:TD>454437</vot:TD>
+<vot:TD>2014 OQ19</vot:TD>
+<vot:TD>00 38 8.0725</vot:TD>
+<vot:TD>+05 11 4.136</vot:TD>
+<vot:TD>MB>Inner</vot:TD>
+<vot:TD>21.43</vot:TD>
+<vot:TD>0.111</vot:TD>
+<vot:TD>1799.383</vot:TD>
+<vot:TD>-33.6325</vot:TD>
+<vot:TD>-15.223</vot:TD>
+<vot:TD>1.510446402</vot:TD>
+<vot:TD>2.505809134</vot:TD>
+<vot:TD>3.63</vot:TD>
+<vot:TD>9.10</vot:TD>
+<vot:TD>2.480813707</vot:TD>
+<vot:TD>0.191126296</vot:TD>
+<vot:TD>0.112660726</vot:TD>
+<vot:TD>0.000802405</vot:TD>
+<vot:TD>0.009958763</vot:TD>
+<vot:TD>0.004165693</vot:TD>
+<vot:TD>2461300</vot:TD>
+<vot:TD>9.5336353080582299</vot:TD>
+<vot:TD>5.1844821838976447</vot:TD>
+<vot:TD>https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/2014_OQ19</vot:TD>
+</vot:TR>
+</vot:TABLEDATA>
+</vot:DATA>
+</vot:TABLE>
+</vot:RESOURCE>
+</vot:VOTABLE>

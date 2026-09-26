@@ -1,0 +1,100 @@
+# Pre-compute "Analyze a star" for every star on the map, so Analyze answers them instantly.
+# DEPLOY: move to .github/workflows/precompute.yml. Needs the repo secret PH_DATABASE_URL
+# (Supabase pooler URL). Free: public repo, standard runners, no signups.
+#
+# 20 shards x ~88 stars. Each shard skips stars whose stored result matches their current TESS
+# data (api.precompute is idempotent), so re-runs only do new or changed stars. A first full run
+# is ~1-2 h per shard; later runs mostly ask MAST one question per star.
+name: precompute
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Re-analyze every star even if its stored result is current"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "17 4 * * 1"  # Mondays 04:17 UTC; TESS adds a sector about every 27 days
+
+concurrency:
+  group: precompute
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SHARDS: "20"
+  TIC_FILE: web/public/data/hosts.json  # the 1,748 map hosts (web/scripts/build-hosts.mjs)
+
+jobs:
+  known-systems:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PH_ADAPTERS: real
+      PH_DATABASE_URL: ${{ secrets.PH_DATABASE_URL }}
+      PH_DB_POOL_MAX: "2"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+      - name: Pre-compute the Known systems
+        working-directory: api
+        run: |
+          uv sync --frozen --no-dev
+          uv run --no-dev python -m api.precompute --known-systems \
+            ${{ inputs.force && '--force' || '' }} | tee summary.json
+      - name: Summary
+        if: always()
+        working-directory: api
+        run: |
+          { echo '### Known systems'; echo '```json'; cat summary.json 2>/dev/null; echo '```'; } \
+            >> "$GITHUB_STEP_SUMMARY"
+
+  hosts:
+    needs: known-systems  # applies migrations once before 20 shards connect
+    runs-on: ubuntu-latest
+    timeout-minutes: 350  # under the 6 h job limit; --time-budget-min stops starting new stars first
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    env:
+      PH_ADAPTERS: real
+      PH_DATABASE_URL: ${{ secrets.PH_DATABASE_URL }}
+      PH_DB_POOL_MAX: "2"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+      - name: Pre-compute shard ${{ matrix.shard }}/${{ env.SHARDS }}
+        working-directory: api
+        run: |
+          uv sync --frozen --no-dev
+          uv run --no-dev python -m api.precompute \
+            --tic-file "../$TIC_FILE" \
+            --shard "${{ matrix.shard }}/$SHARDS" \
+            --max-failed-fraction 0.1 \
+            --time-budget-min 320 \
+            ${{ inputs.force && '--force' || '' }} | tee summary.json
+      - name: Summary
+        if: always()
+        working-directory: api
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          try:
+              s = json.load(open("summary.json"))
+          except Exception as e:
+              print(f"no summary: {e}")
+          else:
+              print(f"### Shard {s['shard']}: {s['counts']} in {s['seconds']} s")
+              for f in s["failed"]:
+                  print(f"- TIC {f['tic_id']}: {f['error']}")
+          PY
