@@ -41,10 +41,24 @@ Each star runs as its own process: fetch (the pipeline's `fetch`: SPOC 2-min > T
 `--max-sectors`, default 3) → detrend and BLS (the pipeline's `flatten_for_search` and `search`) → checks →
 known lists → filter → score.
 
-- **Known hosts (list B):** every listed signal on the star with an ephemeris (confirmed planets, TOIs, CTOIs,
-  EB catalogue) is masked before searching: ±0.75 × listed duration plus 3σ of the propagated timing error
-  (t0 error and period error × orbits elapsed). Masked points leave both the trend and the search. A planet
-  whose timing error exceeds 0.5 d is not masked (this is noted in the output); the known filter still catches it.
+- **Known hosts (list B):** every listed signal on the star with an ephemeris is masked before searching.
+  That covers confirmed planets, TOIs, CTOIs and the EB catalogue, and each list's entry is used, because a
+  TOI often has a newer ephemeris than the confirmed-planet row. Masked points leave both the trend and the
+  search. Three layers:
+  1. **Fixed:** ±(1 listed duration + 3σ of the propagated timing error + 2% of P when the archive flags
+     TTVs) around every predicted mid-time. It is skipped if the timing allowance is over 0.5 d.
+  2. **Observed times:** near each predicted mid-time (within that allowance, at least 1.5 durations, at
+     most 0.3 P) the deepest dip of the listed duration is located. If it is ≥ 5σ, it is masked ±1 duration
+     around where it actually is. This follows TTVs and drifted or rounded periods; each masked planet
+     reports `transits_located` and `median_offset_h`.
+  3. **Leak check:** if the search still returns a signal (SNR ≥ 7) at a period listed for this star, it is
+     the known planet leaking through. It is masked at the period and epoch the search found, and the
+     search is repeated (up to 3 rounds).
+
+  Why: in the first sweep, TOI-1130 c came through. It has strong TTVs, and its transits in S67–S104 fall
+  3.8 h from the confirmed ephemeris. TOI-181 b came through too: its confirmed period is rounded to 4.532 d
+  with a 2e-6 d error bar. In both cases the old code also dropped the TOI entry that had the better
+  ephemeris. Both cases are now tests.
 - Up to 3 signals per star (two-pass search like the pipeline, then mask and repeat while the last one had
   SNR ≥ 7).
 - `--shard i/N` (0-based) takes rows i, i+N, i+2N, ... of the ranked file, so every shard gets top-priority
@@ -91,34 +105,39 @@ recorded for the funnel):
 The lists are downloaded in bulk once a day (the EB catalogue once a month) and matched locally. A sweep
 snapshots them once, so every star is checked against the same lists.
 
-## 5. Score (0–100)
+## 5. Score (0–1)
 
 ```
-score = 100 × (0.40·S_snr + 0.20·S_transits + 0.25·S_margin + 0.15·S_bright) × (0.8 if single-sector)
+score = (0.40·S_snr + 0.20·S_transits + 0.25·S_checks + 0.15·S_brightness) × (0.8 if single-sector)
 
-S_snr      = 1 − exp(−(SNR − 10) / 20)     0 at the SNR cut, 0.63 at SNR 30
-S_transits = 1 − exp(−(N − 3) / 6)         0 at 3 transits, 0.63 at 9
-S_margin   = mean margin of odd_even, secondary_eclipse, size, period_alias, momentum_dump,
-             sector_depth, duration
-S_bright   = clip((13 − Tmag) / 5, 0, 1)   0 at Tmag 13, 1 at Tmag 8 (easier follow-up)
+S_snr        = 1 − exp(−(SNR − 10) / 20)     0 at the SNR cut, 0.63 at SNR 30
+S_transits   = 1 − exp(−(N − 3) / 6)         0 at 3 transits, 0.63 at 9
+S_checks     = mean margin of odd_even, secondary_eclipse, size, period_alias, momentum_dump,
+               sector_depth, duration
+S_brightness = clip((13 − Tmag) / 5, 0, 1)   0 at Tmag 13, 1 at Tmag 8 (easier follow-up)
 ```
 
-Each candidate stores the terms and weights under `score_detail`.
+`score_parts` = `{snr, transits, checks, brightness}`. Each is that part's contribution on the 0–1 scale
+(weight × S × single-sector factor), so the four parts add up to `score`. `score_detail` keeps the raw
+terms, the weights and the factor.
 
 ## 6. Output
 
 `candidates/<tic>_<n>.json` (n = signal number on that star) contains `tic`, `period_d`, `t0_btjd`,
-`duration_h`, `depth_ppm`, `snr`, `sde`, `n_transits`, `sectors`, `radius_rjup` `[low, high]` (1σ; also
-`radius_rjup_best`, `radius_rearth_best`), `checks` (each with value, pass/fail and reason), `score` +
-`score_detail`, `known` (lists checked, matches on the star and on neighbours, other entries on the star),
-`curves`, `created_at`. It also holds per-sector depths, transit times, masked known planets, the TIC row
-and the data products used.
+`duration_h`, `depth_ppm`, `snr`, `sde`, `n_transits`, `sectors`, `radius_rjup` `[low, high]` (1σ; the same
+numbers as `radius_low`/`radius_high`, plus `radius_rjup_best`, `radius_rearth_best`), `checks` (each with
+value, pass/fail and reason), `score` (0–1) + `score_parts` + `score_detail`, `known_lists` (lists checked,
+matches on the star and on neighbours, other entries on the star; `status` is `not_on_lists` for every
+candidate), `folded`, `folded_zoom`, `unfolded`, `created_at`. It also holds per-sector depths, transit
+times, masked known planets, the TIC row and the data products used.
 
-`curves`: `folded` (200 phase bins over the whole orbit), `folded_zoom` (±3 durations, in hours) and
+Curves: `folded` (200 phase bins over the whole orbit), `folded_zoom` (±3 durations, in hours) and
 `unfolded` (30-minute bins over time). A `.png` with all three is written next to each JSON.
 
 `results/<tic>.json` records every star searched, with every signal and the stage it failed at.
-`hunt merge` writes `candidates.json` (ranked index + funnel) and `funnel.json`.
+`hunt merge` writes `candidates.json` (ranked index + funnel), `funnel.json` and `summary.json`
+(`{funnel, n_candidates, shards}`, which FINDER-API reads). With `--sensitivity`, it also copies
+`sensitivity.json` alongside them.
 
 ## 7. Sensitivity (`hunt inject`)
 
@@ -137,8 +156,16 @@ cuts are run.
 
 ## 8. CI
 
-`ci/sweep.yml` is the nightly GitHub Actions workflow (the DEPLOY session installs it): targets + catalogue
-snapshot → 20 shards (`fail-fast: false`, 350-minute budget each) → merge → `hunt-candidates` artifact.
+`ci/sweep.yml` is the nightly GitHub Actions workflow. The DEPLOY session installs it as
+`.github/workflows/sweep.yml`: targets + catalogue snapshot → 20 shards (`fail-fast: false`, shard failures
+non-fatal, 350-minute budget each) → merge → artifact.
+
+- Workflow `name: sweep` and artifact `candidates` are what FINDER-API's `finder.yml` expects
+  (`workflow_run.workflows: ["sweep"]`, `gh run list --workflow sweep.yml`, `SWEEP_ARTIFACT: candidates`).
+- The latest `sensitivity.json` is committed at `hunt/results/sensitivity.json` and shipped in each artifact.
+- **It assumes a public repository.** A night uses about 7,100 runner-minutes (20 × ~355 + ~15), roughly
+  215,000 a month. That is free and unmetered on a public repo; the private free plan's 2,000 minutes a
+  month would run out on the first night.
 
 ## Cache
 

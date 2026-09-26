@@ -6,6 +6,8 @@ import numpy as np
 import pytest
 from conftest import EB_TIC, QUIET_TIC, TOI_TIC, load_fixture
 
+from hunter.known import match_period
+
 from hunt import analyse, inject
 from hunt.catalogs import Catalogue
 
@@ -72,14 +74,19 @@ def test_injected_planet_is_recovered_as_candidate(quiet, tmp_path):
     assert hit and hit[0]["failed_stage"] is None
     cand = res.candidates[0]
     for key in ("tic", "period_d", "t0_btjd", "duration_h", "depth_ppm", "snr", "sde", "n_transits", "sectors",
-                "radius_rjup", "checks", "score", "known", "curves", "created_at"):
+                "radius_rjup", "radius_low", "radius_high", "checks", "score", "score_parts", "known_lists",
+                "folded", "unfolded", "created_at"):
         assert key in cand
     lo, hi = cand["radius_rjup"]
     assert lo < r_earth / 11.2 < hi * 1.5
     assert {c["name"] for c in cand["checks"]} >= {"snr", "odd_even", "secondary_eclipse", "size", "period_alias",
                                                    "momentum_dump", "sector_depth", "duration", "single_sector"}
     assert all({"name", "value", "passed", "reason"} <= set(c) for c in cand["checks"])
-    assert {"folded", "folded_zoom", "unfolded"} <= set(cand["curves"])
+    assert 0 <= cand["score"] <= 1 and set(cand["score_parts"]) == {"snr", "transits", "checks", "brightness"}
+    assert cand["radius_low"] == lo and cand["radius_high"] == hi
+    assert cand["known_lists"] is None  # known-list check off for fake planets
+    assert len(cand["folded"]["phase"]) == len(cand["folded"]["flux"]) > 50
+    assert len(cand["unfolded"]["time_btjd"]) > 100 and "folded_zoom" in cand
     json.dumps(cand)  # serialisable
     analyse.plot_candidate(cand, tmp_path / "c.png")
     assert (tmp_path / "c.png").stat().st_size > 1000
@@ -92,3 +99,28 @@ def test_injection_run_on_one_star_counts_recoveries(quiet):
     assert all(i["recovered"] for i in out["injections"])  # big planets on a small star: easy
     summary = inject.summarise([out])
     assert summary["n_injections"] == 2 and summary["overall_recovery_fraction"] == 1.0
+
+
+@pytest.mark.parametrize("tic,planets", [
+    (254113311, ("TOI-1130 b", "TOI-1130 c")),  # strong TTVs: listed times are hours off in S67-S104
+    (76923707, ("TOI-181 b",)),  # confirmed period rounded to 4.532 d with a tiny error bar
+])
+def test_sibling_search_does_not_refind_known_planets(catalogue, tic, planets):
+    """Recorded case from the 2026-09-26 sweep: these known planets leaked through the first masking."""
+    star, lc = load_fixture(tic)
+    res = analyse.analyse(star, lc, catalogue, "B")
+    listed = [e.period for e in catalogue.on_star(tic)]
+    for s in res.signals:
+        assert s["failed_stage"] != "known"
+        assert not (s["snr"] >= 10 and any(match_period(s["period_d"], p) for p in listed)), s
+    names = {m["name"] for m in res.masked_known}
+    assert set(planets) <= names
+    assert res.candidates == []
+
+
+def test_ttv_planet_transits_are_located_off_ephemeris(catalogue):
+    star, lc = load_fixture(254113311)
+    res = analyse.analyse(star, lc, catalogue, "B")
+    c = next(m for m in res.masked_known if m["name"] == "TOI-1130 c")
+    assert c["transits_located"] >= 8
+    assert abs(c["median_offset_h"]) > 2  # the confirmed ephemeris is off by hours: TTVs

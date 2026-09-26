@@ -60,7 +60,8 @@ def cmd_merge(a) -> int:
     from . import sweep, targets
 
     assigned = len(targets.read(Path(a.tic_file))) if a.tic_file else None
-    out = sweep.merge([Path(d) for d in a.shard_dirs], Path(a.out), assigned)
+    out = sweep.merge([Path(d) for d in a.shard_dirs], Path(a.out), assigned,
+                      Path(a.sensitivity) if a.sensitivity else None)
     _log(json.dumps(out["funnel"], indent=1))
     _log(f"{len(out['candidates'])} candidates -> {a.out}/candidates.json")
     return 0
@@ -105,6 +106,7 @@ def main(argv: list[str] | None = None) -> int:
     m.add_argument("shard_dirs", nargs="+")
     m.add_argument("--out", default="out/merged")
     m.add_argument("--tic-file", default=None, help="the target file, to report how many stars were listed")
+    m.add_argument("--sensitivity", default=None, help="sensitivity.json to ship next to the candidates")
     m.set_defaults(fn=cmd_merge)
 
     i = sub.add_parser("inject", help="injection-recovery on quiet stars -> sensitivity.json")

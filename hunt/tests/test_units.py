@@ -103,9 +103,23 @@ def test_score_formula():
     sig = Signal(3.0, 0.0, 0.1, 1e-3, 1e-5, 30.0, 12.0, 9, 1e-3, 1e-5, 1e-3, 1e-5)
     cs = [checks.Check("odd_even", True, 0.0, "", 1.0), checks.Check("duration", True, 1.0, "", 0.5)]
     s = analyse.score(sig, cs, 10.5, single_sector=False)
-    expected = 100 * (0.4 * (1 - math.exp(-1)) + 0.2 * (1 - math.exp(-1)) + 0.25 * 0.75 + 0.15 * 0.5)
-    assert math.isclose(s["score"], round(expected, 1))
-    assert analyse.score(sig, cs, 10.5, single_sector=True)["score"] == round(expected * 0.8, 1)
+    e1 = 1 - math.exp(-1)
+    expected = {"snr": 0.4 * e1, "transits": 0.2 * e1, "checks": 0.25 * 0.75, "brightness": 0.15 * 0.5}
+    assert set(s["score_parts"]) == {"snr", "transits", "checks", "brightness"}
+    for k, v in expected.items():
+        assert math.isclose(s["score_parts"][k], v, abs_tol=1e-4)
+    assert math.isclose(s["score"], sum(expected.values()), abs_tol=1e-4)
+    assert 0 <= s["score"] <= 1
+    single = analyse.score(sig, cs, 10.5, single_sector=True)
+    assert math.isclose(single["score"], 0.8 * s["score"], abs_tol=1e-4)
+    assert math.isclose(sum(single["score_parts"].values()), single["score"], abs_tol=1e-3)
+
+
+def test_score_is_one_at_most():
+    from hunter.search import Signal
+    sig = Signal(3.0, 0.0, 0.1, 1e-3, 1e-5, 1e4, 50.0, 500, 1e-3, 1e-5, 1e-3, 1e-5)
+    s = analyse.score(sig, [checks.Check("x", True, 0, "", 1.0)], 5.0, single_sector=False)
+    assert math.isclose(s["score"], 1.0, abs_tol=1e-3)
 
 
 def test_stage_order():
@@ -140,13 +154,35 @@ def test_catalogue_matches_period_aliases_and_neighbours():
 
 def test_known_transit_mask_covers_listed_transits():
     t = np.arange(3000, 3027, 2 / 1440)
-    mask, masked = known_transit_mask(t, [_cat().entries[0]])
+    mask, masked = known_transit_mask(t, None, [_cat().entries[0]])
     assert masked[0].masked_points == mask.sum() > 0
     phase = (t - 3000.0 + 1.0) % 2.0 - 1.0
-    assert mask[np.abs(phase) < 1 / 24].all() and not mask[np.abs(phase) > 0.2].any()
+    assert mask[np.abs(phase) < 1 / 12].all() and not mask[np.abs(phase) > 0.2].any()  # +-1 listed duration
     bad = replace(_cat().entries[0], period_err=0.05)  # 0.05 d x ~6.75 orbits x 3 sigma = 1 d > 0.5 d cap
-    _, m2 = known_transit_mask(t, [bad])
-    assert m2[0].masked_points == 0 and "not masked" in m2[0].note
+    _, m2 = known_transit_mask(t, None, [bad])
+    assert m2[0].masked_points == 0 and "no fixed mask" in m2[0].note
+
+
+def test_mask_follows_transits_that_moved_off_the_ephemeris():
+    """TTV-like case: real dips 3 h later than listed, with a tiny listed timing error."""
+    lc = make_lc(noise=3e-4)
+    listed = KnownSignal(5, "Moving b", "confirmed", 4.0, 1e-6, 3000.5, 1e-4, 2.0, 0.0, 0.0)
+    lc.flux = lc.flux + box(lc.time, 4.0, 3000.5 + 3 / 24, 2 / 24, 3000e-6)
+    no_flux, _ = known_transit_mask(lc.time, None, [listed])
+    with_flux, masked = known_transit_mask(lc.time, lc.flux, [listed])
+    phase = (lc.time - (3000.5 + 3 / 24) + 2.0) % 4.0 - 2.0
+    real = np.abs(phase) < 1 / 24
+    assert not no_flux[real].all()  # the fixed mask alone misses part of every dip
+    assert with_flux[real].all()  # located and masked where it is
+    assert masked[0].located >= 10 and abs(masked[0].median_offset_h - 3.0) < 0.5
+
+
+def test_ttv_flag_widens_the_fixed_mask():
+    t = np.arange(3000, 3027, 2 / 1440)
+    k = KnownSignal(5, "b", "confirmed", 8.0, 1e-6, 3000.5, 1e-4, 2.0, 0.0, 0.0)
+    _, plain = known_transit_mask(t, None, [k])
+    _, ttv = known_transit_mask(t, None, [replace(k, ttv_flag=True)])
+    assert math.isclose(ttv[0].half_width_d - plain[0].half_width_d, 0.02 * 8.0, abs_tol=1e-3)
 
 
 def test_target_tiers_rank_m_dwarfs_then_small_stars():
@@ -182,10 +218,15 @@ def test_funnel_and_merge(tmp_path):
         for s in ss:
             (tmp_path / d / "results" / f"{s['tic']}.json").write_text(json.dumps(s))
     (tmp_path / "a" / "candidates" / "1_2.json").write_text(json.dumps({
-        "id": "hunt:1:2", "tic": 1, "score": 50.0, "period_d": 3.0, "depth_ppm": 900, "snr": 12, "sde": 10,
+        "id": "hunt:1:2", "tic": 1, "score": 0.5,
+        "score_parts": {"snr": 0.2, "transits": 0.1, "checks": 0.1, "brightness": 0.1}, "period_d": 3.0, "depth_ppm": 900, "snr": 12, "sde": 10,
         "n_transits": 5, "radius_rjup": [0.1, 0.2], "radius_rearth_best": 1.7, "single_sector_only": False,
         "search_list": "new-star search"}))
-    out = sweep.merge([tmp_path / "a", tmp_path / "b"], tmp_path / "m", assigned=5)
+    (tmp_path / "sens.json").write_text('{"n_stars": 1}')
+    out = sweep.merge([tmp_path / "a", tmp_path / "b"], tmp_path / "m", assigned=5, sensitivity=tmp_path / "sens.json")
+    summary = json.loads((tmp_path / "m" / "summary.json").read_text())
+    assert summary["funnel"]["candidates"] == 1 and summary["n_candidates"] == 1
+    assert json.loads((tmp_path / "m" / "sensitivity.json").read_text()) == {"n_stars": 1}
     f = out["funnel"]
     assert f["stars_in_list"] == 5 and f["stars_searched"] == 3 and f["stars_with_data"] == 2
     assert f["signals_found"] == 4 and f["after_snr"] == 3 and f["after_checks"] == 2 and f["after_known"] == 1

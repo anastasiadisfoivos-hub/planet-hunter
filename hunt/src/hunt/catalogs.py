@@ -55,6 +55,7 @@ class KnownSignal:
     dec: float | None
     disposition: str | None = None
     tmag: float | None = None
+    ttv_flag: bool = False  # archive flags transit-timing variations (confirmed planets only)
 
     @property
     def list_name(self) -> str:
@@ -83,8 +84,8 @@ def _tap_rows(query: str, name: str, refresh: bool) -> list[dict]:
 
 def _confirmed(refresh: bool) -> list[KnownSignal]:
     rows = _tap_rows("select pl_name,tic_id,hostname,pl_orbper,pl_orbpererr1,pl_tranmid,pl_tranmiderr1,pl_trandur,"
-                     "ra,dec,sy_pnum,tran_flag,sy_tmag,st_teff,st_rad from pscomppars where tic_id is not null",
-                     "pscomppars", refresh)
+                     "ra,dec,sy_pnum,tran_flag,sy_tmag,st_teff,st_rad,ttv_flag from pscomppars where tic_id is not null",
+                     "pscomppars-v2", refresh)
     out = []
     for r in rows:
         tic = r["tic_id"].replace("TIC", "").strip()
@@ -93,7 +94,7 @@ def _confirmed(refresh: bool) -> list[KnownSignal]:
         out.append(KnownSignal(int(tic), r["pl_name"], "confirmed", _f(r["pl_orbper"]), _f(r["pl_orbpererr1"]),
                                _btjd(r["pl_tranmid"]), _f(r["pl_tranmiderr1"]), _f(r["pl_trandur"]),
                                _f(r["ra"]), _f(r["dec"]), "transiting" if r["tran_flag"] == "1" else "non-transiting",
-                               _f(r["sy_tmag"])))
+                               _f(r["sy_tmag"]), r.get("ttv_flag") == "1"))
     return out
 
 
@@ -210,5 +211,5 @@ def load(refresh: bool = False) -> Catalogue:
         entries = _confirmed(refresh) + _tois(refresh) + _ctois(refresh) + _ebs(refresh)
         return {"fetched_at": datetime.now(UTC).isoformat(timespec="seconds"),
                 "entries": [asdict(e) for e in entries]}
-    data = cached_json("catalogue", TTL, build, refresh)
+    data = cached_json("catalogue-v2", TTL, build, refresh)
     return Catalogue([KnownSignal(**e) for e in data["entries"]], data["fetched_at"])

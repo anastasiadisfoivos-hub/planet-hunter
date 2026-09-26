@@ -204,7 +204,8 @@ def funnel(summaries: list[dict], assigned: int | None = None) -> dict:
     }
 
 
-def merge(shard_dirs: list[Path], out_dir: Path, assigned: int | None = None) -> dict:
+def merge(shard_dirs: list[Path], out_dir: Path, assigned: int | None = None,
+          sensitivity: Path | None = None) -> dict:
     (out_dir / "candidates").mkdir(parents=True, exist_ok=True)
     summaries: dict[int, dict] = {}
     cands: dict[str, dict] = {}
@@ -221,11 +222,17 @@ def merge(shard_dirs: list[Path], out_dir: Path, assigned: int | None = None) ->
                 (out_dir / "candidates" / png.name).write_bytes(png.read_bytes())
     ranked = sorted(cands.items(), key=lambda kv: -kv[1]["score"])
     index = [{"file": f"candidates/{stem}.json", "id": c["id"], "tic": c["tic"], "score": c["score"],
-              "period_d": c["period_d"], "depth_ppm": c["depth_ppm"], "snr": c["snr"], "sde": c["sde"],
+              "score_parts": c.get("score_parts"), "period_d": c["period_d"], "depth_ppm": c["depth_ppm"], "snr": c["snr"], "sde": c["sde"],
               "n_transits": c["n_transits"], "radius_rjup": c["radius_rjup"], "radius_rearth_best": c["radius_rearth_best"],
               "single_sector_only": c["single_sector_only"], "search_list": c["search_list"]} for stem, c in ranked]
     fun = funnel(list(summaries.values()), assigned)
     out = {"created_at": datetime.now(UTC).isoformat(timespec="seconds"), "funnel": fun, "candidates": index}
     (out_dir / "candidates.json").write_text(json.dumps(out, indent=1))
     (out_dir / "funnel.json").write_text(json.dumps(fun, indent=1))
+    # summary.json next to candidates/ is what FINDER-API's ingest reads for GET /finder/funnel.
+    shards = [json.loads((d / "shard.json").read_text()) for d in shard_dirs if (d / "shard.json").exists()]
+    (out_dir / "summary.json").write_text(json.dumps({"created_at": out["created_at"], "funnel": fun,
+                                                      "n_candidates": len(index), "shards": shards}, indent=1))
+    if sensitivity is not None and Path(sensitivity).exists():
+        (out_dir / "sensitivity.json").write_text(Path(sensitivity).read_text())
     return out

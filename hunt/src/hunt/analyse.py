@@ -9,8 +9,10 @@ Filter (a signal must pass every stage, in this order; the first stage it fails 
             this star
   neighbour ... nor on a listed star within 2.5 arcmin (likely the source of the dips)
 
-Score (0-100, transparent):
-  score = 100 * (0.40 * S_snr + 0.20 * S_transits + 0.25 * S_margin + 0.15 * S_bright) * (0.8 if single-sector)
+Score (0-1, transparent):
+  score = (0.40 * S_snr + 0.20 * S_transits + 0.25 * S_margin + 0.15 * S_bright) * (0.8 if single-sector)
+  score_parts = {snr, transits, checks, brightness}: each term's contribution, weight * S * single-sector
+  factor, so the four parts add up to the score
   S_snr      = 1 - exp(-(SNR - 10) / 20)            0 at the SNR cut, 0.63 at SNR 30
   S_transits = 1 - exp(-(N - 3) / 6)                0 at 3 transits, 0.63 at 9
   S_margin   = mean check margin (odd_even, secondary_eclipse, size, period_alias, momentum_dump,
@@ -31,7 +33,7 @@ from hunter.search import Signal, bin_by_time, in_transit
 from . import checks as chk
 from .catalogs import Catalogue
 from .lightcurve import StarLC
-from .signals import CONTINUE_MIN_SNR, find_signals, known_transit_mask
+from .signals import CONTINUE_MIN_SNR, MaskedPlanet, find_signals, known_transit_mask
 from .stars import Star
 
 MIN_SNR = 10.0
@@ -39,23 +41,28 @@ MIN_SDE = 9.0
 MIN_TRANSITS = 3
 STAGES = ("snr", "sde", "transits", "checks", "known", "neighbour")
 SINGLE_SECTOR_FACTOR = 0.8
+MAX_LEAK_ROUNDS = 3
 W_SNR, W_TRANSITS, W_MARGIN, W_BRIGHT = 0.40, 0.20, 0.25, 0.15
 
 
 def score(sig: Signal, checks: list[chk.Check], tmag: float | None, single_sector: bool) -> dict:
+    """Score on 0-1 plus the contribution of each part (they sum to the score)."""
     s_snr = 1 - math.exp(-max(sig.snr - MIN_SNR, 0) / 20)
     s_tr = 1 - math.exp(-max(sig.n_transits - MIN_TRANSITS, 0) / 6)
     margins = [c.margin for c in checks if c.margin is not None]
     s_margin = float(np.mean(margins)) if margins else 0.0
     s_bright = min(1.0, max(0.0, (13 - tmag) / 5)) if tmag is not None else 0.0
-    raw = W_SNR * s_snr + W_TRANSITS * s_tr + W_MARGIN * s_margin + W_BRIGHT * s_bright
     factor = SINGLE_SECTOR_FACTOR if single_sector else 1.0
-    return {"score": round(100 * raw * factor, 1),
-            "terms": {"snr": round(s_snr, 3), "transits": round(s_tr, 3), "margin": round(s_margin, 3),
-                      "brightness": round(s_bright, 3)},
-            "weights": {"snr": W_SNR, "transits": W_TRANSITS, "margin": W_MARGIN, "brightness": W_BRIGHT},
-            "single_sector_factor": factor,
-            "formula": "100*(0.40*S_snr + 0.20*S_transits + 0.25*S_margin + 0.15*S_bright) * (0.8 if single-sector)"}
+    parts = {"snr": W_SNR * s_snr * factor, "transits": W_TRANSITS * s_tr * factor,
+             "checks": W_MARGIN * s_margin * factor, "brightness": W_BRIGHT * s_bright * factor}
+    return {"score": round(sum(parts.values()), 4),
+            "score_parts": {k: round(v, 4) for k, v in parts.items()},
+            "detail": {"terms": {"snr": round(s_snr, 3), "transits": round(s_tr, 3), "checks": round(s_margin, 3),
+                                 "brightness": round(s_bright, 3)},
+                       "weights": {"snr": W_SNR, "transits": W_TRANSITS, "checks": W_MARGIN, "brightness": W_BRIGHT},
+                       "single_sector_factor": factor,
+                       "formula": "(0.40*S_snr + 0.20*S_transits + 0.25*S_checks + 0.15*S_brightness)"
+                                  " * (0.8 if single-sector); each part = weight * S * factor"}}
 
 
 def first_failed_stage(sig: Signal, failed_checks: list[str], known: dict | None) -> str | None:
@@ -128,8 +135,23 @@ class StarResult:
 def analyse(star: Star, lc: StarLC, catalogue: Catalogue | None, list_kind: str = "A",
             max_signals: int = 3, check_known: bool = True) -> StarResult:
     known_here = catalogue.on_star(star.tic) if (catalogue is not None and list_kind == "B") else []
-    premask, masked = known_transit_mask(lc.time, known_here)
+    premask, masked = known_transit_mask(lc.time, lc.flux, known_here)
     out = find_signals(lc, premask, max_signals)
+    # Safety net for sibling searches: a signal at a listed period on this star is the known planet leaking
+    # through its ephemeris mask (strong TTVs, a drifted period). Mask it where the data put it and search again.
+    for _ in range(MAX_LEAK_ROUNDS):
+        leaks = [(s, catalogue.match(star.tic, s.period)["same_star"]) for s in out.signals
+                 if known_here and s.snr >= CONTINUE_MIN_SNR]
+        leaks = [(s, m) for s, m in leaks if m]
+        if not leaks:
+            break
+        for s, m in leaks:
+            leak = in_transit(lc.time, s.period, s.t0, s.duration, scale=2.0)
+            premask = premask | leak
+            masked.append(MaskedPlanet(f"{m[0]['name']} (as found in the data)", s.period, s.t0, s.duration,
+                                       int(leak.sum()), "leaked through the catalogue-ephemeris mask; masked at "
+                                       "the period and epoch the search found"))
+        out = find_signals(lc, premask, max_signals)
     t_all, g_all = lc.time, lc.sector
     records, cands = [], []
     for n, sig in enumerate(out.signals, start=1):
@@ -180,6 +202,8 @@ def candidate(star: Star, lc: StarLC, sig: Signal, n: int, checks: list[chk.Chec
         "sectors": lc.sectors,
         "sectors_with_transits": extra["sectors_with_transits"],
         "radius_rjup": [None if lo is None else round(lo, 4), None if hi is None else round(hi, 4)],
+        "radius_low": None if lo is None else round(lo, 4),  # the same range as plain numbers (FINDER-API)
+        "radius_high": None if hi is None else round(hi, 4),
         "radius_rjup_best": None if extra["radius_rjup"] is None else round(extra["radius_rjup"], 4),
         "radius_rearth_best": None if extra["radius_rearth"] is None else round(extra["radius_rearth"], 2),
         "checks": [c.to_dict() for c in checks],
@@ -187,13 +211,14 @@ def candidate(star: Star, lc: StarLC, sig: Signal, n: int, checks: list[chk.Chec
         "per_sector_depth": extra["per_sector"],
         "transit_times_btjd": extra["transit_times_btjd"],
         "score": sc["score"],
-        "score_detail": sc,
-        "known": known,
+        "score_parts": sc["score_parts"],
+        "score_detail": sc["detail"],
+        "known_lists": known,
         "search_list": {"A": "new-star search", "B": "sibling search on a known host"}.get(list_kind, list_kind),
         "masked_known_planets": [m.to_dict() for m in masked],
         "star": star.to_row(),
         "data": [{k: p[k] for k in ("sector", "author", "exptime")} for p in lc.products],
-        "curves": curves(t, f, sig),
+        **curves(t, f, sig),
         "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
     }
 
@@ -204,7 +229,7 @@ def plot_candidate(cand: dict, path) -> None:
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    c = cand["curves"]
+    c = cand
     fig, axes = plt.subplots(3, 1, figsize=(9, 9))
     u = c["unfolded"]
     axes[0].plot(u["time_btjd"], u["flux"], ".", ms=2, color="0.3")
@@ -226,7 +251,7 @@ def plot_candidate(cand: dict, path) -> None:
     r = cand["radius_rjup"]
     size = f"R = {r[0]:.3f}-{r[1]:.3f} R_Jup" if None not in r else "R unknown"
     fig.suptitle(f"TIC {cand['tic']} candidate {cand['id'].rsplit(':', 1)[1]}: P = {cand['period_d']:.4f} d, "
-                 f"depth {cand['depth_ppm']:.0f} ppm, SNR {cand['snr']:.1f}, {size}, score {cand['score']}",
+                 f"depth {cand['depth_ppm']:.0f} ppm, SNR {cand['snr']:.1f}, {size}, score {cand['score']:.2f}",
                  fontsize=10)
     fig.tight_layout()
     fig.savefig(path, dpi=110)
