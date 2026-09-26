@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-09-25T22:07:02+00:00",
+  "sectors": {
+    "2min": [
+      106
+    ],
+    "ffi": [
+      104
+    ]
+  },
+  "light_curves_per_sector": {
+    "2min_s106": 13000,
+    "ffi_s104": 1152719
+  },
+  "distinct_stars": 1164087,
+  "tmag_le_13": 731591,
+  "on_known_lists_by_list": {
+    "toi": 400,
+    "ctoi": 260,
+    "confirmed": 172,
+    "eb": 290
+  },
+  "on_any_known_list": 899,
+  "confirmed_hosts_any": 172,
+  "list_a": 730692,
+  "list_a_by_tier": {
+    "M dwarf (Teff < 4000 K)": 5176,
+    "small star (R < 0.8 R_sun)": 17136,
+    "dwarf star": 249510,
+    "other (giant, subgiant or no class in the TIC)": 458870
+  },
+  "list_b": 107,
+  "list_b_by_tier": {
+    "M dwarf (Teff < 4000 K)": 10,
+    "small star (R < 0.8 R_sun)": 14,
+    "dwarf star": 81,
+    "other (giant, subgiant or no class in the TIC)": 2
+  },
+  "catalogue_fetched_at": "2026-09-25T21:58:02+00:00"
+}

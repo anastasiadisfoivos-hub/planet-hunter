@@ -1,0 +1,120 @@
+# ASSUMES A PUBLIC REPOSITORY. Public repos get standard GitHub-hosted runners free and unmetered.
+# One night uses about 7,100 runner-minutes (20 shards x ~355 min, plus ~15 min for targets and merge),
+# about 215,000 a month: a private repo on the free plan (2,000 min/month) would run out on the first night.
+#
+# planet-hunter PLANET FINDER nightly sweep (hunt/).
+# Copy to .github/workflows/sweep.yml (the DEPLOY session wires it up). FINDER-API's finder.yml depends
+# on two names here: the workflow `name: sweep` (workflow_run.workflows: ["sweep"], and
+# `gh run list --workflow sweep.yml`) and the artifact `candidates`.
+# targets -> 20 shards (350-min budget each, fail-fast off) -> merge -> "candidates" artifact:
+#   candidates/<tic>_<n>.json (+ .png), candidates.json, funnel.json, summary.json, sensitivity.json
+name: sweep
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "only the top N stars of each target list (empty = all)"
+        required: false
+        default: ""
+
+concurrency:
+  group: hunt-sweep
+  cancel-in-progress: false
+
+env:
+  HUNT_CACHE_DIR: ${{ github.workspace }}/.cache/hunt
+  HUNTER_CACHE_DIR: ${{ github.workspace }}/.cache/pipeline
+
+jobs:
+  targets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/cache@v4
+        with:
+          path: .cache/hunt
+          key: hunt-targets-${{ github.run_id }}
+          restore-keys: hunt-targets-
+      - name: Build target lists
+        working-directory: hunt
+        run: |
+          uv sync --frozen || uv sync
+          LIMIT="${{ github.event.inputs.limit }}"
+          uv run hunt targets --out ../targets ${LIMIT:+--limit $LIMIT}
+      - name: Snapshot known-signal catalogue
+        working-directory: hunt
+        run: uv run python -c "from hunt import catalogs; from pathlib import Path; catalogs.load().to_json(Path('../targets/catalogue.json'))"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hunt-targets
+          path: targets/
+          retention-days: 7
+
+  sweep:
+    needs: targets
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    # A shard that dies must not mark the whole run failed: finder.yml only ingests successful runs,
+    # and merge uses whatever shards finished.
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/download-artifact@v4
+        with:
+          name: hunt-targets
+          path: targets
+      - uses: actions/cache@v4
+        with:
+          path: .cache/pipeline/json
+          key: hunt-pipeline-json-${{ matrix.shard }}-${{ github.run_id }}
+          restore-keys: hunt-pipeline-json-${{ matrix.shard }}-
+      - name: Search shard ${{ matrix.shard }}/20
+        working-directory: hunt
+        run: |
+          uv sync --frozen || uv sync
+          uv run hunt run --tic-file ../targets/targets.csv --shard ${{ matrix.shard }}/20 \
+            --time-budget-min 350 --catalogue ../targets/catalogue.json --out ../shard
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hunt-shard-${{ matrix.shard }}
+          path: shard/
+          retention-days: 7
+
+  merge:
+    needs: sweep
+    if: always() && needs.targets.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: hunt-shard-*
+          path: shards
+      - uses: actions/download-artifact@v4
+        with:
+          name: hunt-targets
+          path: targets
+      - name: Merge candidates
+        working-directory: hunt
+        run: |
+          uv sync --frozen || uv sync
+          uv run hunt merge ../shards/* --tic-file ../targets/targets.csv --out ../merged \
+            --sensitivity results/sensitivity.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: candidates
+          path: merged/
+          retention-days: 30
