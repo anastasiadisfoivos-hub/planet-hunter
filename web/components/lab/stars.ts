@@ -14,7 +14,7 @@ export type LabStar = {
   teffEstimated: boolean;
   /** Visible-light luminosity in Suns, from V magnitude and distance (no bolometric correction). */
   lum: number;
-  /** Where the map deep link points: /map?host=<tic> or /map?bright=<index>. */
+  /** Where the sky deep link points: /sky?host=<tic> or /sky?bright=<index>. */
   href: string;
   planets: string[];
   /** TIC number when the star is a planet host (its own lab is /lab/star/<tic>). */
@@ -56,7 +56,7 @@ export async function loadLabStars(signal?: AbortSignal): Promise<LabStar[]> {
       teff,
       teffEstimated: true,
       lum: visualLum(st.mag[i], pc),
-      href: `/map?bright=${i}`,
+      href: `/sky?bright=${i}`,
       planets: host >= 0 ? (hosts.planets?.[host] ?? []) : [],
       tic: host >= 0 ? hosts.tic[host] : null,
     });
@@ -70,7 +70,7 @@ export async function loadLabStars(signal?: AbortSignal): Promise<LabStar[]> {
       teff: hosts.teff[i],
       teffEstimated: false,
       lum: visualLum(hosts.vmag[i], hosts.dist[i]),
-      href: `/map?host=${hosts.tic[i]}`,
+      href: `/sky?host=${hosts.tic[i]}`,
       planets: hosts.planets?.[i] ?? [],
       tic: hosts.tic[i],
     });

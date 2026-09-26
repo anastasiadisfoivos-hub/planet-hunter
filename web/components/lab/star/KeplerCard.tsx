@@ -53,13 +53,13 @@ function Orbits({ guess, truth, teff }: { guess: number; truth: number | null; t
             </text>
           </g>
         ))}
-        <circle cx={c} cy={c} r={px(guess)} fill="none" stroke="var(--accent)" strokeWidth={2} strokeDasharray="5 4" />
+        <circle cx={c} cy={c} r={px(guess)} fill="none" stroke="var(--ink)" strokeWidth={2} strokeDasharray="5 4" />
         {truth != null && <circle cx={c} cy={c} r={px(truth)} fill="none" stroke="var(--ink)" strokeWidth={2} />}
         <circle cx={c} cy={c} r={4} fill={teff ? rgbCss(temperatureColor(teff)) : "var(--ink)"} />
       </svg>
       <ul className={l.legend} style={{ justifyContent: "center" }}>
         <li>
-          <span className={`${l.keyLine} ${l.keyDash}`} style={{ borderTopColor: "var(--accent)" }} aria-hidden />
+          <span className={`${l.keyLine} ${l.keyDash}`} style={{ borderTopColor: "var(--ink)" }} aria-hidden />
           Your guess
         </li>
         {truth != null && (
@@ -81,7 +81,7 @@ function Check({ lab, planet, mass }: { lab: StarLab; planet: KnownPlanet & { pe
   const years = P / DAYS_PER_YEAR;
   const kepler = keplerAu(mass.value, P);
   const truth = planet.a_au ?? kepler;
-  const track = { "--track": `linear-gradient(90deg, var(--accent) ${(toV(guess) / STEPS) * 100}%, var(--control-border) 0)` } as CSSProperties;
+  const track = { "--track": `linear-gradient(90deg, var(--ink) ${(toV(guess) / STEPS) * 100}%, var(--control-border) 0)` } as CSSProperties;
   return (
     <div className={l.bench}>
       <div className={l.chartBox}>

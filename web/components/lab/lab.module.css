@@ -227,10 +227,9 @@
 .chartBox {
   position: relative;
   min-width: 0;
-  padding: var(--s-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-panel);
-  background: var(--bg-deep);
+  padding: var(--s-4);
+  border-radius: var(--radius-tag);
+  background: var(--well);
 }
 
 .chartHead {

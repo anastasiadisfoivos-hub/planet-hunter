@@ -27,7 +27,7 @@ export function Card({ id, title, lede, locked, data, children }: {
           <p className={l.body}>{lede}</p>
         </div>
         <div className={s.cardTags}>
-          {locked ? <Tag>Locked</Tag> : data === "demo" ? <DemoTag /> : data === "real" ? <Tag>Real data</Tag> : data === "estimate" ? <Tag>Estimate</Tag> : null}
+          {!locked && data === "demo" ? <DemoTag /> : !locked && data === "estimate" ? <Tag>Estimate</Tag> : null}
         </div>
       </div>
       {locked ? (

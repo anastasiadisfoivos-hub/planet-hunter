@@ -1,208 +1,53 @@
 "use client";
 
+// /finder/[id]: the folded dip is the lead picture; the survey picture of the star's field is the small one beside it.
+// Title, one line and four facts; the vote; the whole light curve and the pixels; every explanation in a drawer
+// (DESIGN.md, Drawers). Vote counts show only after you vote (VoteBox).
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, ArrowSquareOut, CheckCircle, MinusCircle, XCircle } from "@phosphor-icons/react";
-import { DemoTag, EmptyState } from "@/components/ui";
+import { ArrowLeft, ArrowSquareOut, CheckCircle, MinusCircle, XCircle } from "@phosphor-icons/react";
+import { Drawer } from "@/components/picture/Drawer";
+import { Picture } from "@/components/picture/Picture";
+import { ButtonLink, DemoTag, EmptyState } from "@/components/ui";
 import { LoadError } from "@/components/lab/chart";
 import { ApiError, getCandidate, getMapHostTics, type Candidate, type CandidateReport } from "@/lib/api";
-import {
-  BTJD_TO_BJD,
-  checkLabel,
-  fmtCheckValue,
-  fmtDepth,
-  fmtPeriod,
-  KNOWN_LISTS,
-  listMatch,
-  partLabel,
-  rEarth,
-  SCORE_PARTS,
-  sizeClass,
-} from "./finder";
+import { formatUtc } from "@/lib/format";
+import { honesty, sourceName, starPic } from "@/lib/pictures";
+import { BTJD_TO_BJD, checkLabel, fmtCheckValue, fmtDepth, KNOWN_LISTS, listMatch, partLabel, rEarth, SCORE_PARTS, sizeClass, verdictLabel } from "./finder";
 import { FoldedCurve, UnfoldedCurve } from "./LightCurves";
 import { PixelCheck } from "./Pixels";
 import { VoteBox } from "./VoteBox";
-import { formatUtc } from "@/lib/format";
+import r from "./report.module.css";
 import s from "./finder.module.css";
-import l from "@/components/lab/lab.module.css";
 
 const fmtDay = (iso: string) => formatUtc(iso).split(",")[0];
-const PART_COLORS = ["var(--ink)", "var(--ink-secondary)", "var(--ink-muted)", "var(--ink-faint)"];
-
-function Header({ c, demo, onMap }: { c: Candidate; demo: boolean; onMap: boolean | null }) {
-  const re = rEarth(c.radius_rjup);
-  const disabled = onMap === false;
-  return (
-    <header className={s.head}>
-      <div className={s.headTop}>
-        <div className={s.headTitle}>
-          <span className="label">Planet candidate</span>
-          <div className={l.titleRow}>
-            <h1 className={l.h1}>TIC {c.tic}</h1>
-            {demo && <DemoTag />}
-          </div>
-          <p className={l.lede}>
-            {c.name ? `Around ${c.name}, a known planet host: a new signal that matches none of its listed planets. ` : ""}
-            Found {fmtDay(c.created_at)} in TESS sector{c.sectors.length > 1 ? "s" : ""} {c.sectors.join(", ")}.
-          </p>
-        </div>
-        <div className={s.headActions}>
-          <Link className={s.ghostLink} href={`/lab/star/${c.tic}`} aria-disabled={disabled || undefined} tabIndex={disabled ? -1 : undefined}>
-            Open star lab
-          </Link>
-          <Link className={s.ghostLink} href={`/map?host=${c.tic}`} aria-disabled={disabled || undefined} tabIndex={disabled ? -1 : undefined}>
-            Fly to it
-            <ArrowRight size={14} aria-hidden />
-          </Link>
-        </div>
-      </div>
-      {disabled && <p className={s.hostNote}>This star isn&apos;t on the sky map yet (the map shows known planet hosts), so it has no star lab or flight.</p>}
-      <dl className={s.facts}>
-        <div>
-          <dt className="label">Period</dt>
-          <dd>
-            {fmtPeriod(c.period_d)}
-            <span className={s.factNote}>{c.period_d.toFixed(5)} days</span>
-          </dd>
-        </div>
-        <div>
-          <dt className="label">Size</dt>
-          <dd>
-            {re.toFixed(1)} × Earth
-            <span className={s.factNote}>
-              likely {rEarth(c.radius_low).toFixed(1)} to {rEarth(c.radius_high).toFixed(1)}, {sizeClass(c.radius_rjup)}
-            </span>
-          </dd>
-        </div>
-        <div>
-          <dt className="label">Dip depth</dt>
-          <dd>
-            {fmtDepth(c.depth_ppm)}
-            <span className={s.factNote}>{Math.round(c.depth_ppm)} ppm of the starlight</span>
-          </dd>
-        </div>
-        <div>
-          <dt className="label">Dip length</dt>
-          <dd>
-            {c.duration_h.toFixed(1)} h<span className={s.factNote}>{c.n_transits} dips seen</span>
-          </dd>
-        </div>
-        <div>
-          <dt className="label">Signal</dt>
-          <dd>
-            SNR {c.snr.toFixed(1)}
-            <span className={s.factNote}>SDE {c.sde.toFixed(1)}</span>
-          </dd>
-        </div>
-        <div>
-          <dt className="label">First dip</dt>
-          <dd>
-            {c.t0_btjd.toFixed(4)}
-            <span className={s.factNote}>BTJD, or BJD {(c.t0_btjd + BTJD_TO_BJD).toFixed(4)}</span>
-          </dd>
-        </div>
-        <div>
-          <dt className="label">Checks</dt>
-          <dd>
-            {c.checks.filter((k) => k.passed === true).length} of {c.checks.length}
-            <span className={s.factNote}>passed</span>
-          </dd>
-        </div>
-        <div>
-          <dt className="label">Score</dt>
-          <dd>
-            {c.score.toFixed(2)}
-            <span className={s.factNote}>machine ranking, 0 to 1</span>
-          </dd>
-        </div>
-      </dl>
-    </header>
-  );
-}
+const PART_COLORS = ["var(--ink)", "var(--ink-secondary)", "var(--ink-muted)", "var(--ink-disabled)"];
 
 function Checks({ c }: { c: Candidate }) {
-  const failed = c.checks.filter((k) => k.passed === false).length;
-  const skipped = c.checks.filter((k) => k.passed == null).length;
   return (
-    <section className={s.section} aria-labelledby="checks-h">
-      <div className={s.sectionHead}>
-        <h2 id="checks-h" className={l.h2}>
-          Checks
-        </h2>
-        <span className="label">
-          {c.checks.length - failed - skipped} passed
-          {failed ? `, ${failed} failed` : ""}
-          {skipped ? `, ${skipped} couldn't run` : ""}
-        </span>
-      </div>
-      <p className={s.sectionLede}>Tests that catch the usual fakes: noise, two stars eclipsing each other, and light from a neighbour. Every test is listed, passed or not.</p>
-      <ul className={s.checkList}>
-        {c.checks.map((k) => {
-          const st = k.passed === true ? "pass" : k.passed === false ? "fail" : "skip";
-          const Icon = st === "pass" ? CheckCircle : st === "fail" ? XCircle : MinusCircle;
-          return (
-            <li key={k.name} className={s.checkRow} data-state={st}>
-              <Icon className={s.checkIcon} data-state={st} size={18} weight="bold" aria-hidden />
-              <span className={s.checkName}>
-                {checkLabel(k.name)}
-                <span className={s.checkState}>{st === "pass" ? "Passed" : st === "fail" ? "Failed" : "Couldn't run"}</span>
-              </span>
-              <span className={s.checkValue}>{fmtCheckValue(k.name, k.value)}</span>
-              <p className={s.checkReason}>{k.reason}</p>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+    <ul className={s.checkList}>
+      {c.checks.map((k) => {
+        const st = k.passed === true ? "pass" : k.passed === false ? "fail" : "skip";
+        const Icon = st === "pass" ? CheckCircle : st === "fail" ? XCircle : MinusCircle;
+        return (
+          <li key={k.name} className={s.checkRow} data-state={st}>
+            <Icon className={s.checkIcon} data-state={st} size={18} aria-label={st === "pass" ? "Passed" : st === "fail" ? "Failed" : "Couldn't run"} />
+            <span className={s.checkName}>{checkLabel(k.name)}</span>
+            <span className={s.checkValue}>{fmtCheckValue(k.name, k.value)}</span>
+            <p className={s.checkReason}>{k.reason}</p>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
-function KnownLists({ c }: { c: Candidate }) {
-  return (
-    <section className={s.section} aria-labelledby="lists-h">
-      <div className={s.sectionHead}>
-        <h2 id="lists-h" className={l.h2}>
-          Known lists
-        </h2>
-      </div>
-      <p className={s.sectionLede}>
-        The signal was compared by star and period with the lists below. &quot;Not on the list&quot; means no match in the copy we checked; it can still be known somewhere
-        else.
-      </p>
-      <ul className={s.lists}>
-        {KNOWN_LISTS.map((k) => {
-          const m = listMatch(c.known_lists[k.key]);
-          return (
-            <li key={k.key} className={s.listItem} data-matched={m.matched}>
-              <span className="label">{k.label}</span>
-              <span className={s.listResult}>
-                {m.matched ? <XCircle size={16} weight="bold" aria-hidden /> : <MinusCircle size={16} aria-hidden />}
-                {m.matched ? `On the list${m.id ? `: ${m.id}` : ""}` : "Not on the list"}
-              </span>
-              <a className={s.listSource} href={k.url} target="_blank" rel="noreferrer">
-                {k.source}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
-}
-
-function Score({ c }: { c: Candidate }) {
+function Priority({ c }: { c: Candidate }) {
   const parts = Object.entries(c.score_parts);
   return (
-    <section className={s.section} aria-labelledby="score-h">
-      <div className={s.sectionHead}>
-        <h2 id="score-h" className={l.h2}>
-          Score
-        </h2>
-      </div>
-      <div className={s.scoreHead}>
-        <span className={s.scoreBig}>{c.score.toFixed(2)}</span>
-        <span className={s.muted}>of 1, a machine ranking. It orders the list; it is not the chance this is a planet.</span>
-      </div>
+    <>
+      <p>{c.score.toFixed(2)} of 1, a machine ranking. It orders the list; it is not the chance this is a planet.</p>
       <div className={s.stack} role="img" aria-label={parts.map(([k, v]) => `${partLabel(k)} ${v.toFixed(2)}`).join(", ")}>
         {parts.map(([k, v], i) => (
           <span key={k} style={{ width: `${v * 100}%`, background: PART_COLORS[i % PART_COLORS.length] }} />
@@ -218,48 +63,33 @@ function Score({ c }: { c: Candidate }) {
           </li>
         ))}
       </ul>
-    </section>
+    </>
   );
 }
 
-function Footer({ c }: { c: Candidate }) {
+function Numbers({ c }: { c: Candidate }) {
+  const rows: [string, string][] = [
+    ["Period", `${c.period_d.toFixed(5)} days`],
+    ["Size", `${rEarth(c.radius_rjup).toFixed(1)} × Earth, likely ${rEarth(c.radius_low).toFixed(1)} to ${rEarth(c.radius_high).toFixed(1)} (${sizeClass(c.radius_rjup)})`],
+    ["Dip depth", `${fmtDepth(c.depth_ppm)}, ${Math.round(c.depth_ppm)} ppm of the starlight`],
+    ["Dip length", `${c.duration_h.toFixed(1)} hours, ${c.n_transits} dips seen`],
+    ["Signal", `SNR ${c.snr.toFixed(1)}, SDE ${c.sde.toFixed(1)}`],
+    ["First dip", `${c.t0_btjd.toFixed(4)} BTJD, or BJD ${(c.t0_btjd + BTJD_TO_BJD).toFixed(4)}`],
+  ];
   return (
-    <section className={s.section} aria-labelledby="about-h">
-      <h2 id="about-h" className="sr-only">
-        About candidates
-      </h2>
-      <div className={s.footer}>
-        <div>
-          <h3>What a candidate is</h3>
-          <p>
-            A repeating dip in a star&apos;s light that passed our checks and isn&apos;t on the lists we compared it with. Many candidates turn out to be eclipsing
-            stars, a blended neighbour or an instrument effect. None of them is a planet yet.
-          </p>
+    <dl className={r.numbers}>
+      {rows.map(([k, v]) => (
+        <div key={k}>
+          <dt className="label">{k}</dt>
+          <dd>{v}</dd>
         </div>
-        <div>
-          <h3>What confirmation needs</h3>
-          <p>
-            Follow-up by professionals: sharper images to rule out neighbours, more dips from the ground, and usually the star&apos;s wobble measured with a
-            spectrograph to weigh the companion. That takes months to years.
-          </p>
-        </div>
-        <div>
-          <h3>ExoFOP</h3>
-          <p>
-            Strong candidates can be posted to{" "}
-            <a href={`https://exofop.ipac.caltech.edu/tess/target.php?id=${c.tic}`} target="_blank" rel="noreferrer">
-              ExoFOP <ArrowSquareOut size={12} aria-hidden style={{ verticalAlign: "-1px" }} />
-            </a>
-            , where TESS follow-up teams share observations, as a Community TOI. Posting is a review step, not a claim.
-          </p>
-        </div>
-      </div>
-    </section>
+      ))}
+    </dl>
   );
 }
 
 export function Report({ id }: { id: string }) {
-  const [r, setR] = useState<CandidateReport | null>(null);
+  const [rep, setRep] = useState<CandidateReport | null>(null);
   const [error, setError] = useState<{ status: number; message: string } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [hosts, setHosts] = useState<Set<number> | null>(null);
@@ -268,7 +98,7 @@ export function Report({ id }: { id: string }) {
     const ctl = new AbortController();
     getCandidate(id, ctl.signal)
       .then((v) => {
-        setR(v);
+        setRep(v);
         setError(null);
       })
       .catch((e: unknown) => !ctl.signal.aborted && setError({ status: e instanceof ApiError ? e.status : 0, message: e instanceof Error ? e.message : String(e) }));
@@ -282,24 +112,17 @@ export function Report({ id }: { id: string }) {
   }, []);
 
   const back = (
-    <Link href="/finder" className={s.quietLink}>
+    <Link href="/finder" className={r.crumb}>
       <ArrowLeft size={14} aria-hidden />
-      All candidates
+      Candidates
     </Link>
   );
 
   if (error) {
     return error.status === 404 ? (
       <>
-        <div className={s.back}>{back}</div>
-        <EmptyState
-          title="No candidate with that name"
-          action={
-            <Link href="/finder" className={s.ghostLink}>
-              See all candidates
-            </Link>
-          }
-        >
+        {back}
+        <EmptyState title="No candidate with that name" action={<ButtonLink href="/finder">See all candidates</ButtonLink>}>
           It may have been withdrawn after a later search, or the link is mistyped.
         </EmptyState>
       </>
@@ -308,69 +131,159 @@ export function Report({ id }: { id: string }) {
     );
   }
 
-  if (!r) {
+  if (!rep) {
     return (
-      <div aria-busy="true" style={{ display: "grid", gap: 16 }}>
-        <div className={s.back}>{back}</div>
-        <div className={l.skeleton} style={{ height: 180 }} role="status">
-          <span className="sr-only">Loading the candidate</span>
+      <div aria-busy="true">
+        {back}
+        <div className={r.lead}>
+          <div className={r.skeleton} style={{ aspectRatio: "16 / 9" }} role="status">
+            <span className="sr-only">Loading the candidate</span>
+          </div>
+          <div className={r.skeleton} style={{ aspectRatio: "1" }} />
         </div>
-        <div className={l.skeleton} style={{ height: 300 }} />
       </div>
     );
   }
 
-  const c = r.candidate;
+  const c = rep.candidate;
+  const field = starPic(c.tic);
+  const onMap = hosts?.has(c.tic) ?? false;
+  const passed = c.checks.filter((k) => k.passed === true).length;
+  const verdict = rep.pixels?.verdict ?? null;
+
   return (
     <>
-      <div className={s.back}>{back}</div>
-      <div className={s.reportGrid}>
-        <div className={s.reportMain}>
-          <Header c={c} demo={r.demo} onMap={hosts ? hosts.has(c.tic) : null} />
+      {back}
+      <div className={r.lead}>
+        <figure className={r.fold}>
+          <FoldedCurve c={c} height={420} bare />
+          <figcaption className="cap">
+            {c.n_transits} dips stacked · TESS sector{c.sectors.length > 1 ? "s" : ""} {c.sectors.join(", ")}
+            {rep.demo ? " · demo" : ""}
+          </figcaption>
+        </figure>
+        {field ? (
+          <Picture
+            pic={field}
+            alt={`Survey picture of the sky around TIC ${c.tic}; the crosshair marks the star`}
+            sizes="(max-width: 1023px) 100vw, 400px"
+            aspect="1 / 1"
+            caption={`${sourceName(field)} · archive`}
+            note={honesty(null, field)}
+            className={r.field}
+          />
+        ) : (
+          <div />
+        )}
+      </div>
 
-          <section className={s.section} aria-labelledby="dip-h">
-            <div className={s.sectionHead}>
-              <h2 id="dip-h" className={l.h2}>
-                The dip
-              </h2>
+      <div className={r.split}>
+        <div>
+          <span className="label">Planet candidate</span>
+          <div className={r.titleRow}>
+            <h1 className={r.h1}>TIC {c.tic}</h1>
+            {rep.demo && <DemoTag />}
+          </div>
+          <p className={r.line}>
+            {c.name ? `Around ${c.name}. ` : ""}A dip every {c.period_d.toFixed(2)} days. A candidate, not a planet.
+          </p>
+          <dl className={r.facts}>
+            <div>
+              <dt className="label">Period</dt>
+              <dd>
+                <span className="mono">{c.period_d.toFixed(2)}</span>
+                <span className={r.unit}>days</span>
+              </dd>
             </div>
-            <p className={s.sectionLede}>
-              A planet makes the same flat-bottomed dip every orbit. Stacking all dips on the period (left) shows its shape; the full record (right) shows each one
-              lands where the period predicts.
-            </p>
-            <div className={s.charts}>
-              <FoldedCurve c={c} />
-              <UnfoldedCurve c={c} />
+            <div>
+              <dt className="label">Size</dt>
+              <dd>
+                <span className="mono">{rEarth(c.radius_rjup).toFixed(1)}</span>
+                <span className={r.unit}>× Earth</span>
+              </dd>
             </div>
-            {r.demo && <p className={s.borrowed}>Demo: these light curves are simulated from the candidate&apos;s numbers.</p>}
-          </section>
-
-          <Checks c={c} />
-
-          <section className={s.section} aria-labelledby="pixels-h">
-            <div className={s.sectionHead}>
-              <h2 id="pixels-h" className={l.h2}>
-                Pixel check
-              </h2>
+            <div>
+              <dt className="label">Checks</dt>
+              <dd>
+                <span className="mono">{passed}</span>
+                <span className={r.unit}>of {c.checks.length}</span>
+              </dd>
             </div>
-            <p className={s.sectionLede}>
-              TESS pixels are big, so light from several stars can mix. Comparing the pixels between and during dips shows which star actually dimmed.
-            </p>
-            {r.pixels ? (
-              <PixelCheck vet={r.pixels} demo={r.demo} />
-            ) : (
-              <EmptyState title="Pixel check not done yet">It runs after the checks; this report updates when it finishes.</EmptyState>
-            )}
-          </section>
-
-          <KnownLists c={c} />
-          <Score c={c} />
+            <div>
+              <dt className="label">Priority</dt>
+              <dd>
+                <span className="mono">{c.score.toFixed(2)}</span>
+              </dd>
+            </div>
+          </dl>
+          {onMap ? (
+            <div className={r.actions}>
+              <ButtonLink href={`/lab/star/${c.tic}`}>Open star lab</ButtonLink>
+              <ButtonLink href={`/sky?host=${c.tic}`} variant="quiet">
+                See it on the sky
+              </ButtonLink>
+            </div>
+          ) : (
+            <p className={r.note}>Found {fmtDay(c.created_at)}. This star has no lab page or sky position yet.</p>
+          )}
         </div>
-        <aside className={s.aside} aria-label="Vote">
-          <VoteBox id={c.id} initial={r.votes} demo={r.demo} />
+        <aside className={r.vote} aria-label="Vote">
+          <VoteBox id={c.id} initial={rep.votes} demo={rep.demo} />
         </aside>
       </div>
-      <Footer c={c} />
+
+      <section className={r.block} aria-label="The whole light curve">
+        <UnfoldedCurve c={c} />
+      </section>
+
+      <section className={r.block} aria-label="Pixel check">
+        {rep.pixels ? <PixelCheck vet={rep.pixels} demo={rep.demo} /> : <EmptyState title="Pixel check not done yet">It runs after the checks; this report updates when it finishes.</EmptyState>}
+      </section>
+
+      <section className={r.block} aria-label="How we know">
+        <Drawer title="Checks" state={`${passed} of ${c.checks.length} passed`}>
+          <p>Tests that catch the usual false alarms: noise, two stars eclipsing each other, and light from a neighbour. Every test is listed, passed or not.</p>
+          <Checks c={c} />
+        </Drawer>
+        <Drawer title="Pixel check" state={verdictLabel(verdict)}>
+          <p>TESS pixels are 21″ across, so light from several stars can mix. Comparing the pixels between and during dips shows which star actually dimmed.</p>
+          {rep.demo && <p>Demo: these pixel images are borrowed from a real pixel check of another star.</p>}
+        </Drawer>
+        <Drawer title="Known lists" state={KNOWN_LISTS.some((k) => listMatch(c.known_lists[k.key]).matched) ? "On a list" : "On none"}>
+          <p>The signal was compared by star and period with these lists. &quot;Not on the list&quot; means no match in the copy we checked.</p>
+          <ul className={r.lists}>
+            {KNOWN_LISTS.map((k) => {
+              const m = listMatch(c.known_lists[k.key]);
+              return (
+                <li key={k.key}>
+                  <span>{k.label}</span>
+                  <span className="cap">{m.matched ? `On the list${m.id ? `: ${m.id}` : ""}` : "Not on the list"}</span>
+                  <a href={k.url} target="_blank" rel="noreferrer">
+                    {k.source}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </Drawer>
+        <Drawer title="Priority" state={c.score.toFixed(2)}>
+          <Priority c={c} />
+        </Drawer>
+        <Drawer title="All the numbers" state="6 values">
+          <Numbers c={c} />
+        </Drawer>
+        <Drawer title="What a candidate is" state="About">
+          <p>A repeating dip in a star&apos;s light that passed our checks and is on none of the lists we compared. Many turn out to be eclipsing stars, a blended neighbour or an instrument effect. None of them is a planet yet.</p>
+          <p>Confirmation needs follow-up by professionals: sharper images, more dips from the ground, and usually the star&apos;s wobble measured with a spectrograph. That takes months to years.</p>
+          <p>
+            Strong candidates can be posted to{" "}
+            <a href={`https://exofop.ipac.caltech.edu/tess/target.php?id=${c.tic}`} target="_blank" rel="noreferrer">
+              ExoFOP <ArrowSquareOut size={12} aria-hidden style={{ verticalAlign: "-1px" }} />
+            </a>{" "}
+            as a Community TOI. Posting is a review step, not a claim.
+          </p>
+        </Drawer>
+      </section>
     </>
   );
 }

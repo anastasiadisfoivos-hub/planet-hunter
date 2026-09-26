@@ -3,12 +3,12 @@
 import { useEffect, useReducer, useRef } from "react";
 import { CheckCircle, Question, XCircle } from "@phosphor-icons/react";
 import { submitVote, type VoteChoice, type Votes } from "@/lib/api";
-import { initVotes, REASONS, voteReducer } from "./finder";
+import { initVotes, REASONS, visibleCounts, voteReducer } from "./finder";
 import s from "./finder.module.css";
 
 const OPTIONS: { value: VoteChoice; label: string; Icon: typeof CheckCircle }[] = [
   { value: "planet", label: "Looks like a planet", Icon: CheckCircle },
-  { value: "fake", label: "Looks like a fake", Icon: XCircle },
+  { value: "fake", label: "Probably not a planet", Icon: XCircle },
   { value: "unsure", label: "Not sure", Icon: Question },
 ];
 
@@ -26,7 +26,7 @@ export function VoteBox({ id, initial, demo }: { id: string; initial: Votes; dem
       .catch((e: unknown) => n === seq.current && dispatch({ type: "failed", message: e instanceof Error ? e.message : String(e) }));
   }, [id, pending, mine, reasons]);
 
-  const total = state.counts.planet + state.counts.fake + state.counts.unsure;
+  const { counts, total } = visibleCounts(state);
   const status =
     state.status === "saving"
       ? "Saving"
@@ -42,11 +42,11 @@ export function VoteBox({ id, initial, demo }: { id: string; initial: Votes; dem
     <section className={s.vote} aria-labelledby="vote-h">
       <div style={{ display: "grid", gap: 4 }}>
         <h2 id="vote-h" className={s.voteQ}>
-          What do you think?
+          Does it look like a planet?
         </h2>
         <p className={s.heatCaption}>
-          <span className={s.num}>{total}</span> {total === 1 ? "person has" : "people have"} voted. Votes help decide which candidates are worth a telescope&apos;s
-          time.
+          <span className={s.num}>{total}</span> {total === 1 ? "person has" : "people have"} voted.{" "}
+          {counts ? "Here is how." : "You see how after you vote."}
         </p>
       </div>
       <div className={s.voteOptions} role="group" aria-label="Your vote">
@@ -54,9 +54,11 @@ export function VoteBox({ id, initial, demo }: { id: string; initial: Votes; dem
           <button key={value} type="button" className={s.voteOption} aria-pressed={state.mine === value} onClick={() => dispatch({ type: "choose", choice: value })}>
             <Icon className={s.voteIcon} size={18} weight={state.mine === value ? "fill" : "regular"} aria-hidden />
             <span>{label}</span>
-            <span className={s.voteCount} aria-label={`${state.counts[value]} votes`}>
-              {state.counts[value]}
-            </span>
+            {counts && (
+              <span className={s.voteCount} aria-label={`${counts[value]} votes`}>
+                {counts[value]}
+              </span>
+            )}
           </button>
         ))}
       </div>

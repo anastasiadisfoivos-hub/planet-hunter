@@ -1,72 +1,107 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
-import { DemoTag, Tag } from "@/components/ui";
-import { Intro } from "@/components/lab/Intro";
-import { FingerprintThumb, HearThumb, HubbleThumb, ThermoThumb } from "@/components/lab/Thumbs";
-import s from "@/components/lab/lab.module.css";
+import { Drawer } from "@/components/picture/Drawer";
+import { Info } from "@/components/picture/Info";
+import { Picture } from "@/components/picture/Picture";
+import { DemoTag } from "@/components/ui";
+import { honesty, pic, sourceName, starPic } from "@/lib/pictures";
+import s from "@/components/lab/index.module.css";
 
 export const metadata: Metadata = {
   title: "Lab · Planet Hunter",
   description: "Small experiments with real starlight: a star thermometer, a light curve you can hear, a Hubble diagram and chemical fingerprints.",
 };
 
-const ITEMS = [
-  {
-    href: "/lab/thermometer",
-    title: "Star thermometer",
-    text: "Slide a temperature from 2,000 to 40,000 K and watch the light shift from red to blue. Then find real stars on the same scale.",
-    thumb: <ThermoThumb />,
-    data: "real",
-  },
-  {
-    href: "/lab/hear-a-star",
-    title: "Hear a star",
-    text: "A TESS light curve played as sound. Brightness is pitch, so each time a planet crosses its star you hear the note drop.",
-    thumb: <HearThumb />,
-    data: "real",
-  },
-  {
-    href: "/lab/hubble",
-    title: "Hubble diagram",
-    text: "Plot supernovae by brightness and redshift, draw a line through them, and read off how fast the universe is expanding.",
-    thumb: <HubbleThumb />,
-    data: "demo",
-  },
-  {
-    href: "/lab/fingerprints",
-    title: "Chemical fingerprints",
-    text: "Every element leaves its own barcode in light. Read the Sun's, compare a star's recipe with it, and see what is in a planet's air.",
-    thumb: <FingerprintThumb />,
-    data: "demo",
-  },
+const EXPERIMENTS = [
+  { href: "/lab/thermometer", title: "Star thermometer", key: "feature/heic0715a.jpg", demo: false },
+  { href: "/lab/hear-a-star", title: "Hear a star", key: "data/wasp18-tess-pixels-s0104.png", demo: false },
+  { href: "/lab/hubble", title: "Hubble diagram", key: "feature/heic0406a.jpg", demo: true },
+  { href: "/lab/fingerprints", title: "Chemical fingerprints", key: "events/donki-2026-09-19T17-57-00-FLR-001.jpg", demo: true },
+] as const;
+
+const STARS = [
+  { name: "WASP-18", tic: 100100827 },
+  { name: "WASP-121", tic: 22529346 },
+  { name: "WASP-43", tic: 36734222 },
+  { name: "TOI-700", tic: 150428135 },
 ] as const;
 
 export default function LabIndex() {
+  const hero = pic("feature/weic2205a.jpg")!;
   return (
-    <>
-      <Intro title="Lab" data="mixed">
-        Four small experiments with starlight. They use the same stars and the same analysis results as the sky map.
-      </Intro>
-      <ul className={s.list}>
-        {ITEMS.map((it) => (
-          <li key={it.href}>
-            <Link href={it.href} className={s.item}>
-              {it.thumb}
-              <span className={s.itemText}>
-                <span className={s.itemTitle}>{it.title}</span>
-                <span className={s.body}>{it.text}</span>
-                <span className={s.itemMeta}>{it.data === "demo" ? <DemoTag /> : <Tag>Real data</Tag>}</span>
-              </span>
-              <ArrowRight className={s.itemArrow} size={20} aria-hidden />
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <p className={`${s.help} ${s.footnote}`}>
-        Demo data marks experiments that run on stand-in numbers until their real sources are connected: live supernovae from the Transient Name
-        Server, and measured spectra.
-      </p>
-    </>
+    <main>
+      <section className={s.hero} aria-labelledby="lab-title">
+        <Picture pic={hero} alt="The Cosmic Cliffs of the Carina Nebula, seen by the James Webb Space Telescope" sizes="100vw" preload quality={85} objectPosition="50% 70%" className={s.heroPic} />
+        <div className={`wrap ${s.heroCopy}`}>
+          <h1 id="lab-title" className={s.display}>
+            Lab
+          </h1>
+          <p className={s.heroLine}>Experiments on real stars.</p>
+        </div>
+      </section>
+      <div className="wrap">
+        <div className={s.capline}>
+          <span className="cap">NASA, ESA, CSA, STScI · Webb, Carina Nebula</span>
+          <Info pic={hero} />
+        </div>
+      </div>
+
+      <section className={`wrap ${s.sec}`} aria-label="Experiments">
+        <ul className={s.grid2}>
+          {EXPERIMENTS.map((e) => {
+            const p = pic(e.key)!;
+            return (
+              <li key={e.href} className={s.item}>
+                <Link href={e.href} className={s.hit}>
+                  <Picture pic={p} alt={p.title} sizes="(max-width: 639px) 100vw, 640px" aspect="4 / 3" />
+                  <span className={s.name}>
+                    {e.title}
+                    {e.demo && <DemoTag />}
+                  </span>
+                </Link>
+                <div className={s.capline}>
+                  <span className="cap">{sourceName(p)}</span>
+                  <Info pic={p} note={honesty(null, p)} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className={`wrap ${s.sec}`} aria-labelledby="starlabs">
+        <div className={s.shead}>
+          <h2 id="starlabs" className={s.h2}>
+            Star labs
+          </h2>
+          <p className={s.line}>One star, every experiment.</p>
+        </div>
+        <ul className={s.row4}>
+          {STARS.map((st) => {
+            const p = starPic(st.tic)!;
+            return (
+              <li key={st.tic} className={s.item}>
+                <Link href={`/lab/star/${st.tic}`} className={s.hit}>
+                  <Picture pic={p} alt={`Survey picture of the sky around ${st.name}; the crosshair marks the star`} sizes="(max-width: 639px) 50vw, 320px" aspect="1 / 1" />
+                  <span className={s.name}>{st.name}</span>
+                </Link>
+                <div className={s.capline}>
+                  <span className="cap">{sourceName(p)} · archive</span>
+                  <Info pic={p} note={honesty(null, p)} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className={`wrap ${s.sec} ${s.end}`} aria-label="About the lab">
+        <Drawer title="What the lab is" state="About">
+          <p>Small experiments with real starlight. They use the same stars and the same analysis results as the sky and the Finder.</p>
+          <p>Experiments marked DEMO DATA run on stand-in numbers until their real sources are connected: live supernovae from the Transient Name Server, and measured spectra.</p>
+          <p>Every star with known planets has its own lab. Find one with the search in the top bar.</p>
+        </Drawer>
+      </section>
+    </main>
   );
 }

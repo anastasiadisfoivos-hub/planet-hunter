@@ -399,7 +399,7 @@ export function AbundanceBars({ ab }: { ab: Abundances }) {
               <text className={s.chartLabel} x={8} y={cy + 4}>
                 <tspan className={s.chartLabelStrong}>{e.symbol}</tspan> {elementName(e.symbol)}
               </text>
-              <rect x={x0} y={cy - 7} width={bw} height={14} rx={2} fill={v >= 1 ? "var(--accent)" : "var(--ink-muted)"} opacity={0.85} />
+              <rect x={x0} y={cy - 7} width={bw} height={14} rx={2} fill={v >= 1 ? "var(--ink)" : "var(--ink-muted)"} opacity={0.85} />
               {e.err_dex != null && (
                 <g stroke="var(--ink)" strokeWidth={1.25}>
                   <line x1={x(10 ** (e.x_h_dex - e.err_dex))} x2={x(10 ** (e.x_h_dex + e.err_dex))} y1={cy} y2={cy} />

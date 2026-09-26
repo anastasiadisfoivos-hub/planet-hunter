@@ -62,7 +62,7 @@ export function fmtCheckValue(name: string, v: number | string | null): string {
 export const SCORE_PARTS: Record<string, { label: string; text: string }> = {
   signal: { label: "Signal", text: "How far the dip stands above the noise (SNR and SDE)." },
   shape: { label: "Shape", text: "Flat-bottomed and U-shaped like a planet, rather than V-shaped like a grazing star." },
-  checks: { label: "Checks", text: "Share of the checks passed; each failed check takes points off." },
+  checks: { label: "Checks", text: "Share of the checks passed; each failed check lowers it." },
   pixels: { label: "Pixels", text: "How likely the dip is on the target star, from the pixel check." },
 };
 
@@ -164,7 +164,7 @@ export type Sort = { key: SortKey; dir: "asc" | "desc" };
 export const DEFAULT_SORT: Sort = { key: "score", dir: "desc" };
 
 export const SORTS: { key: SortKey; label: string; firstDir: "asc" | "desc" }[] = [
-  { key: "score", label: "Score", firstDir: "desc" },
+  { key: "score", label: "Priority", firstDir: "desc" },
   { key: "period", label: "Period", firstDir: "asc" },
   { key: "size", label: "Size", firstDir: "asc" },
   { key: "votes", label: "Votes", firstDir: "asc" },
@@ -174,7 +174,7 @@ export const SORTS: { key: SortKey; label: string; firstDir: "asc" | "desc" }[] 
 const sortValue = (c: CandidateRow, k: SortKey): number =>
   k === "score" ? c.score : k === "period" ? c.period_d : k === "size" ? c.radius_rjup : k === "votes" ? totalVotes(c.votes) : Date.parse(c.created_at);
 
-/** Stable: ties keep score order (highest first), then id. */
+/** Stable: ties keep priority order (highest first), then id. */
 export function sortCandidates(rows: CandidateRow[], s: Sort): CandidateRow[] {
   const sign = s.dir === "asc" ? 1 : -1;
   return [...rows].sort((a, b) => sign * (sortValue(a, s.key) - sortValue(b, s.key)) || b.score - a.score || a.id.localeCompare(b.id));
@@ -210,6 +210,15 @@ export type VoteAction =
   | { type: "toggleReason"; id: string }
   | { type: "saved"; votes: Votes }
   | { type: "failed"; message: string };
+
+/**
+ * The tally is shown only after you have voted, so the crowd cannot anchor your judgement (DESIGN.md, Words).
+ * Before that, only the number of people who voted is known.
+ */
+export function visibleCounts(s: Pick<VoteState, "counts" | "mine">): { counts: VoteState["counts"] | null; total: number } {
+  const total = s.counts.planet + s.counts.fake + s.counts.unsure;
+  return { counts: s.mine ? s.counts : null, total };
+}
 
 export function initVotes(v: Votes): VoteState {
   const counts = { planet: v.planet, fake: v.fake, unsure: v.unsure };

@@ -118,13 +118,13 @@ function Diagram({ pts, view, h0, fit, absMag, onH0 }: { pts: Pt[]; view: View; 
         <YAxis y={y} x={m.l} values={yt} format={(v) => (measured ? String(v) : v === 0 ? "0" : `${nf0.format(v / 1000)}k`)} grid={[m.l, w - m.r]} title={measured ? "Peak brightness, mag (brighter up)" : "Speed away, km/s"} />
         <g clipPath="url(#plot)">
           {fit !== null && <path d={line(fit)} stroke="var(--ink-muted)" strokeWidth={1.5} strokeDasharray="5 5" fill="none" />}
-          <path d={line(h0)} stroke="var(--accent)" strokeWidth={2} fill="none" />
+          <path d={line(h0)} stroke="var(--ink)" strokeWidth={2} strokeDasharray="6 5" fill="none" />
         </g>
         {pts.map((p) => (
           <circle key={p.name} cx={px(p)} cy={py(p)} r={4} fill="var(--supernova)" stroke="var(--bg-deep)" strokeWidth={1.5} />
         ))}
         {hover && <circle cx={px(hover)} cy={py(hover)} r={7} fill="none" stroke="var(--ink)" strokeWidth={1.25} />}
-        <circle cx={handle.x} cy={handle.y} r={7} fill="var(--bg-deep)" stroke="var(--accent)" strokeWidth={2} />
+        <circle cx={handle.x} cy={handle.y} r={7} fill="var(--bg-deep)" stroke="var(--ink)" strokeWidth={2} />
       </svg>
       {hover && (
         <div className={s.tooltip} style={{ left: px(hover), top: py(hover) }}>
@@ -255,7 +255,7 @@ export function Hubble() {
           </p>
         </div>
         <Note icon={<Info size={14} aria-hidden />}>
-          Demo data: {pts.length || 30} made-up supernovae, generated in a universe with H0 = 70 and 0.14 mag of scatter, for building this chart.
+          Demo data: {pts.length || 30} made-up supernovae, generated in a universe with H0 = 70 and 0.14 mag of scatter.
           Live supernovae from the Transient Name Server replace them later. Speeds use v = cz, which holds for nearby galaxies (z below about
           0.1).
         </Note>

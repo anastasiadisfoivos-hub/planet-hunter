@@ -374,7 +374,7 @@ export function Thermometer() {
                 {picked.planets.length > 0 && ` Known planets: ${picked.planets.join(", ")}.`}
               </p>
               <Link className={s.linkButton} href={picked.href}>
-                Fly to it on the map
+                See it on the sky
                 <ArrowRight size={14} aria-hidden />
               </Link>
             </div>
@@ -411,7 +411,7 @@ export function Thermometer() {
           </p>
         </div>
         <Note icon={<Info size={14} aria-hidden />}>
-          Dots use the same blackbody colours as the sky map, with its one saturation boost so colour reads on black. Temperatures come from the
+          Dots use the same blackbody colours as the sky, with its one saturation boost so colour reads on black. Temperatures come from the
           TESS Input Catalog for planet hosts and are estimated from colour (B−V) for bright stars. Brightness is visible light only, from each
           star&apos;s magnitude and distance.
         </Note>

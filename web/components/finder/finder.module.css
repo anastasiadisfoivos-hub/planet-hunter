@@ -228,7 +228,7 @@
 }
 
 .filters {
-  display: flex;
+  display: none;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: var(--s-3) var(--s-4);
@@ -678,10 +678,9 @@
   display: grid;
   gap: var(--s-2);
   min-width: 0;
-  padding: var(--s-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-panel);
-  background: var(--bg-deep);
+  padding: var(--s-4);
+  border-radius: var(--radius-tag);
+  background: var(--well);
 }
 
 .chartHead {
@@ -735,12 +734,12 @@
 }
 
 .transitMark {
-  stroke: var(--accent);
+  stroke: var(--ink);
   stroke-width: 1.5;
 }
 
 .durationBand {
-  fill: var(--accent-tint);
+  fill: rgb(222 230 255 / 0.06);
 }
 
 .legend {
@@ -775,7 +774,7 @@
 .keyTick {
   width: 2px;
   height: 10px;
-  background: var(--accent);
+  background: var(--ink);
 }
 
 /* checks */
@@ -919,7 +918,7 @@
 }
 
 .markCentroid {
-  stroke: var(--accent);
+  stroke: var(--ink);
   stroke-width: 0.1;
   stroke-linecap: round;
 }
@@ -1348,13 +1347,10 @@
     display: inline-flex;
   }
   .filters {
-    display: none;
     flex-direction: column;
     align-items: stretch;
   }
-  .filters[data-open="true"] {
-    display: flex;
-  }
+
   .filters .select {
     width: 100%;
     height: 44px;
@@ -1397,4 +1393,10 @@
     padding-top: var(--s-6);
     margin-top: var(--s-6);
   }
+}
+
+/* The filter panel opens from the Filter button (DESIGN.md: progressive disclosure). */
+.filters[data-open="true"] {
+  display: flex;
+  margin-bottom: var(--s-10);
 }

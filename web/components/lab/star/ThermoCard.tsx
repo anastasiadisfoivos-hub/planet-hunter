@@ -41,7 +41,7 @@ export function ThermoCard({ lab }: { lab: StarLab }) {
   const ratio = blueRedRatio(teff);
   const flux = surfaceBrightnessVsSun(teff);
   return (
-    <Card id="thermometer" title="Thermometer" data="real" lede={`${lab.name}'s own light, from its temperature: where it peaks, what colour that makes, and where it sits among the map's stars.`}>
+    <Card id="thermometer" title="Thermometer" data="real" lede={`${lab.name}'s own light, from its temperature: where it peaks, what colour that makes, and where it sits among the sky's stars.`}>
       <div className={l.bench}>
         <div className={l.chartBox}>
           <div className={l.chartHead}>

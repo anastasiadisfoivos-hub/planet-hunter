@@ -60,7 +60,7 @@ function DipChart({ raw, bins, model, sig, period }: { raw: Pts; bins: Pts; mode
           {bins.hours.map((hr, i) => (
             <circle key={`b${i}`} cx={x(hr)} cy={y(bins.flux[i])} r={2.4} fill="var(--ink)" />
           ))}
-          <path d={path} fill="none" stroke="var(--accent)" strokeWidth={2.2} strokeLinejoin="round" />
+          <path d={path} fill="none" stroke="var(--ink)" strokeWidth={2.2} strokeDasharray="7 5" strokeLinejoin="round" />
         </g>
       </svg>
       <ul className={l.legend}>
@@ -73,7 +73,7 @@ function DipChart({ raw, bins, model, sig, period }: { raw: Pts; bins: Pts; mode
           Averaged
         </li>
         <li>
-          <span className={l.keyLine} style={{ borderTopColor: "var(--accent)" }} aria-hidden />
+          <span className={`${l.keyLine} ${l.keyDash}`} style={{ borderTopColor: "var(--ink)" }} aria-hidden />
           Your model
         </li>
       </ul>
@@ -123,7 +123,7 @@ function SignalBench({ lab, lc, sig, mass }: { lab: StarLab; lc: StarLightcurve;
   const md = modelDepth(model);
   const gap = rmsPpm(phases, fluxes, model);
   const track = (lo: number, hi: number, v: number) =>
-    ({ "--track": `linear-gradient(90deg, var(--accent) ${((v - lo) / (hi - lo)) * 100}%, var(--control-border) 0)` }) as CSSProperties;
+    ({ "--track": `linear-gradient(90deg, var(--ink) ${((v - lo) / (hi - lo)) * 100}%, var(--control-border) 0)` }) as CSSProperties;
 
   return (
     <div className={l.bench}>

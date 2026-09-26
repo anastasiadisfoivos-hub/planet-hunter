@@ -213,13 +213,13 @@ function LightCurve({ sr, mode, track, pos, onSeek, headRef, valueRef }: {
         />
         <YAxis y={y} x={m.l} values={yt} format={(v) => `${(v * 100).toFixed(1)}%`} grid={[m.l, w - m.r]} title="Brightness" />
         {transits.map((t) => (
-          <line key={t} x1={x(t)} x2={x(t)} y1={h - m.b - 6} y2={h - m.b} stroke="var(--accent)" strokeWidth={1.5} />
+          <line key={t} x1={x(t)} x2={x(t)} y1={h - m.b - 6} y2={h - m.b} stroke="var(--ink)" strokeWidth={1.5} />
         ))}
         <path d={d} fill="none" stroke="var(--ink-secondary)" strokeWidth={mode === "raw" ? 1 : 1.75} strokeLinejoin="round" />
-        {mode === "folded" && sr.x.map((v, i) => <circle key={i} cx={x(v)} cy={y(sr.y[i])} r={1.6} fill={inTransit(sr.y[i]) ? "var(--accent)" : "var(--ink-muted)"} />)}
+        {mode === "folded" && sr.x.map((v, i) => <circle key={i} cx={x(v)} cy={y(sr.y[i])} r={1.6} fill={inTransit(sr.y[i]) ? "var(--ink)" : "var(--ink-muted)"} />)}
         <g ref={headRef} style={{ transform: `translateX(${headX}px)` }}>
-          <line x1={0} x2={0} y1={m.t - 6} y2={h - m.b} stroke="var(--accent)" strokeWidth={2} />
-          <path d="M-5,-2 L5,-2 L0,5 Z" transform={`translate(0 ${m.t - 6})`} fill="var(--accent)" />
+          <line x1={0} x2={0} y1={m.t - 6} y2={h - m.b} stroke="var(--ink)" strokeWidth={2} />
+          <path d="M-5,-2 L5,-2 L0,5 Z" transform={`translate(0 ${m.t - 6})`} fill="var(--ink)" />
         </g>
       </svg>
       <p className={s.help} style={{ padding: "var(--s-2) var(--s-1) 0" }}>

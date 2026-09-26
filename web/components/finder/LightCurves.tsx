@@ -31,9 +31,9 @@ const fmtFlux = (v: number) => {
   return Math.abs(pc) < 1e-9 ? "0" : `${pc.toFixed(Math.abs(pc) < 0.1 ? 3 : Math.abs(pc) < 1 ? 2 : 1).replace(/\.?0+$/, "")}%`;
 };
 
-export function FoldedCurve({ c }: { c: Candidate }) {
+export function FoldedCurve({ c, height = 260, bare = false }: { c: Candidate; height?: number; bare?: boolean }) {
   const [ref, w] = useWidth<HTMLDivElement>(420);
-  const h = 260;
+  const h = height;
   const half = Math.max(c.duration_h * 2.5, 3);
   const hours = useMemo(() => c.folded.phase.map((p) => p * c.period_d * 24), [c]);
   const view = useMemo(() => hours.map((hr) => hr >= -half && hr <= half), [hours, half]);
@@ -45,10 +45,12 @@ export function FoldedCurve({ c }: { c: Candidate }) {
   const yt = ticks(f0, f1, 4);
   return (
     <div className={s.chartBox}>
-      <div className={s.chartHead}>
-        <h3 className={s.chartTitle}>Folded on the period</h3>
-        <span className="label">{c.n_transits} dips stacked</span>
-      </div>
+      {!bare && (
+        <div className={s.chartHead}>
+          <h3 className={s.chartTitle}>Folded on the period</h3>
+          <span className="label">{c.n_transits} dips stacked</span>
+        </div>
+      )}
       <div ref={ref}>
         <svg
           className={s.svg}
@@ -92,7 +94,7 @@ export function FoldedCurve({ c }: { c: Candidate }) {
           Median
         </li>
         <li>
-          <span className={s.keyDot} style={{ borderRadius: 2, background: "var(--accent-tint)", width: 12, height: 10 }} aria-hidden />
+          <span className={s.keyDot} style={{ borderRadius: 2, background: "rgb(222 230 255 / 0.1)", width: 12, height: 10 }} aria-hidden />
           Dip duration
         </li>
       </ul>

@@ -50,7 +50,7 @@ export function Sensitivity() {
         {grid?.demo && <DemoTag />}
       </div>
       <p className={l.lede}>
-        We hide fake planets in real TESS light curves and count how many the nightly search finds again. Each square is the share it recovered, by planet size and
+        We hide simulated planets in real TESS light curves and count how many the nightly search finds again. Each square is the share it recovered, by planet size and
         orbital period.
       </p>
     </div>
@@ -160,7 +160,7 @@ export function Sensitivity() {
             </p>
           </div>
           <p className={l.help}>
-            {nf0.format(g.n_injected.flat().reduce((a, b) => a + b, 0))} fake planets hidden in the light curves of {nf0.format(g.stars_used)} stars, run{" "}
+            {nf0.format(g.n_injected.flat().reduce((a, b) => a + b, 0))} simulated planets hidden in the light curves of {nf0.format(g.stars_used)} stars, run{" "}
             {formatUtc(g.run_at).split(",")[0]}.
             {grid.demo && " Demo: the grid is a stand-in model until the Finder service publishes its real run."}
           </p>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowRight } from "@phosphor-icons/react";
-import { DemoTag, EmptyState } from "@/components/ui";
+import { EmptyState } from "@/components/ui";
 import { ApiError, getStarLab, getStarLightcurve, type Served, type StarLab as Lab, type StarLightcurve } from "@/lib/api";
 import { LoadError, nf0 } from "../chart";
 import { rgbCss, temperatureColor } from "../physics";
@@ -13,6 +13,8 @@ import { KeplerCard } from "./KeplerCard";
 import { MeasureCard } from "./MeasureCard";
 import { starMass } from "./shared";
 import { ThermoCard } from "./ThermoCard";
+import { Picture } from "@/components/picture/Picture";
+import { honesty, sourceName, starPic } from "@/lib/pictures";
 import s from "./star.module.css";
 import l from "../lab.module.css";
 
@@ -37,7 +39,6 @@ function Header({ lab, demo }: { lab: Lab; demo: boolean }) {
         <div className={s.headText}>
           <div className={l.titleRow}>
             <h1 className={l.h1}>{lab.name}</h1>
-            {demo && <DemoTag />}
           </div>
           <dl className={s.facts}>
             <div>
@@ -64,8 +65,19 @@ function Header({ lab, demo }: { lab: Lab; demo: boolean }) {
             </div>
           </dl>
         </div>
+        {starPic(lab.tic) && (
+          <Picture
+            pic={starPic(lab.tic)!}
+            alt={`Survey picture of the sky around ${lab.name}; the crosshair marks the star`}
+            sizes="200px"
+            aspect="1 / 1"
+            caption={`${sourceName(starPic(lab.tic)!)} · archive`}
+            note={honesty(null, starPic(lab.tic)!)}
+            className={s.headPic}
+          />
+        )}
         <div className={s.headActions}>
-          <Link className={s.ghostLink} href={`/map?host=${lab.tic}`}>
+          <Link className={s.ghostLink} href={`/sky?host=${lab.tic}`}>
             Fly to it
             <ArrowRight size={14} aria-hidden />
           </Link>
@@ -73,13 +85,11 @@ function Header({ lab, demo }: { lab: Lab; demo: boolean }) {
       </header>
       <div className={s.summary}>
         <p className={l.body}>
-          Six experiments on this one star. <span className="mono">{ready}</span> of 6 are ready; each locked one says what is missing and what would
-          unlock it.
+          Six experiments on this one star. <span className="mono">{ready}</span> of 6 have the data they need; the others say what is missing.
         </p>
         {demo && (
           <p className={l.help} style={{ maxWidth: "60ch" }}>
-            The star lab service isn&apos;t connected yet. Star facts and planets are real NASA Exoplanet Archive values; which stars have a light curve
-            is a stand-in.
+            Star facts and planets are NASA Exoplanet Archive values. Cards marked DEMO DATA use stand-in data.
           </p>
         )}
       </div>
@@ -129,8 +139,8 @@ export function StarLab({ tic }: { tic: number }) {
       <EmptyState
         title={`No lab for TIC ${tic}`}
         action={
-          <Link className={s.ghostLink} href="/map">
-            Pick a star on the map
+          <Link className={s.ghostLink} href="/sky">
+            Pick a star on the sky
           </Link>
         }
       >

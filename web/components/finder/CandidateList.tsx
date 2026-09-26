@@ -2,84 +2,37 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { ArrowDown, ArrowUp, DownloadSimple, FadersHorizontal } from "@phosphor-icons/react";
+import { useEffect, useMemo, useState } from "react";
+import { DownloadSimple, FadersHorizontal } from "@phosphor-icons/react";
 import { Button, DemoTag, EmptyState } from "@/components/ui";
 import { LoadError } from "@/components/lab/chart";
-import { exportCtoiCsv, getCandidates, type CandidateList as List, type CandidateRow, type PixelVerdict } from "@/lib/api";
+import { API_MOCK, exportCtoiCsv, getCandidates, type CandidateList as List, type CandidateRow, type PixelVerdict } from "@/lib/api";
 import {
   activeFilterCount,
   DEFAULT_SORT,
   filterCandidates,
   fmtPeriod,
-  fmtSize,
-  NEEDS_VOTES_BELOW,
-  nextSort,
   NO_FILTERS,
   PERIOD_RANGES,
+  rEarth,
   SIZE_RANGES,
-  sizeClass,
   SORTS,
   sortCandidates,
-  totalVotes,
   VERDICTS,
   type Filters,
   type Sort,
   type SortKey,
 } from "./finder";
 import { Funnel } from "./Funnel";
-import { VerdictBadge } from "./Verdict";
-import { formatDay } from "@/lib/format";
+import { Drawer } from "@/components/picture/Drawer";
+import { Info } from "@/components/picture/Info";
+import { Picture } from "@/components/picture/Picture";
+import { Sparkline } from "@/components/picture/Sparkline";
+import { honesty, starPic } from "@/lib/pictures";
+import g from "./grid.module.css";
 import s from "./finder.module.css";
-import l from "@/components/lab/lab.module.css";
 
-const fmtDate = (iso: string) => formatDay(iso, Date.now());
 const title = (c: CandidateRow) => `TIC ${c.tic}`;
-
-function ScoreCell({ c }: { c: CandidateRow }) {
-  const parts = Object.values(c.score_parts);
-  return (
-    <span className={s.score} title="Machine ranking, 0 to 1. Open the report for its parts.">
-      <span className={s.num}>{c.score.toFixed(2)}</span>
-      <span className={s.scoreBar} aria-hidden>
-        {parts.map((p, i) => (
-          <span key={i} style={{ width: `${p * 64}px` }} />
-        ))}
-      </span>
-    </span>
-  );
-}
-
-function VotesCell({ c }: { c: CandidateRow }) {
-  const n = totalVotes(c.votes);
-  if (n === 0) return <span className={s.needs}>No votes yet</span>;
-  const w = (k: number) => `${(k / n) * 100}%`;
-  return (
-    <span className={s.votesMini} aria-label={`${c.votes.planet} planet, ${c.votes.fake} fake, ${c.votes.unsure} not sure`}>
-      <span className={s.num}>
-        {n}
-        {n < NEEDS_VOTES_BELOW && <span className={s.needs}> · needs votes</span>}
-      </span>
-      <span className={s.votesBar} aria-hidden>
-        <span className={s.vPlanet} style={{ width: w(c.votes.planet) }} />
-        <span className={s.vFake} style={{ width: w(c.votes.fake) }} />
-        <span className={s.vUnsure} style={{ width: w(c.votes.unsure) }} />
-      </span>
-    </span>
-  );
-}
-
-function SortHeader({ k, sort, onSort, children, right }: { k: SortKey; sort: Sort; onSort: (k: SortKey) => void; children: ReactNode; right?: boolean }) {
-  const active = sort.key === k;
-  return (
-    <th className={right ? s.right : undefined} aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
-      <button type="button" className={s.sortButton} data-active={active} onClick={() => onSort(k)}>
-        {children}
-        {active && (sort.dir === "asc" ? <ArrowUp size={11} weight="bold" aria-hidden /> : <ArrowDown size={11} weight="bold" aria-hidden />)}
-      </button>
-    </th>
-  );
-}
 
 function FiltersBar({ f, set, open, shown, total }: { f: Filters; set: (f: Filters) => void; open: boolean; shown: number; total: number }) {
   const toggle = (v: PixelVerdict) => set({ ...f, verdicts: f.verdicts.includes(v) ? f.verdicts.filter((x) => x !== v) : [...f.verdicts, v] });
@@ -181,6 +134,8 @@ function AdminBar({ token, selected, clear }: { token: string; selected: string[
   );
 }
 
+type Folds = Record<string, [number, number][]>;
+
 export function CandidateList() {
   const admin = useSearchParams().get("admin");
   const [data, setData] = useState<List | null>(null);
@@ -190,6 +145,7 @@ export function CandidateList() {
   const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const [folds, setFolds] = useState<Folds>({});
 
   useEffect(() => {
     const ctl = new AbortController();
@@ -202,215 +158,140 @@ export function CandidateList() {
     return () => ctl.abort();
   }, [attempt]);
 
+  // Mock mode: a tiny binned fold per candidate, so each tile can draw its dip without the full light curve.
+  useEffect(() => {
+    if (!API_MOCK) return;
+    fetch("/data/finder/folds.mock.json")
+      .then((r) => r.json() as Promise<{ folds: Folds }>)
+      .then((f) => setFolds(f.folds), () => undefined);
+  }, []);
+
   const rows = useMemo(() => (data ? sortCandidates(filterCandidates(data.candidates, filters), sort) : []), [data, filters, sort]);
-  const onSort = useCallback((k: SortKey) => setSort((cur) => nextSort(cur, k)), []);
   const pick = (id: string) => setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
   const nActive = activeFilterCount(filters);
+  const funnel = data?.funnel ?? [];
+  const searched = funnel[0]?.count;
+  const review = funnel.at(-1)?.count;
 
   if (error) return <LoadError what="The candidate list" error={error} onRetry={() => setAttempt((n) => n + 1)} />;
 
   return (
     <>
-      <div className={s.top}>
-        <div className={s.introText}>
-          <div className={l.titleRow}>
-            <h1 className={l.h1}>Planet candidates</h1>
-            {data?.demo && <DemoTag />}
-          </div>
-          <ul className={s.introLines}>
-            <li>
-              Every night we search TESS light curves for <strong>small, repeating dips</strong> in a star&apos;s brightness, the mark a planet leaves as it crosses its star.
-            </li>
-            <li>Most dips are not planets. Each signal here passed our checks and is <strong>not on the lists we checked</strong>.</li>
-            <li>They are <strong>candidates</strong>, not planets. Look at the evidence and tell us what you think.</li>
-          </ul>
+      <div className={g.head}>
+        <div>
+          <h1 className={g.h1}>Candidates</h1>
+          <p className={g.line}>Dips in starlight, waiting for your eye.</p>
         </div>
-        {data ? <Funnel steps={data.funnel} runAt={data.run_at} /> : <div className={l.skeleton} style={{ height: 260 }} role="status" aria-label="Loading the search summary" />}
+        {data?.demo && <DemoTag />}
       </div>
 
-      <section className={s.section} aria-labelledby="list-h">
-        <div className={s.listHead}>
-          <h2 id="list-h" className={l.h2}>
-            Ranked by score
-          </h2>
-          <div className={s.filterToggle}>
-            <Button icon={<FadersHorizontal size={16} aria-hidden />} aria-expanded={open} aria-controls="finder-filters" onClick={() => setOpen((o) => !o)}>
-              {nActive ? `Filters (${nActive})` : "Filters"}
-            </Button>
-          </div>
+      <div className={g.bar}>
+        <span className="cap">
+          {searched != null && review != null ? (
+            <>
+              {searched.toLocaleString("en-US")} stars searched → {review} to review
+            </>
+          ) : (
+            " "
+          )}
+        </span>
+        <div className={g.tools}>
+          <label className={g.sort}>
+            <span className="sr-only">Sort by</span>
+            <select
+              className={s.select}
+              value={`${sort.key}:${sort.dir}`}
+              onChange={(e) => {
+                const [key, dir] = e.target.value.split(":") as [SortKey, "asc" | "desc"];
+                setSort({ key, dir });
+              }}
+            >
+              {SORTS.flatMap((o) => [
+                <option key={`${o.key}:desc`} value={`${o.key}:desc`}>
+                  {o.label}, {o.key === "created" ? "newest first" : "highest first"}
+                </option>,
+                <option key={`${o.key}:asc`} value={`${o.key}:asc`}>
+                  {o.label}, {o.key === "created" ? "oldest first" : "lowest first"}
+                </option>,
+              ])}
+            </select>
+          </label>
+          <Button icon={<FadersHorizontal size={16} aria-hidden />} aria-expanded={open} aria-controls="finder-filters" onClick={() => setOpen((o) => !o)}>
+            {nActive ? `Filter (${nActive})` : "Filter"}
+          </Button>
         </div>
-        <p className={s.sectionLede}>The score is a machine ranking from 0 to 1, built from four parts shown in each report. It is not a probability that the planet is real.</p>
+      </div>
 
-        {admin && <AdminBar token={admin} selected={selected} clear={() => setSelected([])} />}
+      {admin && <AdminBar token={admin} selected={selected} clear={() => setSelected([])} />}
+      <FiltersBar f={filters} set={setFilters} open={open} shown={rows.length} total={data?.candidates.length ?? 0} />
 
-        <FiltersBar f={filters} set={setFilters} open={open} shown={rows.length} total={data?.candidates.length ?? 0} />
-
-        <label className={`${s.field} ${s.mobileSort}`}>
-          <span className="label">Sort by</span>
-          <select
-            className={s.select}
-            value={`${sort.key}:${sort.dir}`}
-            onChange={(e) => {
-              const [key, dir] = e.target.value.split(":") as [SortKey, "asc" | "desc"];
-              setSort({ key, dir });
-            }}
-          >
-            {SORTS.flatMap((o) => [
-              <option key={`${o.key}:desc`} value={`${o.key}:desc`}>
-                {o.label}, {o.key === "created" ? "newest first" : "highest first"}
-              </option>,
-              <option key={`${o.key}:asc`} value={`${o.key}:asc`}>
-                {o.label}, {o.key === "created" ? "oldest first" : "lowest first"}
-              </option>,
-            ])}
-          </select>
-        </label>
-
-        {!data ? (
-          <div className={s.skeletonRows} role="status" aria-busy="true">
-            <span className="sr-only">Loading candidates</span>
-            {Array.from({ length: 6 }, (_, i) => (
-              <div key={i} className={s.skeletonRow} />
-            ))}
-          </div>
-        ) : data.candidates.length === 0 ? (
-          <EmptyState title="No candidates from the latest search">
-            Nothing from the last run got through the checks and the known-list comparison. The next search runs tonight.
-          </EmptyState>
-        ) : rows.length === 0 ? (
-          <EmptyState
-            title="No candidates match these filters"
-            action={
-              <Button variant="primary" onClick={() => setFilters(NO_FILTERS)}>
-                Clear filters
-              </Button>
-            }
-          >
-            Try a wider size or period range, or another pixel verdict.
-          </EmptyState>
-        ) : (
-          <>
-            <div className={s.tableWrap}>
-              <table className={s.table}>
-                <caption className="sr-only">Planet candidates, {rows.length} shown. Column headers sort the table.</caption>
-                <thead>
-                  <tr>
-                    {admin && (
-                      <th>
-                        <span className="sr-only">Select</span>
-                      </th>
-                    )}
-                    <th>
-                      <span className="label">Candidate</span>
-                    </th>
-                    <SortHeader k="score" sort={sort} onSort={onSort} right>
-                      Score
-                    </SortHeader>
-                    <SortHeader k="period" sort={sort} onSort={onSort} right>
-                      Period
-                    </SortHeader>
-                    <SortHeader k="size" sort={sort} onSort={onSort}>
-                      Size
-                    </SortHeader>
-                    <th>
-                      <span className="label">Pixel check</span>
-                    </th>
-                    <SortHeader k="votes" sort={sort} onSort={onSort} right>
-                      Votes
-                    </SortHeader>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((c) => (
-                    <tr key={c.id} className={s.row} data-selected={selected.includes(c.id)}>
-                      {admin && (
-                        <td>
-                          <input type="checkbox" className={s.check} checked={selected.includes(c.id)} onChange={() => pick(c.id)} aria-label={`Select ${title(c)}`} />
-                        </td>
-                      )}
-                      <td>
-                        <span className={s.cellStack}>
-                          <Link href={`/finder/${c.id}`} className={s.rowLink}>
-                            {title(c)}
-                          </Link>
-                          <span className={s.cellSub}>
-                            {c.name ? `${c.name}, ` : ""}found {fmtDate(c.created_at)}
-                          </span>
-                        </span>
-                      </td>
-                      <td className={s.right}>
-                        <ScoreCell c={c} />
-                      </td>
-                      <td className={`${s.right} ${s.num}`}>{fmtPeriod(c.period_d)}</td>
-                      <td>
-                        <span className={s.cellStack}>
-                          <span className={s.num}>{fmtSize(c.radius_rjup)}</span>
-                          <span className={s.cellSub}>{sizeClass(c.radius_rjup)}</span>
-                        </span>
-                      </td>
-                      <td>
-                        <VerdictBadge verdict={c.pixel_verdict} />
-                      </td>
-                      <td className={s.right}>
-                        <VotesCell c={c} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <ul className={s.cards}>
-              {rows.map((c) => (
-                <li key={c.id} className={`${s.card} ${s.row}`} data-selected={selected.includes(c.id)}>
-                  <div className={s.cardTop}>
-                    <span className={s.cellStack}>
-                      <Link href={`/finder/${c.id}`} className={s.rowLink}>
-                        {title(c)}
-                      </Link>
-                      <span className={s.cellSub}>
-                        {c.name ? `${c.name}, ` : ""}
-                        {sizeClass(c.radius_rjup)}
-                      </span>
-                    </span>
-                    <VerdictBadge verdict={c.pixel_verdict} />
-                  </div>
-                  <dl className={s.cardFacts}>
-                    <div>
-                      <dt className="label">Score</dt>
-                      <dd>{c.score.toFixed(2)}</dd>
-                    </div>
-                    <div>
-                      <dt className="label">Period</dt>
-                      <dd>{fmtPeriod(c.period_d)}</dd>
-                    </div>
-                    <div>
-                      <dt className="label">Size</dt>
-                      <dd>{fmtSize(c.radius_rjup).replace(" × ", "× ")}</dd>
-                    </div>
-                    <div>
-                      <dt className="label">Votes</dt>
-                      <dd>{totalVotes(c.votes)}</dd>
-                    </div>
-                  </dl>
-                  {admin && (
-                    <label className={s.cardCheck}>
-                      <input type="checkbox" className={s.check} checked={selected.includes(c.id)} onChange={() => pick(c.id)} />
-                      Select for export
-                    </label>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
-      {data?.demo && (
-        <p className={`${l.help} ${l.footnote}`}>
-          Demo data: these candidates are made up and their light curves simulated, to show how a report reads. The pixel images are borrowed from real pixel checks
-          of WASP-18 and TOI-4257. Real candidates arrive when the Finder service is connected.
-        </p>
+      {!data ? (
+        <div className={g.grid} role="status" aria-busy="true">
+          <span className="sr-only">Loading candidates</span>
+          {Array.from({ length: 10 }, (_, i) => (
+            <div key={i} className={g.skeleton} />
+          ))}
+        </div>
+      ) : data.candidates.length === 0 ? (
+        <EmptyState title="No candidates from the latest search">
+          Nothing from the last run got through the checks and the known-list comparison. The next search runs tonight.
+        </EmptyState>
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title="No candidates match these filters"
+          action={
+            <Button variant="primary" onClick={() => setFilters(NO_FILTERS)}>
+              Clear filters
+            </Button>
+          }
+        >
+          Try a wider size or period range, or another pixel verdict.
+        </EmptyState>
+      ) : (
+        <ul className={g.grid}>
+          {rows.map((c) => {
+            const p = starPic(c.tic);
+            const name = c.name ?? title(c);
+            return (
+              <li key={c.id} className={g.tile} data-selected={selected.includes(c.id) || undefined}>
+                <Link href={`/finder/${c.id}`} className={g.hit}>
+                  {p ? <Picture pic={p} alt={`Survey picture of the sky around ${name}; the crosshair marks the star`} sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 262px" aspect="1 / 1" /> : <div className={g.skeleton} />}
+                  <span className={g.spark}>{folds[c.id] && <Sparkline points={folds[c.id]} label={`The dip of ${name}, folded on its period`} />}</span>
+                  <span className={g.name}>{name}</span>
+                </Link>
+                <div className={g.capline}>
+                  <span className="cap">
+                    {fmtPeriod(c.period_d)} · priority {c.score.toFixed(2)}
+                  </span>
+                  {p && <Info pic={p} note={`${honesty(null, p)} Size: ${rEarth(c.radius_rjup).toFixed(1)} × Earth.`} />}
+                </div>
+                {admin && (
+                  <label className={g.pick}>
+                    <input type="checkbox" className={s.check} checked={selected.includes(c.id)} onChange={() => pick(c.id)} />
+                    Select for export
+                  </label>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       )}
+
+      <section className={g.more} aria-label="About the search">
+        <Drawer title="How the search narrows" state={review != null ? `${review} to review` : undefined}>
+          {data ? <Funnel steps={data.funnel} runAt={data.run_at} /> : null}
+        </Drawer>
+        <Drawer title="What it can find" state="Sensitivity">
+          <p>Which planet sizes and orbits the nightly search recovers, measured by hiding simulated planets in real TESS light curves.</p>
+          <p>
+            <Link href="/finder/sensitivity">See what the search can find</Link>
+          </p>
+        </Drawer>
+        <Drawer title="What a candidate is" state="About">
+          <p>A repeating dip in a star&apos;s light that passed our checks and is on none of the lists we compared. None of them is a planet yet. Priority is a machine ranking from 0 to 1 that orders the list; it is not the chance a planet is real.</p>
+          {data?.demo && <p>Demo data: these candidates are made up and their light curves simulated, to show how a report reads. Their sky pictures are real survey pictures of each star.</p>}
+        </Drawer>
+      </section>
     </>
   );
 }

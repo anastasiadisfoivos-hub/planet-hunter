@@ -32,7 +32,7 @@ const write = (path, obj) => writeFileSync(path, JSON.stringify(obj) + "\n");
   sn.sort((a, b) => a.z - b.z);
   write(`${OUT}/hubble.demo.json`, {
     demo: true,
-    note: "Made-up supernovae for building the chart: redshifts spread from 0.008 to 0.1, peak magnitudes from a 70 km/s/Mpc universe with a type Ia peak of -19.3 mag and 0.14 mag of scatter. Live TNS supernovae replace this later.",
+    note: "Made-up supernovae: redshifts spread from 0.008 to 0.1, peak magnitudes from a 70 km/s/Mpc universe with a type Ia peak of -19.3 mag and 0.14 mag of scatter. Live TNS supernovae replace this later.",
     abs_mag: M,
     supernovae: sn,
   });
@@ -98,7 +98,7 @@ write(
     wavelength_nm: wl,
     flux,
     lines: LINES.map(([nm, element, label]) => ({ nm, element, label, origin: element === "O2" || element === "H2O" ? "earth_atmosphere" : "sun" })),
-    source: "DEMO: a 5772 K blackbody with the strong Fraunhofer lines drawn in, for building the UI",
+    source: "DEMO: a 5772 K blackbody with the strong Fraunhofer lines drawn in",
     credit: "Demo data; the real solar atlas arrives with the SPECTRA files",
   });
 }
@@ -114,7 +114,7 @@ for (const s of STARS) {
   write(`${MOCK}/stars/${s.tic}.abundances.json`, {
     tic: s.tic,
     name: s.name,
-    source: "DEMO: made-up abundances for building the UI",
+    source: "DEMO: made-up abundances",
     elements: els.map((symbol, i) => ({
       symbol,
       x_h_dex: r(s.base + gauss() * 0.08, 2),
@@ -134,7 +134,7 @@ for (const s of STARS) {
     wavelength_nm: wl,
     flux: fl,
     source: "DEMO: a smooth blackbody shaped like a Gaia XP sampled spectrum",
-    credit: "Demo data; real Gaia DR3 XP spectra arrive with the SPECTRA files",
+    credit: "Demo data: a stand-in spectrum, not a measurement",
   });
 }
 
@@ -150,18 +150,18 @@ for (const s of STARS) {
     depth.push(Math.round(14700 + water + gauss() * 45));
     err.push(Math.round(40 + rnd() * 25));
   }
-  const DEMO_REF = "DEMO: placeholder, real references arrive with the SPECTRA files";
+  const DEMO_REF = "Demo data: a placeholder reference";
   write(`${MOCK}/planets/wasp-121-b.atmosphere.json`, {
     planet: "WASP-121 b",
     detections: ["H2O", "Fe", "Mg", "Ca", "Na", "V"].map((species) => ({ species, reference: DEMO_REF })),
     spectrum: { wavelength_um: wl, depth_ppm: depth, err_ppm: err },
-    source: "DEMO: made-up transmission spectrum for building the UI",
+    source: "DEMO: made-up transmission spectrum",
   });
   write(`${MOCK}/planets/wasp-18-b.atmosphere.json`, {
     planet: "WASP-18 b",
     detections: ["H2O", "CO"].map((species) => ({ species, reference: DEMO_REF })),
     spectrum: null,
-    source: "DEMO: made-up detections for building the UI",
+    source: "DEMO: made-up detections",
   });
   write(`${MOCK}/planets/wasp-39-b.atmosphere.json`, {
     planet: "WASP-39 b",
@@ -171,7 +171,7 @@ for (const s of STARS) {
       depth_ppm: depth.map((d, i) => d + 6800 + Math.round(900 * Math.exp(-0.5 * ((wl[i] * 3 - 4.3) / 0.15) ** 2))),
       err_ppm: err,
     },
-    source: "DEMO: made-up transmission spectrum for building the UI",
+    source: "DEMO: made-up transmission spectrum",
   });
 }
 

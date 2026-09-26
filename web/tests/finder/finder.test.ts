@@ -204,3 +204,15 @@ test("CTOI file: header plus one row per candidate, BJD epoch, readable comment"
   assert.ok(lines[1].includes(",3.812700,"));
   assert.ok(lines[1].endsWith(",Candidate from TESS sectors 81 82; SNR 12.0; 6 transits; score 0.50"));
 });
+
+test("vote counts stay hidden until you vote, then show; taking the vote back hides them again", async () => {
+  const { visibleCounts } = await import("../../components/finder/finder.ts");
+  const v: Votes = { planet: 41, fake: 6, unsure: 9, my_vote: null };
+  let st = initVotes(v);
+  assert.deepEqual(visibleCounts(st), { counts: null, total: 56 });
+  st = voteReducer(st, { type: "choose", choice: "planet" });
+  assert.deepEqual(visibleCounts(st), { counts: { planet: 42, fake: 6, unsure: 9 }, total: 57 });
+  st = voteReducer(st, { type: "choose", choice: "planet" });
+  assert.equal(visibleCounts(st).counts, null);
+  assert.equal(visibleCounts(initVotes({ ...v, my_vote: "unsure" })).counts?.unsure, 9, "a returning voter sees the tally");
+});
