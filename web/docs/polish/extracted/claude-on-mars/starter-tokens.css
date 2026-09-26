@@ -1,0 +1,22 @@
+:root {
+  --color-primary: rgb(250, 249, 245);
+  --color-secondary: rgba(0, 0, 0, 0);
+  --font-heading: anthropicSerif;
+  --font-body: anthropicSerif;
+  --space-1: 1px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 14px;
+  --space-5: 15px;
+  --space-6: 16px;
+  --space-7: 24px;
+  --space-8: 28.5px;
+  --space-9: 32px;
+  --space-10: 40px;
+  --space-11: 48px;
+  --space-12: 64px;
+  --space-13: 80px;
+  --space-14: 96px;
+  --space-15: 128px;
+  --space-16: 256px;
+}

@@ -1,0 +1,46 @@
+{
+  "source": {
+    "url": "https://www.anthropic.com/features/claude-on-mars",
+    "extractedAt": "2026-09-26T07:37:38.057Z",
+    "extractor": "dembrandt"
+  },
+  "colors": {
+    "primary": "rgb(250, 249, 245)",
+    "secondary": "rgba(0, 0, 0, 0)",
+    "palette": [
+      "rgba(0, 0, 0, 0)",
+      "rgb(250, 249, 245)"
+    ],
+    "cssVariables": {}
+  },
+  "typography": {
+    "headingFont": "anthropicSerif",
+    "bodyFont": "anthropicSerif"
+  },
+  "spacing": {
+    "scale": [
+      "1px",
+      "8px",
+      "12px",
+      "14px",
+      "15px",
+      "16px",
+      "24px",
+      "28.5px",
+      "32px",
+      "40px",
+      "48px",
+      "64px",
+      "80px",
+      "96px",
+      "128px",
+      "256px"
+    ]
+  },
+  "radius": {
+    "scale": []
+  },
+  "shadows": {
+    "scale": []
+  }
+}
