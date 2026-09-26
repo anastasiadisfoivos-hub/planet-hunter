@@ -40,4 +40,5 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["tests"]
+markers = ["deep: all-sector real-data proofs (TOI-813, TOI-2180); several minutes each"]
 filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]

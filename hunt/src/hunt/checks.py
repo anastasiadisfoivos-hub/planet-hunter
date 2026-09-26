@@ -12,7 +12,7 @@ three_dips (the signal does not rest on one dip), single_sector (flag only).
 from __future__ import annotations
 
 import math
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 
 import numpy as np
 from scipy import stats
@@ -27,7 +27,9 @@ from .stars import RHO_SUN_KG_M3, Star
 G = 6.674e-11
 ALIAS_MIN_RATIO = 0.5  # a group of dips shallower than half the rest (and > 3 sigma) means a wrong period
 ALIAS_SIGMA = 3.0
-DUMP_WINDOW_PAD_D = 30 / 1440  # a dump within half a duration + 30 min of mid-transit counts as coinciding
+DUMP_WINDOW_PAD_D = 30 / 1440  # a dump within half a duration + 30 min of mid-transit counts as coinciding ...
+DUMP_CENTRE_D = 1 / 24  # ... but at most 1 h + 30 min: a day-long transit nearly always contains a dump
+# somewhere; only one near its middle can make the dip (dumps elsewhere are caught by the depth test below)
 DUMP_MAX_FRACTION = 0.5
 SECTOR_P_MIN = 1e-3
 SECTOR_MAX_SPREAD = 0.5
@@ -113,6 +115,23 @@ def epoch_depths(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal) -> Ep
     return Epochs(arr[:, 0].astype(int), arr[:, 1], arr[:, 2].astype(int), arr[:, 3], arr[:, 4])
 
 
+def odd_even_scale(ep: "Epochs") -> float:
+    """Over-dispersion of per-dip depths WITHIN the odd and within the even dips (sqrt of reduced chi-square about
+    each group's own mean, at least 1). Depths that change between sectors (crowding corrections differ per
+    sector) then do not look like an odd/even difference, while an eclipsing binary's alternation, which is
+    between the groups, is untouched."""
+    if len(ep.epoch) < 3:
+        return 1.0
+    chi2, dof = 0.0, 0
+    for par in (0, 1):
+        m = ep.epoch % 2 == par
+        if m.sum() >= 2:
+            mu, _ = _wmean(ep.depth[m], ep.err[m])
+            chi2 += float(np.sum((ep.depth[m] - mu) ** 2 / ep.err[m] ** 2))
+            dof += int(m.sum()) - 1
+    return float(max(1.0, math.sqrt(chi2 / dof))) if dof > 0 else 1.0
+
+
 def _wmean(d: np.ndarray, e: np.ndarray) -> tuple[float, float]:
     w = 1 / e**2
     return float(np.sum(w * d) / np.sum(w)), float(1 / math.sqrt(np.sum(w)))
@@ -177,7 +196,7 @@ def period_alias(t: np.ndarray, f: np.ndarray, sig: Signal, ep: Epochs) -> Check
 def momentum_dump(ep: Epochs, sig: Signal, dumps: np.ndarray, flagged: np.ndarray, quality_read: bool) -> Check:
     if len(ep.epoch) == 0:
         return Check("momentum_dump", None, None, "No individual dips could be measured.")
-    window = sig.duration / 2 + DUMP_WINDOW_PAD_D
+    window = min(sig.duration / 2, DUMP_CENTRE_D) + DUMP_WINDOW_PAD_D
 
     def hits(times: np.ndarray) -> np.ndarray:
         if len(times) == 0:
@@ -303,8 +322,12 @@ def run_all(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal, star: Star
     sz = implied_radius(sig.depth, star.rad, sig.depth_err, star.rad_err)
     sec_vet, sec = secondary_eclipse(t, f, sig)
     sec_frac = sec["depth"] / max(sig.depth, 1e-12)
-    oe = odd_even(sig)
     ep = epoch_depths(t, f, g, sig)
+    scale = odd_even_scale(ep)
+    oe = odd_even(replace(sig, depth_odd_err=sig.depth_odd_err * scale, depth_even_err=sig.depth_even_err * scale))
+    if scale > 1:
+        oe = replace(oe, reason=oe.reason + f" (Errors widened x{scale:.1f}: dips of the same parity already differ "
+                                            f"that much from each other, e.g. between sectors.)")
     sd, per_sector = sector_depth(ep)
     checks = [
         _from_vet(snr(sig), None),

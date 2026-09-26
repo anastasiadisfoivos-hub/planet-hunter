@@ -283,7 +283,9 @@ def analyse(star: Star, lc: StarLC, catalogue: Catalogue | None, list_kind: str 
         near = np.clip(np.searchsorted(lc.time, lcd.time), 0, len(lc.time) - 1)
         dmask = dip_mask[near] | dip_mask[np.clip(near - 1, 0, len(lc.time) - 1)]
         events, results, dip_info = sg.search(star, lcd, dmask)
-        events_out = [{**e.to_dict(), "failed_checks": e.failed()} for e in events]
+        events_out = [{**e.to_dict(), "failed_checks": e.failed(),
+                       "rejected_because": {c.name: c.reason for c in e.checks if c.passed is False}}
+                      for e in events]
         for m, res in enumerate(results, start=1):
             times = [e.tc for e in res.events]
             known = (catalogue.match_times(star.tic, times, res.duration, star.ra, star.dec,

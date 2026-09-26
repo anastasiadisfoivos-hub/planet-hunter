@@ -69,7 +69,7 @@ def process_star(row: dict, out_dir: str, max_sectors: int, plots: bool) -> dict
         lc = lightcurve.stitch(tic, max_sectors=max_sectors)
         t1 = time.perf_counter()
         res = analyse(star, lc, _CATALOGUE, kind)
-        res.timings_s = {"fetch": t1 - t0, "analyse": time.perf_counter() - t1}
+        res.timings_s = {"fetch": t1 - t0, "analyse": time.perf_counter() - t1, **res.timings_s}
         for cand in res.candidates:
             stem = f"{tic}_{cand['id'].rsplit(':', 1)[1]}"
             (out / "candidates" / f"{stem}.json").write_text(json.dumps(cand, indent=1))

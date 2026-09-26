@@ -41,6 +41,9 @@ MIN_TRANSITS = 3
 LONG_OVERSAMPLE = 3
 LONG_MIN_BIN_MIN, LONG_MAX_BIN_MIN = 10.0, 60.0
 LONG_DURATION_MAX_D = 1.0  # 24 h, the same limit as the single-dip search
+# astropy's BLS scans phase bins of (shortest duration / oversample); its cost per period grows with the period.
+# A third of the shortest duration is the same tolerance the period grid is built on (default is a tenth).
+BLS_PHASE_OVERSAMPLE = 3
 TLS_BUDGET_S = 60.0
 TLS_RATE = 2.0e6  # (points x periods) per second, single thread: measured 1.8-2.7e6 (6 and 13 sectors, loaded laptop)
 TLS_OVERSAMPLE = 3
@@ -157,7 +160,8 @@ def bls_long(time: np.ndarray, flux: np.ndarray, rho: float, pmin: float = SHORT
         periods = _grid_block(lo, hi, baseline, lambda p, d0=durs[0]: d0 * (p / lo) ** (1 / 3))
         if len(periods) == 0:
             continue
-        res = BoxLeastSquares(bt, bf, dy).power(periods, durs, objective="likelihood")
+        res = BoxLeastSquares(bt, bf, dy).power(periods, durs, objective="likelihood",
+                                                oversample=BLS_PHASE_OVERSAMPLE)
         pw = np.nan_to_num(np.asarray(res.power), nan=0.0)
         all_p.append(periods)
         all_pow.append(pw)

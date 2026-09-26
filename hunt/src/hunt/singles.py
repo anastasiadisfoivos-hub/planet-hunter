@@ -826,8 +826,10 @@ def search(star: Star, lc, mask: np.ndarray) -> tuple[list[Event], list[DipResul
         if d is not None and d.aliases:
             results.append(d)
             used |= {i, j}
+    # Every clean dip gets a record, also below the candidate SNR (it then stops at the "snr" stage): the funnel
+    # then shows how many singles each threshold would let through (README, "False alarms").
     for i, e in enumerate(clean):
-        if i not in used and e.ses >= SINGLE_MIN_SNR:
+        if i not in used:
             results.append(_single(e, star, covered, span))
     # Events that failed a dip check but are strong enough to have been candidates are kept too, so the funnel
     # (and the tests) can show what the checks threw away.
