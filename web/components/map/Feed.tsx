@@ -8,6 +8,7 @@ import { SOURCE_LABEL, TYPE_LABEL } from "@/lib/events";
 import { formatAgo } from "@/lib/format";
 import { useStore } from "@/state/store";
 import { CategoryGlyph } from "./CategoryGlyph";
+import { CLEAR_LABEL, EMPTY_TITLE } from "./filterModel";
 import s from "./map.module.css";
 
 const PAGE = 30;
@@ -105,15 +106,13 @@ export function Feed({ now, onOpen }: { now: number; onOpen: (id: string) => voi
       ) : events.length === 0 ? (
         <div className={s.feedPad}>
           <EmptyState
-            title="Nothing matches these filters"
+            title={EMPTY_TITLE}
             action={
               <Button size="sm" onClick={() => dispatch({ type: "resetFilters" })}>
-                Reset filters
+                {CLEAR_LABEL}
               </Button>
             }
-          >
-            Try a longer time range, more types, or a lower minimum confidence.
-          </EmptyState>
+          />
         </div>
       ) : (
         <ul className={s.feedList} onMouseLeave={() => dispatch({ type: "hoverEvent", id: null })}>

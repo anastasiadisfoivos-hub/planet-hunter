@@ -5,6 +5,7 @@ import { DemoTag } from "@/components/ui";
 import type { Status } from "@/lib/api";
 import { SOURCE_LABEL } from "@/lib/events";
 import { formatAgo, formatDay } from "@/lib/format";
+import { DISPLAY_SATURATION } from "@/lib/starColor";
 import s from "./map.module.css";
 
 /** One line per paused source: "Rubin hasn't sent alerts since 14 Jul." */
@@ -18,7 +19,7 @@ export function statusLines(status: Status, now: number): string[] {
 }
 
 /** A quiet banner over the sky when a source is paused, plus per-source freshness in a popover. */
-export function StatusBanner({ status, now, demo }: { status: Status | null; now: number; demo: boolean }) {
+export function StatusBanner({ status, now, demo, footprintUrl }: { status: Status | null; now: number; demo: boolean; footprintUrl: string }) {
   if (!status) return null;
   const lines = statusLines(status, now);
   return (
@@ -75,6 +76,27 @@ export function StatusBanner({ status, now, demo }: { status: Status | null; now
             </p>
           ))}
         <p className={s.help}>Checked {formatAgo(status.generated_at, now)}. A source counts as live when its newest event is recent enough for that source.</p>
+        <details className={s.about}>
+          <summary>About this map</summary>
+          <p>
+            Each event sits at its real position. Events on the Sun sit around the Sun&apos;s position now. Fireballs and geomagnetic storms
+            happen at Earth, so they are in the feed but not on the sky.
+          </p>
+          <p>
+            Star colours come from each star&apos;s temperature (B−V for bright stars, the TESS Input Catalog for planet hosts) through{" "}
+            <a href="http://www.vendian.org/mncharity/dir3/starcolor/" target="_blank" rel="noreferrer">
+              Mitchell Charity&apos;s blackbody table
+            </a>
+            , with saturation raised {DISPLAY_SATURATION}× so the colours read on black. Stars with no listed temperature are white.
+          </p>
+          <p>
+            Rubin coverage is the survey footprint from Rubin Observatory&apos;s own scheduler (
+            <a href={footprintUrl} target="_blank" rel="noreferrer">
+              rubin_scheduler
+            </a>
+            ).
+          </p>
+        </details>
       </div>
     </div>
   );
