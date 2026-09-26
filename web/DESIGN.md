@@ -1,335 +1,219 @@
-# planet-hunter web: DESIGN.md
+# Planet Hunter: DESIGN.md
 
-This file is authoritative for everything under `web/`. If a skill, library default or habit conflicts with it,
-this file wins.
+This file is authoritative for everything under `web/`. Where a skill, a library default or a habit disagrees
+with it, this file wins, and the work says so.
 
-**Direction:** a phenomena spotter: what is happening in the sky, each event at its real position, filterable,
-with real pictures, plus every star clickable and analyzable. Think instrument or observatory software, **not a
-game**: no watches, points or scores.
-The UI is quiet and exact, with flat surfaces and hairlines. Data carries the colour; chrome stays neutral.
+Owned by the MONITOR-UI session. References and the reasoning behind them: `docs/monitorui/refs/README.md`.
 
-Home, events, sky, lab and finder are one instrument that **shows** the sky: every surface leads with a real
-photograph or real instrument data, words shrink to a title, a name and one mono caption line, and every
-explanation is one tap away. Black is the canvas, hairlines are the structure, and the page has generous air.
-Events are a gallery of their own pictures (`/events`); the sky (`/sky`) is where they are. The reasoning is in
-`docs/polish/DIRECTION.md`.
+## Direction: the chart recorder
 
-Tokens live in `app/tokens.css` as CSS custom properties. Components use tokens, never raw hex.
-Shared primitives live in `components/ui/`. This file, `app/tokens.css`, `app/layout.tsx`, `app/globals.css`,
-`components/ui/*` and `lib/api.ts` are **owned by the SPOTMAP session** (formerly SKYMAP); other sessions request changes through
-the project owner.
+Planet Hunter is a planet finder and nothing else. Its home is a **monitor**: the star being searched streams its
+real TESS light curve across the page as one continuous ink line on warm recorder paper, and when the search finds
+a dip, the observer's red pen marks it in the margin above the trace. Everything else on the site is the paper
+that comes off that recorder: the log (one row per star, like a helicorder drum), the candidates (a dossier per
+signal) and the methods (the lab notebook).
+
+Five rules that make it feel made by a person:
+
+1. **One line is the hero.** No hero photograph, no 3D, no gradient. The line is real data, and it is labelled
+   like an instrument trace: the star, the sector and the date sit on the paper next to it.
+2. **Paper, ink and one pen.** A warm paper ground, near-black ink for data and words, and one vermilion pen for the
+   things the search found. Known objects are written in catalogue blue. No other colours.
+3. **Edges carry the numbers.** Small mono labels on the edges of every chart and page (time, units, state), the way
+   a chart recorder prints its scale. Words are in a serif with a voice.
+4. **State is said in words.** "Replay" or "Live", "observed 2 to 28 Aug 2026 by TESS", "candidate", "rejected:
+   reason". Motion never stands in for a state.
+5. **Nothing loops for decoration.** Only the trace moves, and only while it is drawing a star.
+
+Not a game: no scores, points, streaks, levels, badges, "you found", or celebration.
 
 ## Colour
 
-Dark only.
+Tokens live in `styles/tokens.css` on `.site` (the new shell). Components use tokens, never raw hex. Two themes: paper
+(default) and night (under `prefers-color-scheme: dark`). All text pairs meet WCAG AA on `--paper`.
 
-| Token | Value | Use |
-|---|---|---|
-| `--bg` | `#000000` | page canvas on every route; the same black as the sky |
-| `--well` | `#070708` | rare: an area that must read as "inside" (pixel images, code) |
-| `--space` | `#000000` | the 3D sky's space. The sky's background is ESO's real all-sky photograph (eso0932a, "ESO/S. Brunier", CC BY 4.0) on this black; see The sky |
-| `--raised` | `#111214` | floating things only: popovers, sheets, the vote panel, the map's panels. Never a section background. |
-| `--line-faint` | `rgb(222 230 255 / 0.06)` | row separators, the top bar's bottom edge, chart gridlines |
-| `--line` | `rgb(222 230 255 / 0.10)` | section rules, fact-grid rules, panel borders |
-| `--line-strong` | `rgb(222 230 255 / 0.16)` | inputs, buttons, tags, a chart's zero line |
-| `--ink` | `#F4F4F5` | primary text; the primary button fill |
-| `--ink-secondary` | `#A1A6B0` | secondary text; units |
-| `--ink-muted` | `#8B909A` | labels, helper text, captions |
-| `--ink-disabled` | `#5D626B` | disabled text only. Never used for anything that must be read. |
-| `--accent` | `#A3B8FF` | **the one accent**: selection, hover, focus, the selected event's error circle. Never a chart series, never a model line, never decoration. |
-| `--rubin` | `#6FD6C6` | Rubin coverage (data colour) |
-| `--supernova` | `#E8836A` | supernova detections (data colour); also used for blocking notices and failed checks |
-| `--cat-transient` / `--cat-solar-system` / `--cat-sun` / `--cat-earth` / `--cat-high-energy` / `--cat-other` | `#E8836A` / `#8FD18A` / `#F2C14E` / `#7CC4F2` / `#D98BD8` / `#A1A6B0` | event categories (data colours). **Always paired with a shape**: ring, diamond, square, triangle, plus, dot (`lib/eventStyle.ts`); never colour alone. These shapes are reserved: no other UI reuses the diamond, ring, square, triangle or plus. |
-| `--grid` | `#1F2127` | the faint RA/Dec grid on the sky |
+| token | paper | night | use |
+| --- | --- | --- | --- |
+| `--paper` | `#EDE8DC` | `#12110E` | page ground: recorder paper |
+| `--paper-2` | `#E5DFD1` | `#1A1915` | a sheet lying on the paper: dossier panels, table heads |
+| `--grid` | ink at 7% | ink at 8% | the chart grid (minor divisions) |
+| `--grid-strong` | ink at 15% | ink at 16% | major divisions, rules between rows |
+| `--ink` | `#1C1A16` (14.2:1) | `#ECE6D8` | the trace, headings, body text |
+| `--ink-2` | `#4F4A41` (7.2:1) | `#B3AC9D` | secondary text |
+| `--ink-3` | `#6A6459` (4.8:1) | `#8E887B` | edge labels and scale numbers only |
+| `--pen` | `#B8321A` (4.9:1) | `#FF7458` | **the observer's pen**: dips the search found, candidates, focus rings, the live dot. Never decoration. |
+| `--known` | `#2C5A86` (5.9:1) | `#8DB4DC` | objects already on a catalogue: known planets, TOIs, binaries |
+| `--rejected` | `--ink-3` | `--ink-3` | dips the checks turned down: drawn hollow, never red |
 
-Rules:
-
-- The primary button is `--ink` fill with `#000` text. There is at most one primary button per view.
-- No glows, gradient washes, shadows or emoji **in the UI**. The sky is the exception: stars and the close-up star
-  glow through a bloom pass (see The sky). Translucent tints of a token (for example, a 12% `--accent` fill on
-  a selected row) are allowed. A data legend may show a colour ramp; nothing else uses a gradient.
-- Data colours (`--rubin`, `--supernova`, and the per-type colours added later) appear only on data: the map,
-  charts, legends and tags.
-- Status (passed, on target, not on a list) is a neutral glyph plus a word. Category colours are never
-  status colours. Only a failed or blocking state uses `--supernova`.
+- Meaning is never colour alone. A found dip is a filled pen tick; a known one is a blue tick with a small bar; a
+  rejected one is a hollow ink tick. Each carries a word ("candidate", "known", "rejected").
+- The paper carries a very faint grain (a fixed, `pointer-events: none` SVG noise layer at 3.5% on paper, 5% at
+  night). It is off in `forced-colors`.
 
 ## Type
 
-- **Geist** for UI. **Geist Mono** for every number, coordinate and uppercase label.
-  Both come from the `geist` package, wired in `app/layout.tsx`.
-- Weights 400 and 500 only. Headings are 500.
-- Scale (size / line height / tracking):
+Two families, both under the **SIL Open Font License 1.1**, loaded with `next/font/google` in `app/layout.tsx`
+(self-hosted at build time, no runtime request to Google):
 
-  | Step | Size | Tracking | Use |
-  |---|---|---|---|
-  | label | 11 / 16, mono, uppercase | +0.04em  | above values, table headers, picture sources, tags |
-  | meta | 12 / 16 | 0 | notes under values, captions, timestamps |
-  | small | 13 / 20 | 0 | secondary UI |
-  | body | 14 / 20 | 0 | the UI default |
-  | read | 16 / 26 | 0 | ledes and reading text |
-  | h3 | 20 / 26 | -0.015em | panel titles |
-  | line | 16 / 24 | 0 | the one line under a heading (max 560px) |
-  | h2 | clamp(24px, 2.2vw, 32px) / 1.1 | -0.03em | section headings (≤ 3 words) |
-  | h1 | clamp(32px, 3.6vw, 48px) / 1.05 | -0.035em | page titles |
-  | display | clamp(40px, 5.6vw, 80px) / 1.0 | -0.04em | the hero statement on a photograph (≤ 12 words); home and lab only |
+- **Newsreader** (Production Type, OFL 1.1): every word meant to be read. Headings, star names, prose, the
+  candidate dossier. Variable, with optical sizes: large headings use its display cut, body its text cut.
+  Headings sit at weight 400 to 500, never bold-black; italics are for the pen's voice ("rejected: …").
+- **Martian Mono** (Evil Martians, OFL 1.1): every number and every edge label. Scales, TIC numbers, dates, ppm,
+  the tally. Set at width 87 ("condensed") for labels, 100 for numbers in tables. Uppercase with +0.06em tracking
+  for labels only; numbers stay mixed case with `tabular-nums`.
 
-  15, 17 and the 24/32 desktop heading sizes.
-- No paragraphs on landing surfaces (home, /events, /lab, /finder). Elsewhere every paragraph has `max-width: 560px`. Headings use `text-wrap: balance`, prose `text-wrap: pretty`.
-- Uppercase appears only in mono labels. A mono label names data: it sits above a value, heads a table
-  column, or is a picture's source line. It is never a kicker above a section heading. The one exception is the
-  kind label in a detail page's header ("PLANET CANDIDATE").
+No other families. Banned here: Geist, Inter, Helvetica, Arial, Roboto, Space Grotesk. System UI fonts only as
+fallbacks.
+
+Scale (fluid, `clamp()`), in `styles/tokens.css`:
+
+| token | size | use |
+| --- | --- | --- |
+| `--t-display` | 44 → 88px, line 0.98, tracking -0.02em | the star's name on the monitor, page titles |
+| `--t-h2` | 26 → 34px, line 1.1 | section heads in the dossier and methods |
+| `--t-body` | 17 → 19px, line 1.5, measure 62ch | prose |
+| `--t-small` | 15px, line 1.45 | captions, row text |
+| `--t-label` | 11px Martian Mono, uppercase, +0.06em | edge labels |
+| `--t-num` | 13px Martian Mono, tabular | numbers in rows and readouts |
 
 ### Numbers and units
 
-- Numbers: Geist Mono, `tabular-nums`, `--ink`. 14 in tables, 20 in fact grids, 28 in readouts, 40 for the one
-  hero number on a page.
-- Units: Geist at about 70% of the number's size, `--ink-secondary`, 0.2em gap (none for `%`, `°`, `′`, `″`).
-  Words ("days", "× Earth") unless a symbol is standard (K, ly, σ, R⊕, Å).
-- Ranges and bases in words, in a meta line under the value: "likely 3.7 to 5.0", "95%, from the pixel check".
-  No ± in the UI.
-- One unit system per page: planet sizes in Earth radii below 2 Jupiter radii.
-- Times in running text are sans ("2 days ago"). Mono is for tables and readouts.
+- A dip's depth in ppm under 1000, in % above ("1 840 ppm", "0.79%"). Thin space as the thousands separator.
+- Periods: hours under a day, days otherwise ("17.2 h", "2.34 d"). Never scientific notation.
+- Temperatures in K, radii in solar radii ("0.76 R☉"), magnitudes as "T 10.8".
+- Dates: "2 to 28 Aug 2026"; with years apart, "Jul 2023 to Jun 2026, 3 sectors". Times are UTC and say so.
 
-## Shape and space
+## Space and grid
 
-- 1px hairline borders. Radius: 4px for tags, picture corners and placeholders; 8px for controls
-  and cards; 12px for floating panels and sheets only; 50% for dots and colour discs. pills.
-  Flat surfaces, no shadows (and no inset box-shadows standing in for borders).
-- The spacing scale is 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 160, from a 4px base. 2 and 6 only as optical
-  steps (label to value, icon to text). 20.
-- Section padding: 160 on landing surfaces (128 at 640 to 1023, 96 on phones); 96 on app pages (80, 64).
-  Section head to content 40. Picture grids: 24 column gap (12 on phones), 40 row gap (28 on phones). Picture to name 12,
-  name to caption line 2. Editorial split gap 96.
-- Controls are 32px tall (`--control-h`), or 44px on coarse pointers. A large control (hero search,
-  vote options) is 40px, also 44px on coarse pointers. The segmented control and nav links follow this too.
+- 4px base. Steps: 4, 8, 12, 16, 24, 32, 48, 72, 112 (`--s-1` … `--s-9`).
+- The page grid is the chart grid: a 12-column layout with a **left margin column** (the notebook margin, 1 column
+  on desktop, gone on phones) where kind labels and dates sit. Section rhythm is 72px desktop, 48px phone.
+- Side gutter: 32px desktop, 16px phone. Max content width 1320px; the monitor is full-bleed.
+- Corners are square. The only radius is 2px on buttons and inputs. No cards with shadows; a sheet is a
+  `--paper-2` fill with a `--grid-strong` rule at its top, like a page laid on a desk.
 
-### Grid
+## The monitor (the signature)
 
-- Container: 1312px content, with margins of 64px (≥1280), 40px (1024 to 1279), 32px (640 to 1023) and 20px (<640).
-  The top bar uses the same container.
-- Picture grids: 5 columns ≥1280, 4 ≥1024, 3 ≥640, 2 on phones. Reading measure 560px; side columns 360 to 400px.
-- Breakpoints: 640 and 1024. Below 1024 an aside moves up under the page header, never to the end of the page.
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ Planet Hunter   Monitor · Candidates · Log · Methods               ● REPLAY      │
+│                                                                                  │
+│ TIC 415739607                              (margin lane: pen ticks + labels)     │
+│ a K dwarf, T 10.8 · 4 439 K · 0.76 R☉     ▼ dip · 2.34 d · 2 950 ppm · known     │
+│ observed 18 Jul to 12 Aug 2026 by TESS ───────────────────────────────────────── │
+│                                                                                  │
+│ ~~~~~~~~~~~~~~~~~~~~~~~~~\_/~~~~~~~~~~~~~~~~~~~~~~~~~~~\_/~~~~~~~~~~●             │
+│                                                                    ↑ pen head    │
+│ ────┼──────────┼──────────┼──────────┼──────────┼─────── 20 Jul · sector 82 ──── │
+│                                                                                  │
+│ 214 stars searched · 311 signals · 0 new candidates        next: TIC 113233475   │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
 
-### Surfaces and cards
+- **Paper**: a full-bleed canvas (`100dvh` minus the top bar, at least 520px) with ECG-style divisions: minor
+  every 1 day of data, major every 5 days, in `--grid` / `--grid-strong`. The grid scrolls with the data, so the
+  paper moves under a fixed pen.
+- **Trace**: one 1.5px `--ink` line (2px at night for glow-free legibility), drawn left to right. The **pen head**
+  sits at 72% of the width; data to its left has been drawn, the paper to its right is blank. A small filled
+  circle (6px) in `--ink` marks the pen. Sector gaps are drawn as a break in the line with the sector number
+  printed in the gap, never bridged.
+- **Speed**: about 2.2 days of data per second of wall time (a 27-day sector in about 12 s), eased in at the start of
+  a star and out at the end. The trace draws at 60 fps on a 2D canvas.
+- **Detections**: when the pen reaches the middle of a dip the search found, the pen writes a tick in the margin
+  lane above the trace (ECG annotation style: a 1px vertical rule down to the trace at that time) and a label in
+  mono: kind, period, depth, outcome. For a periodic signal, every later dip of that period gets a smaller tick as
+  the pen reaches it. Ticks fade in over 160ms, never bounce.
+- **Handover**: at the end of a star the trace finishes, the readout holds for 1.8 s, then the paper advances by
+  one screen (a 900ms ease-out slide) and the next star's name types in over its top-left label. The line never
+  resets from nothing on screen.
+- **Mode**: top right, in mono caps. `● LIVE` (pen dot) when the API streams the star being searched now;
+  `REPLAY` with the recording date ("replay of the 26 Sep 2026 search") otherwise. Mock data is always replay.
+- **Tally**: bottom left, one mono line: stars searched, signals, candidates. It updates when a star finishes,
+  with no counting animation.
+- **Reduced motion**: no streaming. The whole curve is drawn still, every detection tick is shown at once, and
+  the star changes only when the viewer presses "Next star". **Hidden tab**: the animation pauses and resumes where
+  it was.
+- **Pointer**: hovering the drawn part shows a thin vertical cursor with time and flux at that point.
+  Keyboard: the monitor region is focusable; Space pauses/resumes, → skips to the next star.
+- **Phone**: the canvas is 62dvh; the margin labels collapse to ticks plus a list under the canvas.
 
-- Sections are ruled, not boxed: 48px, a `--line` rule, 48px (64 to 96 on home).
-- A group of values is a ruled grid (a rule above and below, 1px verticals), never a box.
-- Cards are only for (1) a clickable item with a picture, drawn as a picture tile with text on the canvas and no
-  box, and (2) floating panels (`--raised`, 1px `--line`, 12px radius, 24px padding). Never nested.
+## Other pages
+
+- **/candidates**: a table on paper. One row per candidate: TIC, period, depth, size, checks passed, pixel check,
+  vetting verdict. Row hover draws a rule under the row in ink. The page header states the honest count first
+  ("The search has found no new candidate yet. These are stand-ins: real TESS Objects of Interest.").
+- **/candidates/[id]**, the dossier: a two-column sheet. Left, in order: the dip (folded and zoomed traces, drawn
+  with the monitor's line), the checks (each in a sentence), the pixel check, vetting (LEO, TRICERATOPS, Gaia,
+  variability), and votes. Right margin: the star's facts and the data dates. Votes: counts appear only after the
+  viewer votes.
+- **/log**: the helicorder. Every star searched is one row, newest at top: time searched, TIC, sectors, a tiny
+  sparkline of its curve if we have it (else a flat rule), and its outcome word. Above it, the **coverage**: a
+  flat all-sky map (equirectangular RA/Dec, RA increasing to the left, like looking up) with one dot per star
+  searched, filled pen if it had a candidate, blue if known, hollow ink otherwise.
+- **/sensitivity**: the injection-recovery grid as a table of ink densities on paper, with numbers in each cell.
+- **/methods**: the notebook. Section heads with numbered margin labels; the text arrives from session PLAN.
+  Until then each section says "Written by the methods session; not yet here." in `--ink-3`.
+- `/finder`, `/finder/[id]`, `/finder/sensitivity` redirect to `/candidates`, `/candidates/[id]`, `/sensitivity`.
 
 ## Components
 
-### Top bar
-
-- 56px, `#000`, a `--line-faint` bottom edge, sticky on app pages. On home it overlays the hero with no edge.
-- Left: glyph plus "Planet Hunter", always linking to `/`. Then **Events · Sky · Lab · Finder**. These are
-  the only names for the sections, everywhere. 64px tall (56 on phones); transparent over a hero photograph. 14px `--ink-secondary`; the current section is `--ink` with a 1px `--ink` rule
-  on the bar's bottom edge (not the accent).
-- Right: "Find a star", a 240px field with a `/` shortcut that opens the star search. On phones it becomes an icon
-  button.
-- Section navigation (lab experiments, finder views) lives in the page header as tabs, not in the bar.
-- On `/sky`, the same bar is the top row above the sky.
-
-### Page header
-
-A crumb (detail pages), then the kind label (detail pages), then the h1 with tags inline, then a one-to-two
-sentence lede (read, 640px), then a summary tag row or meta row, then section tabs (index pages). 32px below.
-Actions sit right of the h1, secondary tier. A primary action appears only when it is the page's one job.
-
-### Buttons
-
-- Primary: `--ink` fill, `#000` text, 13/500, 8px radius.
-- Secondary: transparent, 1px `--line-strong`, `--ink` text.
-- Quiet: text only, `--ink-secondary`, with an arrow when it navigates.
-- Disabled: `--ink-disabled` text, a `--line-faint` border, focusable, reason given. Never dashed.
-- An action that is impossible for a known reason is hidden, with the reason in one line.
-
-### Tags
-
-Mono label step, 20px high (24 in page headers), 4px radius, 1px `--line-strong`, `--ink-secondary`.
-
-### Tables
-
-- Header: label step, `--line` below.
-- Rows: at least 44px, `--line-faint` separators, no zebra striping, 2% hover tint.
-- First column: sans 14/500. Numbers are right-aligned and tabular.
-- At most 3 columns on phones.
-
-### Charts
-
-- On the canvas, no card. Gridlines `--line-faint`, zero line `--line-strong`.
-- Ticks: mono 11. Axis titles: sans 12, sentence case.
-- Measured points `--ink-muted`. The summary, fit or pipeline answer is solid `--ink` at 1.5px. **The user's own
-  model or guess is a dashed `--ink` line.** Predicted events are `--ink` ticks.
-- The accent appears only on the selected point or series.
-- The viewBox matches the rendered width. Phones get a narrow variant.
-
-### States
-
-- **Empty**: a sentence where the content would be, plus one action. Optional line drawing, at most 96px.
-- **Loading**: flat `rgb(222 230 255 / .04)` placeholders at final size; after 1s, a meta line naming what is
-  loading.
-- **Error**: inline: what failed, what still works, "Try again". A missing optional file is "not available for
-  this star yet", never an error and never developer copy.
-- **Demo**: one `DEMO DATA` tag on the smallest demo thing, plus one caption sentence. "REAL DATA" tags are not used.
-
-### Pictures
-
-- **Only real pictures:** photographs and instrument images from NASA, SDO/Helioviewer, ESA/Webb, ESA/Hubble, ESO,
-  NOIRLab and ESA/Gaia; hips2fits survey cutouts; our own renders of real data. Never generated images, artist's
-  impressions shown as photographs, stock space art, tinting or text burned into a crop.
-- Every picture lives in `public/images/` with an entry in `public/images/credits.json` (url, title, credit, licence,
-  source, size, archive?, event?).
-- **Hero:** one full-bleed photograph (100vh, at most 920px). Only the page title may sit on it, in its dark negative
-  space.
-- **Tiles:** 1:1 in grids (3:4 or 4:3 for lab pictures), `cover`, 4px radius, no border, no overlay. Astronomical
-  objects are shown whole unless the viewport edge cuts a planet on purpose.
-- **Caption line:** one mono line (label step) under every picture: source · date or time · flag (`archive`,
-  `guess 82%`, `candidate`, `demo`), with an **i** at its end that opens the credit, licence, source link and one
-  honesty sentence.
-- **Crosshair on archive pictures:** every survey or archive picture of an event carries a thin crosshair at the
-  event's position (1px `--ink`, four 6px arms with a 5px gap at the centre, at 80% opacity), in the gallery and on
-  the event page, so the picture is about the event. The caption still says "archive".
-- **Typographic tile:** for an event with no picture and no precise position. A 1:1 `--well` square with a `--line`
-  border, its category shape, its name and "TYPE · DATE". Never a stand-in image.
-- **Data as picture:** light curves and pixel maps render large, labels at 1:1, with a caption line.
-
-### Drawers
-
-Every explanation lives in a closed `<details>` drawer: a 56px row with a summary of ≤ 3 words, a mono state on
-the right ("6 of 6 passed") and a + / − marker. Science pages (lab experiments, the candidate report) keep their
-full explanations, collapsed; the picture or chart leads. On the candidate report the folded light curve is the
-large lead image and the survey picture of the star's field is the small one.
+- **Top bar**: 56px, on paper, a `--grid-strong` rule below. Left: "Planet Hunter" set in Newsreader italic 20px.
+  Then Monitor, Candidates, Log, Methods in Newsreader 17px, `--ink-2`, current page in `--ink` with a 2px pen
+  underline. Right: the mode label on the monitor only. Phone: the links stay in one scrollable row, no hamburger.
+- **Buttons**: text in Martian Mono 12px caps, 1px `--ink` outline, 2px radius, 44px min height. Pressed state
+  inverts (ink fill, paper text). Hover: 1px shift down, 120ms. No pills, no nested icon circles.
+- **Links in prose**: ink, underlined 1px at 0.2em offset; hover turns the underline pen.
+- **Tables**: no zebra, no boxes. Mono head row in `--ink-3` on `--paper-2`, `--grid-strong` rules between rows.
+- **Readouts**: a mono label over a Newsreader number, left-aligned. Never a "stat card".
+- **Empty/error states**: one sentence in Newsreader italic in `--ink-2`, plus the action if any.
 
 ## Motion
 
-- UI: 120 to 200ms, `cubic-bezier(.2, 0, 0, 1)`, on opacity, transform and colour only. Motion is for feedback
-  and state change only; no UI element loops. Under `prefers-reduced-motion`, every duration is 0.
-- Panels, popovers and sheets may use up to 240ms to enter and 160ms to exit. Map markers may fade over up to 240ms.
-- Camera: `camera-controls` gives damped orbit and dolly with inertia. Picking a planet host, "Jump to" and closing a
-  close-up are **flights**: one eased (ease-in-out) timeline of 1.2 to 2 s that pulls back, turns toward the
-  destination, then glides in. Any pointer or wheel input stops a flight where it is.
-- Hover and selection rings on the sky fade in under 150ms.
-- Two things loop: the focused star's surface (slow convection), and a gentle pulse on events observed in the last
-  24 hours (a ring that grows and fades every 2.4 s). A running analysis step shows a spinner.
-- Under `prefers-reduced-motion`: flights are instant cuts, no inertia, no drift, no pulse, no spinner, and the surface is a still image.
-- The illustrated sky's nebula layer may drift very slightly (under 0.1°). This is off under reduced motion and on
-  phones.
+- Easing: `--ease-out: cubic-bezier(0.22, 1, 0.36, 1)` for arrivals, `--ease-in-out: cubic-bezier(0.65, 0, 0.35, 1)`
+  for the paper advance. No bounce, no spring overshoot, no linear except the trace itself (data time is linear).
+- Durations: 120ms hovers, 160ms ticks and fades, 240ms panels, 900ms the paper advance. That is all.
+- Only `transform` and `opacity` animate in CSS. The canvas redraws per frame; nothing else does.
+- No entry animations on scroll. Content is there when the page loads.
+- Under `prefers-reduced-motion: reduce` every duration is 0 and the monitor is still (above).
 - Animation pauses while the tab is hidden.
-
-## The sky
-
-The sky becomes secondary: a full-screen page at `/sky` and a compact "where is it" on each
-event. Its background is ESO's real all-sky photograph, eso0932a ("ESO/S. Brunier", CC BY 4.0), which is
-equirectangular in galactic coordinates: it maps directly onto the celestial sphere rotated from galactic
-to ICRS. Faint constellation lines (22 to 35%) and names (label style, 55%) come from d3-celestial (BSD-3-Clause),
-so a position reads as "in Orion, near the Milky Way". Events are their category shapes. The compact sky is a
-56° × 34° crop around the event. `/sky` wraps the panorama onto the 3D celestial sphere
-with the camera inside (drag to look around, with inertia); the filter bar floats on top; the flat panorama is used
-only for the compact crops. Map panels use `--raised` with `--line` borders, and the shared top bar is the sky's top
-row. The panorama is served at 6000 × 3000 on desktop (ESO's largest JPEG; about 16.7 px per degree, so the default field
-of view is 90°) and 3072 × 1536 on phones. Where the rules below say "pure black space" or "no haze", read
-them as: nothing is added to the photograph; the page around it is `#000`.
-
-- The sky is where the beauty lives. Panels stay flat and minimal.
-- Reference: NASA's Eyes on Exoplanets. Pure black space (`--space`), jewel-like stars in their true colours, and
-  fly-in close-ups of a star with a living surface.
-- **Star colour is data.** Colour comes from effective temperature (TIC Teff for planet hosts; B−V converted to Teff
-  for bright stars) through Mitchell Charity's blackbody table, with one documented saturation boost
-  (`DISPLAY_SATURATION` in `lib/starColor.ts`, stated in "About this map"). Missing Teff: neutral white, no boost.
-- Far stars are additive point sprites: a sharp core plus a gaussian halo, sized by apparent magnitude, drawn in
-  device pixels. No twinkling. A bloom pass (luminance threshold, mipmap blur; half resolution on phones) makes only
-  the brightest stars and the close-up star glow.
-- Close-up: only the focused star swaps from sprite to sphere. Its radius is the catalogue radius on one scale for all
-  stars, so relative sizes are true. The surface (granulation, spots, limb darkening) and corona are procedural, and
-  the HUD always says "Surface is an illustration; colour, size and position are from real data."
-- The illustrated layers (Milky Way, dust, Magellanic Clouds, nebulae) are procedural shaders placed at **real**
-  positions and sizes from public catalogues (see `CREDITS.md`). They form one optional layer, "Milky Way & nebulae",
-  **off by default**, with the note "Shapes are illustrations; positions are real." A drawn nebula is never labelled
-  as a photo. Rubin coverage stays a subtle optional overlay.
-- **Events pop.** Markers are 14 to 20 px at any field of view, with a 2.4 px stroke, a soft halo in their category
-  colour and a thin black separation, drawn above the stars. "Dim stars" (on by default) draws stars at half
-  brightness, so events are the brightest things on screen. A selected event dims the others and shows its error circle.
-- **Every visible star is clickable**: planet hosts (3D, with the close-up) and bright catalogue stars (centred from
-  Earth). Hover shows its name. The star panel says where each number comes from; estimated values (a bright
-  star's temperature from B−V, its radius from brightness and temperature) are marked as estimates.
-- If both star layers are off, a small hint says so, with a one-click "Show stars".
-- Sun-frame events sit around the Sun's current position (computed client-side); the Sun itself is drawn in its
-  real colour. Earth-frame events (fireballs, storms) are not on the sky: they get an Earth inset in the detail.
-- **Black means black.** The background is `#000` at all times, including behind a close-up: the corona is gone
-  by 1.5 stellar radii and the bloom threshold only catches star cores. No haze, fog or tint.
 
 ## Words
 
-- Say **event**, never catch, trap or detection. There are no watches, forecasts, points or scores anywhere.
-  The finder's machine ranking is **priority**, never score. No locks or unlocks.
-- The star action is **Analyze this star**. A result is "Planet candidate", never "new planet", with its confidence.
-- Never write "new planet" or "discovered". Confidence is always shown with its basis: "72%, machine guess".
-- A vote is "Looks like a planet", "Probably not a planet" or "Not sure". Never "fake". Vote counts appear
-  after the viewer votes.
-- The sections are **Sky map**, **Lab** and **Finder**, in the UI and in prose.
-- Pictures keep their caption and credit visible. A sky-context photo is an archive image taken years before the
-  event: say so ("The event itself is not in it"). A `forecast_map` is labelled as a forecast, never a photo.
-  Say it once per section; each archive picture's source line ends in "· archive".
-- Paused sources are stated plainly: "Rubin hasn't sent alerts since 14 Jul."
-- Dates: "14 Jul", "19 Sep 2026, 18:17 UTC". Times are UTC. Relative times come from `observed_at` only. When a
-  source publishes no report time (`raw.reported_at_known === false`), say "Report time not published".
-- Mock data shows a visible `DEMO DATA` tag.
-- No developer copy in the UI (file names, services, "for building the UI").
-- Word budgets: home hero ≤ 12 words; a landing section is a heading of ≤ 3 words plus at most one line of
-  ≤ 8 words; no paragraphs on landing surfaces; a caption line is ≤ 8 mono tokens; a tile is a name of ≤ 4 words
-  plus its caption line.
-- Honesty stays one tap away at most: "archive" and "guess" in the caption line, "candidate" under the
-  title, "demo" as a tag.
-- No em dashes in UI copy.
-
-## Layout: sky screen (/sky)
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ top bar 64px: Planet Hunter · Events · Sky · Lab · Finder   │
-├──────────────────────────────────────────────┬──────────────┤
-│ filter bar (time, categories, More)          │ Detail       │
-│                                              │ 360px, only  │
-│   3D sky: ESO's photograph on the sphere,    │ when an      │
-│   faint constellations, event shapes         │ event or a   │
-│                                              │ star is open │
-│ Layers                Jump to · paused · Pictures           │
-├──────────────────────────────────────────────┴──────────────┤
-│ status bar 36px: pointer RA/Dec, FOV, events shown, DEMO    │
-└─────────────────────────────────────────────────────────────┘
-```
-
-With nothing selected the sky takes the full width; the list of events is the `/events` gallery (same filter bar and
-URL params: `time`, `from`, `to`, `types`, `src`, `conf`, `pics`, `rubin`). `/map` redirects to `/sky` with its query;
-`/sky?event=<id>` flies to an event and opens it; `/sky?host=<tic>` and `/sky?bright=<index>` fly to a star.
-Below 900px the sky is full screen and an open event or star is a sheet.
+- The product words: **star**, **light curve**, **dip**, **signal**, **candidate**, **known**, **rejected**,
+  **searched**. "Detection" is a code word; the UI says "dip" or "signal".
+- **Candidate**, never "discovered", "new planet", "found a planet". A candidate is "a candidate, not a confirmed
+  planet" wherever it is introduced.
+- Data dates are always shown with the instrument: "observed 2 to 28 Aug 2026 by TESS".
+- The monitor's mode is said plainly: "Live" or "Replay of the 26 Sep 2026 search".
+- Votes: "Looks like a planet", "Probably not", "Not sure". Counts appear after voting.
+- Rejections say why, in hunt's own sentence.
+- Demo and stand-in data say so in the page header, once, in words ("These are stand-ins").
+- No em dashes in UI copy. No exclamation marks.
 
 ## Accessibility
 
-- Focus is always visible: a 2px `--accent` outline with a 2px offset.
-- Every control has an accessible name.
-- Text contrast meets WCAG AA on `--bg` and `--raised`.
-- `--ink-disabled` is only for disabled text.
-- Tap targets are at least 44px on coarse pointers, including nav links, segmented options and vote
-  buttons.
-- Meaning shown by a chart mark or mini-bar is also shown in visible text or a legend, not only in
-  `aria-label`.
+- Focus: 2px `--pen` outline, 2px offset, always visible.
+- Every control has an accessible name; the monitor canvas has a live text twin (visually hidden) that announces
+  each star and each dip ("Dip at 20 Jul, 2 950 ppm, known: TOI-7303.01") politely, at most once per 2 s.
+- Text contrast meets WCAG AA on `--paper` and `--paper-2` in both themes.
+- Tap targets are at least 44px on coarse pointers.
+- Chart meaning is also in text: the dossier lists every mark it draws.
+- `forced-colors: active`: the trace uses `CanvasText`, the pen `Highlight`, grain and grid are off.
 
-## Where this file overrides the design-taste-frontend skill
+## Code
 
-- The skill's default is Tailwind v4; we use bespoke CSS with custom properties.
-- The skill's default is the Motion library; we use CSS transitions.
-- The skill says light and dark modes are mandatory; this project is dark only.
-- The skill targets landing pages (its §13); this is an app surface, so only its anti-slop, a11y and type rules apply.
-- The skill bans pure `#000`; the sky is pure black by the project owner's decision ("black means black").
-  The page canvas is pure black too, so pages and the sky are one surface; floating panels use
-  `--raised`.
-- The skill limits uppercase eyebrows; mono uppercase labels are this system's label style (Type, above).
-  They label data only, never sections.
+- Bespoke CSS (CSS modules + `styles/tokens.css`). No Tailwind, shadcn/ui, Radix, Motion/Framer.
+- The trace is hand-written 2D canvas code in `components/monitor/`, with its timing logic in plain TS that
+  `node --test` can load.
 
-## Where this file overrides the impeccable skill
+## Where this file overrides skills
 
-- Impeccable bans "a tiny uppercase eyebrow above every section". We agree: our mono labels name data, and at most
-  one kind label appears per page header.
-- Impeccable asks for OKLCH and a seeded palette on new projects; this project keeps its committed hex tokens.
+- **high-end-visual-design**: rejected its double-bezel cards, pill buttons with nested icon circles, glass
+  floating nav, eyebrow pill badges, blur fade-up on scroll and "py-24 minimum" sections. They are the house style
+  of generated sites, which the brief asks us not to be. Kept: its banned-font list, custom easing, transform/opacity
+  only, no scroll listeners, `100dvh`, grain on a fixed layer.
+- **design-taste-frontend**: Tailwind and Motion are out (bespoke CSS, canvas). Our uppercase mono labels are the
+  label style and label data only.
+- **emil-design-eng**: where it favours springs, we use the two curves above; the trace itself is linear in data
+  time because data time is linear.
+- **impeccable**: we keep hex tokens rather than OKLCH.
