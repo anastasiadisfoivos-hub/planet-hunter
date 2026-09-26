@@ -21,6 +21,23 @@ cleanup in [REMOVE.md](REMOVE.md).
 
 ---
 
+## Decisions (26 Sep)
+
+Taken by the owner on 2026-09-26. Where a phase below says otherwise, these win.
+
+1. **Compute.** The bulk search runs on an **Oracle Cloud Always Free server (4 cores, 24 GB)**
+   on its own timer. It is **not** a GitHub self-hosted runner, because the repository is public.
+   GitHub's hosted runners are used **for CI only**. (Replaces the platform options in Phase 2 and
+   SCIENCE.md §9.)
+2. **Two-speed search.** A **fast pass** (`hunt/`) goes over the ranked list. A **deep pass**
+   (DEEPHUNT: all sectors, TLS, single/duo dips) runs on the most promising and multi-sector
+   stars. The server keeps a record of finished stars (the search ledger) and moves down the list.
+3. **Submission.** **No direct ExoFOP uploads.** The route is a refereed paper with the best
+   candidates, ideally with a professional co-author. Until then, candidates live on the public
+   site. (Phase 6's upload step happens only if and when a paper is accepted.)
+4. **Faint stars.** Faint stars (TGLC) are searched for **public candidates** on the site; the
+   paper route leans on **brighter stars**.
+
 ## Phase 0: One product on `main`
 
 Assemble `main` from the KEEP list in REMOVE.md: `hunt/` (from `deephunt`), `pipeline/`,
