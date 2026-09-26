@@ -1,0 +1,1801 @@
+{
+ "summary": {
+  "n_stars": 60,
+  "n_with_tglc": 54,
+  "fit": {
+   "a": 3.5821,
+   "b": 0.3153,
+   "c": 0.0504,
+   "rms_dex": 0.144,
+   "clipped": 1
+  },
+  "median_alpha": -0.466,
+  "median_days_per_sector": 22.5,
+  "per_star": {
+   "sectors_median": 2.0,
+   "bytes_median": 192960,
+   "bytes_p90": 433728,
+   "bytes_per_sector_median": 95040,
+   "seconds_median": 6.67,
+   "seconds_p90": 11.21,
+   "resolve_s_median": 4.68,
+   "download_s_median": 1.79
+  },
+  "cdpp_1h_by_tmag": {
+   "13-14": 2668,
+   "14-15": 5801,
+   "15-16": 14128
+  }
+ },
+ "stars": [
+  {
+   "tic": 113430485,
+   "tmag": 13.8081,
+   "rad": 0.43283,
+   "contratio": 0.0551484041,
+   "sectors": [
+    13,
+    27
+   ],
+   "cdpp_1h_ppm": 6055.9,
+   "cdpp_2h_ppm": 5464.9,
+   "alpha": -0.148,
+   "days_with_data": 47.5,
+   "days_per_sector": 23.75,
+   "rmin_p5": {
+    "radius_rearth": 6.34,
+    "depth_ppm": 18030,
+    "duration_h": 1.79,
+    "n_transits": 9.5
+   },
+   "download": {
+    "files": 2,
+    "bytes": 187200,
+    "from_cache": 0,
+    "resolve_s": 3.9,
+    "download_s": 1.71,
+    "total_s": 5.62
+   },
+   "wall_s": 5.73,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 118312999,
+   "tmag": 13.9076,
+   "rad": 0.502578,
+   "contratio": 0.0857364237,
+   "sectors": [
+    8,
+    9,
+    10,
+    35,
+    36
+   ],
+   "cdpp_1h_ppm": 3351.5,
+   "cdpp_2h_ppm": 2422.1,
+   "alpha": -0.469,
+   "days_with_data": 96.5,
+   "days_per_sector": 19.3,
+   "rmin_p5": {
+    "radius_rearth": 4.09,
+    "depth_ppm": 5555,
+    "duration_h": 1.97,
+    "n_transits": 19.3
+   },
+   "download": {
+    "files": 5,
+    "bytes": 417600,
+    "from_cache": 0,
+    "resolve_s": 4.77,
+    "download_s": 1.79,
+    "total_s": 6.59
+   },
+   "wall_s": 6.83,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 94375272,
+   "tmag": 13.7695,
+   "rad": 0.617938,
+   "contratio": 0.0309793986,
+   "sectors": [
+    10,
+    37
+   ],
+   "cdpp_1h_ppm": 2822.1,
+   "cdpp_2h_ppm": 1990.7,
+   "alpha": -0.5,
+   "days_with_data": 38.5,
+   "days_per_sector": 19.25,
+   "rmin_p5": {
+    "radius_rearth": 5.54,
+    "depth_ppm": 6742,
+    "duration_h": 2.28,
+    "n_transits": 7.7
+   },
+   "download": {
+    "files": 2,
+    "bytes": 190080,
+    "from_cache": 0,
+    "resolve_s": 4.1,
+    "download_s": 2.85,
+    "total_s": 6.97
+   },
+   "wall_s": 7.06,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 115943967,
+   "tmag": 13.4617,
+   "rad": 0.429685,
+   "contratio": 0.000362299965,
+   "sectors": [
+    2,
+    29
+   ],
+   "cdpp_1h_ppm": 1943.9,
+   "cdpp_2h_ppm": 1334.1,
+   "alpha": -0.5,
+   "days_with_data": 39.0,
+   "days_per_sector": 19.5,
+   "rmin_p5": {
+    "radius_rearth": 3.39,
+    "depth_ppm": 5220,
+    "duration_h": 1.78,
+    "n_transits": 7.8
+   },
+   "download": {
+    "files": 2,
+    "bytes": 195840,
+    "from_cache": 0,
+    "resolve_s": 9.74,
+    "download_s": 3.47,
+    "total_s": 13.22
+   },
+   "wall_s": 13.32,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 52645850,
+   "tmag": 13.6937,
+   "rad": 0.361023,
+   "contratio": 0.0345494263,
+   "sectors": [
+    6,
+    7,
+    33,
+    34
+   ],
+   "cdpp_1h_ppm": 2285.0,
+   "cdpp_2h_ppm": 1641.8,
+   "alpha": -0.477,
+   "days_with_data": 94.5,
+   "days_per_sector": 23.62,
+   "rmin_p5": {
+    "radius_rearth": 2.55,
+    "depth_ppm": 4203,
+    "duration_h": 1.6,
+    "n_transits": 18.9
+   },
+   "download": {
+    "files": 4,
+    "bytes": 365760,
+    "from_cache": 0,
+    "resolve_s": 4.18,
+    "download_s": 2.13,
+    "total_s": 6.34
+   },
+   "wall_s": 6.63,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 123368190,
+   "tmag": 13.9926,
+   "rad": 0.446883,
+   "contratio": 0.00125670782,
+   "sectors": [
+    3
+   ],
+   "cdpp_1h_ppm": 2953.3,
+   "cdpp_2h_ppm": 2132.0,
+   "alpha": -0.47,
+   "days_with_data": 21.5,
+   "days_per_sector": 21.5,
+   "rmin_p5": {
+    "radius_rearth": 5.05,
+    "depth_ppm": 10740,
+    "duration_h": 1.82,
+    "n_transits": 4.3
+   },
+   "download": {
+    "files": 1,
+    "bytes": 57600,
+    "from_cache": 0,
+    "resolve_s": 5.11,
+    "download_s": 1.04,
+    "total_s": 6.15
+   },
+   "wall_s": 6.18,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 100828741,
+   "tmag": 13.983,
+   "rad": 0.651122,
+   "contratio": 0.01777857,
+   "sectors": [
+    27
+   ],
+   "cdpp_1h_ppm": 52828.3,
+   "cdpp_2h_ppm": 57876.7,
+   "alpha": 0.0,
+   "days_with_data": 24.5,
+   "days_per_sector": 24.5,
+   "rmin_p5": {
+    "radius_rearth": 34.7,
+    "depth_ppm": 238654,
+    "duration_h": 2.36,
+    "n_transits": 4.9
+   },
+   "download": {
+    "files": 1,
+    "bytes": 129600,
+    "from_cache": 0,
+    "resolve_s": 4.15,
+    "download_s": 1.72,
+    "total_s": 5.87
+   },
+   "wall_s": 5.97,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 290957892,
+   "tmag": 13.6427,
+   "rad": 0.411027,
+   "contratio": 0.7774178,
+   "sectors": [
+    12,
+    39
+   ],
+   "cdpp_1h_ppm": 4640.9,
+   "cdpp_2h_ppm": 3611.1,
+   "alpha": -0.362,
+   "days_with_data": 51.0,
+   "days_per_sector": 25.5,
+   "rmin_p5": {
+    "radius_rearth": 4.9,
+    "depth_ppm": 11918,
+    "duration_h": 1.73,
+    "n_transits": 10.2
+   },
+   "download": {
+    "files": 2,
+    "bytes": 207360,
+    "from_cache": 0,
+    "resolve_s": 3.43,
+    "download_s": 1.94,
+    "total_s": 5.38
+   },
+   "wall_s": 5.54,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 115283792,
+   "tmag": 13.5088,
+   "rad": 0.58591,
+   "contratio": 0.014945765,
+   "sectors": [
+    3,
+    30
+   ],
+   "cdpp_1h_ppm": 1911.0,
+   "cdpp_2h_ppm": 1388.2,
+   "alpha": -0.461,
+   "days_with_data": 43.0,
+   "days_per_sector": 21.5,
+   "rmin_p5": {
+    "radius_rearth": 4.31,
+    "depth_ppm": 4540,
+    "duration_h": 2.19,
+    "n_transits": 8.6
+   },
+   "download": {
+    "files": 2,
+    "bytes": 204480,
+    "from_cache": 0,
+    "resolve_s": 3.95,
+    "download_s": 1.82,
+    "total_s": 5.78
+   },
+   "wall_s": 5.91,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 355696402,
+   "tmag": 13.438,
+   "rad": 0.666959,
+   "contratio": 0.0574408025,
+   "sectors": [
+    9,
+    10,
+    11,
+    35,
+    36,
+    37,
+    38
+   ],
+   "cdpp_1h_ppm": 2107.1,
+   "cdpp_2h_ppm": 1554.7,
+   "alpha": -0.439,
+   "days_with_data": 138.5,
+   "days_per_sector": 19.79,
+   "rmin_p5": {
+    "radius_rearth": 3.8,
+    "depth_ppm": 2723,
+    "duration_h": 2.41,
+    "n_transits": 27.7
+   },
+   "download": {
+    "files": 7,
+    "bytes": 705600,
+    "from_cache": 0,
+    "resolve_s": 3.97,
+    "download_s": 2.28,
+    "total_s": 6.28
+   },
+   "wall_s": 6.67,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 651159732,
+   "tmag": 13.708,
+   "rad": 0.432039,
+   "contratio": null,
+   "sectors": [
+    4,
+    31
+   ],
+   "cdpp_1h_ppm": 2568.5,
+   "cdpp_2h_ppm": 1786.7,
+   "alpha": -0.5,
+   "days_with_data": 44.0,
+   "days_per_sector": 22.0,
+   "rmin_p5": {
+    "radius_rearth": 3.88,
+    "depth_ppm": 6761,
+    "duration_h": 1.64,
+    "n_transits": 8.8
+   },
+   "download": {
+    "files": 2,
+    "bytes": 184320,
+    "from_cache": 0,
+    "resolve_s": 3.98,
+    "download_s": 1.76,
+    "total_s": 5.75
+   },
+   "wall_s": 5.87,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 348342441,
+   "tmag": 13.5357,
+   "rad": 0.625989,
+   "contratio": 0.704754531,
+   "sectors": [
+    12,
+    39
+   ],
+   "cdpp_1h_ppm": 5060.8,
+   "cdpp_2h_ppm": 4033.1,
+   "alpha": -0.327,
+   "days_with_data": 45.0,
+   "days_per_sector": 22.5,
+   "rmin_p5": {
+    "radius_rearth": 7.74,
+    "depth_ppm": 12848,
+    "duration_h": 2.3,
+    "n_transits": 9.0
+   },
+   "download": {
+    "files": 2,
+    "bytes": 207360,
+    "from_cache": 0,
+    "resolve_s": 5.15,
+    "download_s": 3.83,
+    "total_s": 8.99
+   },
+   "wall_s": 9.13,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 371947649,
+   "tmag": 13.5583,
+   "rad": 0.610264,
+   "contratio": 0.002778955,
+   "sectors": [
+    13,
+    27
+   ],
+   "cdpp_1h_ppm": 2263.9,
+   "cdpp_2h_ppm": 1746.1,
+   "alpha": -0.375,
+   "days_with_data": 49.5,
+   "days_per_sector": 24.75,
+   "rmin_p5": {
+    "radius_rearth": 4.85,
+    "depth_ppm": 5306,
+    "duration_h": 2.25,
+    "n_transits": 9.9
+   },
+   "download": {
+    "files": 2,
+    "bytes": 187200,
+    "from_cache": 0,
+    "resolve_s": 11.6,
+    "download_s": 2.02,
+    "total_s": 13.64
+   },
+   "wall_s": 13.75,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 455803275,
+   "tmag": 13.0235,
+   "rad": 0.677552,
+   "contratio": 0.587008059,
+   "sectors": [
+    12,
+    38,
+    39
+   ],
+   "cdpp_1h_ppm": 2363.0,
+   "cdpp_2h_ppm": 1783.3,
+   "alpha": -0.406,
+   "days_with_data": 76.0,
+   "days_per_sector": 25.33,
+   "rmin_p5": {
+    "radius_rearth": 4.8,
+    "depth_ppm": 4222,
+    "duration_h": 2.44,
+    "n_transits": 15.2
+   },
+   "download": {
+    "files": 3,
+    "bytes": 351360,
+    "from_cache": 0,
+    "resolve_s": 8.09,
+    "download_s": 1.95,
+    "total_s": 10.06
+   },
+   "wall_s": 10.28,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 73113657,
+   "tmag": 13.9961,
+   "rad": 0.501859,
+   "contratio": 0.0246518087,
+   "sectors": [
+    9,
+    36
+   ],
+   "cdpp_1h_ppm": 2617.5,
+   "cdpp_2h_ppm": 1932.1,
+   "alpha": -0.438,
+   "days_with_data": 40.0,
+   "days_per_sector": 20.0,
+   "rmin_p5": {
+    "radius_rearth": 4.54,
+    "depth_ppm": 6882,
+    "duration_h": 1.97,
+    "n_transits": 8.0
+   },
+   "download": {
+    "files": 2,
+    "bytes": 187200,
+    "from_cache": 0,
+    "resolve_s": 6.01,
+    "download_s": 2.23,
+    "total_s": 8.25
+   },
+   "wall_s": 8.38,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 268549134,
+   "tmag": 13.1007,
+   "rad": 0.541089,
+   "contratio": 0.194531977,
+   "sectors": [
+    10,
+    37
+   ],
+   "cdpp_1h_ppm": 4196.3,
+   "cdpp_2h_ppm": 3833.3,
+   "alpha": -0.131,
+   "days_with_data": 37.0,
+   "days_per_sector": 18.5,
+   "rmin_p5": {
+    "radius_rearth": 6.99,
+    "depth_ppm": 14028,
+    "duration_h": 2.07,
+    "n_transits": 7.4
+   },
+   "download": {
+    "files": 2,
+    "bytes": 190080,
+    "from_cache": 0,
+    "resolve_s": 8.75,
+    "download_s": 1.87,
+    "total_s": 10.63
+   },
+   "wall_s": 10.7,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 124922946,
+   "tmag": 13.9656,
+   "rad": 0.545166,
+   "contratio": 0.0040305946,
+   "sectors": [
+    6,
+    7,
+    33
+   ],
+   "cdpp_1h_ppm": 2842.2,
+   "cdpp_2h_ppm": 1926.6,
+   "alpha": -0.5,
+   "days_with_data": 70.5,
+   "days_per_sector": 23.5,
+   "rmin_p5": {
+    "radius_rearth": 4.31,
+    "depth_ppm": 5247,
+    "duration_h": 2.08,
+    "n_transits": 14.1
+   },
+   "download": {
+    "files": 3,
+    "bytes": 230400,
+    "from_cache": 0,
+    "resolve_s": 6.72,
+    "download_s": 1.72,
+    "total_s": 8.46
+   },
+   "wall_s": 8.63,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 124941322,
+   "tmag": 13.6409,
+   "rad": 0.566016,
+   "contratio": 0.00403936161,
+   "sectors": [
+    6,
+    7,
+    33
+   ],
+   "cdpp_1h_ppm": 2216.4,
+   "cdpp_2h_ppm": 1584.3,
+   "alpha": -0.484,
+   "days_with_data": 70.5,
+   "days_per_sector": 23.5,
+   "rmin_p5": {
+    "radius_rearth": 3.95,
+    "depth_ppm": 4087,
+    "duration_h": 2.14,
+    "n_transits": 14.1
+   },
+   "download": {
+    "files": 3,
+    "bytes": 230400,
+    "from_cache": 0,
+    "resolve_s": 5.38,
+    "download_s": 1.79,
+    "total_s": 7.18
+   },
+   "wall_s": 7.37,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 234294830,
+   "tmag": 13.207,
+   "rad": 0.424773,
+   "contratio": 7.847524e-05,
+   "sectors": [
+    1
+   ],
+   "cdpp_1h_ppm": 1709.5,
+   "cdpp_2h_ppm": 1203.8,
+   "alpha": -0.5,
+   "days_with_data": 28.0,
+   "days_per_sector": 28.0,
+   "rmin_p5": {
+    "radius_rearth": 3.42,
+    "depth_ppm": 5437,
+    "duration_h": 1.77,
+    "n_transits": 5.6
+   },
+   "download": {
+    "files": 1,
+    "bytes": 57600,
+    "from_cache": 0,
+    "resolve_s": 5.7,
+    "download_s": 1.01,
+    "total_s": 6.72
+   },
+   "wall_s": 6.76,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 363707566,
+   "tmag": 13.2478,
+   "rad": 0.604525,
+   "contratio": 0.19252415,
+   "sectors": [
+    13,
+    39
+   ],
+   "cdpp_1h_ppm": 2718.7,
+   "cdpp_2h_ppm": 1933.5,
+   "alpha": -0.492,
+   "days_with_data": 51.0,
+   "days_per_sector": 25.5,
+   "rmin_p5": {
+    "radius_rearth": 4.99,
+    "depth_ppm": 5727,
+    "duration_h": 2.24,
+    "n_transits": 10.2
+   },
+   "download": {
+    "files": 2,
+    "bytes": 207360,
+    "from_cache": 0,
+    "resolve_s": 4.46,
+    "download_s": 2.05,
+    "total_s": 6.53
+   },
+   "wall_s": 6.68,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 219223283,
+   "tmag": 14.8191,
+   "rad": 0.588137,
+   "contratio": 0.3062026,
+   "sectors": [
+    3,
+    4,
+    5,
+    30,
+    31
+   ],
+   "cdpp_1h_ppm": 6819.8,
+   "cdpp_2h_ppm": 4883.8,
+   "alpha": -0.482,
+   "days_with_data": 110.5,
+   "days_per_sector": 22.1,
+   "rmin_p5": {
+    "radius_rearth": 6.39,
+    "depth_ppm": 9933,
+    "duration_h": 2.2,
+    "n_transits": 22.1
+   },
+   "download": {
+    "files": 5,
+    "bytes": 440640,
+    "from_cache": 0,
+    "resolve_s": 4.84,
+    "download_s": 1.93,
+    "total_s": 6.79
+   },
+   "wall_s": 7.1,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 363965388,
+   "tmag": 14.9009,
+   "rad": 0.65847,
+   "contratio": 0.959653,
+   "sectors": [
+    6,
+    7,
+    8,
+    9,
+    33,
+    34,
+    35
+   ],
+   "cdpp_1h_ppm": 16390.5,
+   "cdpp_2h_ppm": 13050.4,
+   "alpha": -0.329,
+   "days_with_data": 150.0,
+   "days_per_sector": 21.43,
+   "rmin_p5": {
+    "radius_rearth": 10.77,
+    "depth_ppm": 22489,
+    "duration_h": 2.38,
+    "n_transits": 30.0
+   },
+   "download": {
+    "files": 7,
+    "bytes": 593280,
+    "from_cache": 0,
+    "resolve_s": 4.31,
+    "download_s": 1.8,
+    "total_s": 6.15
+   },
+   "wall_s": 6.51,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 397447047,
+   "tmag": 14.2214,
+   "rad": 0.614546,
+   "contratio": 0.233694911,
+   "sectors": [
+    13
+   ],
+   "cdpp_1h_ppm": 5695.0,
+   "cdpp_2h_ppm": 4274.7,
+   "alpha": -0.414,
+   "days_with_data": 25.5,
+   "days_per_sector": 25.5,
+   "rmin_p5": {
+    "radius_rearth": 8.99,
+    "depth_ppm": 17975,
+    "duration_h": 2.27,
+    "n_transits": 5.1
+   },
+   "download": {
+    "files": 1,
+    "bytes": 57600,
+    "from_cache": 0,
+    "resolve_s": 3.3,
+    "download_s": 1.02,
+    "total_s": 4.32
+   },
+   "wall_s": 4.35,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 97372468,
+   "tmag": 14.2575,
+   "rad": 0.406497,
+   "contratio": 0.415988982,
+   "sectors": [
+    39
+   ],
+   "cdpp_1h_ppm": 9960.8,
+   "cdpp_2h_ppm": 9160.9,
+   "alpha": -0.121,
+   "days_with_data": 25.5,
+   "days_per_sector": 25.5,
+   "rmin_p5": {
+    "radius_rearth": 9.01,
+    "depth_ppm": 41318,
+    "duration_h": 1.72,
+    "n_transits": 5.1
+   },
+   "download": {
+    "files": 1,
+    "bytes": 149760,
+    "from_cache": 0,
+    "resolve_s": 7.4,
+    "download_s": 4.02,
+    "total_s": 11.42
+   },
+   "wall_s": 11.53,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 300869435,
+   "tmag": 14.5256,
+   "rad": 0.419046,
+   "contratio": 0.5416182,
+   "sectors": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39
+   ],
+   "cdpp_1h_ppm": 5711.4,
+   "cdpp_2h_ppm": 4146.4,
+   "alpha": -0.462,
+   "days_with_data": 580.5,
+   "days_per_sector": 22.33,
+   "rmin_p5": {
+    "radius_rearth": 2.92,
+    "depth_ppm": 4093,
+    "duration_h": 1.75,
+    "n_transits": 116.1
+   },
+   "download": {
+    "files": 26,
+    "bytes": 2479680,
+    "from_cache": 0,
+    "resolve_s": 8.27,
+    "download_s": 6.01,
+    "total_s": 14.39
+   },
+   "wall_s": 15.89,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 370391535,
+   "tmag": 14.9479,
+   "rad": 0.46046,
+   "contratio": 0.7324478,
+   "sectors": [
+    11,
+    38
+   ],
+   "cdpp_1h_ppm": 9773.2,
+   "cdpp_2h_ppm": 7218.5,
+   "alpha": -0.437,
+   "days_with_data": 45.0,
+   "days_per_sector": 22.5,
+   "rmin_p5": {
+    "radius_rearth": 7.92,
+    "depth_ppm": 24848,
+    "duration_h": 1.86,
+    "n_transits": 9.0
+   },
+   "download": {
+    "files": 2,
+    "bytes": 198720,
+    "from_cache": 0,
+    "resolve_s": 9.31,
+    "download_s": 1.99,
+    "total_s": 11.31
+   },
+   "wall_s": 11.43,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 114390740,
+   "tmag": 14.9442,
+   "rad": 0.925867,
+   "contratio": null,
+   "sectors": [
+    13,
+    27
+   ],
+   "cdpp_1h_ppm": 8821.2,
+   "cdpp_2h_ppm": 6467.1,
+   "alpha": -0.448,
+   "days_with_data": 48.0,
+   "days_per_sector": 24.0,
+   "rmin_p5": {
+    "radius_rearth": 12.96,
+    "depth_ppm": 16468,
+    "duration_h": 3.4,
+    "n_transits": 9.6
+   },
+   "download": {
+    "files": 2,
+    "bytes": 187200,
+    "from_cache": 0,
+    "resolve_s": 7.26,
+    "download_s": 1.84,
+    "total_s": 9.11
+   },
+   "wall_s": 9.23,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 254224564,
+   "tmag": 14.9494,
+   "rad": 0.665624,
+   "contratio": 0.490639,
+   "sectors": [
+    13,
+    27
+   ],
+   "cdpp_1h_ppm": 10769.7,
+   "cdpp_2h_ppm": 8189.4,
+   "alpha": -0.395,
+   "days_with_data": 46.0,
+   "days_per_sector": 23.0,
+   "rmin_p5": {
+    "radius_rearth": 11.51,
+    "depth_ppm": 25108,
+    "duration_h": 2.4,
+    "n_transits": 9.2
+   },
+   "download": {
+    "files": 2,
+    "bytes": 187200,
+    "from_cache": 0,
+    "resolve_s": 4.42,
+    "download_s": 1.78,
+    "total_s": 6.21
+   },
+   "wall_s": 6.3,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 131410561,
+   "tmag": 14.9066,
+   "rad": 0.608172,
+   "contratio": 0.04520034,
+   "sectors": [
+    11,
+    37
+   ],
+   "cdpp_1h_ppm": 6550.5,
+   "cdpp_2h_ppm": 4675.4,
+   "alpha": -0.487,
+   "days_with_data": 36.0,
+   "days_per_sector": 18.0,
+   "rmin_p5": {
+    "radius_rearth": 8.51,
+    "depth_ppm": 16457,
+    "duration_h": 2.25,
+    "n_transits": 7.2
+   },
+   "download": {
+    "files": 2,
+    "bytes": 190080,
+    "from_cache": 0,
+    "resolve_s": 5.46,
+    "download_s": 1.92,
+    "total_s": 7.39
+   },
+   "wall_s": 7.49,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 70419584,
+   "tmag": 14.52,
+   "rad": 0.565808,
+   "contratio": 0.0602921955,
+   "sectors": [
+    1,
+    28
+   ],
+   "cdpp_1h_ppm": 5702.7,
+   "cdpp_2h_ppm": 4377.0,
+   "alpha": -0.382,
+   "days_with_data": 46.5,
+   "days_per_sector": 23.25,
+   "rmin_p5": {
+    "radius_rearth": 7.3,
+    "depth_ppm": 13998,
+    "duration_h": 2.14,
+    "n_transits": 9.3
+   },
+   "download": {
+    "files": 2,
+    "bytes": 192960,
+    "from_cache": 0,
+    "resolve_s": 5.14,
+    "download_s": 1.75,
+    "total_s": 6.9
+   },
+   "wall_s": 6.98,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 152937797,
+   "tmag": 14.183,
+   "rad": 0.595475,
+   "contratio": 0.0128434,
+   "sectors": [
+    1,
+    28
+   ],
+   "cdpp_1h_ppm": 3565.2,
+   "cdpp_2h_ppm": 2661.1,
+   "alpha": -0.422,
+   "days_with_data": 45.5,
+   "days_per_sector": 22.75,
+   "rmin_p5": {
+    "radius_rearth": 5.97,
+    "depth_ppm": 8450,
+    "duration_h": 2.21,
+    "n_transits": 9.1
+   },
+   "download": {
+    "files": 2,
+    "bytes": 192960,
+    "from_cache": 0,
+    "resolve_s": 4.74,
+    "download_s": 1.78,
+    "total_s": 6.53
+   },
+   "wall_s": 6.61,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 124661858,
+   "tmag": 14.0486,
+   "rad": 0.55645,
+   "contratio": 0.07054986,
+   "sectors": [
+    37
+   ],
+   "cdpp_1h_ppm": 3292.9,
+   "cdpp_2h_ppm": 2565.2,
+   "alpha": -0.36,
+   "days_with_data": 21.0,
+   "days_per_sector": 21.0,
+   "rmin_p5": {
+    "radius_rearth": 6.73,
+    "depth_ppm": 12276,
+    "duration_h": 2.11,
+    "n_transits": 4.2
+   },
+   "download": {
+    "files": 1,
+    "bytes": 135360,
+    "from_cache": 0,
+    "resolve_s": 4.42,
+    "download_s": 1.62,
+    "total_s": 6.05
+   },
+   "wall_s": 6.13,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 180022522,
+   "tmag": 14.9725,
+   "rad": 0.590131,
+   "contratio": 0.2591522,
+   "sectors": [
+    38
+   ],
+   "cdpp_1h_ppm": 12286.4,
+   "cdpp_2h_ppm": 10382.4,
+   "alpha": -0.243,
+   "days_with_data": 26.5,
+   "days_per_sector": 26.5,
+   "rmin_p5": {
+    "radius_rearth": 13.51,
+    "depth_ppm": 44063,
+    "duration_h": 2.2,
+    "n_transits": 5.3
+   },
+   "download": {
+    "files": 1,
+    "bytes": 144000,
+    "from_cache": 0,
+    "resolve_s": 4.37,
+    "download_s": 1.87,
+    "total_s": 6.25
+   },
+   "wall_s": 6.36,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 229105889,
+   "tmag": 14.7019,
+   "rad": 0.593149,
+   "contratio": 0.119977422,
+   "sectors": [
+    2
+   ],
+   "cdpp_1h_ppm": 5821.7,
+   "cdpp_2h_ppm": 3914.7,
+   "alpha": -0.5,
+   "days_with_data": 21.0,
+   "days_per_sector": 21.0,
+   "rmin_p5": {
+    "radius_rearth": 8.95,
+    "depth_ppm": 19114,
+    "duration_h": 2.21,
+    "n_transits": 4.2
+   },
+   "download": {
+    "files": 1,
+    "bytes": 54720,
+    "from_cache": 0,
+    "resolve_s": 4.46,
+    "download_s": 1.04,
+    "total_s": 5.51
+   },
+   "wall_s": 5.53,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 272345548,
+   "tmag": 14.8937,
+   "rad": 0.439791,
+   "contratio": 0.18481949,
+   "sectors": [
+    11,
+    38
+   ],
+   "cdpp_1h_ppm": 8657.4,
+   "cdpp_2h_ppm": 6218.1,
+   "alpha": -0.477,
+   "days_with_data": 44.0,
+   "days_per_sector": 22.0,
+   "rmin_p5": {
+    "radius_rearth": 7.12,
+    "depth_ppm": 22018,
+    "duration_h": 1.8,
+    "n_transits": 8.8
+   },
+   "download": {
+    "files": 2,
+    "bytes": 198720,
+    "from_cache": 0,
+    "resolve_s": 3.94,
+    "download_s": 1.79,
+    "total_s": 5.74
+   },
+   "wall_s": 5.85,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 266678823,
+   "tmag": 14.2358,
+   "rad": 0.450861,
+   "contratio": 0.00333146588,
+   "sectors": [
+    1,
+    28
+   ],
+   "cdpp_1h_ppm": 4168.4,
+   "cdpp_2h_ppm": 2899.9,
+   "alpha": -0.5,
+   "days_with_data": 46.5,
+   "days_per_sector": 23.25,
+   "rmin_p5": {
+    "radius_rearth": 4.94,
+    "depth_ppm": 10096,
+    "duration_h": 1.83,
+    "n_transits": 9.3
+   },
+   "download": {
+    "files": 2,
+    "bytes": 192960,
+    "from_cache": 0,
+    "resolve_s": 3.95,
+    "download_s": 1.66,
+    "total_s": 5.63
+   },
+   "wall_s": 5.72,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 271626310,
+   "tmag": 14.1571,
+   "rad": 0.454366,
+   "contratio": 0.5345733,
+   "sectors": [
+    10,
+    11,
+    37
+   ],
+   "cdpp_1h_ppm": 5583.6,
+   "cdpp_2h_ppm": 3999.5,
+   "alpha": -0.481,
+   "days_with_data": 56.5,
+   "days_per_sector": 18.83,
+   "rmin_p5": {
+    "radius_rearth": 5.52,
+    "depth_ppm": 12378,
+    "duration_h": 1.84,
+    "n_transits": 11.3
+   },
+   "download": {
+    "files": 3,
+    "bytes": 244800,
+    "from_cache": 0,
+    "resolve_s": 4.61,
+    "download_s": 1.71,
+    "total_s": 6.34
+   },
+   "wall_s": 6.45,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 105884041,
+   "tmag": 14.485,
+   "rad": 0.566855,
+   "contratio": 0.124051526,
+   "sectors": [
+    9,
+    36
+   ],
+   "cdpp_1h_ppm": 5238.1,
+   "cdpp_2h_ppm": 3766.0,
+   "alpha": -0.476,
+   "days_with_data": 40.0,
+   "days_per_sector": 20.0,
+   "rmin_p5": {
+    "radius_rearth": 7.02,
+    "depth_ppm": 12897,
+    "duration_h": 2.14,
+    "n_transits": 8.0
+   },
+   "download": {
+    "files": 2,
+    "bytes": 187200,
+    "from_cache": 0,
+    "resolve_s": 4.99,
+    "download_s": 1.67,
+    "total_s": 6.67
+   },
+   "wall_s": 6.79,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 231820905,
+   "tmag": 14.9455,
+   "rad": 0.673922,
+   "contratio": 0.003812951,
+   "sectors": [
+    4,
+    5,
+    6,
+    7,
+    31,
+    32,
+    33,
+    34
+   ],
+   "cdpp_1h_ppm": 5779.9,
+   "cdpp_2h_ppm": 4163.4,
+   "alpha": -0.473,
+   "days_with_data": 187.5,
+   "days_per_sector": 23.44,
+   "rmin_p5": {
+    "radius_rearth": 5.79,
+    "depth_ppm": 6205,
+    "duration_h": 2.43,
+    "n_transits": 37.5
+   },
+   "download": {
+    "files": 8,
+    "bytes": 740160,
+    "from_cache": 0,
+    "resolve_s": 3.68,
+    "download_s": 1.72,
+    "total_s": 5.44
+   },
+   "wall_s": 5.95,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 402041463,
+   "tmag": 14.1176,
+   "rad": 0.507471,
+   "contratio": 0.006750885,
+   "sectors": [
+    2,
+    29
+   ],
+   "cdpp_1h_ppm": 3262.7,
+   "cdpp_2h_ppm": 2313.5,
+   "alpha": -0.496,
+   "days_with_data": 38.5,
+   "days_per_sector": 19.25,
+   "rmin_p5": {
+    "radius_rearth": 5.07,
+    "depth_ppm": 8376,
+    "duration_h": 1.98,
+    "n_transits": 7.7
+   },
+   "download": {
+    "files": 2,
+    "bytes": 195840,
+    "from_cache": 0,
+    "resolve_s": 4.16,
+    "download_s": 1.56,
+    "total_s": 5.74
+   },
+   "wall_s": 5.81,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 150361254,
+   "tmag": 15.8519,
+   "rad": 0.503452,
+   "contratio": 0.114224665,
+   "sectors": [
+    2,
+    3,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    12,
+    13,
+    27,
+    28,
+    29,
+    30,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39
+   ],
+   "cdpp_1h_ppm": 19338.8,
+   "cdpp_2h_ppm": 15215.6,
+   "alpha": -0.346,
+   "days_with_data": 495.0,
+   "days_per_sector": 22.5,
+   "rmin_p5": {
+    "radius_rearth": 6.81,
+    "depth_ppm": 15371,
+    "duration_h": 1.97,
+    "n_transits": 99.0
+   },
+   "download": {
+    "files": 22,
+    "bytes": 2183040,
+    "from_cache": 0,
+    "resolve_s": 6.13,
+    "download_s": 4.57,
+    "total_s": 10.78
+   },
+   "wall_s": 12.07,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 254098957,
+   "tmag": 15.405,
+   "rad": 0.683308,
+   "contratio": 0.187514529,
+   "sectors": [
+    13,
+    27
+   ],
+   "cdpp_1h_ppm": 15271.1,
+   "cdpp_2h_ppm": 11350.5,
+   "alpha": -0.428,
+   "days_with_data": 47.5,
+   "days_per_sector": 23.75,
+   "rmin_p5": {
+    "radius_rearth": 13.7,
+    "depth_ppm": 33755,
+    "duration_h": 2.45,
+    "n_transits": 9.5
+   },
+   "download": {
+    "files": 2,
+    "bytes": 187200,
+    "from_cache": 0,
+    "resolve_s": 4.52,
+    "download_s": 1.88,
+    "total_s": 6.41
+   },
+   "wall_s": 6.52,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 52110705,
+   "tmag": 15.607,
+   "rad": 0.543709,
+   "contratio": 0.1881662,
+   "sectors": [
+    6,
+    7,
+    33
+   ],
+   "cdpp_1h_ppm": 11791.5,
+   "cdpp_2h_ppm": 8302.8,
+   "alpha": -0.5,
+   "days_with_data": 70.5,
+   "days_per_sector": 23.5,
+   "rmin_p5": {
+    "radius_rearth": 8.76,
+    "depth_ppm": 21790,
+    "duration_h": 2.08,
+    "n_transits": 14.1
+   },
+   "download": {
+    "files": 3,
+    "bytes": 230400,
+    "from_cache": 0,
+    "resolve_s": 4.79,
+    "download_s": 1.67,
+    "total_s": 6.47
+   },
+   "wall_s": 6.63,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 116418233,
+   "tmag": 15.9481,
+   "error": "TIC 116418233: no usable TGLC light curve (predicted sectors [2, 29], published [])"
+  },
+  {
+   "tic": 93398455,
+   "tmag": 15.9115,
+   "error": "TIC 93398455: no usable TGLC light curve (predicted sectors [12], published [])"
+  },
+  {
+   "tic": 170659742,
+   "tmag": 15.9712,
+   "error": "TIC 170659742: no usable TGLC light curve (predicted sectors [10, 37], published [])"
+  },
+  {
+   "tic": 457664680,
+   "tmag": 15.2303,
+   "rad": 0.531835,
+   "contratio": 0.5684336,
+   "sectors": [
+    11,
+    38
+   ],
+   "cdpp_1h_ppm": 10387.8,
+   "cdpp_2h_ppm": 7391.4,
+   "alpha": -0.491,
+   "days_with_data": 44.5,
+   "days_per_sector": 22.25,
+   "rmin_p5": {
+    "radius_rearth": 9.08,
+    "depth_ppm": 24504,
+    "duration_h": 2.05,
+    "n_transits": 8.9
+   },
+   "download": {
+    "files": 2,
+    "bytes": 198720,
+    "from_cache": 0,
+    "resolve_s": 7.09,
+    "download_s": 1.93,
+    "total_s": 9.03
+   },
+   "wall_s": 9.14,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 63039245,
+   "tmag": 15.2434,
+   "rad": 0.380692,
+   "contratio": 0.06500454,
+   "sectors": [
+    1,
+    28
+   ],
+   "cdpp_1h_ppm": 10838.0,
+   "cdpp_2h_ppm": 8083.7,
+   "alpha": -0.423,
+   "days_with_data": 46.0,
+   "days_per_sector": 23.0,
+   "rmin_p5": {
+    "radius_rearth": 7.06,
+    "depth_ppm": 28912,
+    "duration_h": 1.65,
+    "n_transits": 9.2
+   },
+   "download": {
+    "files": 2,
+    "bytes": 192960,
+    "from_cache": 0,
+    "resolve_s": 4.84,
+    "download_s": 1.73,
+    "total_s": 6.58
+   },
+   "wall_s": 6.68,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 404015940,
+   "tmag": 15.6218,
+   "rad": 0.626098,
+   "contratio": 0.0908551738,
+   "sectors": [
+    11,
+    37
+   ],
+   "cdpp_1h_ppm": 10993.1,
+   "cdpp_2h_ppm": 7632.2,
+   "alpha": -0.5,
+   "days_with_data": 38.0,
+   "days_per_sector": 19.0,
+   "rmin_p5": {
+    "radius_rearth": 11.08,
+    "depth_ppm": 26309,
+    "duration_h": 2.3,
+    "n_transits": 7.6
+   },
+   "download": {
+    "files": 2,
+    "bytes": 190080,
+    "from_cache": 0,
+    "resolve_s": 4.0,
+    "download_s": 1.78,
+    "total_s": 5.79
+   },
+   "wall_s": 5.87,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 404415811,
+   "tmag": 15.1004,
+   "rad": 0.605675,
+   "contratio": 0.380553037,
+   "sectors": [
+    13,
+    27
+   ],
+   "cdpp_1h_ppm": 9092.1,
+   "cdpp_2h_ppm": 6661.0,
+   "alpha": -0.449,
+   "days_with_data": 52.5,
+   "days_per_sector": 26.25,
+   "rmin_p5": {
+    "radius_rearth": 9.23,
+    "depth_ppm": 19528,
+    "duration_h": 2.24,
+    "n_transits": 10.5
+   },
+   "download": {
+    "files": 2,
+    "bytes": 187200,
+    "from_cache": 0,
+    "resolve_s": 3.8,
+    "download_s": 1.65,
+    "total_s": 5.46
+   },
+   "wall_s": 5.57,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 152820385,
+   "tmag": 15.9732,
+   "error": "TIC 152820385: no usable TGLC light curve (predicted sectors [28], published [])"
+  },
+  {
+   "tic": 55512906,
+   "tmag": 15.2792,
+   "rad": 0.419933,
+   "contratio": 0.846136332,
+   "sectors": [
+    8,
+    34,
+    35
+   ],
+   "cdpp_1h_ppm": 14791.8,
+   "cdpp_2h_ppm": 10606.3,
+   "alpha": -0.48,
+   "days_with_data": 61.5,
+   "days_per_sector": 20.5,
+   "rmin_p5": {
+    "radius_rearth": 8.22,
+    "depth_ppm": 32221,
+    "duration_h": 1.75,
+    "n_transits": 12.3
+   },
+   "download": {
+    "files": 3,
+    "bytes": 311040,
+    "from_cache": 0,
+    "resolve_s": 4.4,
+    "download_s": 2.79,
+    "total_s": 7.21
+   },
+   "wall_s": 7.4,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 251849970,
+   "tmag": 15.3007,
+   "rad": 0.42947,
+   "contratio": 0.000798456662,
+   "sectors": [
+    2,
+    29
+   ],
+   "cdpp_1h_ppm": 9454.5,
+   "cdpp_2h_ppm": 6801.0,
+   "alpha": -0.475,
+   "days_with_data": 38.0,
+   "days_per_sector": 19.0,
+   "rmin_p5": {
+    "radius_rearth": 7.57,
+    "depth_ppm": 26093,
+    "duration_h": 1.78,
+    "n_transits": 7.6
+   },
+   "download": {
+    "files": 2,
+    "bytes": 195840,
+    "from_cache": 0,
+    "resolve_s": 3.14,
+    "download_s": 1.77,
+    "total_s": 4.92
+   },
+   "wall_s": 5.02,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 405599628,
+   "tmag": 15.8497,
+   "rad": 0.625446,
+   "contratio": 0.0150267147,
+   "sectors": [
+    11,
+    37
+   ],
+   "cdpp_1h_ppm": 13464.6,
+   "cdpp_2h_ppm": 9562.3,
+   "alpha": -0.494,
+   "days_with_data": 35.5,
+   "days_per_sector": 17.75,
+   "rmin_p5": {
+    "radius_rearth": 12.49,
+    "depth_ppm": 33526,
+    "duration_h": 2.3,
+    "n_transits": 7.1
+   },
+   "download": {
+    "files": 2,
+    "bytes": 190080,
+    "from_cache": 0,
+    "resolve_s": 3.96,
+    "download_s": 1.72,
+    "total_s": 5.69
+   },
+   "wall_s": 5.79,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 441316799,
+   "tmag": 15.7794,
+   "rad": 0.526832,
+   "contratio": 0.09028761,
+   "sectors": [
+    27
+   ],
+   "cdpp_1h_ppm": 18005.6,
+   "cdpp_2h_ppm": 14066.1,
+   "alpha": -0.356,
+   "days_with_data": 24.5,
+   "days_per_sector": 24.5,
+   "rmin_p5": {
+    "radius_rearth": 14.45,
+    "depth_ppm": 63183,
+    "duration_h": 2.03,
+    "n_transits": 4.9
+   },
+   "download": {
+    "files": 1,
+    "bytes": 129600,
+    "from_cache": 0,
+    "resolve_s": 4.14,
+    "download_s": 1.9,
+    "total_s": 6.04
+   },
+   "wall_s": 6.13,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 442865746,
+   "tmag": 15.7654,
+   "rad": 0.552927,
+   "contratio": 0.4874107,
+   "sectors": [
+    12
+   ],
+   "cdpp_1h_ppm": 53122.6,
+   "cdpp_2h_ppm": 50892.7,
+   "alpha": -0.062,
+   "days_with_data": 21.0,
+   "days_per_sector": 21.0,
+   "rmin_p5": {
+    "radius_rearth": 30.02,
+    "depth_ppm": 247572,
+    "duration_h": 2.1,
+    "n_transits": 4.2
+   },
+   "download": {
+    "files": 1,
+    "bytes": 57600,
+    "from_cache": 0,
+    "resolve_s": 6.23,
+    "download_s": 1.14,
+    "total_s": 7.38
+   },
+   "wall_s": 7.39,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 400413478,
+   "tmag": 15.5543,
+   "rad": 0.650105,
+   "contratio": 0.7202163,
+   "sectors": [
+    11,
+    37,
+    38
+   ],
+   "cdpp_1h_ppm": 20298.6,
+   "cdpp_2h_ppm": 14370.9,
+   "alpha": -0.498,
+   "days_with_data": 64.0,
+   "days_per_sector": 21.33,
+   "rmin_p5": {
+    "radius_rearth": 13.64,
+    "depth_ppm": 36974,
+    "duration_h": 2.36,
+    "n_transits": 12.8
+   },
+   "download": {
+    "files": 3,
+    "bytes": 334080,
+    "from_cache": 0,
+    "resolve_s": 4.79,
+    "download_s": 1.88,
+    "total_s": 6.69
+   },
+   "wall_s": 6.86,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 92445217,
+   "tmag": 15.739,
+   "rad": 0.204761,
+   "contratio": 0.02994349,
+   "sectors": [
+    1,
+    27
+   ],
+   "cdpp_1h_ppm": 16629.5,
+   "cdpp_2h_ppm": 11996.4,
+   "alpha": -0.471,
+   "days_with_data": 52.0,
+   "days_per_sector": 26.0,
+   "rmin_p5": {
+    "radius_rearth": 4.92,
+    "depth_ppm": 48455,
+    "duration_h": 1.14,
+    "n_transits": 10.4
+   },
+   "download": {
+    "files": 2,
+    "bytes": 187200,
+    "from_cache": 0,
+    "resolve_s": 6.68,
+    "download_s": 1.92,
+    "total_s": 8.61
+   },
+   "wall_s": 8.75,
+   "scattered_light_cut": 0
+  },
+  {
+   "tic": 204394983,
+   "tmag": 15.7521,
+   "error": "TIC 204394983: no usable TGLC light curve (predicted sectors [], published [])"
+  },
+  {
+   "tic": 295651017,
+   "tmag": 15.9905,
+   "error": "TIC 295651017: no usable TGLC light curve (predicted sectors [13, 39], published [])"
+  }
+ ]
+}

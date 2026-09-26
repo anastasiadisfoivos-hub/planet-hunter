@@ -13,9 +13,10 @@ Dropped (counted in the summary, never listed):
 Tiers (every listed star is in exactly one):
   1  R <= 0.4 R_sun (mid/late M dwarf), >= 3 TGLC sectors, contamination <= 0.1
   2  R <= 0.6 R_sun, >= 2 TGLC sectors, contamination <= 0.3
-  3  everything else that was not dropped (one sector, or larger / more crowded stars)
+  3  everything else that was not dropped (one sector, larger or more crowded stars), and every star with TIC
+     Tmag > 15.7: TGLC stops at its own Gaia-fitted T = 16, and 6 of 11 such stars in the noise sample had no file
 Inside a tier stars are ordered by the predicted smallest planet detectable at SNR 10 at P = 5 d (noise.py, with
-the Tmag noise model and 23 days of data per sector), smallest first. That one number combines radius,
+the Tmag noise model and 22.5 days of data per sector), smallest first. That one number combines radius,
 brightness and number of sectors. Every row carries a plain `reason`.
 
 Coverage here is the vectorised footprint (coverage.sector_mask, a few percent approximate at field edges); the
@@ -35,7 +36,7 @@ import numpy as np
 
 from . import coverage, known, noise, tic
 
-DAYS_PER_SECTOR = 23.0  # median usable days per TGLC sector after quality masking (measured, see README)
+DAYS_PER_SECTOR = 22.5  # median days with data per TGLC sector after quality masking (results/noise_sample.json)
 TIER_NAMES = {1: "tier 1: R <= 0.4 R_sun, >= 3 sectors, contamination <= 0.1",
               2: "tier 2: R <= 0.6 R_sun, >= 2 sectors, contamination <= 0.3",
               3: "tier 3: the rest (1 sector, larger or more crowded)"}
@@ -45,10 +46,13 @@ CSV_FIELDS = ["rank", "tier", "tic", "ra", "dec", "tmag", "teff", "logg", "rad",
               "lumclass", "contratio", "gaia_dr2", "n_sectors", "sectors", "pred_cdpp_1h_ppm",
               "pred_rmin_p1_rearth", "pred_rmin_p5_rearth", "pred_rmin_p10_rearth", "reason"]
 MAX_CONTRATIO = 1.0
+NEAR_LIMIT_TMAG = 15.7
 
 
-def tier(rad: float, n_sectors: int, contratio: float) -> int:
+def tier(rad: float, n_sectors: int, contratio: float, tmag: float = 14.0) -> int:
     c = contratio if contratio is not None else 0.0
+    if tmag > NEAR_LIMIT_TMAG:
+        return 3
     if rad <= 0.4 and n_sectors >= 3 and c <= 0.1:
         return 1
     if rad <= 0.6 and n_sectors >= 2 and c <= 0.3:
@@ -69,14 +73,15 @@ def reason(r: dict) -> str:
     return (f"{kind}, R {r['rad']:.2f} R_sun, Teff {r['teff']:.0f} K, Tmag {r['tmag']:.2f}; "
             f"{len(secs)} TGLC sector{'s' if len(secs) != 1 else ''} ({sec_txt}); {_crowding_word(r['contratio'])}; "
             f"not a TOI, CTOI, confirmed host or known EB; a {r['pred_rmin_p5_rearth']:.1f} R_earth planet at P = 5 d "
-            f"should reach SNR 10 (predicted)")
+            f"should reach SNR 10 (predicted)"
+            + ("; near TGLC's T = 16 limit, may have no file" if r["tmag"] > NEAR_LIMIT_TMAG else ""))
 
 
 def _predict(rows: list[dict]) -> None:
     for r in rows:
         c1 = noise.predicted_cdpp_1h(r["tmag"])
         days = DAYS_PER_SECTOR * len(r["sectors"])
-        det = noise.detectable_radius(r, c1, c1 * 2 ** -0.4, days)  # typical measured slope (README)
+        det = noise.detectable_radius(r, c1, c1 * 2 ** noise.TYPICAL_ALPHA, days)
         r["pred_cdpp_1h_ppm"] = round(c1)
         for p in (1, 5, 10):
             d = det["by_period"][str(p)]
@@ -115,7 +120,7 @@ def build(log: Callable[[str], None] = print, workers: int = 6, step_deg: float 
         kept.append({**s, "sectors": secs, "n_sectors": len(secs)})
     _predict(kept)
     for r in kept:
-        r["tier"] = tier(r["rad"], r["n_sectors"], r["contratio"])
+        r["tier"] = tier(r["rad"], r["n_sectors"], r["contratio"], r["tmag"])
     kept.sort(key=lambda r: (r["tier"], r["pred_rmin_p5_rearth"], r["tmag"]))
     for i, r in enumerate(kept, start=1):
         r["rank"] = i

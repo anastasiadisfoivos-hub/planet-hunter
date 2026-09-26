@@ -35,10 +35,12 @@ PERIODS_D = (1.0, 5.0, 10.0)
 SNR_THRESHOLD = 10.0
 GAP_D = 0.5
 
-# log10(CDPP_1h / ppm) = a + b (T - 14) + c (T - 14)^2, fit by scripts/fit_noise.py on measured TGLC curves (see
-# NOISE_MODEL_NOTE). Replaced after fitting; the fallback is only used until then.
-NOISE_MODEL = {"a": 3.60, "b": 0.24, "c": 0.02}
-NOISE_MODEL_NOTE = "placeholder"
+# log10(CDPP_1h / ppm) = a + b (T - 14) + c (T - 14)^2: fit by scripts/fit_noise.py to 54 random faint TIC M dwarfs
+# (Tmag 13-16, not on known lists) with TGLC data, one 3-sigma outlier clipped; results/noise_sample.json.
+NOISE_MODEL = {"a": 3.5821, "b": 0.3153, "c": 0.0504, "rms_dex": 0.144}
+NOISE_MODEL_NOTE = ("fit to measured TGLC CDPP_1h of 54 random faint M dwarfs (2026-09-26); median 2668 ppm at "
+                    "Tmag 13-14, 5801 at 14-15, 14128 at 15-16; scatter 0.144 dex")
+TYPICAL_ALPHA = -0.466  # median measured log2(CDPP_2h / CDPP_1h) in the same sample (white noise: -0.5)
 
 
 def _robust_sigma(x: np.ndarray) -> float:

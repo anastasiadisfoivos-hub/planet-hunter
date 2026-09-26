@@ -57,6 +57,7 @@ def test_tiers_and_reason():
     assert targets.tier(0.5, 3, 0.2) == 2
     assert targets.tier(0.5, 1, 0.0) == 3
     assert targets.tier(0.3, 6, 0.5) == 3  # crowded
+    assert targets.tier(0.25, 5, 0.02, tmag=15.8) == 3  # near TGLC's magnitude limit
     row = {"rad": 0.25, "teff": 3200, "tmag": 14.1, "sectors": [1, 2, 28], "contratio": 0.02,
            "pred_rmin_p5_rearth": 1.3}
     text = targets.reason(row)

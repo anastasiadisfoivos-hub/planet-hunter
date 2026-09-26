@@ -1,0 +1,28 @@
+{
+ "toi5688": {
+  "name": "TOI-5688 A b",
+  "tic": 193634953,
+  "period_d": 2.948155,
+  "ratror": 0.164,
+  "depth_ppm_from_ratror": 26896,
+  "exofop_depth_ppm": 24090,
+  "rade": 10.3,
+  "st_rad": 0.57,
+  "source": "NASA Exoplanet Archive ps table, default solution Reji et al. 2025 (AJ 169, 187); the ExoFOP TOI depth (24090 ppm) is from the TESS pipelines' undiluted-by-companion fit"
+ },
+ "toi1680": {
+  "name": "TOI-1680 b",
+  "tic": 259168516,
+  "period_d": 4.8026345,
+  "t0_btjd": 2013.8425400000997,
+  "duration_h": 1.186,
+  "ratror": 0.0638,
+  "depth_ppm": 4070,
+  "rade": 1.466,
+  "st_rad": 0.2106,
+  "source": "NASA Exoplanet Archive ps table, default solution (Ghachoui et al. 2023)"
+ },
+ "quiet": {
+  "tic": 219223283
+ }
+}
