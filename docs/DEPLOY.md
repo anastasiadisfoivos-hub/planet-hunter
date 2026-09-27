@@ -1,19 +1,25 @@
 # Deploying planet-hunter (all free tiers)
 
-Four places, each signed in with your GitHub account, plus the Oracle server:
+Four places, each signed in with your GitHub account:
 
 | Piece | Where | Plan | Made from |
 |---|---|---|---|
 | Database (Postgres) | Supabase | Free | `api/src/api/storage/migrations/*.sql` |
 | API (FastAPI) | Render | Free web service | `render.yaml`, `api/Dockerfile` |
 | Website (Next.js) | Vercel | Hobby | `web/` |
-| Nightly search | Oracle Cloud | Always Free (Ampere A1) | `runner/` |
+| Daily search | Kaggle | free notebooks | `kaggle/` (session KAGGLE; its own report and steps) |
 | Tests | GitHub Actions | free on a public repo | `.github/workflows/ci.yml` |
 
 **Part A** is what you (the owner) click, once. **Part B** is what SHIP runs after you say "go".
 **Part C** is what each service costs (nothing, if the warnings there are followed).
 
 Do Part A in order: each step needs a value from the step before.
+
+**Changed 27 Sep: no Oracle server for now** (Oracle did not accept the card). The daily search will run on
+Kaggle instead; session KAGGLE adds `kaggle/` and reports its own setup, and it sends results to the API with
+`PH_INGEST_TOKEN` exactly as the server would have (`python -m api.remote_ingest`). Skip A4 and B7 below; they
+stay here for when an always-on server is available. At go-live the site shows the ingested 26 Sep 2026 sweep
+(200 stars) and the vetting of the two leads from the deep search's calibration run (B6).
 
 ---
 
@@ -31,7 +37,7 @@ openssl rand -hex 32
 
 | Name | What it is for |
 |---|---|
-| `PH_INGEST_TOKEN` | the Oracle server proves to the API that it is allowed to post the search's progress and results |
+| `PH_INGEST_TOKEN` | the daily search (Kaggle, or a server) proves to the API that it is allowed to post the search's progress and results |
 | `PH_ADMIN_TOKEN` | the ExoFOP export (`POST /finder/export/ctoi`). Optional: without it that endpoint is off (404) |
 | Supabase database password | see A1 (you can also let Supabase generate it) |
 
@@ -117,7 +123,9 @@ Never paste these into GitHub, an issue, a chat, or a file in the repository.
    (`https://planet-hunter.vercel.app`, no trailing `/`) → **Save, rebuild and deploy**. Without it,
    the browser refuses the API's answers to the site (votes, the monitor).
 
-### A4. Oracle Cloud (the nightly search server)
+### A4. Oracle Cloud (the nightly search server): skipped for now
+
+> Not now: Oracle did not accept the card (27 Sep). Kept for when an always-on server is available.
 
 1. Sign up at <https://signup.cloud.oracle.com>. Oracle asks for a card **to verify your identity**;
    it does not charge it unless you upgrade the account (Part C). Choose your **home region**
@@ -232,7 +240,25 @@ curl -fsS "$SITE/candidates" | grep -ci 'stand-in' || true    # expect 0
 
 Then open `$SITE` in a browser, open the developer console, and check there are no CORS errors.
 
-### B6. The Oracle server
+### B6. Day-one data: the 26 Sep sweep and the two leads
+
+Until the daily search runs, the site shows real results already in hand, sent the way the search sends them
+(over HTTPS with the ingest token; no database URL needed). The bundle is built by `docs/ship/dayone/`
+(README there): the 26 Sep 2026 sweep's 200 stars as monitor records, its summary, hunt's sensitivity run,
+and the two leads (TIC 360955814, TIC 76923707) with their vetting. A lead that survives vetting goes in as a
+candidate; one that doesn't appears in the log as rejected, with the reasons.
+
+```sh
+cd api
+read -rs PH_INGEST_TOKEN && export PH_INGEST_TOKEN      # paste it
+uv run --extra finder python -m api.remote_ingest --api-url "$API" --dir ../docs/ship/dayone/candidates \
+  --monitor-dir ../docs/ship/dayone/monitor --summary ../docs/ship/dayone/summary.json \
+  --sensitivity ../hunt/results/sensitivity.json --run-id sweep-2026-09-26 --run-started-at 2026-09-26T07:22:52Z
+unset PH_INGEST_TOKEN
+curl -fsS "$API/monitor/stats"; curl -fsS "$API/finder/candidates"
+```
+
+### B7. The Oracle server (skipped for now)
 
 ```sh
 runner/deploy.sh <server-ip> ~/.ssh/oracle-planet-hunter.key --ref main --api-url "$API"
@@ -257,11 +283,12 @@ After the first run has posted, `curl -fsS "$API/monitor/now"` shows `"mode":"li
 
 | Service | Plan | Free limits (as documented, checked 27 Sep 2026) | What happens at the limit |
 |---|---|---|---|
-| **Supabase** | Free | 500 MB database, 5 GB egress, 2 active free projects. **Paused after 1 week of inactivity.** | Paused projects stop answering until you click **Restore** in the dashboard. Our API queries it on every page view and the server posts nightly, so a week without any activity is unlikely while the search runs. |
+| **Supabase** | Free | 500 MB database, 5 GB egress, 2 active free projects. **Paused after 1 week of inactivity.** | Paused projects stop answering until you click **Restore** in the dashboard. Our API queries it on every page view and the server posts nightly, so a week without any activity is unlikely while the daily search posts. |
 | **Render** | Free web service | 750 free instance hours per workspace per month (one service running all month is ~744 h). **Sleeps after 15 min without traffic**; the next request waits about a minute. No persistent disk (we don't need one). Bandwidth and build minutes count against monthly included amounts. | Without a card: free services are **suspended** until next month. **With a card on file, Render bills overages.** |
 | **Vercel** | Hobby | Personal, **non-commercial** use only. 100 GB Fast Data Transfer, 1M function invocations, 4 active-CPU hours, 5,000 image transformations per month (and more, see their table). | Usage over a limit pauses that feature until 30 days pass. Hobby has no billing, so it cannot charge. |
 | **GitHub Actions** | Free | Free for public repositories on standard GitHub-hosted runners. | A **private** repository would use the 2,000 free minutes a month and then need payment or stop. |
-| **Oracle Cloud** | Always Free | A1: 1,500 OCPU h + 9,000 GB h per month (= **2 OCPUs, 12 GB** running all month); 200 GB block storage in total (boot volumes included); 10 TB outbound a month. | On a Free Tier account, anything beyond Always Free can only use the 30-day trial credit ($300), then stops. |
+| **Kaggle** (daily search) | free | see session KAGGLE's `kaggle/` README | reported by KAGGLE |
+| **Oracle Cloud** (not used for now) | Always Free | A1: 1,500 OCPU h + 9,000 GB h per month (= **2 OCPUs, 12 GB** running all month); 200 GB block storage in total (boot volumes included); 10 TB outbound a month. | On a Free Tier account, anything beyond Always Free can only use the 30-day trial credit ($300), then stops. |
 
 **Things that could ever cost money: avoid them.**
 1. **Adding a payment card to Render.** Then overages (bandwidth, build minutes) are billed instead
@@ -273,7 +300,7 @@ After the first run has posted, `curl -fsS "$API/monitor/now"` shows `"mode":"li
 3. **Upgrading Supabase to Pro**, or enabling paid add-ons such as the **IPv4 add-on**, compute
    upgrades, or point-in-time recovery. We use the session pooler precisely so the IPv4 add-on is
    not needed.
-4. **Oracle: upgrading to Pay As You Go.** After the upgrade, Always Free resources stay free, but
+4. **Oracle (not used for now): upgrading to Pay As You Go.** After the upgrade, Always Free resources stay free, but
    anything above them is billed to the card you gave at sign-up: e.g. an A1 instance larger than
    the free OCPU/memory hours, more than 200 GB of volumes, extra volume backups, a second
    instance. On a Free Tier (not upgraded) account these can't be billed; they are stopped when the

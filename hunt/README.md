@@ -383,9 +383,10 @@ SES ≥ 12 singles were such 28–30-h disturbances, two of them in sector 68.
 
 ## 8. Where it runs
 
-The sweep runs on the project's Oracle Cloud Always Free server on its own timer, not on GitHub Actions
+The daily search runs outside GitHub Actions: on Kaggle for now (`kaggle/`, session KAGGLE), or on an always-on
+server with `runner/` (Oracle did not accept the card, 27 Sep)
 (ROADMAP "Decisions (26 Sep)"; the old `ci/sweep.yml` workflow was removed). GitHub's hosted runners run only
-the tests (`.github/workflows/ci.yml`). The server (runner/) runs hunt's fast, deep and faint queues, then
+the tests (`.github/workflows/ci.yml`). Either runs hunt's fast, deep and faint queues, then
 sends each day's `candidates/` and monitor records to the API over HTTPS with `python -m api.remote_ingest`
 (see runner/README.md and api/README.md).
 

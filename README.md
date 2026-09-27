@@ -52,30 +52,43 @@ server dry run.
 
 - **Stars searched.**
   - The fast search ran on the top 200 stars of the 26 Sep 2026 target list. It found 297 signals. 23 passed the signal-to-noise, periodogram and three-dip cuts, and all 23 failed at least one check (duration 22, sector depth 16, secondary eclipse 10, period alias 7, odd/even 5; a signal can fail several).
-  - The deep search had a calibration run on 360 stars, run twice. It produced no periodic or double-dip candidates, one single-dip candidate in the first run and none in the second.
+  - The deep search (final version) had a calibration run on 360 stars. It kept 2 periodic signals as leads (TIC 360955814 at 12.73 d and TIC 76923707, TOI-181's host, at 9.48 d; see **Leads** below), no double dips, and 1 single dip (TIC 67583849, 6.5 % deep, most likely an eclipsing binary).
   - The two samples come from lists ranked in different ways, so they may overlap.
   - The server dry run (27 Sep 2026) searched 20 real stars through all three queues. It found 55 signals and 1
     candidate: a single dip on TIC 389051009 (SNR 28.8). It has no period and has not been reviewed.
   - The target lists hold 730,692 stars at Tmag ≤ 13, and 2,993,304 faint M dwarfs at Tmag 13–16 for TGLC.
 - **What it recovers.**
-  - **Injection-recovery** (fast search, 200 quiet stars, 2,000 fake planets): 61% recovered overall. By size: 28% at 1–2 R⊕, 55% at 2–3 R⊕, 66–72% above 3 R⊕. By period: 82–84% under 2 d, 45% at 7–10 d, 7% at 10–15 d.
+  - **Injection-recovery, deep search** (24 quiet stars with 5–11 sectors, 96 fake planets; small numbers per bin, so indicative):
+    - 0.5–15 d: 28 of 28 recovered, including 8 of 8 at 1–2 R⊕.
+    - Single transits (100–1,000-d planets): 17 of 20, and the period range contains the true period for all 17.
+    - 30–400 d: 16 of 48. 20 of the 48 never transit while TESS watches, so that is 16 of the 28 that do.
+  - **Injection-recovery, fast search** (200 quiet stars, 2,000 fake planets, newest 3 sectors): 61% recovered overall. By size: 28% at 1–2 R⊕, 55% at 2–3 R⊕, 66–72% above 3 R⊕. By period: 82–84% under 2 d, 45% at 7–10 d, 7% at 10–15 d.
   - **Known objects found again:**
     - TOI-7303.01: found, then correctly filtered out as already known.
     - TOI-813 b (P = 83.9 d): recovered from 42 stitched sectors.
     - TOI-2180 b (P ≈ 261 d): its single transit gives a period range that contains the true period.
     - TOI-5688 A b: recovered on faint-star TGLC data.
+    - TOI-1680 b: recovered by the deep search on TGLC data from 24 sectors (≈ 5σ per sector), which the first, per-sector search could not do.
     - An injected 1.6 R⊕ planet on a quiet M dwarf: recovered as a full candidate.
   - **Pixel check:** WASP-18 b is *on target*. TOI-4257.01 is *off target*, and the check points to the same neighbour, TIC 75208617, that TFOP named when it ruled the signal a false positive.
+- **Leads.** The deep search's calibration run kept two periodic signals. Both were vetted in full (pixel check in
+  every sector; LEO-vetter, TRICERATOPS, Gaia DR3, VSX) and **rejected**; they appear in the log with the reasons
+  ([docs/ship/dayone](docs/ship/dayone/README.md)):
+  - TIC 360955814 (12.73 d, ≈ 0.8 R⊕ if real): TRICERATOPS gives it a 22% chance of coming from a nearby star;
+    in the SPOC 2-min data it is too weak (MES 2.3), and most of it comes from QLP full-frame sectors with
+    scattered light; the dip is not visible in the pixels.
+  - TIC 76923707, TOI-181's host (9.48 d): not an alias of TOI-181 b, but LEO finds a secondary eclipse,
+    TRICERATOPS favours an eclipsing binary on a neighbour (66%), the depths disagree between transits, and the
+    star is a known rotational variable.
 - **Known limits.**
-  - At 10–15 d, 77% of injected planets are *detected* but only 7% pass every cut. Most are lost to the SDE cut. This is the next thing to fix.
+  - In the **fast** search, at 10–15 d, 77% of injected planets are *detected* but only 7% pass every cut, mostly lost to the SDE cut. The deep search recovers that range (above).
   - Planets under 2 R⊕ are mostly missed. So are stars fainter than Tmag 13, except on the faint branch, and stars with no TIC radius, because their size and duration checks cannot run.
-  - The deep search's own sensitivity has not been measured yet. The numbers above are from the fast search.
-  - On stitched multi-year curves, TLS fits its time budget only on the newest ~2 sectors. BLS covers the whole baseline.
-  - **Small planets spread over many sectors are not yet recovered** (e.g. TOI-1680 b: the transit is in the TGLC data at SNR ≈ 24 over 24 sectors, but only ≈ 5 per sector). The cause is diagnosed: the coarse search adds up per-sector power without keeping phase. A fix is in progress (DEEPHUNT); until it lands, the deep and faint searches will miss such planets.
+  - The deep search's sensitivity rests on 96 injections on 24 stars: indicative, not yet a completeness map.
+  - On stitched multi-year curves, TLS fits its time budget only on the newest ~2 sectors; the phase-coherent BLS carries the stitched search. The deep search takes ~250–285 s per star.
   - The vetting flags WASP-18 b and fails WASP-126 b, both confirmed planets. LEO's SWEET test picks up WASP-18 b's real phase curve. LEO's odd/even test trips on a 2.7% difference in WASP-126 b because it has no fractional floor. Automated vetting is a filter, not a verdict.
   - The pixel check's Gaussian PSF measures depths ~15% low.
   - No automatic check can rule out an eclipsing binary sitting almost directly behind the target. That takes sharper images or spectra from the ground.
-  - The single-dip false-alarm rate rests on 0–1 events in 359 stars.
+  - False alarms, measured on 360 stars: ~2.8 single dips and ~5.6 periodic signals per 1,000 stars pass every check. These rest on 1 and 2 events, so the real rate could be several times higher; the first real days will re-measure it.
 
 ## Status
 
@@ -83,18 +96,19 @@ server dry run.
 |---|---|---|
 | Science pipeline for one star (`hunter`) | `pipeline/` | Built (v2) |
 | Fast search: newest ≤ 3 sectors, BLS 0.5–15 d | `hunt/` | Built (v2) |
-| Deep search: all sectors, long-period BLS, TLS, single and double dips | `hunt/` on branch `deephunt` | Built, not merged |
+| Deep search: all sectors stitched, phase-coherent BLS, long-period BLS, TLS, single and double dips | `hunt/` | Built (final 27 Sep) |
 | Pixel check (`skypixels`) | `pixels/` | Built (v2) |
-| Vetting with published tools (`skyvet`) | `vet/` on branch `vet` | Built, not merged. Run on every candidate by the runner (dry-run tested) |
-| Faint M dwarfs with TGLC (`skyfaint`) | `faint/` on branch `faint` | Built, not merged. Searched by the runner's faint queue (dry-run tested) |
+| Vetting with published tools (`skyvet`) | `vet/` | Built. Run on every candidate by the daily search |
+| Faint M dwarfs with TGLC (`skyfaint`) | `faint/` | Built |
 | API: candidates, votes, pixel checks, monitor, ExoFOP export | `api/` | Built (v2) |
 | Website: finder pages | `web/` | Built (v2) |
 | Website: the chart-recorder monitor, dossiers, log, methods | `web/` | Built; mock mode replays real recorded data, live mode reads the API |
 | CI: tests of every package on GitHub-hosted runners | `.github/workflows/ci.yml` | Built |
-| Daily search on one Oracle Cloud Always Free server: systemd timer, ledger, fast / deep / faint queues, live monitor posts with each star's record, vetting, merge, ingest | `runner/` | Built and dry-run tested (Ubuntu 24.04 arm64 container, 20 real stars, 27 Sep 2026). Not deployed |
-| GitHub Actions search workflows (`sweep.yml`, `finder.yml`) | | Removed on 27 Sep; the runner does the search |
-| Hosting: Render (API), Supabase (Postgres), Vercel (web), the Oracle server | `render.yaml`, `api/Dockerfile`, [docs/DEPLOY.md](docs/DEPLOY.md) | Written, not deployed |
-| One branch with everything the server runs | `release` | v2 + monitorui + vet + faint + runner merged; deephunt's final not merged yet |
+| Daily search | `kaggle/` (session KAGGLE) | In progress: the daily search will run on Kaggle |
+| Daily search on an always-on server (Oracle Cloud Always Free): systemd timer, ledger, fast / deep / faint queues, live monitor, vetting, merge, ingest | `runner/` | Built and dry-run tested (Ubuntu 24.04 arm64 container, 20 real stars, 27 Sep 2026). Not used for now: Oracle did not accept the card |
+| GitHub Actions search workflows (`sweep.yml`, `finder.yml`) | | Removed on 27 Sep; GitHub Actions is for CI only |
+| Hosting: Render (API), Supabase (Postgres), Vercel (web) | `render.yaml`, `api/Dockerfile`, [docs/DEPLOY.md](docs/DEPLOY.md) | Written, not deployed |
+| One branch with everything | `release` | v2 + monitorui + vet + faint + runner + deephunt (final) merged |
 | Structured public flags, two-person review, refereed paper, ExoFOP upload | | Planned |
 
 ## Tech stack
@@ -105,7 +119,7 @@ server dry run.
   - LEO-vetter, TRICERATOPS and transit-diffImage for vetting.
 - **API:** FastAPI, Pydantic, psycopg 3. Postgres in production, SQLite for development and tests, and every storage test runs on both.
 - **Web:** Next.js 16 (App Router), React 19, TypeScript, tested with `node --test`.
-- **Automation:** the daily search runs on an Oracle Cloud Always Free server (Ampere A1, 2 cores, 12 GB, Ubuntu 24.04 arm64) under systemd, with a standard-library Python scheduler and a SQLite ledger (built and dry-run tested, not deployed). GitHub Actions is for CI.
+- **Automation:** the daily search will run on Kaggle (`kaggle/`, in progress). `runner/` runs it on an always-on Linux server instead (systemd, a standard-library Python scheduler and a SQLite ledger; dry-run tested, not deployed: Oracle did not accept the card). Either sends results to the API over HTTPS with the ingest token. GitHub Actions is for CI.
 
 ## Run locally
 

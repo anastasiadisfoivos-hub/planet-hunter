@@ -1,5 +1,8 @@
 # runner/: the nightly Planet Finder search on one always-on server
 
+> **Not used for now (27 Sep):** Oracle did not accept the card, so the daily search will run on Kaggle
+> (`kaggle/`, session KAGGLE). runner/ stays ready for an always-on server; nothing below changes.
+
 Everything needed to run the Planet Finder's search every day on an **Oracle Cloud Always Free** server (Ampere A1,
 2 cores, 12 GB, Ubuntu 24.04, arm64: the free amount since Oracle halved it; decided 27 Sep). It is **not** a GitHub self-hosted runner: the repository is public, so the
 server pulls it read-only over HTTPS and runs on its own systemd timer. Nothing listens on the internet except SSH

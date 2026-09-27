@@ -1,0 +1,20 @@
+{
+ "360955814_qlp_newest3": {
+  "verdict": "flag",
+  "reasons": [
+   "LEO-vetter FA: not enough valid transits",
+   "LEO-vetter FA: events not unique in local light curve",
+   "LEO-vetter FA: inconsistent transit depths",
+   "LEO-vetter FA: dominated by single event",
+   "LEO-vetter FA: bad transit model fit",
+   "LEO-vetter FA: unphysical transit orbit",
+   "LEO-vetter FA: inconsistent transit SNRs",
+   "LEO-vetter FA: too many transits near gaps",
+   "TRICERATOPS did not run: time budget of 900 s ran out during calc_probs (N = 100000); raise --tri-budget or lower --tri-n"
+  ],
+  "notes": [
+   "difference-image source is 14.38\" from the target (LEO threshold 15\")",
+   "12 Gaia DR3 neighbour(s) within 42\" could cause the dip (weighed by TRICERATOPS / the pixel test)"
+  ]
+ }
+}
