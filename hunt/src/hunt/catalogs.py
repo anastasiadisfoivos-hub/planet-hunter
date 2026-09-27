@@ -195,6 +195,46 @@ class Catalogue:
                 "lists_checked": list(LIST_NAMES.values()), "neighbour_radius_arcmin": NEIGHBOUR_ARCMIN,
                 "catalogue_fetched_at": self.fetched_at}
 
+    def match_times(self, tic: int, times: list[float], duration_d: float, ra: float | None = None,
+                    dec: float | None = None, periods: list[float] | None = None) -> dict:
+        """Known-list result for single / double dips. Same star: a listed period matches one of `periods` (a
+        duo's surviving aliases). Same star or neighbour: a listed signal predicts a transit or eclipse at one of
+        the dip times (within half both durations + 3 sigma of its propagated timing error + 0.1 d)."""
+        same, neighbours = [], []
+        cands = [(e, 0.0) for e in self.on_star(tic)]
+        if ra is not None and dec is not None:
+            cands += [(e, sep) for e, sep in self.near(ra, dec) if e.tic != int(tic)]
+        for e, sep in cands:
+            hit = None
+            if periods and e.tic == int(tic):
+                for p in periods:
+                    alias = match_period(p, e.period)
+                    if alias:
+                        hit = {"alias": f"a surviving period ({p:.3f} d): {alias}"}
+                        break
+            if hit is None and e.period and e.t0_btjd is not None:
+                for t in times:
+                    n = round((t - e.t0_btjd) / e.period)
+                    sig_t = math.hypot(e.t0_err or 0.0, abs(n) * (e.period_err or 0.0))
+                    tol = 0.5 * (duration_d + (e.duration_h or 3.0) / 24) + 3 * sig_t + 0.1
+                    off = t - (e.t0_btjd + n * e.period)
+                    if abs(off) < tol and 3 * sig_t < 0.25 * e.period:
+                        hit = {"alias": f"its predicted transit/eclipse falls {off * 24:+.1f} h from the dip at "
+                                        f"BTJD {t:.3f}"}
+                        break
+            if hit is None:
+                continue
+            row = {"name": e.name, "list": e.list_name, "listed_period_d": e.period, **hit}
+            if e.tic == int(tic):
+                same.append({**row, "disposition": e.disposition})
+            else:
+                neighbours.append({**row, "tic": e.tic, "separation_arcmin": round(sep, 2), "tmag": e.tmag})
+        on_lists = [{"name": e.name, "list": e.list_name, "period_d": e.period} for e in self.on_star(tic)]
+        status = "known" if same else ("known_on_neighbour" if neighbours else "not_on_lists")
+        return {"status": status, "same_star": same, "neighbours": neighbours, "other_entries_on_star": on_lists,
+                "lists_checked": list(LIST_NAMES.values()), "neighbour_radius_arcmin": NEIGHBOUR_ARCMIN,
+                "catalogue_fetched_at": self.fetched_at}
+
     def to_json(self, path: Path, tics: set[int] | None = None) -> None:
         entries = [asdict(e) for e in self.entries if tics is None or e.tic in tics]
         path.write_text(json.dumps({"fetched_at": self.fetched_at, "entries": entries}, indent=0))

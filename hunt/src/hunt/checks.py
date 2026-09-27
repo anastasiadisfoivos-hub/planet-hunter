@@ -6,13 +6,13 @@ reason, and a margin in [0, 1] (how comfortably it passed; 0 at the threshold) u
 Pipeline (hunter.vet): snr, odd_even, secondary_eclipse, size.
 Added here: period_alias (P/2, 2P, 3P), momentum_dump (transits on dumps / quality-flagged cadences),
 sector_depth (depth consistent between sectors), duration (plausible for the star's density),
-single_sector (flag only).
+three_dips (the signal does not rest on one dip), single_sector (flag only).
 """
 
 from __future__ import annotations
 
 import math
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 
 import numpy as np
 from scipy import stats
@@ -27,13 +27,18 @@ from .stars import RHO_SUN_KG_M3, Star
 G = 6.674e-11
 ALIAS_MIN_RATIO = 0.5  # a group of dips shallower than half the rest (and > 3 sigma) means a wrong period
 ALIAS_SIGMA = 3.0
-DUMP_WINDOW_PAD_D = 30 / 1440  # a dump within half a duration + 30 min of mid-transit counts as coinciding
+DUMP_WINDOW_PAD_D = 30 / 1440  # a dump within half a duration + 30 min of mid-transit counts as coinciding ...
+DUMP_CENTRE_D = 1 / 24  # ... but at most 1 h + 30 min: a day-long transit nearly always contains a dump
+# somewhere; only one near its middle can make the dip (dumps elsewhere are caught by the depth test below)
 DUMP_MAX_FRACTION = 0.5
 SECTOR_P_MIN = 1e-3
 SECTOR_MAX_SPREAD = 0.5
 DURATION_MIN_RATIO = 0.1
 DURATION_MAX_RATIO = 2.0  # BLS duration grid is coarse (~25% steps) and eccentric orbits run long
-MUST_RUN = ("snr", "odd_even", "secondary_eclipse", "size", "period_alias", "momentum_dump", "duration")
+THREE_DIPS_MIN_RATIO = 0.5  # without its strongest dip, the signal must keep half its depth ...
+THREE_DIPS_SIGMA = 3.0  # ... and still be this significant
+MUST_RUN = ("snr", "odd_even", "secondary_eclipse", "size", "period_alias", "momentum_dump", "duration",
+            "three_dips")
 
 
 @dataclass
@@ -110,6 +115,35 @@ def epoch_depths(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal) -> Ep
     return Epochs(arr[:, 0].astype(int), arr[:, 1], arr[:, 2].astype(int), arr[:, 3], arr[:, 4])
 
 
+def odd_even_scale(ep: "Epochs") -> float:
+    """Over-dispersion of per-dip depths WITHIN the odd and within the even dips (sqrt of reduced chi-square about
+    each group's own mean, at least 1). Depths that change between sectors (crowding corrections differ per
+    sector) then do not look like an odd/even difference, while an eclipsing binary's alternation, which is
+    between the groups, is untouched."""
+    if len(ep.epoch) < 3:
+        return 1.0
+    chi2, dof = 0.0, 0
+    for par in (0, 1):
+        m = ep.epoch % 2 == par
+        if m.sum() >= 2:
+            mu, _ = _wmean(ep.depth[m], ep.err[m])
+            chi2 += float(np.sum((ep.depth[m] - mu) ** 2 / ep.err[m] ** 2))
+            dof += int(m.sum()) - 1
+    return float(max(1.0, math.sqrt(chi2 / dof))) if dof > 0 else 1.0
+
+
+def odd_even_signal(sig: Signal, ep: "Epochs", scale: float) -> Signal:
+    """The signal with odd / even depths from the per-dip depths (each against its own local baseline, errors
+    inflated for red noise) when both parities have a dip, else BLS's; errors times the over-dispersion scale.
+    A global baseline mis-measures a dip next to a sector edge (TOI-2180 b's sector-48 transit starts 0.35 d
+    after the first cadence) and, with three transits, that alone looked like an odd/even difference."""
+    odd, even = ep.epoch % 2 == 1, ep.epoch % 2 == 0
+    if odd.any() and even.any():
+        (do, eo), (de, ee) = _wmean(ep.depth[odd], ep.err[odd]), _wmean(ep.depth[even], ep.err[even])
+        return replace(sig, depth_odd=do, depth_odd_err=eo * scale, depth_even=de, depth_even_err=ee * scale)
+    return replace(sig, depth_odd_err=sig.depth_odd_err * scale, depth_even_err=sig.depth_even_err * scale)
+
+
 def _wmean(d: np.ndarray, e: np.ndarray) -> tuple[float, float]:
     w = 1 / e**2
     return float(np.sum(w * d) / np.sum(w)), float(1 / math.sqrt(np.sum(w)))
@@ -174,7 +208,7 @@ def period_alias(t: np.ndarray, f: np.ndarray, sig: Signal, ep: Epochs) -> Check
 def momentum_dump(ep: Epochs, sig: Signal, dumps: np.ndarray, flagged: np.ndarray, quality_read: bool) -> Check:
     if len(ep.epoch) == 0:
         return Check("momentum_dump", None, None, "No individual dips could be measured.")
-    window = sig.duration / 2 + DUMP_WINDOW_PAD_D
+    window = min(sig.duration / 2, DUMP_CENTRE_D) + DUMP_WINDOW_PAD_D
 
     def hits(times: np.ndarray) -> np.ndarray:
         if len(times) == 0:
@@ -260,6 +294,30 @@ def duration(sig: Signal, star: Star) -> Check:
     return Check("duration", True, ratio, f"{base}, so the length fits.", margin)
 
 
+def three_dips(ep: Epochs) -> Check:
+    """A periodic signal needs three real dips. Leave out the strongest one: the rest must keep half the depth and
+    stay 3 sigma deep; otherwise one dip (a single transit, or a glitch) is carrying a 'periodic' fold of empty
+    epochs. This matters for the long-period search, where 3 epochs with data are easy to line up."""
+    n = len(ep.epoch)
+    if n < 3:
+        return Check("three_dips", False if n else None, float(n),
+                     f"Only {n} dip(s) could be measured; a periodic signal needs three." if n else
+                     "No individual dips could be measured.", 0.0 if n else None)
+    all_d, _ = _wmean(ep.depth, ep.err)
+    k = int(np.argmax(ep.depth / ep.err))
+    rest = np.arange(n) != k
+    rest_d, rest_e = _wmean(ep.depth[rest], ep.err[rest])
+    ratio = rest_d / all_d if all_d > 0 else 0.0
+    if ratio < THREE_DIPS_MIN_RATIO or rest_d / rest_e < THREE_DIPS_SIGMA:
+        return Check("three_dips", False, ratio,
+                     f"Without its strongest dip (BTJD {ep.centre[k]:.2f}) the signal is only {ratio * 100:.0f}% as "
+                     f"deep ({rest_d / rest_e:.1f} sigma): one dip carries it, so it is not a repeating signal.", 0.0)
+    return Check("three_dips", True, ratio,
+                 f"Without its strongest dip the other {n - 1} keep {ratio * 100:.0f}% of the depth "
+                 f"({rest_d / rest_e:.1f} sigma): the signal repeats.",
+                 _clip01((ratio - THREE_DIPS_MIN_RATIO) / (1 - THREE_DIPS_MIN_RATIO)))
+
+
 def single_sector(ep: Epochs) -> Check:
     n = len(np.unique(ep.sector))
     if n <= 1:
@@ -276,8 +334,12 @@ def run_all(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal, star: Star
     sz = implied_radius(sig.depth, star.rad, sig.depth_err, star.rad_err)
     sec_vet, sec = secondary_eclipse(t, f, sig)
     sec_frac = sec["depth"] / max(sig.depth, 1e-12)
-    oe = odd_even(sig)
     ep = epoch_depths(t, f, g, sig)
+    scale = odd_even_scale(ep)
+    oe = odd_even(odd_even_signal(sig, ep, scale))
+    if scale > 1:
+        oe = replace(oe, reason=oe.reason + f" (Errors widened x{scale:.1f}: dips of the same parity already differ "
+                                            f"that much from each other, e.g. between sectors.)")
     sd, per_sector = sector_depth(ep)
     checks = [
         _from_vet(snr(sig), None),
@@ -288,6 +350,7 @@ def run_all(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal, star: Star
         momentum_dump(ep, sig, dumps, flagged, quality_read),
         sd,
         duration(sig, star),
+        three_dips(ep),
         single_sector(ep),
     ]
     extra = {
@@ -295,6 +358,7 @@ def run_all(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal, star: Star
         "radius_rearth": sz.radius_rearth, "per_sector": per_sector,
         "transit_times_btjd": [round(float(x), 5) for x in ep.centre],
         "transit_depths_ppm": [round(float(x) * 1e6, 1) for x in ep.depth],
+        "transit_depth_errs_ppm": [round(float(x) * 1e6, 1) for x in ep.err],
         "sectors_with_transits": sorted({int(s) for s in ep.sector}),
         "n_transits_measured": int(len(ep.epoch)),
     }

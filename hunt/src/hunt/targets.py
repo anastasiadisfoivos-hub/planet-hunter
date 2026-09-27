@@ -5,8 +5,16 @@ Tmag <= 13, not a TOI, CTOI, confirmed-planet host or catalogued eclipsing binar
 List B ("siblings"): hosts of confirmed transiting planets observed in the same sectors, Tmag <= 13; their
 known planets are masked and the residuals searched for more.
 
-Both lists are ranked: M dwarfs first, then small stars, then other dwarfs, then everything else; inside a
-tier smaller stars first (a given planet makes a deeper dip), then brighter stars (less noise).
+Both lists are ranked in three priority groups, then by tier inside each group:
+  group 0 "deep":          observed in >= 5 sectors (coverage.py), Tmag <= 11 and quiet
+  group 1 "many sectors":  observed in >= 5 sectors
+  group 2 "few sectors":   the rest
+"quiet" means a dwarf (luminosity class DWARF and log g >= 4.0, or no log g), Teff <= 6500 K (hotter stars
+pulsate) and < 10% of the flux in the aperture from other stars (TIC contamination ratio). The stitched deep
+search gains most on these stars: long baselines catch long periods and single dips, many transits lift small
+planets above the noise, and bright quiet stars reach the smallest ones.
+Tiers: M dwarfs first, then small stars, then other dwarfs, then everything else; inside a tier smaller stars
+first (a given planet makes a deeper dip), then brighter stars (less noise).
 """
 
 from __future__ import annotations
@@ -19,7 +27,7 @@ from pathlib import Path
 
 from hunter.cache import retry
 
-from . import catalogs, stars
+from . import catalogs, coverage, stars
 from .cache import DAY, cached_json, download
 from .stars import Star
 
@@ -27,6 +35,12 @@ MAX_TMAG = 13.0
 QLP_TARGET_LIST = "https://archive.stsci.edu/hlsps/qlp/target_lists/s{sector:04d}.csv"
 SECTOR1_START = date(2018, 7, 25)
 SMALL_STAR_RSUN = 0.8
+DEEP_MIN_SECTORS = 5
+DEEP_MAX_TMAG = 11.0
+QUIET_MAX_TEFF = 6500.0
+QUIET_MAX_CONTAMINATION = 0.1
+GROUPS = {0: f"deep (>= {DEEP_MIN_SECTORS} sectors, Tmag <= {DEEP_MAX_TMAG:g}, quiet)",
+          1: f"many sectors (>= {DEEP_MIN_SECTORS})", 2: f"few sectors (< {DEEP_MIN_SECTORS})"}
 
 TIERS = {0: "M dwarf (Teff < 4000 K)", 1: f"small star (R < {SMALL_STAR_RSUN} R_sun)",
          2: "dwarf star", 3: "other (giant, subgiant or no class in the TIC)"}
@@ -97,12 +111,26 @@ def tier(s: Star) -> int:
     return 3
 
 
-def rank_key(s: Star) -> tuple:
-    return (tier(s), s.rad if s.rad is not None else 99.0, s.tmag if s.tmag is not None else 99.0)
+def quiet(s: Star) -> bool:
+    dwarf = (s.lumclass or "DWARF") == "DWARF" and (s.logg is None or s.logg >= 4.0)
+    cool = s.teff is None or s.teff <= QUIET_MAX_TEFF
+    clean = s.contratio is None or s.contratio < QUIET_MAX_CONTAMINATION
+    return dwarf and cool and clean
 
 
-def reason(s: Star, where: dict[str, list[int]], known: list[str] | None = None) -> str:
-    bits = [TIERS[tier(s)]]
+def group(s: Star, n_sectors: int) -> int:
+    if n_sectors >= DEEP_MIN_SECTORS:
+        return 0 if (s.tmag is not None and s.tmag <= DEEP_MAX_TMAG and quiet(s)) else 1
+    return 2
+
+
+def rank_key(s: Star, n_sectors: int = 0) -> tuple:
+    return (group(s, n_sectors), tier(s), s.rad if s.rad is not None else 99.0,
+            s.tmag if s.tmag is not None else 99.0)
+
+
+def reason(s: Star, where: dict[str, list[int]], known: list[str] | None = None, n_sectors: int = 0) -> str:
+    bits = [GROUPS[group(s, n_sectors)], f"observed in {n_sectors} sectors", TIERS[tier(s)]]
     if s.teff is not None:
         bits.append(f"Teff {s.teff:.0f} K")
     if s.rad is not None:
@@ -123,16 +151,19 @@ class TargetRow:
     observed: dict[str, list[int]]
     known: list[str]
     reason: str
+    n_sectors: int = 0
+    group: int = 2
 
     def to_csv(self) -> dict:
         return {"rank": self.rank, "list": self.list, **self.star.to_row(), "tier": self.tier,
+                "group": self.group, "n_sectors": self.n_sectors,
                 "sectors_2min": " ".join(map(str, self.observed.get("2min", []))),
                 "sectors_ffi": " ".join(map(str, self.observed.get("ffi", []))),
                 "known": "; ".join(self.known), "reason": self.reason}
 
 
 CSV_FIELDS = ["rank", "list", "tic", "ra", "dec", "tmag", "teff", "logg", "rad", "rad_err", "mass", "rho", "lumclass",
-              "contratio", "tier", "sectors_2min", "sectors_ffi", "known", "reason"]
+              "contratio", "tier", "group", "n_sectors", "sectors_2min", "sectors_ffi", "known", "reason"]
 
 
 def build(n_sectors: int = 1, max_tmag: float = MAX_TMAG, refresh: bool = False, log=print) -> dict:
@@ -160,14 +191,26 @@ def build(n_sectors: int = 1, max_tmag: float = MAX_TMAG, refresh: bool = False,
     hosts = cat.tics_of("confirmed")
     transiting_hosts = {e.tic for e in cat.entries if e.kind == "confirmed" and e.disposition == "transiting"}
 
-    list_a = sorted((s for tic, s in bright.items() if tic not in known_any), key=rank_key)
-    list_b = sorted((s for tic, s in bright.items() if tic in transiting_hosts), key=rank_key)
+    newest = max(sectors["2min"] + sectors["ffi"])
+    order = sorted(bright)
+    counts = coverage.sector_counts([bright[t].ra for t in order], [bright[t].dec for t in order], newest)
+    n_sec = dict(zip(order, (int(c) for c in counts)))
+    log(f"sector counts (<= S{newest}): {sum(1 for c in counts if c >= DEEP_MIN_SECTORS)} of {len(order)} stars "
+        f"observed in >= {DEEP_MIN_SECTORS} sectors")
+
+    def key(s: Star) -> tuple:
+        return rank_key(s, n_sec[s.tic])
+
+    list_a = sorted((s for tic, s in bright.items() if tic not in known_any), key=key)
+    list_b = sorted((s for tic, s in bright.items() if tic in transiting_hosts), key=key)
 
     def rows_for(lst: str, ss: list[Star]) -> list[TargetRow]:
         out = []
         for i, s in enumerate(ss, start=1):
             known = [e.name for e in cat.on_star(s.tic)] if lst == "B" else []
-            out.append(TargetRow(i, lst, s, tier(s), observed[s.tic], known, reason(s, observed[s.tic], known)))
+            n = n_sec[s.tic]
+            out.append(TargetRow(i, lst, s, tier(s), observed[s.tic], known,
+                                 reason(s, observed[s.tic], known, n), n, group(s, n)))
         return out
 
     a_rows, b_rows = rows_for("A", list_a), rows_for("B", list_b)
@@ -186,6 +229,9 @@ def build(n_sectors: int = 1, max_tmag: float = MAX_TMAG, refresh: bool = False,
         "list_a_by_tier": {TIERS[k]: sum(1 for r in a_rows if r.tier == k) for k in TIERS},
         "list_b": len(b_rows),
         "list_b_by_tier": {TIERS[k]: sum(1 for r in b_rows if r.tier == k) for k in TIERS},
+        "list_a_by_group": {GROUPS[k]: sum(1 for r in a_rows if r.group == k) for k in GROUPS},
+        "list_b_by_group": {GROUPS[k]: sum(1 for r in b_rows if r.group == k) for k in GROUPS},
+        "sector_counts_up_to": newest,
         "catalogue_fetched_at": cat.fetched_at,
     }
     return {"summary": summary, "A": a_rows, "B": b_rows}

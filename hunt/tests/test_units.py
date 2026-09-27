@@ -126,7 +126,8 @@ def test_stage_order():
     from hunter.search import Signal
     base = Signal(3.0, 0.0, 0.1, 1e-3, 1e-5, 30.0, 12.0, 9, 1e-3, 1e-5, 1e-3, 1e-5)
     assert analyse.first_failed_stage(replace(base, snr=9.9), [], None) == "snr"
-    assert analyse.first_failed_stage(replace(base, sde=8.9), [], None) == "sde"
+    assert analyse.first_failed_stage(replace(base, sde=8.9, snr=25.0), [], None) == "sde"
+    assert analyse.first_failed_stage(replace(base, sde=8.9, snr=30.0), [], None) is None  # SDE waived at SNR 30
     assert analyse.first_failed_stage(replace(base, n_transits=2), [], None) == "transits"
     assert analyse.first_failed_stage(base, ["odd_even"], None) == "checks"
     assert analyse.first_failed_stage(base, [], {"same_star": [{}], "neighbours": []}) == "known"
