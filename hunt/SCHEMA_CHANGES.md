@@ -46,7 +46,7 @@ dips (1 or 2).
 - Periodic candidates get one more check, `three_dips` (leave the strongest dip out; the rest must keep half the
   depth at 3 sigma). It is a must-run check.
 - Singles and duos carry: `snr`, `size`, `duration`, `edge`, `momentum_dump`, `shape`, `background`,
-  `depth_consistency` and `aliases` (duo), and `neighbour_dips` (added at merge). Checks that cannot run on one
+  `isolated`, `depth_consistency` and `aliases` (duo), and `neighbour_dips` (added at merge). Checks that cannot run on one
   or two dips (`odd_even`, `secondary_eclipse`, `period_alias`, `sector_depth`; `depth_consistency` and `aliases`
   for a single) are present with `passed: null` and a reason starting "Could not run:". They are **not** passes;
   the web should show them as "couldn't run", not as ticks.
@@ -77,7 +77,8 @@ Added: `dips` (every single/duo examined, compact, with `kind`, `mid_times_btjd`
 `period_range_d`, `n_aliases`, `failed_stage`, `failed_checks`, `score`), `events` (every dip with SNR >= 7:
 `mid_btjd`, `duration_h`, `depth_ppm`, `snr`, `sector`, `failed_checks`, ...; the merge compares these across
 nearby stars), `stitch`, `search` (BLS/TLS runtimes, what TLS ran on, detrending windows). `signals[]` entries
-gain `kind`, `found_by`, `kept`. `timings_s` has new keys (`periodic`, `vetting`, `dips`, `bls_short_s`,
+gain `kind`, `found_by`, `kept` and `failed_reasons` (`{check: reason}` for every failed check). `events[]`
+entries carry `rejected_because` (`{check: reason}`). `timings_s` has new keys (`periodic`, `vetting`, `dips`, `bls_short_s`,
 `bls_long_s`, `tls_s`, ...).
 
 ## 3. `candidates.json`, `funnel.json`, `summary.json`

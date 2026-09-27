@@ -64,7 +64,9 @@ checks → known lists → filter → score → single / double dip search on wh
 **Stitching** (`lightcurve.stitch`). Every sector with a light curve, the best product per sector (SPOC 2-min,
 else TESS-SPOC, else QLP FFI; the pipeline's `choose_products`), each normalised by its own median, cadences
 with lightkurve's default quality flags dropped. The same FITS files are re-read for the QUALITY column
-(momentum dumps, flagged cadences) and SAP_BKG (background, normalised per sector). The curve keeps its native
+(momentum dumps, flagged cadences) and SAP_BKG (background, normalised per sector); QLP sectors are re-read
+with QLP's own quality flags and SYS_RM_FLUX (section 7b), and points more than 50 % below their sector's
+median are dropped as dropouts. The curve keeps its native
 cadence. The searches work on a copy averaged into 10-min bins per sector (a 42-sector star is 130k points instead
 of 630k) and then measure and vet on the native curve: 10-min bins smear transits shorter than an hour (an
 injected 52-min transit failed odd/even on binned data and passes on native data). Each star records
@@ -86,8 +88,10 @@ stars, never less than 0.9 d), and 0.5 / 1.5 / 3 d for the dip search's 1–4 h 
 Each find is re-measured on the native curve (finds from `bls_long` and `tls` first get a fine period / epoch /
 duration: BLS over ± one duration of phase drift across the baseline, since 0.02 d of period error moves a third
 transit years later by hours; then depth, odd/even depths, epochs with data, the pipeline's red-noise SNR, with
-depth errors scaled by the red-noise factor at the transit duration), and the one with the highest SNR is kept. `found_by` lists every search that found the same period. Another round follows while the last
-signal had SNR ≥ 7 and SDE ≥ 7 (a low-SDE bump from the long search is not worth masking). "Periodic" still
+depth errors scaled by the red-noise factor at the transit duration), and the one with the highest SNR is kept, preferring finds whose dips repeat (`three_dips`) and that have ≥ 3 epochs with data, so one
+glitch cannot win the round. `found_by` lists every search that found the same period. Another round follows
+while the last signal had SNR ≥ 7 and either SDE ≥ 7, SNR ≥ 30 or dips that do not repeat (a low-SDE bump
+from the long search is not worth masking; a strong defect is, since it can hide a real signal). "Periodic" still
 needs ≥ 3 transits with data, and the new `three_dips` check makes sure three dips are real.
 
 - **Known hosts (list B):** every listed signal on the star with an ephemeris is masked before searching.
@@ -159,6 +163,7 @@ noise. (On TOI-2180 b the box alone put mid-times up to 0.1 d off; the refined t
 | `momentum_dump` | a dump falls in the dip and without the hour around it the dip keeps < 50 % of its depth (> 3σ) or too little of the dip is left to tell; or > 20 % of the dip's cadences are quality-flagged |
 | `shape` | the two halves of the dip differ by > 3σ and > 30 % of the depth (a ramp), or the flux level before and after differs by > 3σ and > 50 % of the depth (a step); measured on the dip-masked local re-detrend |
 | `background` | SAP_BKG during the dip is > 3σ and > 1 unit of its own scatter above its surroundings (scattered light, a passing asteroid, a glint) |
+| `isolated` | 2 or more other dips on the star (any kind: artefacts, an eclipsing binary's or a variable star's) at ≥ 80 % of the single's / duo's SNR |
 | `neighbour_dips` | at merge: 2 or more other stars within 1°, searched in the same sector, have a dip within a quarter of the duration (≥ 1 h) with a duration within ×2. One star can be chance; two is a spacecraft or sky artefact |
 
 **Single** (`kind: "single"`): a clean dip with no partner. Its period comes from Kepler's third law with the
@@ -182,7 +187,7 @@ duration/density model; `period_d` is the most probable. `depth_consistency` com
 passes if at least one surviving alias can give the duration; `aliases` fails if none survive.
 
 **Filter**: `snr` (single SES ≥ 12; duo combined ≥ 10 with each ≥ 7) → `checks` (no failure, every must-run
-check ran: `snr`, `size`, `duration`, `edge`, `momentum_dump`, `shape`, `background`; duo also
+check ran: `snr`, `size`, `duration`, `edge`, `momentum_dump`, `shape`, `background`, `isolated`; duo also
 `depth_consistency`, `aliases`) → `known` / `neighbour` (a listed signal on the star or a neighbour within 2.5′
 predicts a transit or eclipse at a dip time, or a duo alias matches a listed period) → `neighbour_dips` (merge).
 Every clean dip with SES ≥ 7 gets a record, so the funnel shows what any threshold would let through.
@@ -272,51 +277,74 @@ cuts are run.
 
 ## 7b. Runtime, stars per night and false alarms (measured)
 
-**Calibration run** (2026-09-26): the first 360 stars of HUNT's 2026-09-25 target list re-ranked with the
-new groups (list B siblings interleaved with list A, i.e. what a night would search first), every sector
-stitched, 8 workers on a 10-core M-series laptop shared with an injection run and other jobs (so these times
-are on the slow side). 360 finished, 0 timeouts, 1 crash (TLS on an all-masked curve; fixed since).
+**Calibration run**: the first 360 stars of HUNT's 2026-09-25 target list re-ranked with the new groups (list B
+siblings interleaved with list A, i.e. what a night would search first), every sector stitched. It was run
+twice: once before and once after the QLP fix below (2026-09-27, 5 workers on a 10-core M-series laptop shared
+with an injection run and other jobs, so these times are on the slow side). Second run: 360 finished, 0
+timeouts, 1 crash (a star whose points were all masked; fixed since).
 
-| Per star (s) | median | mean |
+| Per star (s), second run | median | mean |
 |---|---|---|
-| download + stitch | 18 | 19 |
-| `bls_short` (0.5–15 d) | 17 | 22 |
-| `bls_long` (15 d – ½ baseline) | 91 | 98 |
-| `tls` | 64 | 75 |
-| native re-measuring | 17 | 21 |
-| single / duo search | 2 | 3 |
-| **whole star** | **225** | **251** |
+| download + stitch | 6 | 8 |
+| `bls_short` (0.5–15 d) | 20 | 23 |
+| `bls_long` (15 d – ½ baseline) | 109 | 124 |
+| `tls` | 54 | 50 |
+| native re-measuring | 16 | 19 |
+| single / duo search | 1 | 1 |
+| **whole star** | **216** | **237** |
 
-Stars had a median of 6 sectors (90th percentile 10, max 12) over baselines of ~2,500–2,900 d; `bls_long`
-reached half the baseline on 318 of 359 stars (median 1,425 d) and stopped at its 180-s budget on the rest.
-TLS fitted its 60-s budget only on the newest ~2 sectors (median) for all but 1 star: with sectors spread over
-eight years its period grid is huge, so on stitched curves TLS mainly helps small planets in recent data, and
-BLS covers the whole baseline. For comparison, HUNT's 3-sector BLS took a median 18 s per star.
+(The first run, 8 workers: median 225 s, mean 251 s.) Stars had a median of 6 sectors (90th percentile 10,
+max 12) over baselines of ~2,500–2,900 d; `bls_long` reached half the baseline on 329 of 359 stars (median
+1,425 d) and stopped at its 180-s budget on the rest. TLS fitted its 60-s budget only on the newest ~2
+sectors (median) for every star: with sectors spread over eight years its period grid is huge, so on stitched
+curves TLS mainly helps small planets in recent data, and BLS covers the whole baseline. HUNT's 3-sector BLS
+took a median 18 s per star.
 
 **Nightly CI** (public repo, 20 shards × 350-min budget, 4 workers per `ubuntu-latest` runner): the budget,
 not the list, sets the minutes, which stay at about 20 × 355 + 15 ≈ **7,100 runner-minutes a night** (as
-HUNT). At 251 s per star per worker that is 20 × 350 × 60 × 4 / 251 ≈ **6,700 stars a night** (HUNT: ~90k at
-~18 s). A runner vCPU may be slower than an unloaded laptop core, so plan on **4,000–7,000**; the time budget
-keeps a slow night inside 350 minutes either way. The 19,489 group-0 stars take about 3–5 nights, the
-536k stars with ≥ 5 sectors about 80–130 nights.
+HUNT). At ~240–250 s per star per worker that is 20 × 350 × 60 × 4 / 250 ≈ **6,700 stars a night** (HUNT:
+~90k at ~18 s). A runner vCPU may be slower than a laptop core, so plan on **4,000–7,000**; the time budget
+keeps a slow night inside 350 minutes either way. The 19,489 group-0 stars take about 3–5 nights, the 536k
+stars with ≥ 5 sectors about 80–130 nights.
 
-**False alarms** (same 359 stars; recomputed with the final rules for all of them):
+**False alarms** (the same 359 stars, final rules applied to every star from its recorded dip events):
 
-| Kind, threshold | pass every check, not on a list | per 1,000 stars | per night (6,700 stars) |
+| Kind, threshold | pass every check, not on a list: run 1 / run 2 | per 1,000 stars | per night (6,700 stars) |
 |---|---|---|---|
-| single, SES ≥ 10 | 3 | 8.4 | ~56 |
-| **single, SES ≥ 12 (used)** | **1** | **2.8** | **~19** |
-| single, SES ≥ 15 | 0 | < 2.8 | – |
-| duo, combined ≥ 10 (used) | 0 | < 2.8 | – |
-| periodic (SNR ≥ 10, SDE ≥ 9 or SNR ≥ 30) | 0 | < 2.8 | – |
+| single, SES ≥ 10 | 1 / 0 | ≤ 2.8 | ≤ ~19 |
+| **single, SES ≥ 12 (used)** | **1 / 0** | **≤ 2.8** | **≤ ~19** |
+| single, SES ≥ 15 | 0 / 0 | – | – |
+| duo, combined ≥ 10 (used) | 0 / 0 | – | – |
+| periodic (SNR ≥ 10, SDE ≥ 9 or SNR ≥ 30) | 0 / 0 | – | – |
 
-The single threshold is **SES ≥ 12** so the nightly list stays near 20 singles plus a few duos. This rests on
-very few events: one single at SES ≥ 12 in 359 stars puts the rate anywhere from about 0.5 to 9 per 1,000 (68%
-Poisson interval), i.e. roughly 3–60 a night, so the first real nights' `funnel.json`
-(`dips.single.candidates_per_1000_stars`) should be used to re-set it. None of the 3 singles above SES 10 is
-known to be real. This run's `funnel.json` records 3,599 dip events with SES ≥ 7 on these stars, of which 98%
-failed a dip check (`isolated` 2,920, `background` 2,249, `shape` 1,685, `edge` 1,430,
-`momentum_dump` 193; several per event).
+The single threshold is **SES ≥ 12** and the duo threshold combined SNR ≥ 10 (each dip ≥ 7), which keeps the
+nightly list at roughly 20 or fewer. These numbers rest on very few events: 0–1 in 359 stars puts the combined
+single + duo rate anywhere up to ~5 per 1,000 (84% Poisson upper limit for 1 event), i.e. up to ~35 a night.
+The first real nights' `funnel.json` (`dips.single.candidates_per_1000_stars`) should be used to re-set it.
+What set these rules:
+
+- In run 2 (clean QLP) one variable star (TIC 352400977) alone produced 7 duos and 2 singles out of clean,
+  ~1.5 %-deep dips of varying length. That is why `isolated` counts every other dip as strong as the
+  candidate's, not only artefacts.
+- In run 2's funnel, 1,104 of 1,143 dip events with SES ≥ 7 failed a per-dip check (`shape` 827, `edge` 823,
+  `background` 600, `momentum_dump` 409; several per event). Run 1, on raw QLP flux, had 3,599 events.
+
+**Found and fixed on the way (all from these runs and injection-recovery):**
+
+- QLP sectors: the pipeline reads QLP files through lightkurve with SAP_FLUX and the SPOC quality mask, which
+  keeps QLP's own bad-data flags (bits 29–30). On QLP sectors 101–104, 1–4 % of cadences were > 2 % low; they
+  folded into fake periodic signals and hid injected 5–8 R⊕ planets (0 of 4 recovered on such stars, 4 of 4
+  on stars without QLP data). hunt now re-reads QLP sectors with QUALITY == 0 only and SYS_RM_FLUX where the
+  file has it (else SAP_FLUX). **The pipeline itself (`hunter.fetch`) still has this; its owner should fix it
+  there** (outside hunt's fence).
+- Points more than 50 % below their sector's median are dropped at stitching (data dropouts).
+- A strong one-epoch glitch (a 93 %-deep drop, SNR 1,676) used to win round 1 and, with its low SDE, end the
+  search, hiding an injected 85-transit planet. Each round now prefers finds whose dips repeat
+  (`three_dips`), and the search continues past any signal with SNR ≥ 30 or dips that do not repeat.
+- Every periodic find gets a fine period / epoch refinement (the pipeline's BLS put an injected 1.38-d
+  planet 6×10⁻⁵ P off over a 2,935-d baseline, catching a tenth of its depth).
+- SDE saturates for strong signals with few transits (injected 3–6 R⊕ at 11–13 d: SNR 275–1,042, SDE
+  7.0–8.9), hence the SDE waiver at SNR ≥ 30. It added no candidate on the calibration stars.
 
 ## 8. CI
 
