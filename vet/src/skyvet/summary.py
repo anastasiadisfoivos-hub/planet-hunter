@@ -2,7 +2,8 @@
 
 fail: published evidence that the dip is not a planet on the target.
   - LEO-vetter raised a false-positive test (FP: off-target, significant secondary, radius too large, V-shaped,
-    odd-even differences).
+    odd-even differences). Odd-even fails only when the depths differ by > 5 % of the transit depth (as hunt's
+    own check) or the odd and even transit times differ (> 10 sigma); a smaller depth difference is a flag.
   - TRICERATOPS: NFPP > 0.1 (likely nearby false positive) or FPP > 0.5 (likely false positive).
   - Gaia DR3 has a spectroscopic orbit at the candidate's period (or x2, x1/2) that needs a stellar companion.
   - A catalogued eclipsing binary at the candidate's period (or x2, x1/2): VSX within 42" or Gaia DR3
@@ -10,6 +11,7 @@ fail: published evidence that the dip is not a planet on the target.
 flag: needs a person to look.
   - Any tool or part that did not run, LEO tests it could not evaluate, or TRICERATOPS without its background
     population (it skips those scenarios silently otherwise).
+  - LEO-vetter odd-even on depth, with odd and even depths within 5 %: "odd/even depths differ slightly".
   - LEO-vetter false-alarm (FA) tests. The candidate already passed HUNT's own detection cuts, so LEO doubting
     that the signal is a clean transit is a reason to look, not a disposition.
   - TRICERATOPS not validated (FPP >= 0.015 or NFPP >= 0.001) but not ruled out.
@@ -22,7 +24,8 @@ pass: every tool ran and none of the above applies.
 
 from __future__ import annotations
 
-PLANET_TYPES = ("EP",)  # VSX / Gaia class for an exoplanet transit
+PLANET_TYPES = ("EP",)
+ODD_EVEN_MIN_FRACTION = 0.05  # as hunt (hunter.vet.odd_even): fail needs > 3 sigma and > 5 % of the depth  # VSX / Gaia class for an exoplanet transit
 
 
 def summarise(v: dict, gaia_rows: list[dict] | None, target: dict | None) -> dict:
@@ -36,6 +39,8 @@ def summarise(v: dict, gaia_rows: list[dict] | None, target: dict | None) -> dic
         for f in leo["flags"]:
             if f.startswith("FP: off-target") and (leo.get("pixel") or {}).get("ran"):
                 fail.append("LEO-vetter " + f + ": " + _offset_text(leo["pixel"], gaia_rows, target))
+            elif f.startswith("FP: odd-even") and (slight := _slight_odd_even(leo.get("metrics") or {})):
+                flag.append(f"LEO-vetter {f}: odd/even depths differ slightly ({slight})")
             elif f.startswith("FP"):
                 fail.append(f"LEO-vetter {f}")
             else:
@@ -117,6 +122,21 @@ def summarise(v: dict, gaia_rows: list[dict] | None, target: dict | None) -> dic
 
     verdict = "fail" if fail else "flag" if flag else "pass"
     return {"verdict": verdict, "reasons": fail + flag, "notes": notes}
+
+
+def _slight_odd_even(m: dict) -> str | None:
+    """"x%, ysigma" when LEO's odd-even test fired on depth alone and the depths differ by <= 5 % of the transit
+    depth (hunt's rule: a failure needs > 3 sigma AND > 5 %). None (a failure) otherwise: a bigger difference, a
+    timing offset (> 10 sigma between odd and even epochs), or metrics missing."""
+    need = ("odd_dep", "even_dep", "dep", "sig_dep")
+    if any(m.get(k) is None for k in need) or not m["dep"]:
+        return None
+    if any((m.get(k) or 0) > 10 for k in ("trap_sig_epo", "transit_sig_epo")):
+        return None
+    frac = abs(m["odd_dep"] - m["even_dep"]) / abs(m["dep"])
+    if frac > ODD_EVEN_MIN_FRACTION:
+        return None
+    return f"{frac * 100:.1f}%, {m['sig_dep']:.1f}\u03c3"
 
 
 def _offset_text(px: dict, gaia_rows: list[dict] | None, target: dict | None) -> str:

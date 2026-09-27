@@ -157,7 +157,7 @@
     "106": "SPOC"
    },
    "background_population": true,
-   "runtime_s": 36.0
+   "runtime_s": 45.4
   },
   "gaia": {
    "ran": true,
@@ -332,15 +332,15 @@
   },
   "runtime_s": {
    "tic": 0.0,
-   "lightcurve": 3.3,
-   "leo": 27.4,
-   "triceratops": 36.0,
+   "lightcurve": 4.4,
+   "leo": 34.3,
+   "triceratops": 45.4,
    "gaia": 0.0,
    "variability": 0.0,
-   "total": 66.7
+   "total": 84.2
   },
   "skyvet_version": "0.1.0",
-  "vetted_at": "2026-09-26T20:42:58+00:00",
+  "vetted_at": "2026-09-27T08:23:04+00:00",
   "offline": false
  },
  "toi4257_01": {
@@ -502,7 +502,7 @@
     "89": "5x5 default"
    },
    "background_population": true,
-   "runtime_s": 79.5
+   "runtime_s": 103.6
   },
   "gaia": {
    "ran": true,
@@ -819,14 +819,14 @@
   "runtime_s": {
    "tic": 0.0,
    "lightcurve": 0.1,
-   "leo": 7.8,
-   "triceratops": 79.5,
+   "leo": 9.8,
+   "triceratops": 103.6,
    "gaia": 0.0,
    "variability": 0.0,
-   "total": 144.7
+   "total": 113.6
   },
   "skyvet_version": "0.1.0",
-  "vetted_at": "2026-09-26T20:45:22+00:00",
+  "vetted_at": "2026-09-27T08:24:57+00:00",
   "offline": false
  },
  "eb_408512382": {
@@ -975,7 +975,7 @@
     "64": "SPOC"
    },
    "background_population": true,
-   "runtime_s": 24.0
+   "runtime_s": 34.2
   },
   "gaia": {
    "ran": true,
@@ -1131,14 +1131,14 @@
   "runtime_s": {
    "tic": 0.0,
    "lightcurve": 0.1,
-   "leo": 4.2,
-   "triceratops": 24.0,
+   "leo": 5.3,
+   "triceratops": 34.2,
    "gaia": 0.0,
    "variability": 0.0,
-   "total": 28.2
+   "total": 39.6
   },
   "skyvet_version": "0.1.0",
-  "vetted_at": "2026-09-26T20:45:51+00:00",
+  "vetted_at": "2026-09-27T08:25:37+00:00",
   "offline": false
  },
  "wasp126b": {
@@ -1299,7 +1299,7 @@
     "98": "SPOC"
    },
    "background_population": true,
-   "runtime_s": 25.7
+   "runtime_s": 47.7
   },
   "gaia": {
    "ran": true,
@@ -1459,9 +1459,9 @@
    ]
   },
   "summary": {
-   "verdict": "fail",
+   "verdict": "flag",
    "reasons": [
-    "LEO-vetter FP: odd-even transit differences"
+    "LEO-vetter FP: odd-even transit differences: odd/even depths differ slightly (2.7%, 3.2\u03c3)"
    ],
    "notes": [
     "difference-image source is 1.17\" from the target (LEO threshold 15\")",
@@ -1493,15 +1493,15 @@
   },
   "runtime_s": {
    "tic": 0.0,
-   "lightcurve": 2.7,
-   "leo": 28.5,
-   "triceratops": 25.7,
+   "lightcurve": 4.6,
+   "leo": 50.7,
+   "triceratops": 47.7,
    "gaia": 0.0,
    "variability": 0.0,
-   "total": 56.8
+   "total": 103.0
   },
   "skyvet_version": "0.1.0",
-  "vetted_at": "2026-09-26T20:46:48+00:00",
+  "vetted_at": "2026-09-27T08:27:21+00:00",
   "offline": false
  }
 }
