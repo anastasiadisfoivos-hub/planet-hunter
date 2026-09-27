@@ -31,13 +31,18 @@ build-backend = "uv_build"
 
 [tool.uv]
 # The search server is Linux arm64 (Oracle Ampere); CI is Linux x86_64. batman-package 2.5.3 (through
-# triceratops) has no Linux arm64 wheel and no sdist, so 2.5.2, which has an sdist, is pinned: it builds there.
+# triceratops) has no Linux arm64 wheel and no sdist, and 2.5.2's sdist builds against numpy 1 headers
+# (oldest-supported-numpy), which fail to import under numpy 2. On Linux arm64 it is built from upstream's
+# 2.5.3 source at a pinned commit, whose build requires numpy >= 2; elsewhere the 2.5.3 wheels are used.
 required-environments = [
     "sys_platform == 'linux' and platform_machine == 'aarch64'",
     "sys_platform == 'linux' and platform_machine == 'x86_64'",
     "sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
-override-dependencies = ["batman-package==2.5.2"]
+override-dependencies = [
+    "batman-package @ git+https://github.com/lkreidberg/batman@3c69c4381d9785cd4d06e898c2cdf83b22ffb365 ; sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "batman-package==2.5.3 ; sys_platform != 'linux' or platform_machine != 'aarch64'",
+]
 
 [tool.uv.sources]
 transit-diffimage = { git = "https://github.com/stevepur/transit-diffImage" }

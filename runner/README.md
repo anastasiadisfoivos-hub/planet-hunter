@@ -220,11 +220,11 @@ The ledger measures every night, and `planet-hunter status` shows the last run's
   branch needs `runner/` plus DEEPHUNT's hunt, `vet/` and `faint/`. The dry run used a local merge of
   `v2 + deephunt + vet + faint + runner`. Merging
   deephunt conflicts in `hunt/README.md` and `hunt/src/hunt/inject.py`; deephunt's side was taken.
-- **arm64.**
-  - `batman-package==2.5.3` (from transitleastsquares and triceratops) has no Linux arm64 wheel and no sdist.
-    `sync-venvs.sh` builds 2.5.2 from source as a workaround. The lasting fix is in `hunt/` and `vet/`: add
-    `[tool.uv] required-environments` with linux aarch64, and a batman pin.
-  - `faint/`'s lock pins the pre-DEEPHUNT hunt (no transitleastsquares), so faint stars run in hunt's venv, with
-    skyfaint added.
+- **arm64.** Fixed in the locks (27 Sep): hunt/, faint/ and vet/ lock for Linux aarch64. `batman-package` 2.5.3
+  (from transitleastsquares and triceratops) has no Linux arm64 wheel and no sdist, and 2.5.2's sdist builds against
+  numpy 1 headers, which fail to import under numpy 2. So on Linux arm64 the locks build batman from upstream's 2.5.3
+  source at a pinned commit (its build requires numpy >= 2); elsewhere they use the 2.5.3 wheels. Checked in a
+  linux/arm64 container: all three sync frozen and compute a transit model. `sync-venvs.sh` keeps its old
+  from-source fallback for refs whose locks predate this. faint's lock now pins DEEPHUNT's hunt too.
 - **No monitor writer in hunt.** The runner builds each monitor record itself (`scheduler/monitor_record.py`) from
   hunt's per-star result.

@@ -20,10 +20,10 @@ export UV_PYTHON_INSTALL_DIR="${UV_PYTHON_INSTALL_DIR:-$PH_HOME/python}"
 export UV_LINK_MODE=copy
 force="${1:-}"
 cd "$PH_HOME"  # uv reads uv.toml from the working directory; never from a caller's home
-# Locked packages with no Linux arm64 wheel and no sdist at the locked version: on arm64 they are left out of the
-# locked install and built from source at the newest version that has an sdist. (batman-package 2.5.3, pulled in by
-# transitleastsquares and triceratops, ships x86 / macOS wheels only; 2.5.2 has an sdist.) The lasting fix is in
-# hunt/ and vet/: `[tool.uv] required-environments` with linux aarch64 and a batman-package pin.
+# hunt/, faint/ and vet/ now lock for linux aarch64 and pin batman-package==2.5.2, which has an sdist (2.5.3,
+# pulled in by transitleastsquares and triceratops, ships x86 / macOS wheels only), so the frozen sync builds it
+# there. The fallback below is kept for a ref whose lock predates that: on arm64 it leaves out the packages with no
+# arm64 wheel and no sdist, then builds them from source at the newest version that has an sdist.
 ARM64_FROM_SOURCE="${ARM64_FROM_SOURCE:-batman-package==2.5.2}"
 mkdir -p "$VENVS"
 
@@ -62,8 +62,8 @@ sync_one() {  # name, extra uv args...
 
 sync_one hunt --no-dev
 sync_one faint            # skyfaint's own venv (its dev group brings in hunt): `skyfaint targets` runs here
-# Faint stars are searched with DEEPHUNT's deep search, which lives in hunt's venv (faint's lock pins an older hunt
-# without transitleastsquares), so skyfaint is added to hunt's venv too; installed packages are kept as locked.
+# Faint stars are searched with DEEPHUNT's deep search in hunt's venv, so skyfaint is added there too; installed
+# packages are kept as locked. (faint's own lock now pins the same hunt, so its venv could run them as well.)
 if [[ -f "$REPO/faint/pyproject.toml" && -x "$VENVS/hunt/bin/python" ]] \
    && ! "$VENVS/hunt/bin/python" -c 'import skyfaint.tglc' 2>/dev/null; then
   echo "sync-venvs: adding skyfaint to hunt's venv"

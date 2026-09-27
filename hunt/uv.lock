@@ -1,6 +1,21 @@
 version = 1
 revision = 3
 requires-python = ">=3.12"
+resolution-markers = [
+    "platform_machine != 'aarch64' or sys_platform != 'linux'",
+    "platform_machine == 'aarch64' and sys_platform == 'linux'",
+]
+required-markers = [
+    "platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "platform_machine == 'arm64' and sys_platform == 'darwin'",
+]
+
+[manifest]
+overrides = [
+    { name = "batman-package", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'", specifier = "==2.5.3" },
+    { name = "batman-package", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'", git = "https://github.com/lkreidberg/batman?rev=3c69c4381d9785cd4d06e898c2cdf83b22ffb365" },
+]
 
 [[package]]
 name = "aiobotocore"
@@ -214,6 +229,9 @@ wheels = [
 name = "batman-package"
 version = "2.5.3"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "platform_machine != 'aarch64' or sys_platform != 'linux'",
+]
 dependencies = [
     { name = "numpy" },
 ]
@@ -228,6 +246,17 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/36/d8/59bd093fff5834e7e20bb9b9c4a0ff7f6660c5a7589f55143a5724cb6c8a/batman_package-2.5.3-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f9b152055524360a5955f45151638b549cc00e8e1a3f62072a0c161eee738259", size = 243358, upload-time = "2025-05-05T20:52:03.93Z" },
     { url = "https://files.pythonhosted.org/packages/25/f3/e03fd9a49a6f6a3a06e3c6559c33867202bf8e7285023fbf5c857042b777/batman_package-2.5.3-cp313-cp313-win32.whl", hash = "sha256:b2dff1705a080a71fbc4315bf515fb8db3628807439e94ac227b2ff16ceeae8f", size = 84837, upload-time = "2025-05-05T20:52:05.411Z" },
     { url = "https://files.pythonhosted.org/packages/74/2e/f9efa76e64bd090d6f278696fb5ad8a2422c950595a1b1882c5b35675a6b/batman_package-2.5.3-cp313-cp313-win_amd64.whl", hash = "sha256:a1d073577893f2bfee61863f7d1c26a17461dbf75be4d1e4aa3efdc650b2f800", size = 89804, upload-time = "2025-05-05T20:52:06.663Z" },
+]
+
+[[package]]
+name = "batman-package"
+version = "2.5.3"
+source = { git = "https://github.com/lkreidberg/batman?rev=3c69c4381d9785cd4d06e898c2cdf83b22ffb365#3c69c4381d9785cd4d06e898c2cdf83b22ffb365" }
+resolution-markers = [
+    "platform_machine == 'aarch64' and sys_platform == 'linux'",
+]
+dependencies = [
+    { name = "numpy" },
 ]
 
 [[package]]
@@ -2196,7 +2225,8 @@ version = "1.32"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "astroquery" },
-    { name = "batman-package" },
+    { name = "batman-package", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
+    { name = "batman-package", version = "2.5.3", source = { git = "https://github.com/lkreidberg/batman?rev=3c69c4381d9785cd4d06e898c2cdf83b22ffb365#3c69c4381d9785cd4d06e898c2cdf83b22ffb365" }, marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" },
     { name = "configparser" },
     { name = "numba" },
     { name = "numpy" },

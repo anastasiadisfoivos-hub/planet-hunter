@@ -71,7 +71,7 @@ server dry run.
   - Planets under 2 R⊕ are mostly missed. So are stars fainter than Tmag 13, except on the faint branch, and stars with no TIC radius, because their size and duration checks cannot run.
   - The deep search's own sensitivity has not been measured yet. The numbers above are from the fast search.
   - On stitched multi-year curves, TLS fits its time budget only on the newest ~2 sectors. BLS covers the whole baseline.
-  - The search missed TOI-1680 b on TGLC data even though the transit is in the data (SNR ≈ 24). The cause is diagnosed: the coarse search adds up per-sector power without keeping phase.
+  - **Small planets spread over many sectors are not yet recovered** (e.g. TOI-1680 b: the transit is in the TGLC data at SNR ≈ 24 over 24 sectors, but only ≈ 5 per sector). The cause is diagnosed: the coarse search adds up per-sector power without keeping phase. A fix is in progress (DEEPHUNT); until it lands, the deep and faint searches will miss such planets.
   - The vetting flags WASP-18 b and fails WASP-126 b, both confirmed planets. LEO's SWEET test picks up WASP-18 b's real phase curve. LEO's odd/even test trips on a 2.7% difference in WASP-126 b because it has no fractional floor. Automated vetting is a filter, not a verdict.
   - The pixel check's Gaussian PSF measures depths ~15% low.
   - No automatic check can rule out an eclipsing binary sitting almost directly behind the target. That takes sharper images or spectra from the ground.
@@ -131,7 +131,7 @@ cd api && uv sync && uv run pytest -q
 uv run uvicorn --factory api.app:create_app
 uv run --extra finder python -m api.finder_ingest --dir ../merged/candidates --run-id local
 
-# Website on :3000 (demo data by default; NEXT_PUBLIC_API_MOCK=false and NEXT_PUBLIC_API_BASE for a real API)
+# Website on :3000 (demo data when NEXT_PUBLIC_API_BASE is unset; set it to a running API to use real data)
 cd web && npm install && npm run dev
 ```
 
