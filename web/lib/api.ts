@@ -102,7 +102,7 @@ export type MonitorStats = {
 // The API's monitor answers (api/README.md, Monitor), mapped onto the shapes above.
 type ApiNow = { mode: MonitorMode; run_started_at: string | null; star: MonitorStar | null; next_tic?: number | null };
 type ApiLogItem = { tic: number; outcome: string | null; detections_count: number; searched_at: string; record?: LogStar | null };
-type ApiStats = { stars_searched: number; signals: number; candidates: number; rejected_by_reason?: Record<string, number>; rejected?: number; known?: number; last_run_at: string | null };
+type ApiStats = { stars_searched: number; signals: number; candidates: number; rejected_by_reason?: Record<string, number>; rejected?: number; known?: number; last_run_at: string | null; funnel?: FunnelStep[] };
 const MAX_LOG = 200;
 
 const OUTCOMES: StarOutcome[] = ["candidate", "known", "rejected", "none"];
@@ -149,8 +149,9 @@ export async function getMonitorLog(signal?: AbortSignal): Promise<MonitorLog> {
 
 export async function getMonitorCoverage(signal?: AbortSignal): Promise<MonitorCoverage> {
   if (API_MOCK) return getJson<MonitorCoverage>(`${MON}/coverage.json`, signal);
-  const r = await getJson<{ stars?: CoverageStar[] }>(`${API_BASE}/monitor/coverage`, signal);
-  return { stars: r.stars ?? [] };
+  const r = await getJson<{ stars?: (Omit<CoverageStar, "ra" | "dec"> & { ra: number | null; dec: number | null })[] }>(`${API_BASE}/monitor/coverage`, signal);
+  // a star stored without a position can't go on the sky
+  return { stars: (r.stars ?? []).filter((x): x is CoverageStar => x.ra != null && x.dec != null) };
 }
 
 export async function getMonitorStats(signal?: AbortSignal): Promise<MonitorStats> {
@@ -158,7 +159,7 @@ export async function getMonitorStats(signal?: AbortSignal): Promise<MonitorStat
   const r = await getJson<ApiStats>(`${API_BASE}/monitor/stats`, signal);
   const at = r.last_run_at ?? new Date().toISOString();
   const rejected = r.rejected ?? Object.values(r.rejected_by_reason ?? {}).reduce((a, b) => a + b, 0);
-  return { since: at, updated_at: at, stars_searched: r.stars_searched, signals: r.signals, candidates: r.candidates, rejected, known: r.known ?? 0 };
+  return { since: at, updated_at: at, stars_searched: r.stars_searched, signals: r.signals, candidates: r.candidates, rejected, known: r.known ?? 0, funnel: r.funnel };
 }
 
 export type Sparks = { unit: "ppm"; bins: number; stars: Record<string, number[]> };
