@@ -82,21 +82,22 @@ def test_toi5688_recovered(toi5688_search, facts):
     assert abs(best.depth * 1e6 / f["depth_ppm_from_ratror"] - 1) < 0.15
 
 
-def test_toi1680_in_data_but_missed_by_hunt(facts):
-    """TOI-1680 b is NOT recovered by hunt's search. This test pins down why (see README, Proof):
+def test_toi1680_in_data_but_missed_by_the_per_sector_search(facts):
+    """TOI-1680 b is in the TGLC data, but a search that adds up per-sector BLS power without phase (the
+    pipeline's `hunter.search._coarse`, which HUNT's first search used) cannot find it (see README, Proof):
 
     1. the transit is in the TGLC data: at the catalogue ephemeris, the in-transit mean is ~4000 ppm low at
        SNR > 15;
     2. a phase-coherent BLS on the same stitched curve finds the period (SDE > 9);
-    3. hunt's coarse stage searches each of the 24 sectors separately and adds their powers without phase
-       coherence; per sector the transit has SNR ~ 4, below each sector's own noise peaks, so the summed power at
-       the true period is not significant and the fine stage never looks there.
-    If hunt's search changes so that it finds TOI-1680 b, this test fails: update it and the README."""
+    3. the per-sector coarse stage searches each of the 24 sectors separately and adds their powers without
+       phase coherence; per sector the transit has SNR ~ 4, below each sector's own noise peaks, so the summed
+       power at the true period is not significant and the fine stage never looks there.
+    hunt's deep search is now phase-coherent over the stitched curve and recovers it: that proof is
+    hunt/tests/test_faint_real.py."""
     from astropy.timeseries import BoxLeastSquares
     from hunter import search as hs
     from hunter.clean import flatten_for_search, robust_sigma
     from hunter.search import in_transit
-    from hunt.signals import find_signals
 
     f = facts["toi1680"]
     lc, _ = load(TOI1680)
@@ -120,9 +121,6 @@ def test_toi1680_in_data_but_missed_by_hunt(facts):
     near = np.abs(per / P - 1) < 0.002
     z = (pw - np.median(pw)) / np.std(pw)
     assert z[near].max() < 3  # nothing there for the fine stage to refine
-
-    sigs = find_signals(lc.to_hunt()).signals
-    assert not any(abs(s.period / P - 1) < 0.01 for s in sigs)
 
 
 # ---- a quiet faint star ------------------------------------------------------------------------------------------

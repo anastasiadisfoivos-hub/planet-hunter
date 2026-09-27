@@ -38,7 +38,7 @@ def _load(tic: int):
 
 
 def test_toi1680_transit_is_in_the_tglc_data():
-    """FAINT's pinned facts (test_toi1680_in_data_but_missed_by_hunt, parts 1-2): the transit is there."""
+    """FAINT's pinned facts (test_toi1680_in_data_but_missed_by_the_per_sector_search, parts 1-2): the transit is there."""
     from hunter.clean import robust_sigma
     from hunter.search import in_transit
 

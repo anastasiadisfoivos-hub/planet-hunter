@@ -143,8 +143,8 @@ def _qlp_clean(product: dict) -> tuple[np.ndarray, np.ndarray, np.ndarray, str] 
 
 
 def _clean_qlp_sectors(lc) -> None:
-    """hunter.fetch reads QLP files through lightkurve: SAP_FLUX with the SPOC default quality mask, which keeps
-    QLP's own bad-data flags. On the newest QLP sectors that left 1-4% of cadences more than 2% low (scattered
+    """hunter.fetch used to read QLP files through lightkurve: SAP_FLUX with the SPOC default quality mask, which kept
+    QLP's own bad-data flags (hunter.fetch now reads them this way itself; this stays for an older pipeline). On the newest QLP sectors that left 1-4% of cadences more than 2% low (scattered
     light), which folded into strong fake periodic signals and hid injected 5-8 R_earth planets. Replace each QLP
     sector with _qlp_clean."""
     for p in lc.products:

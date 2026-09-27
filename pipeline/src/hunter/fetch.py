@@ -99,14 +99,45 @@ def _download(row: dict) -> Path:
     return path
 
 
-def _read(path: Path, author: str):
+QLP_ERR_COLUMNS = ("DET_FLUX_ERR", "KSPSAP_FLUX_ERR", "SAP_FLUX_ERR")
+
+
+def _read_qlp(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray, str]:
+    """A QLP sector as QLP recommends: only cadences with QUALITY == 0, and SYS_RM_FLUX (systematics removed, not
+    spline-detrended, so long transits survive) where the file has it, else SAP_FLUX.
+
+    Read through lightkurve's default, QLP files gave SAP_FLUX with the SPOC quality bitmask (17087), which keeps
+    QLP's own bad-data flags (bits 29-30: scattered light and other bad data). On QLP sectors 101-104 that left
+    1-4% of cadences more than 2% low, which folded into fake periodic signals (hunt found and fixed this first,
+    hunt.lightcurve._qlp_clean)."""
+    from astropy.io import fits
+
+    with fits.open(path, memmap=False) as hdul:
+        d = hdul[1].data
+        names = [c.upper() for c in d.columns.names]
+        col = "SYS_RM_FLUX" if "SYS_RM_FLUX" in names else "SAP_FLUX"
+        if col not in names or "QUALITY" not in names:
+            raise ValueError(f"{path.name}: no {col} or QUALITY column")
+        t = np.asarray(d["TIME"], float)
+        f = np.asarray(d[col], float)
+        q = np.asarray(d["QUALITY"], np.int64)
+        err_col = next((c for c in QLP_ERR_COLUMNS if c in names), None)
+        e = np.asarray(d[err_col], float) if err_col else np.full(len(t), np.nan)
+    ok = q == 0
+    return t[ok], f[ok], e[ok], col.lower()
+
+
+def _read(path: Path, author: str) -> tuple[np.ndarray, np.ndarray, np.ndarray, str]:
+    """Time, flux, flux error (not yet normalised) and the flux column used."""
+    if author == "QLP":
+        return _read_qlp(path)
     import lightkurve as lk
 
-    # QLP files have no PDCSAP column; their default (sap_flux) is QLP's own systematics-corrected flux.
-    kwargs = {"flux_column": "pdcsap_flux"} if author in ("SPOC", "TESS-SPOC") else {}
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        return lk.read(str(path), quality_bitmask="default", **kwargs)
+        lc = lk.read(str(path), quality_bitmask="default", flux_column="pdcsap_flux")
+    t = np.asarray(lc.time.value, dtype=float)
+    return t, np.asarray(lc.flux.value, dtype=float), np.asarray(lc.flux_err.value, dtype=float), "pdcsap_flux"
 
 
 def fetch(tic_id: int, max_sectors: int = 2, refresh: bool = False) -> LightCurveData:
@@ -117,10 +148,7 @@ def fetch(tic_id: int, max_sectors: int = 2, refresh: bool = False) -> LightCurv
 
     times, fluxes, errs, sectors, products = [], [], [], [], []
     for row in chosen:
-        lc = _read(_download(row), row["author"])
-        t = np.asarray(lc.time.value, dtype=float)
-        f = np.asarray(lc.flux.value, dtype=float)
-        e = np.asarray(lc.flux_err.value, dtype=float)
+        t, f, e, column = _read(_download(row), row["author"])
         good = np.isfinite(t) & np.isfinite(f) & (f > 0)
         e = np.where(np.isfinite(e), e, np.nan)
         t, f, e = t[good], f[good], e[good]
@@ -131,7 +159,7 @@ def fetch(tic_id: int, max_sectors: int = 2, refresh: bool = False) -> LightCurv
         fluxes.append(f / median)
         errs.append(e / median)
         sectors.append(np.full(len(t), row["sector"]))
-        products.append({**row, "flux_column": "pdcsap_flux" if row["author"] != "QLP" else "sap_flux"})
+        products.append({**row, "flux_column": column if row["author"] != "QLP" else f"{column} (QUALITY == 0)"})
 
     if not times:
         raise LookupError(f"TIC {tic_id}: downloaded light curves had no usable points")

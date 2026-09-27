@@ -151,22 +151,26 @@ before any search was run: faint M-dwarf hosts (Tmag > 13), one giant, one small
 radius ratio agrees with TGLC to 1%. That is what decontamination should do: TGLC takes the companion's light out of
 the aperture, so the transit is not diluted.
 
-**TOI-1680 b, why it was missed.** This is diagnosed, not tuned; `test_toi1680_in_data_but_missed_by_hunt` pins it.
+**TOI-1680 b: missed by the per-sector search, now recovered.** HUNT's first search missed it; the cause is
+diagnosed, not tuned, and `test_toi1680_in_data_but_missed_by_the_per_sector_search` pins it (points 1–3).
+DEEPHUNT's final search, phase-coherent over the stitched curve, recovers it: `hunt/tests/test_faint_real.py`.
 
 1. **The transit is in the TGLC data.** At the catalogue ephemeris the flux is 4,643 ppm low (catalogue: 4,070) over
    384 in-transit points, SNR 23.7. The noise model predicted SNR ~22.
 2. **A phase-coherent BLS finds it.** On the same stitched curve, a BLS over 3–7 d finds P = 4.80263 d, SDE 18.1.
-3. **hunt's search cannot.** Its coarse stage runs BLS on each sector separately and adds up the powers, which
+3. **The per-sector search cannot.** HUNT's first search (the pipeline's `hunter.search`): its coarse stage runs BLS on each sector separately and adds up the powers, which
    ignores phase. Each of the 24 sectors holds the transit at SNR ≈ 24/√24 ≈ 5. That is below each sector's own
    noise peaks, so the summed power at 4.8 d is at noise level (z = 0.9), and the fine stage never looks there. With
    hunt's default of the newest 3 sectors, the coherent SNR would only be ~8 anyway.
-4. **DEEPHUNT's stitched deep search** (`origin/deephunt` at 30bbe36, run read-only) also missed it, for a different
+4. **DEEPHUNT's earlier stitched deep search** (`origin/deephunt` at 30bbe36, run read-only) also missed it, for a different
    reason. Its `bls_long` stage took all three signal slots with long-period single events: the TGLC scattered-light
    dips (§2), up to 6.7% deep. The same curve with the 3σ background cut: still a long-period artifact.
    TOI-5688 A b was recovered by the deep search too (P 2.94815 d, SDE 26.1, found by BLS and TLS).
 
 The lesson for the faint frontier: long-baseline faint stars need a phase-coherent search, and a background veto
 applied to periodic signals as well as to single dips.
+DEEPHUNT's final search (8d1bfad) has both: a coherent `bls_short` over the stitched curve and a scattered-light
+mask for FFI photometry, and it recovers TOI-1680 b.
 
 **A faint star with no known planet.** TIC 219223283 was chosen by a fixed rule: the first star of the random noise
 sample with Tmag 14–15 and ≥ 3 sectors.
