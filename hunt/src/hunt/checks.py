@@ -115,6 +115,60 @@ def epoch_depths(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal) -> Ep
     return Epochs(arr[:, 0].astype(int), arr[:, 1], arr[:, 2].astype(int), arr[:, 3], arr[:, 4])
 
 
+SECONDARY_SIGMA, SECONDARY_MIN_FRACTION = 3.0, 0.10  # the pipeline's thresholds (hunter.vet)
+
+
+def secondary_eclipse_red(t: np.ndarray, f: np.ndarray, sig: Signal) -> tuple[VetResult, dict]:
+    """The pipeline's secondary-eclipse search (best box of the transit's width at phase 0.4-0.6), judged against
+    an empirical error: the robust scatter of the same box's depth at every phase away from the transit (0.1-0.9).
+    The pipeline's error (sigma / sqrt(n)) assumes Gaussian white noise; on faint TGLC curves residual scattered
+    light gives box depths heavy tails, and the best of the trial phases near 0.5 reached 3.8 sigma on TOI-1680 b
+    (a 1.5 R_earth planet, whose real secondary is far below a ppm). This asks whether the dip near half an orbit
+    stands out from dips elsewhere in the orbit, with a look-elsewhere correction for taking the best of the
+    independent box positions in 0.4-0.6 (the pipeline compares that maximum with a one-box threshold); an
+    eclipsing binary's secondary still stands out by many sigma (TIC 408512382: 16.8 sigma)."""
+    v, best = secondary_eclipse(t, f, sig)
+    phase = ((t - sig.t0) / sig.period) % 1.0
+    oot = ~in_transit(t, sig.period, sig.t0, sig.duration, scale=1.5)
+    half_w = 0.5 * sig.duration / sig.period
+    order = np.argsort(phase[oot])
+    ph, fl = phase[oot][order], f[oot][order]
+    csum = np.concatenate([[0.0], np.cumsum(fl)])
+    centres = np.arange(0.1, 0.9 + 1e-9, max(half_w, 0.002))
+    lo, hi = np.searchsorted(ph, centres - half_w), np.searchsorted(ph, centres + half_w)
+    n = hi - lo
+    ok = n >= 5
+    if ok.sum() < 20:
+        return v, best
+    base = float(np.median(fl))
+    depths = base - (csum[hi[ok]] - csum[lo[ok]]) / n[ok]
+    emp = robust_sigma(depths)
+    if not np.isfinite(emp) or emp <= best["err"]:
+        return v, best
+    raw = best["depth"] / emp
+    # Look-elsewhere: the best of n_eff independent boxes in 0.4-0.6 is compared with the threshold, so convert
+    # its single-box chance to the chance that any of them gets there.
+    n_eff = max(1.0, 0.2 / (2 * half_w))
+    p_one = float(stats.norm.sf(raw))
+    p_any = -np.expm1(n_eff * np.log1p(-min(p_one, 1 - 1e-16)))
+    nsig = float(stats.norm.isf(p_any)) if p_any > 0 else raw
+    frac = best["depth"] / max(sig.depth, 1e-12)
+    best = {**best, "nsig": float(nsig), "nsig_single_box": float(raw), "independent_boxes": round(n_eff, 1),
+            "err": float(emp), "error": "scatter of the box depth at phases 0.1-0.9"}
+    if nsig > SECONDARY_SIGMA and frac > SECONDARY_MIN_FRACTION:
+        return VetResult("secondary_eclipse", False, v.reason + f" ({nsig:.1f} sigma against the scatter of dips "
+                                                                f"elsewhere in the orbit, allowing for the "
+                                                                f"{n_eff:.0f} places it could have been.)", nsig), best
+    if v.passed is False:
+        return VetResult("secondary_eclipse", True,
+                         f"Halfway round the orbit the strongest dip (phase {best['phase']:.2f}, "
+                         f"{best['depth'] * 1e6:.0f} ppm) is {raw:.1f} sigma against the scatter of dips of the same "
+                         f"width elsewhere in the orbit ({emp * 1e6:.0f} ppm), {nsig:.1f} sigma allowing for the "
+                         f"{n_eff:.0f} places near half phase it could have been: no significant secondary eclipse.",
+                         nsig), best
+    return VetResult("secondary_eclipse", v.passed, v.reason, nsig), best
+
+
 def odd_even_scale(ep: "Epochs") -> float:
     """Over-dispersion of per-dip depths WITHIN the odd and within the even dips (sqrt of reduced chi-square about
     each group's own mean, at least 1). Depths that change between sectors (crowding corrections differ per
@@ -332,7 +386,7 @@ def run_all(t: np.ndarray, f: np.ndarray, g: np.ndarray, sig: Signal, star: Star
             flagged: np.ndarray, quality_read: bool = True) -> tuple[list[Check], dict]:
     """t, f, g: flattened curve with other signals and known transits removed."""
     sz = implied_radius(sig.depth, star.rad, sig.depth_err, star.rad_err)
-    sec_vet, sec = secondary_eclipse(t, f, sig)
+    sec_vet, sec = secondary_eclipse_red(t, f, sig)
     sec_frac = sec["depth"] / max(sig.depth, 1e-12)
     ep = epoch_depths(t, f, g, sig)
     scale = odd_even_scale(ep)

@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "hunter",
+    "skyfaint",
     "astropy>=8.0.1",
     "astroquery>=0.4.11",
     "lightkurve>=2.6.0",
@@ -42,6 +43,7 @@ override-dependencies = [
 
 [tool.uv.sources]
 hunter = { path = "../pipeline", editable = true }
+skyfaint = { path = "../faint", editable = true }
 
 [build-system]
 requires = ["uv_build>=0.12.19,<0.13.0"]

@@ -42,6 +42,7 @@ from . import checks as chk
 from . import singles as sg
 from .catalogs import Catalogue
 from .lightcurve import BIN_MINUTES, StarLC, bin_lc
+from .scatter import scattered_light_mask
 from .signals import CONTINUE_MIN_SNR, MaskedPlanet, find_signals, known_transit_mask
 from .stars import Star
 
@@ -216,8 +217,8 @@ def _is_real_periodic(sig: Signal, checks: list[chk.Check]) -> bool:
 
 
 def analyse(star: Star, lc: StarLC, catalogue: Catalogue | None, list_kind: str = "A",
-            max_signals: int = 3, check_known: bool = True, deep_search: bool = True,
-            dip_search: bool = True, tls_budget_s: float | None = None) -> StarResult:
+            max_signals: int | None = None, check_known: bool = True, deep_search: bool = True,
+            dip_search: bool = True, tls_budget_s: float | None = None, scatter_mask: bool = True) -> StarResult:
     import time as _t
 
     from .deep import TLS_BUDGET_S
@@ -226,8 +227,16 @@ def analyse(star: Star, lc: StarLC, catalogue: Catalogue | None, list_kind: str 
     budget = TLS_BUDGET_S if tls_budget_s is None else tls_budget_s
     known_here = catalogue.on_star(star.tic) if (catalogue is not None and list_kind == "B") else []
     premask, masked = known_transit_mask(lc.time, lc.flux, known_here)
+    scatter_info = {"applied": False}
+    if scatter_mask and deep_search:  # scattered light, orbit-gap and sector-edge windows (scatter.py)
+        sl, scatter_info = scattered_light_mask(lc.time, lc.sector, lc.bkg, products=lc.products)
+        scatter_info["applied"] = True
+        premask = premask | sl
+    from .signals import BLS_BUDGET_S
+
     out = find_signals(lc, premask, max_signals, star=star, deep_search=deep_search, tls_budget_s=budget)
     tls_spent = out.runtime.get("tls_s", 0.0)
+    bls_spent = out.runtime.get("bls_short_s", 0.0) + out.runtime.get("bls_long_s", 0.0)
     # Safety net for sibling searches: a signal at a listed period on this star is the known planet leaking
     # through its ephemeris mask (strong TTVs, a drifted period). Mask it where the data put it and search again.
     for _ in range(MAX_LEAK_ROUNDS):
@@ -243,8 +252,10 @@ def analyse(star: Star, lc: StarLC, catalogue: Catalogue | None, list_kind: str 
                                        int(leak.sum()), "leaked through the catalogue-ephemeris mask; masked at "
                                        "the period and epoch the search found"))
         out = find_signals(lc, premask, max_signals, star=star, deep_search=deep_search,
-                           tls_budget_s=max(budget - tls_spent, 0.0))  # one TLS budget per star
+                           tls_budget_s=max(budget - tls_spent, 0.0),  # one TLS and one BLS budget per star
+                           bls_budget_s=max(BLS_BUDGET_S - bls_spent, 0.0))
         tls_spent += out.runtime.get("tls_s", 0.0)
+        bls_spent += out.runtime.get("bls_short_s", 0.0) + out.runtime.get("bls_long_s", 0.0)
     t_periodic = _t.perf_counter()
     t_all, g_all = lc.time, lc.sector
     stitch = lc.stitch_info()
@@ -314,7 +325,7 @@ def analyse(star: Star, lc: StarLC, catalogue: Catalogue | None, list_kind: str 
                                             for k, v in out.runtime.items()},
                                 "long_window_d": None if out.long_window_d is None else round(out.long_window_d, 3),
                                 "deep": deep_search},
-                   "dips": dip_info}
+                   "dips": dip_info, "scattered_light": scatter_info}
     res = StarResult(star.tic, list_kind, star.to_row(), lc.sectors,
                      [{k: p[k] for k in ("sector", "author", "exptime")} for p in lc.products],
                      [m.to_dict() for m in masked], records, cands, dips=dip_records, events=events_out,

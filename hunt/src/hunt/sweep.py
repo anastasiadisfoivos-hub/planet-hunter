@@ -4,7 +4,8 @@ Shard i of N takes every N-th row of the (ranked) target file starting at row i,
 of the high-priority stars. Stars already done in the output directory are skipped (resumable). New stars
 stop being started once the budget is nearly used; whatever finished is written.
 
-Each star is stitched from every sector it has (lightcurve.stitch) and searched for periodic signals and for
+Each star is stitched from every sector it has (lightcurve.stitch, or FAINT's TGLC loader for rows with
+source=tglc, see load_lightcurve) and searched for periodic signals and for
 single / double dips (analyse.analyse).
 
 Layout of an output directory:
@@ -39,8 +40,8 @@ from .singles import DUO_MUST_RUN, SINGLE_MUST_RUN
 
 _CATALOGUE = None
 SOCKET_TIMEOUT_S = 120
-STAR_TIMEOUT_S = 900  # hard wall-clock limit per star; the parent kills the star's process after this
-# (a 40-sector continuous-viewing-zone star needs ~150 s to download and ~250 s to search on a CI runner)
+STAR_TIMEOUT_S = 1500  # hard wall-clock limit per star; the parent kills the star's process after this
+# (600 s of coherent BLS + 60 s of TLS + up to 6 rounds of measuring, on a loaded runner)
 NEIGHBOUR_DIPS_DEG = 1.0  # stars this close, in the same sector, see the same scattered light and dumps
 NEIGHBOUR_DIPS_MIN_STARS = 2  # one other star with a dip at the same time can be chance; two is an artefact
 # Why a process per star: MAST sometimes stops answering mid-read, and requests passes timeout=None, which
@@ -59,6 +60,19 @@ def _star_from_row(row: dict) -> stars.Star:
     return stars.star(int(row["tic"]))
 
 
+def load_lightcurve(tic: int, row: dict, max_sectors: int, source: str | None = None):
+    """The stitched light curve: MAST products (lightcurve.stitch) by default; TGLC from FAINT's loader
+    (skyfaint.tglc.get_lightcurves(tic).to_hunt(), faint/INTEGRATION.md section 3) when the row's `source` column,
+    or `hunt run --source`, says "tglc". Both give a hunt StarLC with bkg filled. A star without a TGLC file raises
+    LookupError, which is recorded as no_data."""
+    src = (row.get("source") or source or os.environ.get("HUNT_SOURCE") or "mast").lower()
+    if src == "tglc":
+        from skyfaint.tglc import get_lightcurves
+
+        return get_lightcurves(int(tic)).to_hunt()
+    return lightcurve.stitch(tic, max_sectors=max_sectors)
+
+
 def process_star(row: dict, out_dir: str, max_sectors: int, plots: bool) -> dict:
     t0 = time.perf_counter()
     tic = int(row["tic"])
@@ -66,7 +80,7 @@ def process_star(row: dict, out_dir: str, max_sectors: int, plots: bool) -> dict
     out = Path(out_dir)
     try:
         star = _star_from_row(row)
-        lc = lightcurve.stitch(tic, max_sectors=max_sectors)
+        lc = load_lightcurve(tic, row, max_sectors)
         t1 = time.perf_counter()
         res = analyse(star, lc, _CATALOGUE, kind)
         res.timings_s = {"fetch": t1 - t0, "analyse": time.perf_counter() - t1, **res.timings_s}
