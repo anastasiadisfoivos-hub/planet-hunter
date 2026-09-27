@@ -106,7 +106,7 @@
 }
 
 .skyNote {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-style: italic;
   font-size: 15px;
   fill: var(--ink-2);
@@ -173,8 +173,42 @@
 
 .legendNote {
   flex: 1 1 32ch;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
   color: var(--ink-2);
-  max-width: 70ch;
+}
+
+.legendNote li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swBand,
+.swEcl,
+.swSector {
+  display: inline-block;
+  width: 26px;
+  height: 0;
+}
+
+.swBand {
+  height: 9px;
+  background: var(--grid-strong);
+}
+
+.swEcl {
+  border-top: 1.5px dashed var(--ink-2);
+}
+
+.swSector {
+  height: 10px;
+  border: 1px solid var(--known);
 }
 
 /* ---------- the rows ---------- */

@@ -7,6 +7,10 @@
   gap: var(--s-7) var(--s-6);
 }
 
+.headRow {
+  grid-column: 1 / -1;
+}
+
 .head {
   grid-column: 1 / -1;
   display: grid;
@@ -51,14 +55,20 @@
 
 .section {
   display: grid;
-  grid-template-columns: 3rem minmax(0, 1fr);
+  grid-template-columns: 3.25rem minmax(0, 1fr);
   gap: var(--s-4);
   padding-top: var(--s-4);
-  border-top: 1px solid var(--grid);
+  border-top: 2px solid var(--ink);
 }
 
 .step {
-  padding-top: 0.5em;
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding-top: 0.35em;
+}
+
+.step .label {
   color: var(--pen);
 }
 
@@ -77,10 +87,13 @@
 }
 
 .pending {
-  font-size: var(--t-small);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--ink-3);
-  padding: var(--s-3) var(--s-4);
-  border: 1px dashed var(--grid-strong);
+  padding: var(--s-2) var(--s-3);
+  border: 1px dashed var(--ink-3);
+  width: fit-content;
 }
 
 @media (max-width: 899px) {

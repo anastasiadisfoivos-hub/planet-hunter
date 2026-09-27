@@ -1,10 +1,12 @@
 "use client";
 
+import { EXPLAIN } from "@/components/shell/explain";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getCandidates, MOCK_REPLAY_OF, type CandidateList, type CandidateRow } from "@/lib/api";
 import { fmtDate, fmtDepth, fmtPeriod, thousands } from "@/components/monitor/format";
-import { EmptyTrace, StarGlyph, TransitGlyph } from "@/components/monitor/Glyphs";
+import { EmptyTrace, Icon, StarGlyph, TransitGlyph } from "@/components/monitor/Glyphs";
+import { PageHead } from "@/components/shell/PageHead";
 import { TempKey } from "@/components/monitor/TempKey";
 import { fmtSize, sizeClass, sortCandidates, DEFAULT_SORT, verdictLabel } from "./finder";
 import s from "./finder.module.css";
@@ -79,23 +81,21 @@ export function CandidateTable() {
   const newCount = list?.funnel.find((f) => f.key === "candidates")?.count ?? null;
   return (
     <div className={`wrap ${s.page}`}>
-      <header className={s.pageHead}>
-        <div className={s.titleRow}>
-          <TransitGlyph size={72} title="" />
-          <h1>Candidates</h1>
-        </div>
-        <div className={`prose ${s.lead}`}>
-          {list && allStandIns ? (
-            <p>
-              The search has found <strong>{newCount === 0 ? "no new candidate" : `${newCount} new candidates`}</strong> yet. The {list.candidates.length} below are
-              stand-ins: real TESS Objects of Interest, searched again with the lists of known objects switched off, so each dossier shows a real signal.
-            </p>
-          ) : (
-            <p>Signals that passed every check and are on none of the lists we checked. Each is a candidate, not a confirmed planet.</p>
-          )}
-          <p className="quiet">A candidate is a dip that passed every check. It is not a confirmed planet until astronomers follow it up.</p>
-        </div>
-      </header>
+      <PageHead
+        title="Candidates"
+        glyph={<TransitGlyph size={64} title="" />}
+        items={EXPLAIN.candidates}
+        facts={list ? `${list.candidates.length} shown · run ${fmtDate(list.demo ? MOCK_REPLAY_OF : list.run_at)}` : null}
+      />
+
+      {list && allStandIns && (
+        <p className={s.honest}>
+          <Icon name="honesty" size={24} />
+          <span>
+            <strong>{newCount === 0 ? "No new candidate yet." : `${newCount} new candidates.`}</strong> Below: {list.candidates.length} stand-ins, real TESS Objects of Interest.
+          </span>
+        </p>
+      )}
 
       {list && (
         <div className={s.funnelRow2}>
@@ -103,7 +103,7 @@ export function CandidateTable() {
           {allStandIns && (
             <figure className={s.emptyFig}>
               <EmptyTrace />
-              <figcaption className="label">No new candidate kept yet</figcaption>
+              <figcaption className="label">0 new candidates</figcaption>
             </figure>
           )}
         </div>
@@ -114,9 +114,9 @@ export function CandidateTable() {
       {list && list.candidates.length === 0 && (
         <div className={s.empty}>
           <EmptyTrace />
-          <p className="italic quiet">
-            {list.demo ? "No candidates yet." : `No candidates yet: the search, last run ${fmtDate(list.run_at)}, has kept no signal.`} When the search keeps a
-            signal, it appears here with its dossier.
+          <p className={s.honest}>
+            <Icon name="honesty" size={24} />
+            <span>{list.demo ? "No candidate yet." : `No candidate yet: the search, last run ${fmtDate(list.run_at)}, has kept no signal.`}</span>
           </p>
         </div>
       )}
@@ -145,7 +145,10 @@ export function CandidateTable() {
       <div className={s.afterRow}>
         <TempKey />
         <p className={s.after}>
-          <Link href="/sensitivity">What the search can and cannot find</Link>
+          <Link href="/sensitivity" className={s.iconLink}>
+            <Icon name="limits" size={22} />
+            What it can find
+          </Link>
         </p>
       </div>
     </div>

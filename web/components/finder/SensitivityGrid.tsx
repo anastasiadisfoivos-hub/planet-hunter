@@ -1,9 +1,11 @@
 "use client";
 
+import { EXPLAIN } from "@/components/shell/explain";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getSensitivity, type Sensitivity } from "@/lib/api";
 import { fmtDate, thousands } from "@/components/monitor/format";
+import { PageHead } from "@/components/shell/PageHead";
 import s from "./sensitivity.module.css";
 
 const range = (a: number, b: number, unit: string) => `${a} to ${b}${unit}`;
@@ -25,21 +27,11 @@ export function SensitivityGrid() {
   const injected = data ? data.n_injected.flat().reduce((a, b) => a + b, 0) : 0;
   return (
     <div className={`wrap ${s.page}`}>
-      <header className={s.head}>
-        <h1>What the search can find</h1>
-        <div className="prose">
-          <p>
-            We hid fake planets in the real light curves of quiet stars and ran the search again. Each square says how often it found them
-            and would have kept them as candidates.
-          </p>
-          {data && (
-            <p className="label">
-              {`${thousands(injected)} planets hidden in ${thousands(data.stars_used)} stars · run ${fmtDate(data.run_at)}`}
-              {data.overall_recovery_pct != null ? ` · ${data.overall_recovery_pct}% kept overall` : ""}
-            </p>
-          )}
-        </div>
-      </header>
+      <PageHead
+        title="What it can find"
+        items={EXPLAIN.sensitivity}
+        facts={data ? `${thousands(injected)} planets hidden in ${thousands(data.stars_used)} stars · run ${fmtDate(data.run_at)}${data.overall_recovery_pct != null ? ` · ${data.overall_recovery_pct}% kept overall` : ""}` : null}
+      />
       {error && <p className="italic quiet">The sensitivity run could not be loaded.</p>}
       {!data && !error && <div className={s.wait} role="status" aria-label="Loading" />}
       {data && (

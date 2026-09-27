@@ -1,12 +1,14 @@
 "use client";
 
+import { EXPLAIN } from "@/components/shell/explain";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ApiError, getCandidate, type Candidate, type CandidateReport, type Vetting } from "@/lib/api";
 import { btjdToMs, fmtDate, fmtDepth, fmtPeriod, fmtRadius, fmtTemp, fmtTmag, observedLine, sectorWord, starKind } from "@/components/monitor/format";
 import { checkLabel, fmtSize, KNOWN_LISTS, listMatch, sizeClass, transitTimes } from "./finder";
 import { buildTape, tapeX } from "@/components/monitor/trace";
-import { StarGlyph, TransitGlyph } from "@/components/monitor/Glyphs";
+import { Icon, StarGlyph, TransitGlyph } from "@/components/monitor/Glyphs";
+import { PageHead } from "@/components/shell/PageHead";
 import { InkPlot, type Series } from "./InkPlot";
 import { PixelCheck } from "./PixelCheck";
 import { VoteBox } from "./VoteBox";
@@ -84,7 +86,7 @@ function DipPlots({ c }: { c: Candidate }) {
           label={`All ${c.n_transits} dips stacked on the ${fmtPeriod(c.period_d)} period: the light drops by ${fmtDepth(c.depth_ppm)} for ${c.duration_h.toFixed(1)} hours.`}
         />
         <figcaption className={s.cap}>
-          Every dip stacked on one period and averaged. A planet makes a flat-bottomed dip; two stars grazing each other make a V.
+          All dips stacked and averaged. Flat bottom: planet-like; V-shaped: two stars grazing.
         </figcaption>
       </figure>
       <figure className={s.fig}>
@@ -99,7 +101,7 @@ function DipPlots({ c }: { c: Candidate }) {
           height={200}
           label={`The whole light curve with each of the ${unfolded.marks.length} expected dips marked.`}
         />
-        <figcaption className={s.cap}>The whole light curve. Red ticks mark where each dip should fall.</figcaption>
+        <figcaption className={s.cap}>The whole curve; red ticks mark each dip.</figcaption>
       </figure>
     </div>
   );
@@ -286,18 +288,23 @@ export function Dossier({ id }: { id: string }) {
       <p className={s.crumb}>
         <Link href="/candidates">Candidates</Link>
       </p>
+      <PageHead
+        title={String(c.tic)}
+        kicker="TIC"
+        glyph={<TransitGlyph size={60} title="" />}
+        items={EXPLAIN.dossier}
+        facts="Planet candidate, not a confirmed planet"
+      />
       <header className={s.dossierHead}>
-        <p className="label">Planet candidate, not a confirmed planet</p>
-        <div className={s.titleRow}>
-          <TransitGlyph size={64} title="" />
-          <h1 className={s.dossierTitle}>TIC {c.tic}</h1>
-        </div>
         <p className={s.dossierSub}>
-          A dip every {fmtPeriod(c.period_d)}, {fmtDepth(c.depth_ppm)} deep, lasting {c.duration_h.toFixed(1)} hours. If it is a planet, it is {fmtSize(c.radius_rjup)} ({sizeClass(c.radius_rjup)}).
+          A dip every {fmtPeriod(c.period_d)}, {fmtDepth(c.depth_ppm)} deep, {c.duration_h.toFixed(1)} h long. If a planet: {fmtSize(c.radius_rjup)}, {sizeClass(c.radius_rjup)}.
         </p>
         {c.stand_in && (
-          <p className={`sheet ${s.standIn}`}>
-            <span className="label">Stand-in</span> {c.stand_in.note}
+          <p className={s.honest}>
+            <Icon name="honesty" size={24} />
+            <span>
+              <strong>Stand-in:</strong> {c.stand_in.name}, already a TESS Object of Interest{c.stand_in.disposition ? ` (ExoFOP: ${c.stand_in.disposition === "FP" ? "false positive" : c.stand_in.disposition === "PC" ? "planet candidate" : c.stand_in.disposition})` : ""}. Shown because the search has no new candidate yet.
+            </span>
           </p>
         )}
       </header>
@@ -325,13 +332,11 @@ export function Dossier({ id }: { id: string }) {
 
           <section aria-labelledby="checks">
             <h2 id="checks">The checks</h2>
-            <p className="quiet">Each test the search runs before it keeps a signal, in its own words.</p>
             <Checks c={c} />
           </section>
 
           <section aria-labelledby="pixels">
             <h2 id="pixels">The pixel check</h2>
-            <p className="quiet">Which star in the TESS pixels the light really went missing from.</p>
             {rep.pixels ? <PixelCheck vet={rep.pixels} /> : <p className="italic quiet">Not run yet for this signal.</p>}
           </section>
 

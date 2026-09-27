@@ -104,8 +104,14 @@
   display: grid;
   gap: var(--s-1);
   align-content: start;
-  padding: var(--s-3) var(--s-4) var(--s-3) 0;
+  padding: var(--s-3) var(--s-4) var(--s-3) 10px;
   border-top: 2px solid var(--ink);
+  border-left: 1px solid var(--grid-strong);
+}
+
+.funnelStep:first-child {
+  border-left: 0;
+  padding-left: 0;
 }
 
 .funnelStep[data-zero] {
@@ -113,7 +119,7 @@
 }
 
 .funnelNum {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-weight: var(--w-name);
   font-size: var(--t-h1);
   line-height: 1;
@@ -134,10 +140,11 @@
 
 .table thead th {
   text-align: left;
-  font-weight: 400;
+  font-weight: 500;
   padding: var(--s-2) var(--s-3) var(--s-2) 0;
   background: var(--paper-2);
-  border-top: 1px solid var(--grid-strong);
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
 }
 
 .table thead th:first-child {
@@ -182,7 +189,7 @@
 }
 
 .rowTic {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: 1.4375rem;
   font-weight: var(--w-name);
 }
@@ -202,7 +209,7 @@
   display: block;
   font-size: 0.9375rem;
   color: var(--ink-2);
-  font-family: var(--serif);
+  font-family: var(--sans);
 }
 
 .cellVerdict[data-verdict="likely false positive"] {
@@ -376,12 +383,12 @@
 .verdict {
   font-family: var(--mono);
   font-size: 0.75rem;
+  font-weight: 500;
   font-variation-settings: "wdth" 87;
   text-transform: uppercase;
   letter-spacing: var(--label-tracking);
-  padding: 3px 8px;
-  border: 1px solid currentColor;
-  border-radius: var(--radius);
+  padding: 4px 8px 3px;
+  border: 1.5px solid currentColor;
 }
 
 .verdict[data-verdict="off target"],
@@ -740,4 +747,28 @@
     text-transform: uppercase;
     color: var(--ink-3);
   }
+}
+
+/* v3: the honest status line and icon links */
+.honest {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4) var(--s-3) var(--s-3);
+  font-size: var(--t-body);
+  border: 1.5px solid var(--ink);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.honest strong {
+  font-weight: 800;
+  color: var(--pen);
+}
+
+.iconLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
 }

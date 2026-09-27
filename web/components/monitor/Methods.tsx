@@ -1,4 +1,7 @@
+import { EXPLAIN } from "@/components/shell/explain";
 import Link from "next/link";
+import { PageHead } from "@/components/shell/PageHead";
+import { Icon } from "./Glyphs";
 import { METHODS } from "./methodsText";
 import s from "./methods.module.css";
 
@@ -6,10 +9,12 @@ import s from "./methods.module.css";
 export function Methods() {
   return (
     <div className={`wrap ${s.page}`}>
-      <header className={s.head}>
-        <h1>How the search works</h1>
-        <p className="prose">From a star&apos;s light to a candidate, step by step, in the order the search runs.</p>
-      </header>
+      <div className={s.headRow}>
+        <PageHead
+          title="Methods"
+          items={EXPLAIN.methods}
+        />
+      </div>
       <nav aria-label="On this page" className={s.toc}>
         <ol>
           {METHODS.map((m) => (
@@ -22,8 +27,9 @@ export function Methods() {
       <ol className={s.sections}>
         {METHODS.map((m, i) => (
           <li key={m.id} className={s.section}>
-            <span className={`label ${s.step}`} aria-hidden>
-              {String(i + 1).padStart(2, "0")}
+            <span className={s.step} aria-hidden>
+              <span className="label">{String(i + 1).padStart(2, "0")}</span>
+              <Icon name={m.icon} size={28} />
             </span>
             <section aria-labelledby={m.id} className={s.body}>
               <h2 id={m.id}>{m.title}</h2>
@@ -35,7 +41,7 @@ export function Methods() {
                   ))}
                 </div>
               ) : (
-                <p className={`${s.pending} italic`}>Written by the methods session; not yet here.</p>
+                <p className={s.pending}>Text to come from the methods session.</p>
               )}
               {m.link && (
                 <p>

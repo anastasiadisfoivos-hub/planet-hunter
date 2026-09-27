@@ -1,10 +1,12 @@
 "use client";
 
+import { EXPLAIN } from "@/components/shell/explain";
 import { useEffect, useMemo, useState } from "react";
 import { getMonitorCoverage, getMonitorLog, getQueueCoverage, getSparks, type LogStar, type MonitorCoverage, type QueueCoverage, type Sparks, type StarOutcome } from "@/lib/api";
 import { Coverage } from "./Coverage";
 import { fmtDateTime, fmtDay, fmtTemp, OUTCOME_WORD, queueLine, sectorWord, starKind, thousands } from "./format";
 import { StarGlyph } from "./Glyphs";
+import { PageHead } from "@/components/shell/PageHead";
 import { Tick } from "./MonitorScreen";
 import s from "./log.module.css";
 
@@ -114,13 +116,11 @@ export function Log() {
 
   return (
     <div className={`wrap ${s.page}`}>
-      <header className={s.head}>
-        <h1>Log</h1>
-        <div className={s.lead}>
-          <p>Every star the search has looked at, newest at the top: when it was searched, the TESS data it used, its whole light curve, and what the search made of it.</p>
-          {span && <p className="label">{`${thousands(stars!.length)} stars · ${span}`}</p>}
-        </div>
-      </header>
+      <PageHead
+        title="Log"
+        items={EXPLAIN.log}
+        facts={span ? `${thousands(stars!.length)} stars · ${span}` : null}
+      />
 
       <section aria-labelledby="where" className={s.where}>
         <h2 id="where">Where it has looked</h2>

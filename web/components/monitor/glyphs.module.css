@@ -77,3 +77,23 @@
 .keyTicks > span:last-child {
   transform: translateX(-100%);
 }
+
+/* the icon set */
+.icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+  overflow: visible;
+}
+
+.penStroke {
+  stroke: var(--pen);
+}
+
+.knownStroke {
+  stroke: var(--known);
+}
+
+.penFill {
+  fill: var(--pen);
+}

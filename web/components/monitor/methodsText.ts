@@ -2,11 +2,14 @@
 // public Methods text (docs/plan/METHODS.md), split into this page's sections; keep the two in step. The
 // vetting section summarises vet/README.md, which METHODS.md does not yet cover.
 
-export type MethodSection = { id: string; title: string; asks: string; body: string[]; link?: { href: string; text: string } };
+import type { IconName } from "./Glyphs";
+
+export type MethodSection = { id: string; icon: IconName; title: string; asks: string; body: string[]; link?: { href: string; text: string } };
 
 export const METHODS: MethodSection[] = [
   {
     id: "data",
+    icon: "trace",
     title: "The data",
     asks: "Which TESS light curves the search reads, and how they are cleaned.",
     body: [
@@ -17,6 +20,7 @@ export const METHODS: MethodSection[] = [
   },
   {
     id: "search",
+    icon: "pen",
     title: "Finding dips",
     asks: "How repeating dips are found and how strong one must be.",
     body: [
@@ -26,6 +30,7 @@ export const METHODS: MethodSection[] = [
   },
   {
     id: "checks",
+    icon: "check",
     title: "The checks",
     asks: "Each test a signal must pass before it is kept.",
     body: [
@@ -41,6 +46,7 @@ export const METHODS: MethodSection[] = [
   },
   {
     id: "known",
+    icon: "catalogue",
     title: "Already known",
     asks: "The lists of planets, candidates and binaries a signal is compared against.",
     body: [
@@ -50,6 +56,7 @@ export const METHODS: MethodSection[] = [
   },
   {
     id: "pixels",
+    icon: "pixels",
     title: "The pixel check",
     asks: "How the TESS pixels show which star the light went missing from.",
     body: [
@@ -59,6 +66,7 @@ export const METHODS: MethodSection[] = [
   },
   {
     id: "vetting",
+    icon: "sky",
     title: "Vetting",
     asks: "LEO, TRICERATOPS, Gaia and variability catalogues.",
     body: [
@@ -68,6 +76,7 @@ export const METHODS: MethodSection[] = [
   },
   {
     id: "votes",
+    icon: "vote",
     title: "Votes",
     asks: "What people's votes are for, and why counts appear only after voting.",
     body: [
@@ -76,6 +85,7 @@ export const METHODS: MethodSection[] = [
   },
   {
     id: "limits",
+    icon: "limits",
     title: "What it cannot find",
     asks: "Sizes and periods the search misses, from hiding fake planets in real data.",
     body: [
@@ -89,6 +99,7 @@ export const METHODS: MethodSection[] = [
   },
   {
     id: "honesty",
+    icon: "honesty",
     title: "Candidate, not planet",
     asks: "Why nothing here is called a discovery.",
     body: [
@@ -98,6 +109,7 @@ export const METHODS: MethodSection[] = [
   },
   {
     id: "references",
+    icon: "catalogue",
     title: "References",
     asks: "The papers and tools cited above.",
     body: [
