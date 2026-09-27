@@ -137,8 +137,8 @@ add the "approval to upload candidates is required" step to the export docs.
 | `ci.yml` | `deploy` | KEEP; package list becomes `api pipeline hunt pixels` (drop `sources forecast`) |
 | `nightly.yml` (api.nightly traps checker + Rubin heatmap to `heatmap-data` branch) | `deploy` | DELETE |
 | `image.yml` (API image pre-warmed with WASP-18/121/43, TOI-700 for `/analyze`, Render deploy hook) | `deploy` | REWRITE: API image without the TESS pre-warm (no `/analyze`); keep the Render hook |
-| `hunt/ci/sweep.yml` → `.github/workflows/sweep.yml` | `deephunt` | KEEP (the nightly search); change per [ROADMAP.md](ROADMAP.md) Phase 2 |
-| `api/ci/finder.yml` → `finder-ingest.yml` | `finderapi` | KEEP |
+| `hunt/ci/sweep.yml` → `.github/workflows/sweep.yml` | `deephunt` | DELETED (27 Sep): the sweep runs on the Oracle server (ROADMAP "Decisions (26 Sep)") |
+| `api/ci/finder.yml` → `finder-ingest.yml` | `finderapi` | DELETED (27 Sep): ingestion runs on the Oracle server after each sweep |
 | `api/ci/ingest.yml` (hourly events) and `events/ci/ingest.yml` | `finderapi` | DELETE |
 | `api/ci/precompute.yml` (weekly `/analyze` pre-compute of 1,748 map hosts) | `finderapi` | DELETE |
 | repo variables/secrets `PH_NIGHTLY_ENABLED`, `PH_HEATMAP_ENABLED`, `PH_PREWARM_STARS` | GitHub settings | DELETE; keep `PH_DATABASE_URL`, `PH_ADMIN_TOKEN`, `RENDER_DEPLOY_HOOK_URL` |

@@ -1,0 +1,116 @@
+# Tests for every package, on GitHub-hosted runners. CI only: the search itself runs on the Oracle
+# server (docs/plan/ROADMAP.md "Decisions (26 Sep)"). Every test here is offline: network tests are
+# skipped by each package's conftest (HUNTER_RUN_NETWORK / SKYPIXELS_RUN_NETWORK unset, vet forbids
+# sockets); dependencies are downloaded at install time only.
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  MPLBACKEND: Agg
+  PH_ADAPTERS: fake
+  HUNTER_RUN_NETWORK: "0"
+  SKYPIXELS_RUN_NETWORK: "0"
+  UV_FROZEN: "1" # every package's uv.lock must be up to date
+
+jobs:
+  api:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: api
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ph
+          POSTGRES_DB: ph
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 2s --health-timeout 5s
+          --health-retries 30
+    env:
+      # Every storage test runs on SQLite and on this throwaway Postgres (the tests wipe it).
+      PH_TEST_DATABASE_URL: postgresql://postgres:ph@localhost:5432/ph
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+      - run: uv sync
+      - run: uv run ruff check src tests
+      - run: uv run pytest -q
+
+  python:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [hunt, vet, faint, pixels, pipeline, runner]
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            ${{ matrix.package }}/uv.lock
+            api/uv.lock
+      # Python comes from each package's .python-version (3.12; vet 3.13), installed by uv.
+      - run: uv sync
+      # runner's tests serve the real api/ locally on SQLite; its conftest syncs api's venv.
+      - run: uv run pytest -q
+
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          # node --test runs the .ts tests directly (type stripping): Node >= 22.18.
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  api-image:
+    # The image Render builds (api/Dockerfile): build it and check /healthz answers. Not pushed.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - run: docker build -t planet-hunter-api:ci api
+      - name: Smoke test (/healthz on $PORT)
+        run: |
+          docker run -d --name api -p 10000:10000 -e PORT=10000 planet-hunter-api:ci
+          for _ in $(seq 1 30); do
+            curl -fsS localhost:10000/healthz && exit 0
+            sleep 1
+          done
+          docker logs api
+          exit 1

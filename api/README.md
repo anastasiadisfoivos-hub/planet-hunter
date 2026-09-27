@@ -14,6 +14,8 @@ There are no accounts. The wording is always "candidate", never "new planet" or 
 uv sync
 uv run pytest -q                                   # fakes; every storage test on SQLite AND Postgres
 uv run uvicorn --factory api.app:create_app        # serve on :8000, docs at /docs
+uv run python -m api.migrate                       # apply migrations to PH_DATABASE_URL (else SQLite) and exit
+docker build -t planet-hunter-api . && docker run --rm -p 8000:8000 planet-hunter-api   # the Render image
 uv run --extra finder python -m api.finder_ingest --dir ../sweep/candidates --run-id 123
 ```
 
@@ -76,8 +78,8 @@ deploy doesn't pull in astropy or lightkurve: `uv sync --extra finder`. The adap
 plus `sector` and every sector's full web JSON in `images.per_sector`. A stored vet is about
 25 kB, or up to about 250 kB in a crowded field (`neighbours` lists every Gaia star within 2.5′).
 
-`--no-pixels` / `--no-recheck` skip steps 5 / 2b. [ci/finder.yml](ci/finder.yml) runs this
-after each successful sweep. It uses the sweep's `candidates` artifact and `PH_ADAPTERS=real`.
+`--no-pixels` / `--no-recheck` skip steps 5 / 2b. The Oracle Cloud server that runs the sweep runs this
+after each sweep, with `PH_ADAPTERS=real` and `uv sync --extra finder` (see [docs/DEPLOY.md](../docs/DEPLOY.md)).
 
 **`GET /finder/candidates` filters** (they combine with AND; lists take `a,b` or repeated parameters):
 - `min_radius` / `max_radius` (Jupiter radii);
@@ -200,6 +202,32 @@ when present. It counts on these fields:
 - `stats`: `signals` = detections, `candidates` = detections with outcome `candidate`,
   `rejected_by_reason` = the rest, `last_run_at` = the newest run's start (else its last update).
 
+**Additions for the web's monitor** (all additive; the fields above are unchanged; migration
+`0007_monitor_detail` adds `monitor_seen.known_count`/`rejected_count`, backfilled from the kept
+records, and an index on `monitor_stars (tic, searched_at DESC)`):
+- `GET /monitor/now?after=<tic>` (replay only; ignored live): the star after `<tic>` in the
+  replayed run's search order, wrapping around; a tic not in the run gives the first star. Every
+  answer has `next_tic`: in replay the star after the returned one (wrapping; with one star, the
+  same tic), `null` live or with no run. `next_at` is still the server-timed slot.
+- `GET /monitor/stars/{tic}`: the star's latest stored record (full, light curve included), from
+  any kept run; 404 once no kept run has it.
+- `GET /monitor/log?detail=true`: each item also has `record`, its latest search's record without
+  `lightcurve` (`null` once that run is pruned). Without `detail` the items are unchanged.
+- `GET /monitor/coverage` adds `stars: [{tic, ra, dec, outcome, sectors}]`, every star ever
+  searched (its latest search), by tic; `ra`/`dec` are exact degrees or `null`, `sectors`
+  ascending. One row per star (one query); tens of thousands of stars is fine for now.
+- `GET /monitor/stats` adds `known` and `rejected`: detections whose outcome is exactly `known` /
+  `rejected` (stars searched before 0007 whose record was already pruned count 0). Note that
+  `rejected_by_reason` still covers every non-candidate detection, known ones included.
+  `funnel` (only when a sweep summary is stored): `[{key, label, count}]` for `stars`,
+  `signals`, `snr`, `sde`, `checks`, `candidates` from the summary's `stars_searched`,
+  `signals_found`, `after_snr`, `after_sde`, `after_checks`, `candidates`.
+- `GET /monitor/sparks` (`Cache-Control: public, max-age=300`): `{unit: "ppm", bins: 180, note,
+  stars: {"<tic>": [int, ...]}}` for every star whose latest search's record (with a light
+  curve) is kept: `lightcurve.f` joined end to end (non-numbers dropped), split by point index
+  into 180 bins (`numpy.linspace(0, n, 181).astype(int)` edges; fewer when n < 180), each
+  `round((min - 1) * 1e6)`. Computed per request from the kept records.
+
 ## Configuration (env)
 
 | Variable | Default | What it sets |
@@ -228,7 +256,8 @@ The two backends have the same tables and keys:
 - **Postgres** (prod, e.g. Supabase through its connection pooler) applies
   `src/api/storage/migrations/*.sql`, in order and under an advisory lock.
 
-Migrations run on startup of the API and of `finder_ingest`. To change the schema, add the next
+Migrations run on startup of the API and of `finder_ingest`. `python -m api.migrate` (or `--database-url URL`) applies them on their own and
+exits; run it before a deploy (docs/DEPLOY.md). To change the schema, add the next
 numbered file to both folders; never edit one that has been applied.
 
 | Migration | Tables |

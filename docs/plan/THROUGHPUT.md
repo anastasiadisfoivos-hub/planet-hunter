@@ -44,8 +44,8 @@ Assumptions:
 "Best 50,000" is the top of the ranked list: all 5,176 M dwarfs, all 17,136 small stars (R★ < 0.8 R☉), then
 the first ~27,700 of the 249,510 other dwarfs (targets_2026-09-26_summary.json).
 
-Minutes: 20 × ~355 min, about 7,100 runner-minutes a night. This is free only on a public repository (see
-`hunt/ci/sweep.yml`).
+Minutes: 20 × ~355 min, about 7,100 runner-minutes a night. This is free only on a public repository (the
+old `hunt/ci/sweep.yml`, since removed: the sweep now runs on the Oracle server).
 
 ## Things that change these numbers
 

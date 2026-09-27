@@ -161,18 +161,14 @@ the top of list A), 2,000 injections, overall recovery 0.61. By radius, 1–2 R�
 Beyond about 7 d, the SDE ≥ 9 cut is the limit, not the search: 77% of 10–15 d injections are still
 detected, and 425 of the 480 detected-but-rejected injections failed only on SDE.
 
-## 8. CI
+## 8. Where it runs
 
-`ci/sweep.yml` is the nightly GitHub Actions workflow. The DEPLOY session installs it as
-`.github/workflows/sweep.yml`: targets + catalogue snapshot → 20 shards (`fail-fast: false`, shard failures
-non-fatal, 350-minute budget each) → merge → artifact.
+The sweep runs on the project's Oracle Cloud Always Free server on its own timer, not on GitHub Actions
+(ROADMAP "Decisions (26 Sep)"; the old `ci/sweep.yml` workflow was removed). GitHub's hosted runners run only
+the tests (`.github/workflows/ci.yml`). After a sweep, the server runs `python -m api.finder_ingest` on the
+`candidates/` folder (see api/README.md and docs/DEPLOY.md).
 
-- Workflow `name: sweep` and artifact `candidates` are what FINDER-API's `finder.yml` expects
-  (`workflow_run.workflows: ["sweep"]`, `gh run list --workflow sweep.yml`, `SWEEP_ARTIFACT: candidates`).
-- The latest `sensitivity.json` is committed at `hunt/results/sensitivity.json` and shipped in each artifact.
-- **It assumes a public repository.** A night uses about 7,100 runner-minutes (20 × ~355 + ~15), roughly
-  215,000 a month. That is free and unmetered on a public repo; the private free plan's 2,000 minutes a
-  month would run out on the first night.
+- The latest `sensitivity.json` is committed at `hunt/results/sensitivity.json`.
 
 ## Cache
 

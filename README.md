@@ -87,9 +87,9 @@ Diagrams of every part, with what is built and what is planned, are in [docs/arc
 | API: candidates, votes, pixel checks, monitor, ExoFOP export | `api/` | Built (v2) |
 | Website: finder pages | `web/` | Built (v2) |
 | Website: the chart-recorder monitor, dossiers, log, methods | `web/` on branch `monitorui` | Built on replayed real data, not merged |
-| Nightly workflows (`sweep.yml`, `finder.yml`) | `hunt/ci/`, `api/ci/` | Written, not installed |
+| CI: tests of every package on GitHub-hosted runners | `.github/workflows/ci.yml` | Built |
 | Bulk search on an Oracle Cloud Always Free server, search ledger, search → monitor feed | | Planned |
-| Hosting: Render (API), Supabase (Postgres), Vercel (web) | | Planned |
+| Hosting: Render (API), Supabase (Postgres), Vercel (web) | `render.yaml`, `api/Dockerfile`, [docs/DEPLOY.md](docs/DEPLOY.md) | Written, not deployed |
 
 ## Tech stack
 

@@ -51,8 +51,8 @@ the `/map` redirect test in `web/tests/shell.test.ts`.
 ## What stays
 
 - **Kept on purpose:** `api/` finder routes, admin export, `finder_ingest`, the new `/monitor/*` routes;
-  `pixels/`, `hunt/`, `pipeline/` (hunt and the known-list re-check use `hunter`); `api/ci/finder.yml`,
-  `hunt/ci/sweep.yml`; `/finder`, `/finder/[id]`, `/finder/sensitivity`, `/credits`, the home page.
+  `pixels/`, `hunt/`, `pipeline/` (hunt and the known-list re-check use `hunter`);
+  `/finder`, `/finder/[id]`, `/finder/sensitivity`, `/credits`, the home page.
 - **Kept only because a file owned by another session imports it.** Delete each once that import goes:
 
   | Kept | Imported by |

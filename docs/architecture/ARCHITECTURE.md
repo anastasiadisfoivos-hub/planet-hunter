@@ -128,9 +128,9 @@ that has since appeared on a known list, and loads the night's per-star records 
 version of `hunt run` writes those files or posts progress yet. The `monitorui` site runs today on a real replay of
 the 26 Sep 2026 sweep, built by a one-off script.
 
-**What exists as files today.** Before the Oracle decision, the nightly flow was written for GitHub Actions:
-`hunt/ci/sweep.yml` (targets → 20 shards × 350 min → merge → `candidates` artifact) and `api/ci/finder.yml` (runs
-`finder_ingest` when a sweep succeeds). Neither is installed in `.github/workflows/`. GitHub's terms for hosted runners
+**Why not GitHub Actions.** Before the Oracle decision, the nightly flow was written for GitHub Actions
+(`hunt/ci/sweep.yml` and `api/ci/finder.yml`); both were removed on 27 Sep. `.github/workflows/ci.yml` runs only the
+tests. GitHub's terms for hosted runners
 exclude "activity unrelated to the production, testing, deployment, or publication of the software project", and
 that is why the bulk search moved off them (SCIENCE.md §9 on branch `finder-plan`).
 
@@ -396,4 +396,4 @@ up as a failing test.
 | Monitor site, replay data | `web/docs/monitorui/README.md`, `web/public/data/monitor/README.md` (monitorui) |
 | Decisions, roadmap, science plan, site plan | `docs/plan/ROADMAP.md`, `SCIENCE.md`, `PRODUCT.md` (finder-plan) |
 | ExoFOP rules, throughput, data, methods text | `docs/plan/EXOFOP.md`, `THROUGHPUT.md`, `DATA.md`, `METHODS.md` (plan) |
-| Nightly workflows as written | `hunt/ci/sweep.yml`, `api/ci/finder.yml` (v2) |
+| CI and deploy | `.github/workflows/ci.yml`, `api/Dockerfile`, `render.yaml`, `docs/DEPLOY.md` (release) |
