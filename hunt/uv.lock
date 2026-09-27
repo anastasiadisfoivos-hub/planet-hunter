@@ -819,6 +819,7 @@ dependencies = [
     { name = "requests" },
     { name = "scipy" },
     { name = "setuptools" },
+    { name = "skyfaint" },
     { name = "tess-point" },
     { name = "transitleastsquares" },
     { name = "wotan" },
@@ -840,6 +841,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.34.2" },
     { name = "scipy", specifier = ">=1.18.1" },
     { name = "setuptools", specifier = ">=84.0.0" },
+    { name = "skyfaint", editable = "../faint" },
     { name = "tess-point", specifier = ">=0.9.5.post1" },
     { name = "transitleastsquares", specifier = ">=1.32" },
     { name = "wotan", specifier = ">=1.10" },
@@ -2127,6 +2129,33 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
+]
+
+[[package]]
+name = "skyfaint"
+version = "0.1.0"
+source = { editable = "../faint" }
+dependencies = [
+    { name = "astropy" },
+    { name = "astroquery" },
+    { name = "numpy" },
+    { name = "requests" },
+    { name = "tess-point" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "astropy", specifier = ">=8.0.1" },
+    { name = "astroquery", specifier = ">=0.4.11" },
+    { name = "numpy", specifier = ">=2.5.3" },
+    { name = "requests", specifier = ">=2.34.2" },
+    { name = "tess-point", specifier = ">=0.9.5.post1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "hunt", editable = "." },
+    { name = "pytest", specifier = ">=9.1.1" },
 ]
 
 [[package]]

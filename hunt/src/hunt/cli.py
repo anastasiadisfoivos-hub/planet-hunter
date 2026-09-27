@@ -50,6 +50,9 @@ def cmd_run(a) -> int:
     from . import sweep
 
     i, n = _shard(a.shard)
+    if a.source != "mast":  # read by every star's process (sweep.load_lightcurve); a row's own `source` wins
+        import os
+        os.environ["HUNT_SOURCE"] = a.source
     info = sweep.run(Path(a.tic_file), Path(a.out), i, n, a.time_budget_min, a.workers, a.max_sectors, a.limit,
                      not a.no_plots, Path(a.catalogue) if a.catalogue else None, a.star_timeout_s, log=_log)
     _log(json.dumps(info, indent=1))
@@ -102,6 +105,8 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--limit", type=int, default=None, help="only the first N stars of this shard")
     r.add_argument("--catalogue", default=None, help="known-signal snapshot JSON (default: download)")
     r.add_argument("--no-plots", action="store_true")
+    r.add_argument("--source", choices=["mast", "tglc"], default="mast",
+                   help="light curves: MAST SPOC/TESS-SPOC/QLP (default) or TGLC via faint/'s skyfaint loader")
     r.add_argument("--star-timeout-s", type=float, default=900.0, help="kill a star's process after this long")
     r.set_defaults(fn=cmd_run)
 

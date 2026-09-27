@@ -4,7 +4,8 @@ Shard i of N takes every N-th row of the (ranked) target file starting at row i,
 of the high-priority stars. Stars already done in the output directory are skipped (resumable). New stars
 stop being started once the budget is nearly used; whatever finished is written.
 
-Each star is stitched from every sector it has (lightcurve.stitch) and searched for periodic signals and for
+Each star is stitched from every sector it has (lightcurve.stitch, or FAINT's TGLC loader for rows with
+source=tglc, see load_lightcurve) and searched for periodic signals and for
 single / double dips (analyse.analyse).
 
 Layout of an output directory:
@@ -59,6 +60,19 @@ def _star_from_row(row: dict) -> stars.Star:
     return stars.star(int(row["tic"]))
 
 
+def load_lightcurve(tic: int, row: dict, max_sectors: int, source: str | None = None):
+    """The stitched light curve: MAST products (lightcurve.stitch) by default; TGLC from FAINT's loader
+    (skyfaint.tglc.get_lightcurves(tic).to_hunt(), faint/INTEGRATION.md section 3) when the row's `source` column,
+    or `hunt run --source`, says "tglc". Both give a hunt StarLC with bkg filled. A star without a TGLC file raises
+    LookupError, which is recorded as no_data."""
+    src = (row.get("source") or source or os.environ.get("HUNT_SOURCE") or "mast").lower()
+    if src == "tglc":
+        from skyfaint.tglc import get_lightcurves
+
+        return get_lightcurves(int(tic)).to_hunt()
+    return lightcurve.stitch(tic, max_sectors=max_sectors)
+
+
 def process_star(row: dict, out_dir: str, max_sectors: int, plots: bool) -> dict:
     t0 = time.perf_counter()
     tic = int(row["tic"])
@@ -66,7 +80,7 @@ def process_star(row: dict, out_dir: str, max_sectors: int, plots: bool) -> dict
     out = Path(out_dir)
     try:
         star = _star_from_row(row)
-        lc = lightcurve.stitch(tic, max_sectors=max_sectors)
+        lc = load_lightcurve(tic, row, max_sectors)
         t1 = time.perf_counter()
         res = analyse(star, lc, _CATALOGUE, kind)
         res.timings_s = {"fetch": t1 - t0, "analyse": time.perf_counter() - t1, **res.timings_s}

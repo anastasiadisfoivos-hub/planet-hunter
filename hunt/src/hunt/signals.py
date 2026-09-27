@@ -23,7 +23,9 @@ from .catalogs import KnownSignal
 from .lightcurve import StarLC
 
 FLATTEN_WINDOW = 3 * float(DURATIONS.max())  # as in the pipeline
-MAX_SIGNALS = 3
+MAX_SIGNALS = 3  # HUNT's (pipeline search)
+DEEP_MAX_SIGNALS = 6  # deep search: find, mask, search again until the SDE drops (FAINT: artefacts took 3 slots)
+BLS_BUDGET_S = 600.0  # per star, all rounds, bls_short + bls_long (each coherent over the whole baseline)
 CONTINUE_MIN_SNR = 7.0  # keep looking for a further signal only while the last one was at least this strong
 CONTINUE_MIN_SDE = 7.0  # ... and (deep search) this clear a peak in its periodogram,
 CONTINUE_ANY_SNR = 30.0  # ... or this strong, whatever its SDE (a recurring data defect can hide a real signal)
@@ -251,23 +253,38 @@ def _curves(lc: StarLC) -> _Curves:
 def _deep_round(c: _Curves, mask, star, window, tls_left: float, runtime: dict) -> tuple[Signal | None, dict]:
     """Search the binned copy with all three searches, measure each find on the native curve, keep the best."""
     mb = c.to_binned(mask)
-    tic = _time.perf_counter()
     found: list[tuple[Signal, str]] = []
-    s = _short_round(c.tb, c.fb, c.gb, mb)
-    runtime["bls_short_s"] = runtime.get("bls_short_s", 0.0) + _time.perf_counter() - tic
-    if s is not None:
-        found.append((s, "bls_short"))
+    rho, _ = deep.star_density(star)
+    baseline = float(np.ptp(c.tb)) if len(c.tb) else 0.0
+
+    def left() -> float:
+        return max(BLS_BUDGET_S - runtime.get("bls_short_s", 0.0) - runtime.get("bls_long_s", 0.0), 0.0)
+
+    # bls_short: ONE phase-coherent BLS over every sector at once (0.5-15 d), not per sector: the pipeline's
+    # per-sector coarse stage adds powers without aligning phases and lost TOI-1680 b (SNR ~5 per sector, 24 in all).
+    tic = _time.perf_counter()
+    flat_s, keep_s = detrend.flatten(c.tb, c.fb, FLATTEN_WINDOW, mb)
+    use_s = keep_s & ~mb
+    runtime["detrend_s"] = runtime.get("detrend_s", 0.0) + _time.perf_counter() - tic
+    sr = deep.bls_long(c.tb[use_s], flat_s[use_s], rho, pmin=0.5, pmax=min(deep.SHORT_PMAX, baseline / 2),
+                       budget_s=left())
+    runtime["bls_short_s"] = runtime.get("bls_short_s", 0.0) + sr.seconds
+    runtime["bls_short_periods"] = max(runtime.get("bls_short_periods", 0), sr.n_periods)
+    runtime["bls_short_pmax_d"] = round(sr.pmax, 3)
+    runtime["bls_stopped_by_budget"] = runtime.get("bls_stopped_by_budget", False) or sr.stopped_by_budget
+    if sr.signal is not None:
+        found.append((sr.signal, "bls_short"))
     tic = _time.perf_counter()
     flat, keep = detrend.flatten(c.tb, c.fb, window, mb)
     use = keep & ~mb
-    runtime["detrend_long_s"] = runtime.get("detrend_long_s", 0.0) + _time.perf_counter() - tic
-    rho, _ = deep.star_density(star)
-    lr = deep.bls_long(c.tb[use], flat[use], rho)
+    runtime["detrend_s"] = runtime.get("detrend_s", 0.0) + _time.perf_counter() - tic
+    lr = deep.bls_long(c.tb[use], flat[use], rho, budget_s=min(left(), deep.LONG_BUDGET_S))
     runtime["bls_long_s"] = runtime.get("bls_long_s", 0.0) + lr.seconds
     runtime["bls_long_periods"] = max(runtime.get("bls_long_periods", 0), lr.n_periods)
     runtime["bls_long_pmax_d"] = round(lr.pmax, 2)
     runtime["bls_long_target_pmax_d"] = round(lr.pmax_target, 2)
     runtime["bls_long_stopped_by_budget"] = runtime.get("bls_long_stopped_by_budget", False) or lr.stopped_by_budget
+    runtime["bls_stopped_by_budget"] = runtime["bls_stopped_by_budget"] or lr.stopped_by_budget
     if lr.signal is not None:
         found.append((lr.signal, "bls_long"))
     if tls_left >= TLS_MIN_BUDGET_S:
@@ -285,7 +302,7 @@ def _deep_round(c: _Curves, mask, star, window, tls_left: float, runtime: dict) 
         return None, {}
     tic = _time.perf_counter()
     real: list[bool] = []
-    cands = [(_remeasure(c.t, c.f, mask, sg, FLATTEN_WINDOW if m == "bls_short" else window, m == "bls_short",
+    cands = [(_remeasure(c.t, c.f, mask, sg, FLATTEN_WINDOW if m == "bls_short" else window,
                          refine=True, g=c.g, repeats=real), m) for sg, m in found]
     runtime["measure_s"] = runtime.get("measure_s", 0.0) + _time.perf_counter() - tic
     # Prefer finds whose dips repeat (checks.three_dips), then >= 3 epochs with data, then the highest SNR.
@@ -300,7 +317,7 @@ def _deep_round(c: _Curves, mask, star, window, tls_left: float, runtime: dict) 
     return best, {"kept": kept, "found_by": found_by, "each_search": others, "repeats": real[i_best]}
 
 
-def find_signals(lc: StarLC, premask: np.ndarray | None = None, max_signals: int = MAX_SIGNALS,
+def find_signals(lc: StarLC, premask: np.ndarray | None = None, max_signals: int | None = None,
                  star=None, deep_search: bool = False, tls_budget_s: float = deep.TLS_BUDGET_S) -> SearchOutput:
     """Up to max_signals periodic signals, each found with the others masked.
 
@@ -313,6 +330,8 @@ def find_signals(lc: StarLC, premask: np.ndarray | None = None, max_signals: int
     masking, since it can hide a real signal."""
     t, f, g = lc.time, lc.flux, lc.sector
     premask = np.zeros(len(t), bool) if premask is None else premask
+    if max_signals is None:
+        max_signals = DEEP_MAX_SIGNALS if deep_search else MAX_SIGNALS
     signals: list[Signal] = []
     methods: list[dict] = []
     runtime: dict = {}
