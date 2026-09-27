@@ -127,3 +127,26 @@ def test_catalogued_eclipsing_binary_at_the_period_fails():
                                     "period_match": "x2", "eclipsing": True}]
     s = summarise(v, None, None)
     assert s["verdict"] == "fail" and "VSX eclipsing binary X" in s["reasons"][0]
+
+
+@pytest.mark.parametrize(("odd", "even", "epo_sig", "verdict"), [
+    (0.005834, 0.005992, 0.8, "flag"),  # WASP-126 b: 2.7 % apart
+    (0.0050, 0.0060, 0.8, "fail"),  # 18 % apart
+    (0.005834, 0.005992, 12.0, "fail"),  # odd and even transit times differ
+])
+def test_leo_odd_even_needs_more_than_5_percent_to_fail(odd, even, epo_sig, verdict):
+    v = _ok_blocks()
+    v["leo"]["flags"] = ["FP: odd-even transit differences"]
+    v["leo"]["metrics"] = {"odd_dep": odd, "even_dep": even, "dep": 0.0059, "sig_dep": 3.18,
+                           "trap_sig_epo": epo_sig, "transit_sig_epo": 0.7}
+    s = summarise(v, None, None)
+    assert s["verdict"] == verdict
+    if verdict == "flag":
+        assert s["reasons"] == ["LEO-vetter FP: odd-even transit differences: odd/even depths differ slightly "
+                                "(2.7%, 3.2\u03c3)"]
+
+
+def test_leo_odd_even_without_metrics_still_fails():
+    v = _ok_blocks()
+    v["leo"]["flags"] = ["FP: odd-even transit differences"]
+    assert summarise(v, None, None)["verdict"] == "fail"

@@ -8,8 +8,8 @@ numbers.
 - WASP-18 b (confirmed): not failed; TRICERATOPS FPP low; Gaia's SB1 orbit at its period is planetary.
 - TOI-4257.01 (TFOPWG FP, NEB on TIC 75208617): failed, off-target, and the nearby-EB probability is high.
 - TIC 408512382 (HUNT's EB test star): failed on LEO's secondary and size tests and Gaia's stellar SB1 orbit.
-- WASP-126 b (confirmed, extra): TRICERATOPS validates it, but LEO's odd-even test fires (a 2.7% odd/even depth
-  difference at 3.2-3.6 sigma; LEO has no fractional floor), so it fails. Recorded as it is.
+- WASP-126 b (confirmed, extra): TRICERATOPS validates it; LEO's odd-even test fires on a 2.7% odd/even depth
+  difference at 3.2 sigma, which is under hunt's 5% floor, so it is a flag, not a failure.
 
 TRICERATOPS dominates the run time; SKYVET_TEST_TRICERATOPS=0 skips its replay (the rest still runs).
 """
@@ -126,13 +126,15 @@ def test_hunt_eclipsing_binary():
     assert any("stellar eclipsing binary" in r for r in v["summary"]["reasons"])
 
 
-def test_wasp126b_confirmed_planet_trips_leo_odd_even_only():
+def test_wasp126b_slight_odd_even_is_only_a_flag():
     v = vetted("wasp126b")
     _all_ran(v)
     _reproduces("wasp126b", v)
     assert v["leo"]["flags"] == ["FP: odd-even transit differences"]
     m = v["leo"]["metrics"]
     assert 3 < m["sig_dep"] < 4 and abs(m["odd_dep"] / m["even_dep"] - 1) < 0.05  # > 3 sigma but < 5 %
-    assert v["summary"]["reasons"] == ["LEO-vetter FP: odd-even transit differences"]
+    assert v["summary"]["verdict"] == "flag"
+    assert v["summary"]["reasons"] == ["LEO-vetter FP: odd-even transit differences: odd/even depths differ "
+                                       "slightly (2.7%, 3.2\u03c3)"]
     if RUN_TRI:
         assert v["triceratops"]["classification"].startswith("validated")
