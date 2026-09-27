@@ -244,7 +244,9 @@ Then open `$SITE` in a browser, open the developer console, and check there are 
 
 Until the daily search runs, the site shows real results already in hand, sent the way the search sends them
 (over HTTPS with the ingest token; no database URL needed). The bundle is built by `docs/ship/dayone/`
-(README there): the 26 Sep 2026 sweep's 200 stars as monitor records, its summary, hunt's sensitivity run,
+(README there): the 26 Sep 2026 sweep's 200 stars as monitor records, its summary, the sensitivity run of the same (fast)
+search (`hunt/results/sensitivity_hunt_2026-09-26.json`; the deep search's own run, 96 injections, is too small
+for the page's grid),
 and the two leads (TIC 360955814, TIC 76923707) with their vetting. A lead that survives vetting goes in as a
 candidate; one that doesn't appears in the log as rejected, with the reasons.
 
@@ -253,7 +255,7 @@ cd api
 read -rs PH_INGEST_TOKEN && export PH_INGEST_TOKEN      # paste it
 uv run --extra finder python -m api.remote_ingest --api-url "$API" --dir ../docs/ship/dayone/candidates \
   --monitor-dir ../docs/ship/dayone/monitor --summary ../docs/ship/dayone/summary.json \
-  --sensitivity ../hunt/results/sensitivity.json --run-id sweep-2026-09-26 --run-started-at 2026-09-26T07:22:52Z
+  --sensitivity ../hunt/results/sensitivity_hunt_2026-09-26.json --run-id sweep-2026-09-26 --run-started-at 2026-09-26T07:22:52Z
 unset PH_INGEST_TOKEN
 curl -fsS "$API/monitor/stats"; curl -fsS "$API/finder/candidates"
 ```

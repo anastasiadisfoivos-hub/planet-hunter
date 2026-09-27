@@ -7,7 +7,8 @@ The release branch, run on one laptop the way it will run live, with real data o
    and `PH_WEB_ORIGIN=http://localhost:3100`.
 3. **Ingest:** the real 2026-09-26 sweep of 200 stars (hunt's `results/<tic>.json` and its summary), turned into
    monitor records with `runner/scheduler/monitor_record.py`, sent over HTTP with `python -m api.remote_ingest`
-   (the path the Oracle server uses; no database URL on the sending side), plus `hunt/results/sensitivity.json`.
+   (the path the daily search uses; no database URL on the sending side), plus hunt's sensitivity run of the same
+   search (then `hunt/results/sensitivity.json`, now `sensitivity_hunt_2026-09-26.json`).
    The API then held 200 stars, 427 signals (130 already known, 297 rejected) and 0 candidates.
 4. **Web:** `next build` with `NEXT_PUBLIC_API_BASE=http://localhost:8100`, served on :3100; screenshots taken
    with headless Chromium. No console errors.
