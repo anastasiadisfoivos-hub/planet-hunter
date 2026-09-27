@@ -15,6 +15,7 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--json", action="store_true")
     u = sub.add_parser("update", help="pull PH_REPO_REF and refresh changed venvs")
     u.add_argument("--force-sync", action="store_true")
+    u.add_argument("--if-enabled", action="store_true", help="do nothing when PH_AUTO_UPDATE=0")
     sub.add_parser("janitor", help="measure disk use and prune caches if over the cap")
     sub.add_parser("recover", help="make stars left 'running' by a crash retryable (run does this itself)")
     a = p.parse_args(argv)
@@ -30,6 +31,9 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "update":
         from scheduler.update import update
 
+        if a.if_enabled and not cfg.auto_update:
+            print("update: PH_AUTO_UPDATE=0; not updating")
+            return 0
         return update(cfg, force_sync=a.force_sync)
     if a.cmd == "janitor":
         from scheduler.disk import janitor
