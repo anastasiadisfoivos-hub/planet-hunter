@@ -2,7 +2,7 @@
 # after every boot; a start on a day whose run is already done exits at once, a start mid-day resumes that day.
 [Unit]
 Description=Planet Finder search run (planet-hunter runner)
-Documentation=https://github.com/anastasiadisfoivos-hub/planet-hunter/tree/v2/runner
+Documentation=https://github.com/anastasiadisfoivos-hub/planet-hunter/tree/main/runner
 Wants=network-online.target
 After=network-online.target
 # a run that keeps failing (e.g. ingest) is retried every 10 min, at most 6 times a day

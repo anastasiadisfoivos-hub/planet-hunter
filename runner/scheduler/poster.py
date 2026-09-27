@@ -1,9 +1,14 @@
-"""Posts to the API's live monitor: POST /monitor/progress with `Authorization: Bearer PH_INGEST_TOKEN` and
-{run_id, run_started_at, shard, done, total, star?} (api/src/api/routes/monitor.py).
+"""Posts to the API's live monitor, with `Authorization: Bearer PH_INGEST_TOKEN` (api/README.md, "The search
+server over HTTP"):
+- POST /monitor/progress {run_id, run_started_at, shard, done, total, star?, label?}: `label` is the queue that
+  searched the star (fast, deep, faint), shown on the monitor;
+- POST /monitor/heartbeat {state, runner_id, run_id, next_run_at?, queues}: what the server is doing
+  (searching, vetting, ingesting, idle), the ledger's counts per queue, and, when idle, when the next run starts.
 
 Shards: one per queue (fast 0, deep 1, faint 2), so the run's progress is the sum of the three. A post goes out
-after every finished star (with its monitor record) and as a heartbeat every PH_HEARTBEAT_S, which keeps the
-monitor "live" while long deep stars run (the API calls a run live while it heard from it within 900 s).
+after every finished star (with its monitor record); every PH_HEARTBEAT_S the heartbeat goes out, with each
+queue's progress, which keeps the monitor "live" while long deep stars run (the API calls a run live while it
+heard from it within 900 s).
 
 Posting never slows or changes the search: posts go through a bounded queue to one background thread; when the
 API is down they fail after a short timeout, are counted, and the star records are dropped (each record is also
@@ -15,6 +20,8 @@ from __future__ import annotations
 
 import json
 import queue
+import re
+import socket
 import threading
 import time
 import urllib.error
@@ -22,6 +29,7 @@ import urllib.request
 from datetime import datetime
 
 SHARDS = {"fast": 0, "deep": 1, "faint": 2}
+_RUNNER_ID = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")  # the API's run-id pattern
 TIMEOUT_S = 10.0
 MAX_QUEUED = 500
 
@@ -29,7 +37,10 @@ MAX_QUEUED = 500
 class Poster:
     def __init__(self, api_url: str | None, token: str | None, run_id: str, run_started_at: datetime,
                  log=print):
-        self.url = f"{api_url.rstrip('/')}/monitor/progress" if api_url else None
+        base = api_url.rstrip("/") if api_url else None
+        self.url = f"{base}/monitor/progress" if base else None
+        self.beat_url = f"{base}/monitor/heartbeat" if base else None
+        self.runner_id = socket.gethostname()[:64] or None
         self.token = token
         self.run_id = run_id
         self.started = run_started_at.isoformat()
@@ -60,8 +71,14 @@ class Poster:
     def star(self, queue_name: str, record: dict) -> None:
         self._put(("star", queue_name, record))
 
-    def heartbeat(self) -> None:
-        self._put(("beat", None, None))
+    def heartbeat(self, state: str, queues: dict | None = None, next_run_at: str | None = None) -> None:
+        """`state`: searching, vetting, ingesting or idle; `queues`: {name: {done, listed, running}} from the ledger."""
+        beat = {"state": state, "run_id": self.run_id, "queues": queues or {}}
+        if self.runner_id and _RUNNER_ID.match(self.runner_id):
+            beat["runner_id"] = self.runner_id
+        if next_run_at:
+            beat["next_run_at"] = next_run_at
+        self._put(("beat", None, beat))
 
     def close(self, timeout_s: float = 30.0) -> dict:
         """Send what is queued (up to timeout_s), then stop."""
@@ -99,6 +116,8 @@ class Poster:
                 "done": done, "total": total}
         if star is not None:
             body["star"] = star
+            if queue_name in SHARDS:
+                body["label"] = queue_name
         return body
 
     def _loop(self) -> None:
@@ -112,15 +131,17 @@ class Poster:
                     self.stats["stars_sent"] += 1
                 else:
                     self.stats["dropped"] += 1
-            else:  # heartbeat: every queue's current progress
+            else:  # heartbeat: every queue's current progress, then the server's own state
                 with self._lock:
                     names = list(self._progress) or ["fast"]
-                for name in names:
-                    self._send(self._body(name, None))
+                if record["state"] != "idle":
+                    for name in names:
+                        self._send(self._body(name, None))
+                self._send(record, self.beat_url)
 
-    def _send(self, body: dict) -> bool:
+    def _send(self, body: dict, url: str | None = None) -> bool:
         data = json.dumps(body, allow_nan=False, default=str).encode()
-        req = urllib.request.Request(self.url, data=data, method="POST", headers={
+        req = urllib.request.Request(url or self.url, data=data, method="POST", headers={
             "Content-Type": "application/json", "Authorization": f"Bearer {self.token}",
             "User-Agent": "planet-hunter-runner"})
         try:

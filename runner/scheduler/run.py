@@ -132,6 +132,7 @@ class Runner:
         self.disk: dict = {}
         self.caps: dict = {}
         self.poster: Poster | None = None
+        self.listed: dict[str, int | None] = {q: None for q in QUEUES}
         self.state = "starting"
 
     # ---- bookkeeping ----------------------------------------------------------------------------------------
@@ -150,6 +151,22 @@ class Runner:
         tmp = self.cfg.state_dir / ".heartbeat.json.part"
         tmp.write_text(json.dumps(hb, indent=1, default=str))
         tmp.replace(self.cfg.state_dir / "heartbeat.json")
+
+    # the API's words for self.state
+    BEAT_STATE = {"searching": "searching", "wrapping": "vetting", "ingesting": "ingesting"}
+
+    def _beat(self, next_run_at: str | None = None) -> None:
+        """POST /monitor/heartbeat: the server's state and the ledger's counts per queue (all runs)."""
+        if not self.poster:
+            return
+        ever = self.ledger.counts()
+        running: dict[str, int] = {}
+        for j in self.running.values():
+            running[j.queue] = running.get(j.queue, 0) + 1
+        queues_block = {q: {"done": ever.get(q, {}).get("done", 0), "listed": self.listed.get(q),
+                            "running": running.get(q, 0)} for q in QUEUES}
+        state = self.BEAT_STATE.get(self.state, "idle")
+        self.poster.heartbeat(state, queues_block, next_run_at if state == "idle" else None)
 
     def _progress(self, q: str) -> None:
         running = sum(1 for j in self.running.values() if j.queue == q)
@@ -294,9 +311,13 @@ class Runner:
         for q, rows in self.ledger.counts(self.run_id).items():
             if q in self.done:
                 self.done[q] = sum(n for s, n in rows.items() if s != "running")
+        ever = self.ledger.counts()
         for q, queue in self.queues.items():
             # the posted total: tonight's plan, but never more than the list still holds
-            self.total[q] = max(self.done[q], self.done[q] + min(plan.get(q, 0), queue.remaining()))
+            left = queue.remaining()
+            self.total[q] = max(self.done[q], self.done[q] + min(plan.get(q, 0), left))
+            # the monitor's per-queue coverage: stars done on the list so far, plus what it still holds
+            self.listed[q] = ever.get(q, {}).get("done", 0) + left
         log(f"plan for tonight (stars): {plan}; targets {targets}; faint {faint}")
         self.poster = Poster(cfg.api_url, cfg.ingest_token, self.run_id, self.day_start, log=log)
         self.poster.start()
@@ -312,7 +333,7 @@ class Runner:
                 self.disk = disk.janitor(cfg.data, cfg.cache_dir, cfg.runs_dir, cfg.disk_cap_gb, self.run_id, log)
                 last_janitor = now
             if now - last_beat > cfg.heartbeat_s:
-                self.poster.heartbeat()
+                self._beat()
                 self.heartbeat_file()
                 last_beat = now
             self._reap()
@@ -364,7 +385,7 @@ class Runner:
         cfg = self.cfg
         self.state = "ingesting"
         self.heartbeat_file()
-        self.poster.heartbeat()
+        self._beat()
         summary: dict = {"run_id": self.run_id, "counts": self.ledger.counts(self.run_id),
                          "stars_per_hour": self.rates()}
         code = 0
@@ -385,10 +406,13 @@ class Runner:
             log(f"wrap-up failed: {type(exc).__name__}: {exc}")
             summary["error"] = f"{type(exc).__name__}: {exc}"
             code = 1
+        if code == 0:
+            self.state = "done"
+        next_run = (self.day_start + timedelta(days=1)).isoformat()
+        self._beat(next_run_at=next_run)  # idle until the timer's next start
         summary["poster"] = self.poster.close(30)
         if code == 0:
             self.ledger.set_run(self.run_id, "done", summary)
-            self.state = "done"
         (self.run_dir / "run_summary.json").write_text(json.dumps(summary, indent=1, default=str))
         self.heartbeat_file({"last_run": summary})
         log(f"{self.run_id} {self.state}: {json.dumps(summary['stars_per_hour'])}")

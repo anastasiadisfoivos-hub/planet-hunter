@@ -45,10 +45,9 @@ class Config:
     data: Path = Path("/var/lib/planet-hunter")  # ledger, runs, targets, caches
     api_url: str | None = None
     ingest_token: str | None = field(default=None, repr=False)
-    database_url: str | None = field(default=None, repr=False)
-    db_path: str | None = None  # SQLite file for finder_ingest when there is no PH_DATABASE_URL (tests, dry run)
+    db_path: str | None = None  # tests and dry runs only: finder_ingest into this SQLite file instead of the API
     repo_url: str = "https://github.com/anastasiadisfoivos-hub/planet-hunter.git"
-    repo_ref: str = "v2"
+    repo_ref: str = "main"
     workers: int = 4
     split: dict[str, float] = field(default_factory=lambda: dict(DEFAULT_SPLIT))
     run_start_utc: str = "00:15"  # a search day starts here (the timer fires then)
@@ -120,7 +119,6 @@ class Config:
             data=Path(env.get("PH_DATA") or "/var/lib/planet-hunter"),
             api_url=(env.get("PH_API_URL") or "").rstrip("/") or None,
             ingest_token=env.get("PH_INGEST_TOKEN") or None,
-            database_url=env.get("PH_DATABASE_URL") or None,
             db_path=env.get("PH_DB_PATH") or None,
             repo_url=env.get("PH_REPO_URL") or cls.repo_url,
             repo_ref=env.get("PH_REPO_REF") or cls.repo_ref,

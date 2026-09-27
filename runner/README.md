@@ -24,18 +24,17 @@ runner/
 From the repository on your Mac:
 
 ```sh
-runner/deploy.sh <ip> ~/.ssh/<your-oracle-key>
+runner/deploy.sh <ip> ~/.ssh/<your-oracle-key> --ref main --api-url https://<the-api>.onrender.com
 ```
 
-It connects as `ubuntu` (Oracle's default user), runs `bootstrap.sh`, then asks for two secrets. What you type is
-not shown:
-- `PH_INGEST_TOKEN`: the API's ingest token (the same value as the API's `PH_INGEST_TOKEN` on Render);
-- `PH_DATABASE_URL`: the Postgres URL the API uses (Supabase pooler URL).
+It connects as `ubuntu` (Oracle's default user), runs `bootstrap.sh`, then asks for one secret, `PH_INGEST_TOKEN`:
+the API's ingest token (the same value as the API's `PH_INGEST_TOKEN` on Render). What you type is not shown. The
+server holds no database URL: everything it stores goes to the API over HTTPS with that token.
 
-They go over SSH straight into `/etc/planet-hunter.env` on the server, which is owned by root and set to
-`chmod 600`. They are never put on a command line, into a file on your Mac, or into git. Then deploy.sh turns on
+It goes over SSH straight into `/etc/planet-hunter.env` on the server, which is owned by root and set to
+`chmod 600`. It is never put on a command line, into a file on your Mac, or into git. Then deploy.sh turns on
 the daily timer, starts today's run and shows the status. Options:
-- `--ref <branch>`: the branch to run (default `v2`);
+- `--ref <branch>`: the branch to run (default `main`);
 - `--api-url`: default `https://planet-hunter-api.onrender.com`;
 - `--keep-secrets`: on a re-deploy, keep the secrets already on the server;
 - `--no-start`: install without starting;
@@ -57,21 +56,26 @@ venv whose lock file changed is refreshed (`PH_AUTO_UPDATE=1`).
 3. **Record every star.** Each finished star:
    - is written to the SQLite **ledger** (`/var/lib/planet-hunter/ledger.sqlite`);
    - is posted to the API: `POST /monitor/progress` with `Authorization: Bearer PH_INGEST_TOKEN` and
-     `{run_id, run_started_at, shard, done, total, star}`, where `star` is the monitor record
+     `{run_id, run_started_at, shard, done, total, star, label}`, where `label` is the queue and `star` is the
+     monitor record
      (`{tic, tmag, teff, radius_rsun, ra, dec, sectors, observed_from, observed_to, lightcurve: {t, f}, detections,
-     outcome, searched_at}`, built from hunt's own result). Each queue is its own shard (fast 0, deep 1, faint 2),
+     outcome, searched_at}`, built from hunt's own result; the curve in 30-min bins, at most 2,000 points). Each queue is its own shard (fast 0, deep 1, faint 2),
      so the site's progress is their sum.
-4. **Heartbeat.** A post every 2 minutes keeps the monitor "live" while long stars run. The API calls a run live if
-   it heard from it within 15 minutes.
+4. **Heartbeat.** Every 2 minutes `POST /monitor/heartbeat` says what the server is doing (searching, vetting,
+   ingesting) with the ledger's counts per queue (the site's coverage by queue), and keeps the monitor "live" while
+   long stars run. The API calls a run live if it heard from it within 15 minutes. At the end of the run the last
+   beat is `idle` with the next run's start, so the site can tell a sleeping server from one that stopped answering.
 5. **Vetting.** Every candidate is vetted with **skyvet** (`vet/`: LEO-vetter, TRICERATOPS, Gaia DR3, VSX) on one
    worker as soon as it appears.
 6. **Wrap-up.**
    - `hunt merge` runs over the night's queues: ranked candidates, the funnel, and the nearby-stars artefact test for
      single / duo dips.
-   - skyvet's `vetting` block is attached to each candidate.
-   - `python -m api.finder_ingest` (api's venv, `--extra finder`) runs with `PH_DATABASE_URL`: it stores the
-     candidates, pixel-checks them (`pixels/`) and marks the monitor run done. Candidates reach the site at the end
-     of each day's run.
+   - skyvet's `vetting` block is attached to each candidate; a single or duo dip gets a block saying that none of
+     skyvet's tools could run without a period (verdict `flag`).
+   - `python -m api.remote_ingest` (api's venv, `--extra finder`) sends the night to the API over HTTPS in chunks
+     with `PH_INGEST_TOKEN` (`POST /finder/ingest`), which stores the candidates and marks the monitor run done;
+     then it runs the pixel checks (`pixels/`) the API asks for (`GET /finder/pixel-queue`) here and posts each
+     result. Candidates reach the site at the end of each day's run.
    - The run is `done`. A start later the same day exits at once.
 
 ### Queue policy
@@ -212,8 +216,9 @@ The ledger measures every night, and `planet-hunter status` shows the last run's
 
 ## For the owner and SHIP (not in runner/)
 
-- **Branches.** The server runs one branch (`PH_REPO_REF`, default `v2`). That branch needs `runner/` plus DEEPHUNT's
-  hunt, `vet/` and `faint/`. The dry run used a local merge of `v2 + deephunt + vet + faint + runner`. Merging
+- **Branches.** The server runs one branch (`PH_REPO_REF`, default `main`, once the release is merged there). That
+  branch needs `runner/` plus DEEPHUNT's hunt, `vet/` and `faint/`. The dry run used a local merge of
+  `v2 + deephunt + vet + faint + runner`. Merging
   deephunt conflicts in `hunt/README.md` and `hunt/src/hunt/inject.py`; deephunt's side was taken.
 - **arm64.**
   - `batman-package==2.5.3` (from transitleastsquares and triceratops) has no Linux arm64 wheel and no sdist.

@@ -84,3 +84,23 @@ def test_mean_elapsed_and_counts(tmp_path):
         led.finish("fast", tic, {"outcome": "none", "elapsed_s": s})
     assert led.mean_elapsed("fast") == 20.0
     assert led.counts("r1") == {"fast": {"done": 2}}
+
+
+def test_single_and_duo_dips_get_the_no_period_vetting_block(tmp_path):
+    import json
+
+    from scheduler.ingest import attach_vetting
+
+    folder = tmp_path / "merged" / "candidates"
+    folder.mkdir(parents=True)
+    (folder / "42_s1.json").write_text(json.dumps({"tic": 42, "period_d": None}))
+    (folder / "43_d1.json").write_text(json.dumps({"tic": 43, "period_d": None}))
+    (folder / "44_1.json").write_text(json.dumps({"tic": 44, "period_d": 3.1}))  # its vet did not finish
+    counts = attach_vetting(tmp_path / "merged", {})
+    assert counts == {"with_vetting": 2, "without_vetting": 1, "verdicts": {"flag": 2}}
+    single = json.loads((folder / "42_s1.json").read_text())["vetting"]
+    assert single["summary"]["verdict"] == "flag"
+    assert all(not single[k]["ran"] for k in ("leo", "triceratops", "gaia", "variability"))
+    assert single["leo"]["reason"] == "single dip: no period"
+    assert json.loads((folder / "43_d1.json").read_text())["vetting"]["gaia"]["reason"] == "duo dip: no period"
+    assert "vetting" not in json.loads((folder / "44_1.json").read_text())

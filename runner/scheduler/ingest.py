@@ -8,10 +8,12 @@
            re-ingested (the API upserts; an unchanged file is not rewritten).
 3. monitor every star's monitor record goes to RUN/merged/monitor (deep's wins over fast's); a dip the merge
            rejected is marked rejected there too.
-4. ingest  `python -m api.finder_ingest --dir RUN/merged/candidates --monitor-dir RUN/merged/monitor --run-id RUN
-           --run-started-at T --summary RUN/merged/summary.json --sensitivity hunt/results/sensitivity.json`
-           in api's venv (extra `finder`: pixels/ and the known lists), with PH_DATABASE_URL and PH_ADAPTERS=real.
-           This stores the candidates, runs the pixel checks and marks the monitor run done.
+4. ingest  `python -m api.remote_ingest --api-url PH_API_URL --dir RUN/merged/candidates --monitor-dir
+           RUN/merged/monitor --run-id RUN --run-started-at T --summary ... --sensitivity ...` in api's venv (extra
+           `finder`: pixels/), with PH_INGEST_TOKEN and PH_ADAPTERS=real. It sends the night to the API over HTTPS
+           in chunks (the server holds no database URL), marks the monitor run done, then runs the pixel checks the
+           API asks for here and posts their results. Tests and dry runs without an API use
+           `python -m api.finder_ingest --db PH_DB_PATH` instead.
 """
 
 from __future__ import annotations
@@ -58,11 +60,34 @@ def merge(cfg: Config, run_dir: Path, log=print) -> dict:
             "rejected_at_merge": index.get("rejected_at_merge", {}), "funnel": index.get("funnel")}
 
 
+def no_period_block(stem: str) -> dict:
+    """The vetting block of a single or duo dip: skyvet's tools all need a period, so none ran, and it says so
+    (web/lib/api.ts `Vetting`; a tool that did not run is a flag, never a pass)."""
+    why = f"{'duo' if '_d' in stem else 'single'} dip: no period"
+    return {
+        "leo": {"ran": False, "passed": None, "flags": [], "reason": why},
+        "triceratops": {"ran": False, "fpp": None, "nfpp": None, "reason": why},
+        "gaia": {"ran": False, "ruwe": None, "neighbours": [], "binary_hint": None, "gaia_id": None, "reason": why},
+        "variability": {"ran": False, "vsx_match": None, "gaia_variable": None, "reason": why},
+        "summary": {"verdict": "flag", "notes": [], "reasons": [
+            f"LEO-vetter did not run: {why}", f"TRICERATOPS did not run: {why}",
+            f"Gaia DR3 check did not run: {why}", f"VSX / Gaia DR3 variability check did not run: {why}"]},
+    }
+
+
 def attach_vetting(merged: Path, vetted: dict[str, dict]) -> dict:
-    """Copy skyvet's block into each merged candidate that has a finished vet. Returns counts."""
+    """Copy skyvet's block into each merged candidate that has a finished vet; a single or duo dip gets the
+    no-period block. Returns counts."""
     n_with = n_without = 0
     verdicts: dict[str, int] = {}
     for path in sorted((merged / "candidates").glob("*.json")):
+        cand = json.loads(path.read_text())
+        if cand.get("period_d") is None:
+            cand["vetting"] = no_period_block(path.stem)
+            path.write_text(json.dumps(cand, indent=1))
+            n_with += 1
+            verdicts["flag"] = verdicts.get("flag", 0) + 1
+            continue
         v = vetted.get(path.stem)
         vpath = Path(v["vetted_path"]) if v and v.get("vetted_path") else None
         if vpath is None or not vpath.exists():
@@ -72,7 +97,6 @@ def attach_vetting(merged: Path, vetted: dict[str, dict]) -> dict:
         if not isinstance(block, dict):
             n_without += 1
             continue
-        cand = json.loads(path.read_text())
         cand["vetting"] = block
         path.write_text(json.dumps(cand, indent=1))
         n_with += 1
@@ -104,17 +128,22 @@ def collect_monitor(run_dir: Path, merged: Path, rejected: dict[str, str]) -> in
 
 
 def finder_ingest(cfg: Config, merged: Path, run_id: str, run_started_iso: str, log=print) -> dict:
-    cmd = [str(cfg.venv_python("api")), "-m", "api.finder_ingest", "--dir", str(merged / "candidates"),
+    """Send the night to the API over HTTPS (api.remote_ingest), or, with no API but PH_DB_PATH (tests, dry
+    runs), store it in that SQLite file (api.finder_ingest)."""
+    remote = bool(cfg.api_url and cfg.ingest_token)
+    if not remote and not cfg.db_path:
+        raise RuntimeError("no PH_API_URL + PH_INGEST_TOKEN (or PH_DB_PATH) to ingest into")
+    module = "api.remote_ingest" if remote else "api.finder_ingest"
+    cmd = [str(cfg.venv_python("api")), "-m", module, "--dir", str(merged / "candidates"),
            "--monitor-dir", str(merged / "monitor"), "--run-id", run_id, "--run-started-at", run_started_iso]
     if (merged / "summary.json").exists():
         cmd += ["--summary", str(merged / "summary.json")]
     if (merged / "sensitivity.json").exists():
         cmd += ["--sensitivity", str(merged / "sensitivity.json")]
-    if cfg.db_path and not cfg.database_url:
-        cmd += ["--db", cfg.db_path]
+    cmd += ["--api-url", cfg.api_url] if remote else ["--db", cfg.db_path]
     env = child_env(cfg, {"PH_ADAPTERS": os.environ.get("PH_ADAPTERS", "real")})
-    if cfg.database_url:
-        env["PH_DATABASE_URL"] = cfg.database_url  # only this child sees it
+    if remote:
+        env["PH_INGEST_TOKEN"] = cfg.ingest_token  # only this child sees it
     code, out = _run(cmd, env, cfg.wrap_hours * 3600, log, cwd=cfg.repo / "api")
     summary = None
     start = out.find("{")

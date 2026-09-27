@@ -2,7 +2,7 @@
 # Set up (or bring up to date) the Planet Finder search server on Ubuntu 24.04 (Oracle Cloud Ampere A1, arm64).
 # Idempotent: run it again any time; every step checks before it changes anything.
 #
-#   sudo PH_REPO_REF=v2 bash bootstrap.sh
+#   sudo PH_REPO_REF=main bash bootstrap.sh
 #
 # What it does:
 #   packages (git, build tools, python3, ufw, ...), uv (pinned), the service user `planethunter`,
@@ -12,12 +12,12 @@
 #   timer, the `planet-hunter` command, journald limits, the firewall (inbound SSH only) and key-only SSH.
 # It does not start the search: deploy.sh does, once the secrets are in place (or: sudo planet-hunter resume).
 #
-# Settings (env): PH_REPO_URL, PH_REPO_REF (v2), PH_API_URL, PH_WORKERS (4), PH_DISK_CAP_GB (150),
+# Settings (env): PH_REPO_URL, PH_REPO_REF (main), PH_API_URL, PH_WORKERS (4), PH_DISK_CAP_GB (150),
 #   PH_SKIP_FIREWALL=1 / PH_SKIP_SSHD=1 (containers), PH_UV_VERSION.
 set -euo pipefail
 
 PH_REPO_URL="${PH_REPO_URL:-https://github.com/anastasiadisfoivos-hub/planet-hunter.git}"
-PH_REPO_REF="${PH_REPO_REF:-v2}"
+PH_REPO_REF="${PH_REPO_REF:-main}"
 PH_API_URL="${PH_API_URL:-https://planet-hunter-api.onrender.com}"
 PH_WORKERS="${PH_WORKERS:-4}"
 PH_DISK_CAP_GB="${PH_DISK_CAP_GB:-150}"
@@ -68,7 +68,7 @@ else
 fi
 as_user git -C "$REPO" log -1 --format='%h %s'
 [[ -f "$REPO/runner/scheduler/run.py" ]] || {
-  echo "error: ref $PH_REPO_REF has no runner/; deploy with a ref that includes it (e.g. --ref runner)" >&2; exit 1; }
+  echo "error: ref $PH_REPO_REF has no runner/; deploy with a ref that includes it (e.g. --ref main)" >&2; exit 1; }
 
 say "settings (/etc/planet-hunter.conf) and secrets file (/etc/planet-hunter.env, root only)"
 conf=/etc/planet-hunter.conf
