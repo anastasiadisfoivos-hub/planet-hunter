@@ -6,6 +6,7 @@ import { getMonitorNow, getMonitorStats, type Detection, type MonitorNow, type M
 import { MonitorClient } from "./client";
 import { btjdToMs, detectionLabel, detectionSentence, modeLabel, modeShort, observedLine, OUTCOME_WORD, plural, starKind, thousands } from "./format";
 import { StarHeader } from "./StarHeader";
+import { TempKey } from "./TempKey";
 import { StillTrace, StreamTrace } from "./Recorder";
 import s from "./monitor.module.css";
 
@@ -207,7 +208,10 @@ export function MonitorScreen() {
       </p>
 
       <div className={`wrap ${s.foot}`}>
-        <Tally stats={stats} />
+        <div className={s.footLeft}>
+          <Tally stats={stats} />
+          <TempKey />
+        </div>
         <div className={s.pen}>
           {failing && <p className={`${s.note} italic quiet`} role="status">The monitor can&apos;t reach the search right now. Trying again.</p>}
           {star &&

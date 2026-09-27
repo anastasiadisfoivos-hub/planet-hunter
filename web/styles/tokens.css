@@ -17,18 +17,23 @@
   --grid-strong: rgb(28 26 22 / 0.15);
   --pen-wash: rgb(174 47 24 / 0.08);
   --grain-opacity: 0.035;
+  --ground: var(--paper);
 
   /* type */
   --serif: var(--font-newsreader), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --mono: var(--font-martian), ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --t-display: clamp(2.75rem, 1.6rem + 4.2vw, 5.5rem);
-  --t-h1: clamp(2.25rem, 1.5rem + 2.6vw, 3.75rem);
-  --t-h2: clamp(1.625rem, 1.4rem + 0.8vw, 2.125rem);
-  --t-h3: 1.3125rem;
-  --t-body: clamp(1.0625rem, 1rem + 0.2vw, 1.1875rem);
-  --t-small: 0.9375rem;
-  --t-label: 0.6875rem;
-  --t-num: 0.8125rem;
+  --t-display: clamp(3rem, 1.7rem + 4.6vw, 6rem);
+  --t-h1: clamp(2.5rem, 1.6rem + 3vw, 4.25rem);
+  --t-h2: clamp(1.875rem, 1.45rem + 1.3vw, 2.75rem);
+  --t-h3: clamp(1.375rem, 1.25rem + 0.4vw, 1.625rem);
+  --t-body: clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);
+  --t-small: 1.0625rem;
+  --t-label: 0.75rem;
+  --t-num: 0.9375rem;
+  /* weights: Newsreader 500 for headings, 600 for names; Martian Mono 500 for numbers */
+  --w-head: 500;
+  --w-name: 600;
+  --w-num: 500;
   --label-tracking: 0.06em;
   --measure: 62ch;
 
@@ -42,10 +47,10 @@
   --s-7: 48px;
   --s-8: 72px;
   --s-9: 112px;
-  --gutter: 32px;
-  --content: 1320px;
+  /* the page uses the whole screen: fluid side margins, no centred column */
+  --gutter: clamp(24px, 4vw, 80px);
   --section: 72px;
-  --bar-h: 56px;
+  --bar-h: 64px;
   --radius: 2px;
   --tap: 44px;
 
@@ -64,7 +69,6 @@
 
 @media (max-width: 719px) {
   .site {
-    --gutter: 16px;
     --section: 48px;
   }
 }
@@ -72,17 +76,20 @@
 @media (prefers-color-scheme: dark) {
   .site {
     color-scheme: dark;
-    --paper: #12110e;
-    --paper-2: #1a1915;
-    --ink: #ece6d8;
-    --ink-2: #b3ac9d;
-    --ink-3: #8e887b;
+    /* night: deep space ink, a very dark blue-violet, with a faint glow from above (DESIGN.md: Colour) */
+    --paper: #0b0c18;
+    --paper-2: #15172c;
+    --ink: #ece9f2;
+    --ink-2: #b4b0c4;
+    --ink-3: #8e8aa2;
     --pen: #ff7458;
-    --known: #8db4dc;
-    --grid: rgb(236 230 216 / 0.08);
-    --grid-strong: rgb(236 230 216 / 0.16);
+    --known: #93b9ee;
+    --grid: rgb(200 204 255 / 0.075);
+    --grid-strong: rgb(200 204 255 / 0.15);
     --pen-wash: rgb(255 116 88 / 0.1);
-    --grain-opacity: 0.05;
+    --grain-opacity: 0.04;
+    --ground: radial-gradient(120% 70% at 72% -10%, rgb(74 64 160 / 0.22), transparent 62%),
+      radial-gradient(90% 60% at 0% 110%, rgb(40 60 130 / 0.14), transparent 60%), #0b0c18;
   }
 }
 

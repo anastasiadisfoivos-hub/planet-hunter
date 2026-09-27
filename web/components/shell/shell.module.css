@@ -6,7 +6,8 @@
   z-index: var(--z-bar);
   height: var(--bar-h);
   min-height: 0;
-  background: var(--paper);
+  background: var(--ground);
+  background-attachment: fixed;
   border-bottom: 1px solid var(--grid-strong);
 }
 
@@ -23,7 +24,8 @@
   min-height: var(--tap);
   font-family: var(--serif);
   font-style: italic;
-  font-size: 1.25rem;
+  font-weight: 600;
+  font-size: 1.4375rem;
   line-height: 1;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -50,7 +52,8 @@
   display: inline-flex;
   align-items: center;
   min-height: var(--tap);
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
+  font-weight: 500;
   white-space: nowrap;
   color: var(--ink-2);
   text-decoration: none !important;
@@ -94,10 +97,22 @@
 .foot {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--s-2) var(--s-6);
-  padding-top: var(--s-5);
-  padding-bottom: var(--s-6);
+  align-items: center;
+  gap: var(--s-3) var(--s-5);
+  padding-top: var(--s-6);
+  padding-bottom: var(--s-7);
   border-top: 1px solid var(--grid-strong);
+}
+
+.credit {
+  flex: 1 1 36ch;
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.footLink {
+  font-size: var(--t-small);
+  font-weight: 500;
 }
 
 .foot a {
@@ -114,11 +129,11 @@
   }
 
   .nav {
-    gap: var(--s-4);
+    gap: var(--s-3);
   }
 
   .link {
-    font-size: 1rem;
+    font-size: 0.9375rem;
   }
 }
 

@@ -38,16 +38,38 @@
   }
 }
 
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  min-width: 0;
+}
+
 .starName {
   font-size: var(--t-display) !important;
-  line-height: 0.98 !important;
-  letter-spacing: -0.025em !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.03em !important;
+  font-weight: var(--w-name) !important;
   font-variant-numeric: lining-nums;
   white-space: nowrap;
 }
 
+/* the star's own colour, as a rule under its name: the accent that means its temperature */
+.starRule {
+  display: block;
+  width: min(100%, 12ch);
+  height: 4px;
+  background: var(--star);
+  box-shadow: 0 0 0 1px var(--grid-strong);
+}
+
+.kindWord {
+  font-weight: var(--w-name);
+}
+
 .tic {
   font-style: italic;
+  font-weight: var(--w-head);
   color: var(--ink-2);
 }
 
@@ -56,7 +78,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--s-2) var(--s-4);
-  font-size: var(--t-body);
+  font-size: var(--t-h3);
 }
 
 .facts {
@@ -67,7 +89,7 @@
 }
 
 .observed {
-  font-size: var(--t-small);
+  font-size: var(--t-body);
   color: var(--ink-2);
 }
 
@@ -105,7 +127,7 @@
 }
 
 .modeLine {
-  font-size: var(--t-small);
+  font-size: var(--t-body);
   font-style: italic;
   color: var(--ink-2);
 }
@@ -179,8 +201,14 @@
 }
 
 .tally .num {
-  font-size: 1.0625rem;
+  font-size: 1.5rem;
   color: var(--ink);
+}
+
+.footLeft {
+  display: grid;
+  gap: var(--s-5);
+  align-content: start;
 }
 
 .pen {
@@ -191,7 +219,7 @@
 }
 
 .note {
-  font-size: var(--t-small);
+  font-size: var(--t-body);
 }
 
 .notes {
@@ -224,7 +252,7 @@
 }
 
 .reason {
-  font-size: var(--t-small);
+  font-size: var(--t-body);
   color: var(--ink-2);
   max-width: 68ch;
 }
@@ -273,16 +301,34 @@
   }
 
   .mode {
-    grid-auto-flow: column;
+    display: flex;
+    flex-wrap: wrap;
     justify-content: start;
-    justify-items: start;
     align-items: center;
     text-align: left;
-    gap: var(--s-3);
+    gap: var(--s-2) var(--s-3);
+  }
+
+  .modeLine {
+    flex: 1 1 12rem;
   }
 
   .controls {
+    flex-basis: 100%;
     margin-top: 0;
+  }
+
+  .starName {
+    font-size: clamp(2.25rem, 1.2rem + 4.8vw, 3rem) !important;
+  }
+
+  .nameRow {
+    gap: var(--s-3);
+  }
+
+  .nameRow svg {
+    width: 40px;
+    height: 40px;
   }
 
   .paper {

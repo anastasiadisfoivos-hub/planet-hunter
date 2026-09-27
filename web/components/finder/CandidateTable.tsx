@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getCandidates, MOCK_REPLAY_OF, type CandidateList, type CandidateRow } from "@/lib/api";
 import { fmtDate, fmtDepth, fmtPeriod, thousands } from "@/components/monitor/format";
+import { EmptyTrace, StarGlyph, TransitGlyph } from "@/components/monitor/Glyphs";
+import { TempKey } from "@/components/monitor/TempKey";
 import { fmtSize, sizeClass, sortCandidates, DEFAULT_SORT, verdictLabel } from "./finder";
 import s from "./finder.module.css";
 
@@ -30,10 +32,13 @@ function Row({ c }: { c: CandidateRow }) {
   return (
     <tr className={s.row}>
       <th scope="row" className={s.cellStar}>
-        <Link href={href} className={s.rowLink}>
-          <span className={s.rowTic}>TIC {c.tic}</span>
-          {c.stand_in && <span className={`${s.rowStandIn} italic`}>stand-in: {c.stand_in.name}</span>}
-        </Link>
+        <span className={s.rowStar}>
+          <StarGlyph teff={c.star?.teff ?? null} radius={c.star?.rad ?? null} size={36} />
+          <Link href={href} className={s.rowLink}>
+            <span className={s.rowTic}>TIC {c.tic}</span>
+            {c.stand_in && <span className={`${s.rowStandIn} italic`}>stand-in: {c.stand_in.name}</span>}
+          </Link>
+        </span>
       </th>
       <td className="num" data-label="Period">
         {fmtPeriod(c.period_d)}
@@ -75,7 +80,10 @@ export function CandidateTable() {
   return (
     <div className={`wrap ${s.page}`}>
       <header className={s.pageHead}>
-        <h1>Candidates</h1>
+        <div className={s.titleRow}>
+          <TransitGlyph size={72} title="" />
+          <h1>Candidates</h1>
+        </div>
         <div className={`prose ${s.lead}`}>
           {list && allStandIns ? (
             <p>
@@ -89,15 +97,28 @@ export function CandidateTable() {
         </div>
       </header>
 
-      {list && <Funnel list={list} />}
+      {list && (
+        <div className={s.funnelRow2}>
+          <Funnel list={list} />
+          {allStandIns && (
+            <figure className={s.emptyFig}>
+              <EmptyTrace />
+              <figcaption className="label">No new candidate kept yet</figcaption>
+            </figure>
+          )}
+        </div>
+      )}
 
       {error && <p className="italic quiet">The candidates could not be loaded ({error}).</p>}
       {!list && !error && <div className={s.skeleton} role="status" aria-label="Loading candidates" />}
       {list && list.candidates.length === 0 && (
-        <p className="italic quiet">
-          {list.demo ? "No candidates yet." : `No candidates yet: the search, last run ${fmtDate(list.run_at)}, has kept no signal.`} When the search keeps a signal, it
-          appears here.
-        </p>
+        <div className={s.empty}>
+          <EmptyTrace />
+          <p className="italic quiet">
+            {list.demo ? "No candidates yet." : `No candidates yet: the search, last run ${fmtDate(list.run_at)}, has kept no signal.`} When the search keeps a
+            signal, it appears here with its dossier.
+          </p>
+        </div>
       )}
       {list && list.candidates.length > 0 && (
         <table className={s.table}>
@@ -121,9 +142,12 @@ export function CandidateTable() {
           </tbody>
         </table>
       )}
-      <p className={s.after}>
-        <Link href="/sensitivity">What the search can and cannot find</Link>
-      </p>
+      <div className={s.afterRow}>
+        <TempKey />
+        <p className={s.after}>
+          <Link href="/sensitivity">What the search can and cannot find</Link>
+        </p>
+      </div>
     </div>
   );
 }

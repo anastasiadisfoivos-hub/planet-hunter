@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { getMonitorCoverage, getMonitorLog, getStarCurve, type LogStar, type MonitorCoverage, type StarOutcome } from "@/lib/api";
+import { useEffect, useMemo, useState } from "react";
+import { getMonitorCoverage, getMonitorLog, getSparks, type LogStar, type MonitorCoverage, type Sparks, type StarOutcome } from "@/lib/api";
 import { Coverage } from "./Coverage";
-import { fmtDateTime, fmtDay, OUTCOME_WORD, sectorWord, starKind, thousands } from "./format";
+import { fmtDateTime, fmtDay, fmtTemp, OUTCOME_WORD, sectorWord, starKind, thousands } from "./format";
+import { StarGlyph } from "./Glyphs";
 import { Tick } from "./MonitorScreen";
 import s from "./log.module.css";
 
@@ -17,70 +18,55 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "none", label: "Nothing found" },
 ];
 
-/** A row's little trace: the star's own light curve if we have it, otherwise a flat rule. */
-function Spark({ tic }: { tic: number }) {
-  const ref = useRef<SVGSVGElement>(null);
-  const [d, setD] = useState<string | null>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ac = new AbortController();
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting) return;
-        io.disconnect();
-        getStarCurve(tic, ac.signal).then((star) => {
-          const lc = star?.lightcurve;
-          if (!lc || !lc.t.length) return;
-          const n = 160;
-          const step = Math.max(1, Math.floor(lc.f.length / n));
-          const pts: number[] = [];
-          for (let i = 0; i < lc.f.length; i += step) {
-            let m = Infinity;
-            for (let k = i; k < Math.min(i + step, lc.f.length); k++) m = Math.min(m, lc.f[k]);
-            pts.push(m);
-          }
-          const sorted = [...pts].sort((a, b) => a - b);
-          const lo = sorted[0];
-          const hi = sorted[Math.floor(sorted.length * 0.98)];
-          const span = hi - lo || 1e-3;
-          setD(pts.map((v, i) => `${i ? "L" : "M"}${((i / (pts.length - 1)) * 200).toFixed(1)} ${(2 + ((hi - v) / span) * 20).toFixed(1)}`).join(""));
-        });
-      },
-      { rootMargin: "200px" },
+/** A row's trace: the star's whole curve in 180 points, or a clear mark when none is stored. */
+function Spark({ values }: { values: number[] | undefined }) {
+  const d = useMemo(() => {
+    if (!values?.length) return null;
+    const sorted = [...values].sort((a, b) => a - b);
+    const lo = sorted[0];
+    const hi = sorted[Math.floor(sorted.length * 0.97)];
+    const span = hi - lo || 1;
+    return values.map((v, i) => `${i ? "L" : "M"}${((i / (values.length - 1)) * 240).toFixed(1)} ${(3 + ((hi - Math.min(v, hi)) / span) * 30).toFixed(1)}`).join("");
+  }, [values]);
+  if (!d)
+    return (
+      <span className={s.noCurve}>
+        <span className="label">no curve stored</span>
+      </span>
     );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      ac.abort();
-    };
-  }, [tic]);
   return (
-    <svg ref={ref} viewBox="0 0 200 24" preserveAspectRatio="none" className={s.spark} aria-hidden>
-      {d ? <path d={d} /> : <line x1={0} x2={200} y1={12} y2={12} className={s.flat} />}
+    <svg viewBox="0 0 240 36" preserveAspectRatio="none" className={s.spark} role="img" aria-label="The star's light curve, whole">
+      <path d={d} />
     </svg>
   );
 }
 
-function Row({ star }: { star: LogStar }) {
+function Row({ star, spark }: { star: LogStar; spark: number[] | undefined }) {
   const lead = star.detections.find((d) => d.outcome === star.outcome) ?? star.detections[0];
+  const n = star.detections.length;
   return (
     <li className={s.row}>
       <span className={s.when}>
         <span className="num">{fmtDay(star.searched_at).toUpperCase()}</span>
-        <span className="num quiet">{star.searched_at.slice(11, 16)}</span>
+        <span className="num quiet">{star.searched_at.slice(11, 16)} UTC</span>
       </span>
       <span className={s.who}>
-        <span className={s.tic}>TIC {star.tic}</span>
-        <span className={s.kind}>{starKind(star.teff, star.radius_rsun)}</span>
+        <StarGlyph teff={star.teff} radius={star.radius_rsun} size={34} />
+        <span className={s.whoText}>
+          <span className={s.tic}>TIC {star.tic}</span>
+          <span className={s.kind}>
+            {starKind(star.teff, star.radius_rsun)}
+            {star.teff != null && <span className="num"> · {fmtTemp(star.teff)}</span>}
+          </span>
+        </span>
       </span>
       <span className={`label ${s.sectors}`}>{sectorWord(star.sectors)}</span>
-      <Spark tic={star.tic} />
+      <Spark values={spark} />
       <span className={s.what}>
         <span className={s.outcome} data-outcome={star.outcome}>
           {star.outcome !== "none" && <Tick outcome={star.outcome} />}
           {OUTCOME_WORD[star.outcome]}
-          {star.detections.length > 1 && <span className="quiet"> · {star.detections.length} signals</span>}
+          {n > 1 && <span className={s.count}> · {n} signals</span>}
         </span>
         {lead && <span className={s.why}>{lead.reason}</span>}
       </span>
@@ -91,6 +77,7 @@ function Row({ star }: { star: LogStar }) {
 export function Log() {
   const [stars, setStars] = useState<LogStar[] | null>(null);
   const [cov, setCov] = useState<MonitorCoverage | null>(null);
+  const [sparks, setSparks] = useState<Sparks | null>(null);
   const [error, setError] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [shown, setShown] = useState(PAGE);
@@ -102,24 +89,26 @@ export function Log() {
     getMonitorCoverage(ac.signal)
       .then(setCov)
       .catch(() => {});
+    getSparks().then(setSparks);
     return () => ac.abort();
   }, []);
   const rows = useMemo(() => (stars ?? []).filter((x) => filter === "all" || x.outcome === filter), [stars, filter]);
+  const teffOf = useMemo(() => new Map((stars ?? []).map((x) => [x.tic, x.teff])), [stars]);
   const span = stars?.length ? `${fmtDateTime(stars[stars.length - 1].searched_at)} to ${fmtDateTime(stars[0].searched_at)}` : null;
 
   return (
     <div className={`wrap ${s.page}`}>
       <header className={s.head}>
         <h1>Log</h1>
-        <div className="prose">
-          <p>Every star the search has looked at, newest at the top: when it was searched, the TESS data it used, and what it made of it.</p>
+        <div className={s.lead}>
+          <p>Every star the search has looked at, newest at the top: when it was searched, the TESS data it used, its whole light curve, and what the search made of it.</p>
           {span && <p className="label">{`${thousands(stars!.length)} stars · ${span}`}</p>}
         </div>
       </header>
 
       <section aria-labelledby="where" className={s.where}>
         <h2 id="where">Where it has looked</h2>
-        {cov ? <Coverage stars={cov.stars} /> : <div className={s.skyWait} aria-hidden />}
+        {cov ? <Coverage stars={cov.stars} teffOf={teffOf} /> : <div className={s.skyWait} aria-hidden />}
       </section>
 
       <section aria-labelledby="rows" className={s.rowsSec}>
@@ -142,12 +131,19 @@ export function Log() {
             ))}
           </div>
         </div>
+        <div className={s.colHead} aria-hidden>
+          <span className="label">Searched</span>
+          <span className="label">Star</span>
+          <span className="label">TESS data</span>
+          <span className="label">Light curve</span>
+          <span className="label">What the search made of it</span>
+        </div>
         {error && <p className="italic quiet">The log could not be loaded. Try again in a minute.</p>}
         {!stars && !error && <div className={s.skyWait} role="status" aria-label="Loading the log" />}
         {stars && rows.length === 0 && <p className="italic quiet">No star in the log has this outcome yet.</p>}
         <ol className={s.rows}>
           {rows.slice(0, shown).map((x) => (
-            <Row key={`${x.tic}-${x.searched_at}`} star={x} />
+            <Row key={`${x.tic}-${x.searched_at}`} star={x} spark={sparks?.stars[String(x.tic)]} />
           ))}
         </ol>
         {rows.length > shown && (

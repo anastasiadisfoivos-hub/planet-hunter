@@ -6,6 +6,7 @@ import { ApiError, getCandidate, type Candidate, type CandidateReport, type Vett
 import { btjdToMs, fmtDate, fmtDepth, fmtPeriod, fmtRadius, fmtTemp, fmtTmag, observedLine, sectorWord, starKind } from "@/components/monitor/format";
 import { checkLabel, fmtSize, KNOWN_LISTS, listMatch, sizeClass, transitTimes } from "./finder";
 import { buildTape, tapeX } from "@/components/monitor/trace";
+import { StarGlyph, TransitGlyph } from "@/components/monitor/Glyphs";
 import { InkPlot, type Series } from "./InkPlot";
 import { PixelCheck } from "./PixelCheck";
 import { VoteBox } from "./VoteBox";
@@ -185,9 +186,12 @@ function Margin({ c }: { c: Candidate }) {
       <dl className={s.marginList}>
         <div>
           <dt className="label">Star</dt>
-          <dd>
-            TIC {c.tic}
-            {st && <span className={s.sub}>{starKind(st.teff, st.rad)}</span>}
+          <dd className={s.starDd}>
+            <StarGlyph teff={st?.teff ?? null} radius={st?.rad ?? null} size={44} />
+            <span>
+              <span className={s.starDdName}>TIC {c.tic}</span>
+              {st && <span className={s.sub}>{starKind(st.teff, st.rad)}</span>}
+            </span>
           </dd>
         </div>
         {st && (
@@ -274,7 +278,10 @@ export function Dossier({ id }: { id: string }) {
       </p>
       <header className={s.dossierHead}>
         <p className="label">Planet candidate, not a confirmed planet</p>
-        <h1 className={s.dossierTitle}>TIC {c.tic}</h1>
+        <div className={s.titleRow}>
+          <TransitGlyph size={64} title="" />
+          <h1 className={s.dossierTitle}>TIC {c.tic}</h1>
+        </div>
         <p className={s.dossierSub}>
           A dip every {fmtPeriod(c.period_d)}, {fmtDepth(c.depth_ppm)} deep, lasting {c.duration_h.toFixed(1)} hours. If it is a planet, it is {fmtSize(c.radius_rjup)} ({sizeClass(c.radius_rjup)}).
         </p>

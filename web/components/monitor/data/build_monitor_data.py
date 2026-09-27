@@ -87,6 +87,21 @@ def binned_curve(lc: StarLC) -> dict:
     return {"t": [round(float(x), 4) for x in t], "f": [round(float(x), 5) for x in f]}
 
 
+def spark(lc: StarLC, n: int = 180) -> list[int]:
+    """A row-sized trace of the whole curve: sectors joined end to end, each of n bins keeping its lowest point
+    (so dips survive), in ppm from each sector's median."""
+    parts = []
+    for s in sorted(set(lc.sector.tolist())):
+        m = (lc.sector == s) & np.isfinite(lc.flux)
+        if m.sum() < 10:
+            continue
+        f = lc.flux[m].astype(float)
+        parts.append(f / np.nanmedian(f))
+    f = np.concatenate(parts)
+    edges = np.linspace(0, len(f), n + 1).astype(int)
+    return [int(round((f[a:b].min() - 1) * 1e6)) for a, b in zip(edges[:-1], edges[1:]) if b > a]
+
+
 def measured_depth_ppm(lc: StarLC, period: float, t0: float, dur_d: float) -> float | None:
     ph = ((lc.time - t0) / period + 0.5) % 1 - 0.5
     inn = np.abs(ph * period) < dur_d / 4
@@ -163,7 +178,8 @@ def detections(res, captured, lc: StarLC, cat: Catalogue) -> list[dict]:
         out.append({"t0": eph["t0_btjd"], "duration_h": round(dur_h, 3),
                     "depth_ppm": depth if depth and depth > 0 else None,
                     "period_d": eph["period_d"], "kind": "periodic", "outcome": "known",
-                    "reason": f"Already known: {names[0]}{also}. Its dips were masked before the search."})
+                    "reason": f"Already known: {names[0]}{also}. Its dips were masked before the search.",
+                    "stage": "masked"})
     for rec, checks in zip(res.signals, captured):
         stage = rec["failed_stage"]
         outcome = "candidate" if stage is None else "known" if stage in ("known", "neighbour") else "rejected"
@@ -173,7 +189,7 @@ def detections(res, captured, lc: StarLC, cat: Catalogue) -> list[dict]:
                     "outcome": outcome, "reason": reason_for(rec, checks),
                     # extra numbers the dossier and log may show; not part of the monitor contract
                     "snr": rec["snr"], "sde": rec["sde"], "n_transits": rec["n_transits"],
-                    "failed_checks": rec["failed_checks"]})
+                    "failed_checks": rec["failed_checks"], "stage": stage})
     return out
 
 
@@ -296,9 +312,12 @@ def main() -> None:
     print("fetched", sum(v is not None for v in lcs.values()), "of", len(sweep))
 
     log, replay = [], []
+    sparks: dict[int, list[int]] = {}
     for tic, d in sweep.items():
         star = Star.from_row(d["star"])
         lc = lcs.get(tic)
+        if lc is not None:
+            sparks[tic] = spark(lc)
         if tic in SWEEP_REPLAY and lc is not None:
             res, captured = run(star, lc, cat, d["list"])
             dets = detections(res, captured, lc, cat)
@@ -316,7 +335,8 @@ def main() -> None:
                              "outcome": "candidate" if stage is None else "known" if stage in ("known", "neighbour") else "rejected",
                              "reason": reason_for(s, []) if stage != "checks" else
                              "Failed the checks: " + ", ".join(c.replace("_", " ") for c in s["failed_checks"]) + ".",
-                             "snr": s["snr"], "sde": s["sde"], "n_transits": s["n_transits"], "failed_checks": s["failed_checks"]})
+                             "snr": s["snr"], "sde": s["sde"], "n_transits": s["n_transits"], "failed_checks": s["failed_checks"],
+                             "stage": stage})
             rec = star_record(star, None, d["sectors"], dets, d["_searched_at"], observed_of(lc) if lc is not None else None)
             rec["source"] = "sweep-2026-09-26"
         rec_log = {k: v for k, v in rec.items() if k != "lightcurve"}
@@ -327,6 +347,7 @@ def main() -> None:
     for tic, lk in fixtures:
         lc, meta = StarLC.load(FIXTURES / f"{tic}.npz")
         star = Star.from_row(meta["star"])
+        sparks.setdefault(tic, spark(lc))
         res, captured = run(star, lc, cat, lk)
         dets = detections(res, captured, lc, cat)
         rec = star_record(star, lc, lc.sectors, dets, built_at, observed_of(lc))
@@ -415,6 +436,7 @@ def main() -> None:
             dets = detections(res_k, captured_k, lc, cat)
             rec = star_record(star, lc, lc.sectors, dets, built_at, observed_of(lc))
             rec["source"] = "stand-in-toi"
+            sparks.setdefault(tic, spark(lc))
             rec_path.write_text(json.dumps(rec, separators=(",", ":")))
             log.append({k: v for k, v in rec.items() if k != "lightcurve"})
             replay.append(tic)
@@ -439,12 +461,26 @@ def main() -> None:
     cov = [{"tic": r["tic"], "ra": r["ra"], "dec": r["dec"], "outcome": r["outcome"], "sectors": r["sectors"]} for r in log]
     (OUT / "coverage.json").write_text(json.dumps({"stars": cov}, separators=(",", ":")))
     summ = json.loads(SWEEP_SUMMARY.read_text())["funnel"]
+    found = [d for r in log for d in r["detections"] if d.get("stage") != "masked"]  # what the search itself found
+    past = lambda *stages: sum(d.get("stage") not in stages for d in found)  # noqa: E731
+    funnel = [
+        {"key": "stars", "label": "Stars searched", "count": len(log)},
+        {"key": "signals", "label": "Repeating dips found", "count": len(found)},
+        {"key": "snr", "label": "Strong enough", "count": past("snr")},
+        {"key": "sde", "label": "Stand out from other periods", "count": past("snr", "sde")},
+        {"key": "checks", "label": "Passed the checks", "count": past("snr", "sde", "transits", "checks")},
+        {"key": "candidates", "label": "New candidates", "count": sum(d.get("stage") is None for d in found)},
+    ]
     stats = {"since": min(r["searched_at"] for r in log), "updated_at": max(r["searched_at"] for r in log),
-             "stars_searched": len(log), "signals": sum(len(r["detections"]) for r in log),
-             "candidates": 0, "rejected": sum(d["outcome"] == "rejected" for r in log for d in r["detections"]),
+             "stars_searched": len(log), "signals": len(found),
+             "candidates": sum(d.get("stage") is None for d in found),
+             "rejected": sum(d["outcome"] == "rejected" for d in found),
              "known": sum(d["outcome"] == "known" for r in log for d in r["detections"]),
+             "funnel": funnel,
              "sweep_2026_09_26": summ}
     (OUT / "stats.json").write_text(json.dumps(stats, indent=1))
+    (OUT / "sparks.json").write_text(json.dumps({"unit": "ppm", "bins": 180, "note": "each bin keeps its lowest point; sectors joined end to end",
+                                                "stars": {str(k): v for k, v in sparks.items()}}, separators=(",", ":")))
     sens = json.loads((HUNT / "results" / "sensitivity.json").read_text())
     re_, pe = sens["grid"]["radius_edges_rearth"], sens["grid"]["period_edges_d"]
     cell = {(tuple(b["radius_rearth"]), tuple(b["period_d"])): b for b in sens["bins"]}

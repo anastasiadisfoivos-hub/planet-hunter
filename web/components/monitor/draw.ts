@@ -57,22 +57,26 @@ export type Geom = {
   x0: number;
   x1: number;
   pxPerDay: number;
+  /** The page's side margin in px: notes, scales and the flux labels align to it. */
+  pad: number;
 };
 
-export function makeGeom(w: number, h: number, pxPerDay: number, originPx: number, originX: number, compact: boolean): Geom {
-  const laneH = compact ? 72 : 112;
+/** The page gutter as the CSS draws it: clamp(24px, 4vw, 80px). */
+export const gutterFor = (viewportW: number) => Math.round(Math.min(80, Math.max(24, viewportW * 0.04)));
+
+export function makeGeom(w: number, h: number, pxPerDay: number, originPx: number, originX: number, compact: boolean, pad = 24): Geom {
+  const laneH = compact ? 80 : 124;
   const bandTop = laneH + (compact ? 12 : 20);
   const bandBottom = h - (compact ? 34 : 40);
   const sx = (x: number) => originPx + (x - originX) * pxPerDay;
-  return { w, h, laneH, bandTop, bandBottom, sx, pxPerDay, x0: originX - originPx / pxPerDay, x1: originX + (w - originPx) / pxPerDay };
+  return { w, h, laneH, bandTop, bandBottom, sx, pxPerDay, pad, x0: originX - originPx / pxPerDay, x1: originX + (w - originPx) / pxPerDay };
 }
 
 const fy = (g: Geom, tape: Pick<Tape, "yTop" | "yBottom">, f: number) => g.bandTop + ((tape.yTop - f) / (tape.yTop - tape.yBottom)) * (g.bandBottom - g.bandTop);
 
 /** The paper: ECG divisions, minor every day of tape and major every 5, moving with the data. */
 export function drawPaper(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, phase = 0) {
-  ctx.fillStyle = ink.paper;
-  ctx.fillRect(0, 0, g.w, g.h);
+  ctx.clearRect(0, 0, g.w, g.h); // the page's own ground (paper, or night's space ink) shows through
   const minorPx = g.pxPerDay;
   const step = minorPx < 14 ? (minorPx < 4 ? 10 : 5) : 1;
   ctx.lineWidth = 1;
@@ -104,8 +108,8 @@ export function drawPaper(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, phas
   ctx.stroke();
 }
 
-function label(ctx: CanvasRenderingContext2D, ink: Ink, text: string, x: number, y: number, colour: string, align: CanvasTextAlign = "left", size = 10.5, knockout = false) {
-  ctx.font = `${size}px ${ink.mono}`;
+function label(ctx: CanvasRenderingContext2D, ink: Ink, text: string, x: number, y: number, colour: string, align: CanvasTextAlign = "left", size = 11.5, knockout = false) {
+  ctx.font = `500 ${size}px ${ink.mono}`;
   if (knockout) {
     const w = ctx.measureText(text).width;
     const x0 = align === "right" ? x - w : align === "center" ? x - w / 2 : x;
@@ -129,7 +133,7 @@ export function drawScale(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape
       const x = s.x0 + (tt - s.t0);
       if (x > upTo || x < g.x0 - 1 || x > g.x1 + 1) continue;
       const px = g.sx(x);
-      if (px < 2 || px - lastPx < 64) continue;
+      if (px < g.pad || px - lastPx < 72) continue;
       if (Math.round(tt) % (g.pxPerDay < 30 ? 10 : 5) !== 0 && px - lastPx < 120) continue;
       label(ctx, ink, fmtDay(btjdToMs(tt)).toUpperCase(), px + 3, y, ink.ink3);
       lastPx = px;
@@ -139,7 +143,7 @@ export function drawScale(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape
       const px = g.sx(s.x0);
       const prev = tape.segments[tape.segments.indexOf(s) - 1];
       const newSector = !prev || prev.sector !== s.sector;
-      if (newSector && px > -80 && px < g.w) label(ctx, ink, `SECTOR ${s.sector}`, px + 4, g.bandTop + 15, ink.ink3, "left", 10.5, true);
+      if (newSector && px > -80 && px < g.w) label(ctx, ink, `SECTOR ${s.sector}`, Math.max(px + 4, g.pad), g.bandTop + 16, ink.ink3, "left", 11.5, true);
     }
   }
 }
@@ -207,7 +211,7 @@ export function drawMarks(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape
       ctx.setLineDash([]);
     }
     if (mark.first) {
-      const base = 14 + (mark.det % rows) * rowH;
+      const base = 18 + (mark.det % rows) * rowH;
       ctx.strokeStyle = col;
       ctx.beginPath();
       ctx.moveTo(Math.round(px) + 0.5, base - 9);
@@ -228,14 +232,14 @@ export function drawMarks(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape
     const d = dets[mark.det];
     const col = outcomeColour(ink, d.outcome);
     ctx.globalAlpha = Math.min(1, age / 0.16);
-    const base = 14 + (mark.det % rows) * rowH;
+    const base = 18 + (mark.det % rows) * rowH;
     const word = d.outcome === "candidate" ? "CANDIDATE" : d.outcome === "known" ? "KNOWN" : "REJECTED";
-    const pinned = firstPx < 8;
-    const right = !pinned && firstPx + 210 > g.w;
-    const lx = pinned ? 8 : right ? firstPx - 7 : firstPx + 7;
-    const size = compact ? 10 : 11;
+    const pinned = firstPx < g.pad + 1;
+    const right = !pinned && firstPx + 240 > g.w - g.pad;
+    const lx = pinned ? g.pad : right ? firstPx - 8 : firstPx + 8;
+    const size = compact ? 11 : 13;
     label(ctx, ink, word, lx, base, col, right ? "right" : "left", size, true);
-    if (rowH > 22) label(ctx, ink, detectionLabel(d), lx, base + 14, ink.ink2, right ? "right" : "left", size, true);
+    if (rowH > 26) label(ctx, ink, detectionLabel(d), lx, base + size + 5, ink.ink2, right ? "right" : "left", size, true);
     ctx.globalAlpha = 1;
   }
 }
@@ -306,12 +310,12 @@ export function traceYAt(g: Geom, tape: Tape, x: number): number | null {
 
 /** The flux scale on the band's right edge: where 1.000 sits, and the band's floor in ppm. */
 export function drawFluxScale(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tape: Tape) {
-  const x = g.w - 6;
+  const x = g.w - g.pad;
   const y1 = fy(g, tape, 1);
-  if (y1 > g.bandTop + 14 && y1 < g.bandBottom - 18) label(ctx, ink, "1.000", x, y1 - 5, ink.ink3, "right", 10.5, true);
+  if (y1 > g.bandTop + 14 && y1 < g.bandBottom - 18) label(ctx, ink, "1.000", x, y1 - 5, ink.ink3, "right", 11.5, true);
   const floor = Math.round((tape.yBottom - 1) * 1e6);
   const text = `${floor < 0 ? "\u2212" : "+"}${Math.abs(floor).toLocaleString("en-GB").replace(/,/g, "\u2009")} PPM`;
-  label(ctx, ink, text, x, g.bandBottom - 6, ink.ink3, "right", 10.5, true);
+  label(ctx, ink, text, x, g.bandBottom - 6, ink.ink3, "right", 11.5, true);
 }
 
 /** The reading under the pointer: a thin rule, and the time and brightness at that point. */
@@ -338,5 +342,5 @@ export function drawCursor(ctx: CanvasRenderingContext2D, g: Geom, ink: Ink, tap
   const ppm = Math.round((tape.f[i] - 1) * 1e6);
   const text = `${fmtDay(d.getTime()).toUpperCase()} ${hh}:${mm} UTC   ${ppm >= 0 ? "+" : "\u2212"}${Math.abs(ppm)} PPM`;
   const right = px + 240 > g.w;
-  label(ctx, ink, text, right ? px - 8 : px + 8, g.bandBottom - 8, ink.ink, right ? "right" : "left", 10.5, true);
+  label(ctx, ink, text, right ? px - 8 : px + 8, g.bandBottom - 8, ink.ink, right ? "right" : "left", 12, true);
 }

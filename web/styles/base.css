@@ -2,7 +2,8 @@
 
 .site {
   min-height: 100dvh;
-  background: var(--paper);
+  background: var(--ground);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--serif);
   font-size: var(--t-body);
@@ -33,7 +34,7 @@
 .site h2,
 .site h3 {
   font-family: var(--serif);
-  font-weight: 400;
+  font-weight: var(--w-head);
   margin: 0;
   text-wrap: balance;
 }
@@ -91,8 +92,8 @@
 
 .site .wrap {
   width: 100%;
-  max-width: calc(var(--content) + 2 * var(--gutter));
-  margin-inline: auto;
+  max-width: none; /* the retired pages' .wrap (app/globals.css) is a centred column; here the page is the screen */
+  margin-inline: 0;
   padding-inline: var(--gutter);
 }
 
@@ -110,9 +111,11 @@
 
 .site .num {
   font-family: var(--mono);
+  font-weight: var(--w-num);
   font-size: var(--t-num);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .site .prose {
