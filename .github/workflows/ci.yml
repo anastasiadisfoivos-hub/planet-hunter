@@ -74,7 +74,25 @@ jobs:
       # Python comes from each package's .python-version (3.12; vet 3.13), installed by uv.
       - run: uv sync
       # runner's tests serve the real api/ locally on SQLite; its conftest syncs api's venv.
-      - run: uv run pytest -q
+      # hunt's all-sector proofs (marker `deep`, minutes each) run in their own job below.
+      - run: uv run pytest -q ${{ matrix.package == 'hunt' && '-m "not deep"' || '' }}
+
+  hunt-deep:
+    # DEEPHUNT's real-data proofs (TOI-813 b from 42 sectors, TOI-2180 b's single transit, ...): about
+    # 25 minutes on a laptop, so they get their own job and time limit. Offline, from recorded data.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: hunt
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: hunt/uv.lock
+      - run: uv sync
+      - run: uv run pytest -q -m deep
 
   web:
     runs-on: ubuntu-24.04
