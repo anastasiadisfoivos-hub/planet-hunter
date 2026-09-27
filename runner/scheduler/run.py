@@ -235,6 +235,7 @@ class Runner:
             return True
         if cand.get("period_d") is None:  # a single dip: skyvet needs a period
             self.ledger.finish_vet(v["stem"], ok=True, verdict="not run (single dip, no period)")
+            log(f"vet   {v['stem']}: not run (a single dip has no period; skyvet needs one)")
             return True
         job = jobs.start_vet(self.cfg, v["stem"], src, self.run_dir / "vetted" / src.parent.parent.name)
         self.running[f"vet:{v['stem']}"] = job
@@ -293,9 +294,9 @@ class Runner:
         for q, rows in self.ledger.counts(self.run_id).items():
             if q in self.done:
                 self.done[q] = sum(n for s, n in rows.items() if s != "running")
-        for q in self.queues:
-            cap = cfg.star_limit if cfg.star_limit is not None else plan.get(q, 0)
-            self.total[q] = max(self.done[q], min(plan.get(q, 0), cap) if cfg.star_limit else plan.get(q, 0))
+        for q, queue in self.queues.items():
+            # the posted total: tonight's plan, but never more than the list still holds
+            self.total[q] = max(self.done[q], self.done[q] + min(plan.get(q, 0), queue.remaining()))
         log(f"plan for tonight (stars): {plan}; targets {targets}; faint {faint}")
         self.poster = Poster(cfg.api_url, cfg.ingest_token, self.run_id, self.day_start, log=log)
         self.poster.start()

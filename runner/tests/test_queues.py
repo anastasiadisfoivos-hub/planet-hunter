@@ -134,3 +134,14 @@ def test_plan():
     p = queues.plan({"fast": 0.45, "deep": 0.40, "faint": 0.15}, 4, 21.5 * 3600,
                     {"fast": 60, "deep": 250, "faint": 90}, ["fast", "deep", "faint"])
     assert p == {"fast": 2322, "deep": 495, "faint": 516}
+
+
+def test_remaining_counts_what_is_left(tmp_path):
+    t = tmp_path / "targets.csv"
+    write_targets(t, rows())
+    led = Ledger(tmp_path / "l.sqlite")
+    qs = queues.build_queues(led, t, None, {"fast": True, "deep": True, "faint": False})
+    assert qs["fast"].remaining() == 6 and qs["deep"].remaining() == 4
+    tic = qs["deep"].next("r1")["tic"]
+    led.finish("deep", tic, {"outcome": "none"})
+    assert qs["deep"].remaining() == 3 and qs["fast"].remaining() == 5  # fast skips what deep did

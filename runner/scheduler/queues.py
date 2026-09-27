@@ -83,6 +83,25 @@ class Queue:
     def exhausted(self) -> bool:
         return self._exhausted or (self.limit is not None and self.started >= self.limit)
 
+    def remaining(self) -> int:
+        """Stars this queue could still start tonight (its list minus what the ledger blocks), capped by the limit."""
+        blocked = self.ledger.blocked(self.name)
+        others = [self.ledger.blocked(q) for q in self.skip_if_done_in]
+        seen: set[int] = set()
+        for row in self.source():
+            try:
+                tic = int(str(row["tic"]).strip())
+            except (KeyError, ValueError):
+                continue
+            key = sectors_key(row)
+            if tic in seen or (tic in blocked and (blocked[tic] is None or blocked[tic] == key)):
+                continue
+            if any(tic in o and o[tic] == key for o in others):
+                continue
+            seen.add(tic)
+        n = len(seen)
+        return n if self.limit is None else min(n, max(0, self.limit - self.started))
+
     def next(self, run_id: str) -> dict | None:
         """Claim and return the next eligible row, or None when the queue has nothing left tonight."""
         if self.exhausted:

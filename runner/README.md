@@ -182,8 +182,44 @@ network) and the repository's **real** API, served locally with uvicorn on SQLit
 `deploy.sh`, exactly as to the real server. The container then searches real TESS stars (MAST, TGLC) and posts to
 a local copy of the API on Postgres. `finder_ingest` writes to the same Postgres.
 
-Measured on 2026-09-27: see **Measured** below.
+Numbers from 2026-09-27: see **Measured** below.
 
 ## Measured
 
-(filled from the dry run; see the end of this file)
+Dry run on 2026-09-27 (`dryrun/results_2026-09-27.json`). The setup:
+- `deploy.sh` → `bootstrap.sh` on a fresh Ubuntu 24.04.5 arm64 container (systemd, SSH, ufw, 4 CPUs, 7 GB);
+- 20 real TESS stars: 14 from hunt's ranked list, 6 tier-1 faint M dwarfs;
+- the local API on Postgres 16; the monitor polled every 30 s.
+
+| Queue | Searches | Mean s / star / worker | Stars / hour on 4 workers | Per day at the default split (21.5 h) |
+|---|---|---|---|---|
+| fast (3 sectors, BLS) | 14 | 36.2 | 398 | ~3,850 |
+| deep (all sectors, BLS + TLS + dips) | 11 (6 group-0, 5 promoted by fast) | 270.1 | 53 | ~460 |
+| faint (TGLC, deep search) | 6 | 218.1 | 66 | ~210 |
+
+- **Monitor:** "live" for the whole search (44 of 44 polls during it). 103 posts, 0 failed.
+- **Results:** 55 signals, 1 candidate (a single dip on TIC 389051009, SNR 28.8: no period, so skyvet and the pixel
+  check do not apply). The ingest stored it and marked the run done; the monitor then replays it.
+- **Reboot:** after a reboot, the timer started the service, which exited at once: the day's run was done.
+
+Caveats on these numbers:
+- the caches were cold;
+- the samples are small;
+- the host was an Apple-silicon laptop also carrying other work (load ~12 on 10 cores). Ampere A1 cores are slower
+  per core than Apple's, so expect the server to be somewhat slower.
+
+The ledger measures every night, and `planet-hunter status` shows the last run's rates.
+
+## For the owner and SHIP (not in runner/)
+
+- **Branches.** The server runs one branch (`PH_REPO_REF`, default `v2`). That branch needs `runner/` plus DEEPHUNT's
+  hunt, `vet/` and `faint/`. The dry run used a local merge of `v2 + deephunt + vet + faint + runner`. Merging
+  deephunt conflicts in `hunt/README.md` and `hunt/src/hunt/inject.py`; deephunt's side was taken.
+- **arm64.**
+  - `batman-package==2.5.3` (from transitleastsquares and triceratops) has no Linux arm64 wheel and no sdist.
+    `sync-venvs.sh` builds 2.5.2 from source as a workaround. The lasting fix is in `hunt/` and `vet/`: add
+    `[tool.uv] required-environments` with linux aarch64, and a batman pin.
+  - `faint/`'s lock pins the pre-DEEPHUNT hunt (no transitleastsquares), so faint stars run in hunt's venv, with
+    skyfaint added.
+- **No monitor writer in hunt.** The runner builds each monitor record itself (`scheduler/monitor_record.py`) from
+  hunt's per-star result.
