@@ -37,6 +37,7 @@ def test_record_shape_and_outcomes():
     assert rec["outcome"] == "candidate"
     assert rec["observed_from"] == "2019-01-16T12:00:00Z"  # BTJD 1500
     assert len(rec["lightcurve"]["t"]) == len(rec["lightcurve"]["f"]) <= mr.MAX_POINTS
+    assert rec["bin_minutes"] == 30  # 40 days of 2-min data fit in 2,000 half-hour bins
     outs = [(d["kind"], d["outcome"]) for d in rec["detections"]]
     assert outs == [("periodic", "known"), ("periodic", "candidate"), ("duo", "rejected"),
                     ("periodic", "rejected"), ("single", "candidate")]
@@ -51,7 +52,7 @@ def test_long_baseline_is_binned_down():
     t = np.arange(0, 1000, 2 / 1440)  # ~720k points
     rec = mr.build({"tic": 1, "star": {}, "sectors": [1]}, t, np.ones_like(t), np.ones(len(t), int), queue="deep")
     assert len(rec["lightcurve"]["t"]) <= mr.MAX_POINTS
-    assert rec["bin_minutes"] > 10
+    assert rec["bin_minutes"] > mr.BASE_BIN_MIN
     assert rec["outcome"] == "none"
 
 

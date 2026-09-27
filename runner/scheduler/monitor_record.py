@@ -8,8 +8,9 @@ candidate or binary on this star or a neighbour; also the listed planets masked 
 "rejected" (failed a stage; `reason` says which, in words). The star's outcome is the strongest of its
 detections (candidate > known > rejected), else "none".
 
-The light curve is the searched curve normalised per sector and binned (10 min, wider for long baselines so it
-stays under MAX_POINTS). Only the resolution is reduced; nothing is modelled.
+The light curve is the searched curve normalised per sector and binned (30 min, wider for long baselines so it
+stays under MAX_POINTS), which keeps the records small on the free API. Only the resolution is reduced; nothing is
+modelled.
 """
 
 from __future__ import annotations
@@ -19,8 +20,8 @@ from datetime import UTC, datetime
 
 import numpy as np
 
-MAX_POINTS = 4000
-BASE_BIN_MIN = 10
+MAX_POINTS = 2000
+BASE_BIN_MIN = 30
 
 
 def iso_from_btjd(t: float) -> str:
@@ -46,11 +47,11 @@ def binned_curve(time: np.ndarray, flux: np.ndarray, sector: np.ndarray) -> tupl
     time, flux, sector = time[ok], flux[ok], sector[ok]
     if len(time) < 10:
         return None, BASE_BIN_MIN
-    days = 0.0
+    slots = 0
     for s in np.unique(sector):
         t = time[sector == s]
-        days += len(np.unique(np.floor(t * 144)))  # 10-min slots with data
-    minutes = BASE_BIN_MIN * max(1, math.ceil(days / MAX_POINTS))
+        slots += len(np.unique(np.floor(t * 1440 / BASE_BIN_MIN)))  # base-width slots with data
+    minutes = BASE_BIN_MIN * max(1, math.ceil(slots / MAX_POINTS))
     width = minutes / 1440
     ts, fs = [], []
     for s in np.unique(sector):
