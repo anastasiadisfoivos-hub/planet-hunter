@@ -12,14 +12,14 @@
 #   timer, the `planet-hunter` command, journald limits, the firewall (inbound SSH only) and key-only SSH.
 # It does not start the search: deploy.sh does, once the secrets are in place (or: sudo planet-hunter resume).
 #
-# Settings (env): PH_REPO_URL, PH_REPO_REF (main), PH_API_URL, PH_WORKERS (4), PH_DISK_CAP_GB (150),
+# Settings (env): PH_REPO_URL, PH_REPO_REF (main), PH_API_URL, PH_WORKERS (the core count: 4 on 4 OCPUs, 2 on 2), PH_DISK_CAP_GB (150),
 #   PH_SKIP_FIREWALL=1 / PH_SKIP_SSHD=1 (containers), PH_UV_VERSION.
 set -euo pipefail
 
 PH_REPO_URL="${PH_REPO_URL:-https://github.com/anastasiadisfoivos-hub/planet-hunter.git}"
 PH_REPO_REF="${PH_REPO_REF:-main}"
 PH_API_URL="${PH_API_URL:-https://planet-hunter-api.onrender.com}"
-PH_WORKERS="${PH_WORKERS:-4}"
+PH_WORKERS="${PH_WORKERS:-$(nproc)}"  # one star per core
 PH_DISK_CAP_GB="${PH_DISK_CAP_GB:-150}"
 PH_UV_VERSION="${PH_UV_VERSION:-0.12.19}"
 HOME_DIR=/opt/planet-hunter
@@ -75,7 +75,7 @@ conf=/etc/planet-hunter.conf
 touch "$conf"
 setconf() {  # key value: set once; a value the owner edited by hand is kept unless PH_FORCE_CONF=1
   if grep -q "^$1=" "$conf"; then
-    if [[ "${PH_FORCE_CONF:-0}" == 1 || "$1" == PH_REPO_REF || "$1" == PH_REPO_URL ]]; then
+    if [[ "${PH_FORCE_CONF:-0}" == 1 || "$1" == PH_REPO_REF || "$1" == PH_REPO_URL || "$1" == PH_API_URL ]]; then
       sed -i "s|^$1=.*|$1=$2|" "$conf"
     fi
   else

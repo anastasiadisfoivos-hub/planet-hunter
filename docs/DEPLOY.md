@@ -136,11 +136,13 @@ Never paste these into GitHub, an issue, a chat, or a file in the repository.
    - Networking: create a new VCN with a **public subnet**, **assign a public IPv4 address**.
    - SSH keys: **Generate a key pair for me** → **Save private key** (e.g. to
      `~/.ssh/oracle-planet-hunter.key`, then `chmod 600` it), or upload your own public key.
-   - Boot volume: **Specify a custom boot volume size** → **200 GB**. (Always Free includes 200 GB of
-     block storage in total, boot volumes included. Don't create other volumes.)
+   - Boot volume: **Specify a custom boot volume size** → **200 GB**. The runner needs **at least
+     200 GB** (it keeps its data under 150 GB, plus the system), and Always Free includes 200 GB of
+     block storage in total, boot volumes included, so 200 GB is also the most that stays free.
+     Don't create other volumes.
    - **Create**. Copy the **public IP address** when it is running.
 4. Firewall: **Networking → Virtual cloud networks → your VCN → Security Lists → Default** →
-   **Ingress rules**: keep only **TCP port 22** (SSH) from `0.0.0.0/0`. Delete any other ingress rule
+   **Ingress rules**: the security list must allow **only TCP port 22** (SSH) inbound, from `0.0.0.0/0`. Delete any other ingress rule
    (e.g. ICMP is harmless but not needed). The server listens on nothing else.
 5. Give SHIP: the public IP, the path of the private key on your Mac, and tell it the
    `PH_INGEST_TOKEN` is in your password manager (you type it yourself when `deploy.sh` asks).
@@ -225,7 +227,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST "$API/monitor/progress" \
   -H 'Authorization: Bearer wrong' -H 'Content-Type: application/json' -d '{}'
 # The site loads and is not in demo mode (no "stand-in" wording on the finder page)
 curl -fsS "$SITE" -o /dev/null -w '%{http_code}\n'
-curl -fsS "$SITE/finder" | grep -ci 'stand-in' || true    # expect 0
+curl -fsS "$SITE/candidates" | grep -ci 'stand-in' || true    # expect 0
 ```
 
 Then open `$SITE` in a browser, open the developer console, and check there are no CORS errors.
@@ -240,12 +242,14 @@ ssh -i ~/.ssh/oracle-planet-hunter.key ubuntu@<server-ip> planet-hunter status
 
 The server's settings are:
 - `/etc/planet-hunter.conf`: `PH_API_URL` (the API URL), `PH_REPO_REF` (`main`), and
-  `PH_WORKERS`. **Set `PH_WORKERS=2` if the instance has 2 OCPUs** (see A4).
-- `/etc/planet-hunter.env` (secrets): `PH_INGEST_TOKEN`, the same value as on Render.
-  (While `runner/` still ingests straight into the database, deploy.sh also asks for
-  `PH_DATABASE_URL`, the same Supabase URL; the token-protected HTTP ingest replaces that.)
+  `PH_WORKERS`, which defaults to the server's core count (2 on a 2-OCPU instance, see A4).
+- `/etc/planet-hunter.env` (secrets): only `PH_INGEST_TOKEN`, the same value as on Render. The server
+  has **no database URL**: it sends each night to the API over HTTPS (`POST /finder/ingest` with that
+  token), and runs the pixel checks itself. The database password never leaves Supabase and Render.
 
-After the first run has posted: `curl -fsS "$API/monitor/now"` shows `"mode":"live"` while it runs.
+After the first run has posted, `curl -fsS "$API/monitor/now"` shows `"mode":"live"` while it runs, and
+`"runner": {"state": "searching", ..., "responding": true}`. Between runs `runner.state` is `idle` with
+`next_run_at`; `responding: false` means the server stopped answering (see `planet-hunter status` on it).
 
 ---
 
