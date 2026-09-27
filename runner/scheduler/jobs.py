@@ -108,7 +108,7 @@ def _spawn(cmd: list[str], env: dict, log_path: Path, cwd: Path | None = None) -
 
 def start_star(cfg: Config, queue: str, row: dict, out: Path, catalogue: Path | None,
                pipeline: str | None) -> Job:
-    venv = "faint" if queue == "faint" else "hunt"
+    venv = "hunt"  # faint stars too: skyfaint is installed into hunt's venv (sync-venvs.sh)
     clean_row = {k: v for k, v in row.items() if k != "sectors_key" and isinstance(v, str | int | float | bool)}
     cmd = [str(cfg.venv_python(venv)), "-m", "scheduler.star_job", "--queue", queue, "--row",
            json.dumps(clean_row), "--out", str(out)]

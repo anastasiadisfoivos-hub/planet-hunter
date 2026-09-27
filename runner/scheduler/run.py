@@ -64,8 +64,11 @@ def capabilities(cfg: Config) -> dict[str, dict]:
     out["fast"] = {"enabled": has_hunt, "why": None if has_hunt else "hunt venv missing"}
     out["deep"] = {"enabled": deep_ok, "why": None if deep_ok else
                    "hunt on this ref has no deep search (DEEPHUNT not merged)" if has_hunt else "hunt venv missing"}
-    faint_ok = cfg.venv_python("faint").exists() and (cfg.repo / "faint").is_dir()
-    out["faint"] = {"enabled": faint_ok, "why": None if faint_ok else "faint/ not on this ref"}
+    faint_ok = has_hunt and (cfg.repo / "faint").is_dir() and subprocess.run(
+        [str(hunt_py), "-c", "import skyfaint.tglc"], capture_output=True, timeout=300,
+        env=jobs.child_env(cfg)).returncode == 0
+    out["faint"] = {"enabled": faint_ok, "why": None if faint_ok else
+                    "faint/ not on this ref" if not (cfg.repo / "faint").is_dir() else "skyfaint not in hunt's venv"}
     vet_ok = cfg.vet and cfg.venv_python("vet").exists()
     out["vet"] = {"enabled": vet_ok, "why": None if vet_ok else
                   "PH_VET=0" if not cfg.vet else "vet/ not on this ref"}

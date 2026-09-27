@@ -40,7 +40,7 @@ say "packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq --no-install-recommends \
-  ca-certificates curl git unzip xz-utils python3 python3-venv sqlite3 build-essential gfortran pkg-config \
+  ca-certificates curl git unzip xz-utils python3 python3-venv python3-dev sqlite3 build-essential gfortran pkg-config \
   libopenblas-dev libhdf5-dev ufw unattended-upgrades sudo cron >/dev/null
 systemctl enable --now unattended-upgrades >/dev/null 2>&1 || true
 

@@ -1,4 +1,4 @@
-"""Search one star. Runs inside hunt's venv (fast, deep) or faint's venv (faint; it has hunt too), as its own
+"""Search one star. Runs inside hunt's venv (every queue; skyfaint is installed there for faint stars), as its own
 process, so a stuck MAST read or a crash only ever costs that star (the scheduler kills it at its timeout).
 
     python -m scheduler.star_job --queue deep --row '{"tic": 123, ...}' --out RUN/deep --catalogue RUN/catalogue.json

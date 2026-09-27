@@ -19,6 +19,11 @@ export UV_CACHE_DIR="${UV_CACHE_DIR:-$PH_DATA/cache/uv}"
 export UV_PYTHON_INSTALL_DIR="${UV_PYTHON_INSTALL_DIR:-$PH_HOME/python}"
 export UV_LINK_MODE=copy
 force="${1:-}"
+# Locked packages with no Linux arm64 wheel and no sdist at the locked version: on arm64 they are left out of the
+# locked install and built from source at the newest version that has an sdist. (batman-package 2.5.3, pulled in by
+# transitleastsquares and triceratops, ships x86 / macOS wheels only; 2.5.2 has an sdist.) The lasting fix is in
+# hunt/ and vet/: `[tool.uv] required-environments` with linux aarch64 and a batman-package pin.
+ARM64_FROM_SOURCE="${ARM64_FROM_SOURCE:-batman-package==2.5.2}"
 mkdir -p "$VENVS"
 
 sync_one() {  # name, extra uv args...
@@ -36,14 +41,33 @@ sync_one() {  # name, extra uv args...
   fi
   echo "sync-venvs: syncing $name"
   if ! UV_PROJECT_ENVIRONMENT="$VENVS/$name" "$UV" sync --project "$dir" --frozen "$@"; then
-    echo "sync-venvs: $name: lock file out of date for this ref; resolving (uv sync without --frozen)"
-    UV_PROJECT_ENVIRONMENT="$VENVS/$name" "$UV" sync --project "$dir" "$@"
+    if [[ "$(uname -m)" == aarch64 ]] && grep -q 'name = "batman-package"' "$dir/uv.lock" 2>/dev/null; then
+      echo "sync-venvs: $name: arm64: installing the lock without packages that lack arm64 wheels, then building $ARM64_FROM_SOURCE"
+      local skip=() spec
+      for spec in $ARM64_FROM_SOURCE; do skip+=(--no-install-package "${spec%%[=<>]*}"); done
+      UV_PROJECT_ENVIRONMENT="$VENVS/$name" "$UV" sync --project "$dir" --frozen "${skip[@]}" "$@"
+      # build against the numpy the venv runs (uv's isolated build would otherwise pick an older numpy's headers)
+      "$VENVS/$name/bin/python" -c 'import numpy; print("numpy==" + numpy.__version__)' > "$VENVS/.$name.build-constraints"
+      # --no-cache: a wheel cached from another venv's build may carry other numpy headers
+      "$UV" pip install --python "$VENVS/$name/bin/python" --build-constraints "$VENVS/.$name.build-constraints" \
+        --reinstall --no-cache $ARM64_FROM_SOURCE
+    else
+      echo "sync-venvs: $name: lock file out of date for this ref; resolving (uv sync without --frozen)"
+      UV_PROJECT_ENVIRONMENT="$VENVS/$name" "$UV" sync --project "$dir" "$@"
+    fi
   fi
   echo "$want" > "$stamp"
 }
 
 sync_one hunt --no-dev
-sync_one faint            # its dev group is what brings in hunt
+sync_one faint            # skyfaint's own venv (its dev group brings in hunt): `skyfaint targets` runs here
+# Faint stars are searched with DEEPHUNT's deep search, which lives in hunt's venv (faint's lock pins an older hunt
+# without transitleastsquares), so skyfaint is added to hunt's venv too; installed packages are kept as locked.
+if [[ -f "$REPO/faint/pyproject.toml" && -x "$VENVS/hunt/bin/python" ]] \
+   && ! "$VENVS/hunt/bin/python" -c 'import skyfaint.tglc' 2>/dev/null; then
+  echo "sync-venvs: adding skyfaint to hunt's venv"
+  "$UV" pip install --python "$VENVS/hunt/bin/python" -e "$REPO/faint"
+fi
 sync_one vet --no-dev
 sync_one api --no-dev --extra finder
 echo "sync-venvs: done"
