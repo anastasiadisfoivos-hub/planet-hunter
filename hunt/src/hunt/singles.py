@@ -23,8 +23,9 @@ Every event is then vetted (each is a checks.Check):
                   the depth (a step)
   background      the background (SAP_BKG) during the dip is > 3 sigma and > 1 unit of its own scatter above
                   its surroundings (scattered light, a passing asteroid, a glint)
-  isolated        2+ other dips on the same star, at >= 80% of this one's SNR, are artefacts (failed shape,
-                  background or momentum_dump): a light curve that busy cannot vouch for any one dip
+  isolated        (per single / duo) 2+ other dips on the same star at >= 80% of its SNR, of any kind
+                  (artefacts, or an eclipsing binary's or variable star's clean dips): a light curve that busy
+                  cannot vouch for any one dip
   neighbour_dips  the same dip at the same time in 2+ nearby stars' light curves (run at merge, see sweep.py)
 
 Singles: one surviving dip with no partner. The period is estimated from its duration and the star's density
@@ -74,9 +75,9 @@ DUO_DEPTH_RATIO, DUO_DURATION_RATIO = 1.5, 1.6
 ALIAS_MIN_P = 1.0
 ALIAS_COVER = 0.5
 MC_SAMPLES = 200_000
-ISOLATED_FRACTION = 0.8  # other events at >= 80% of this dip's SNR ...
-ISOLATED_MAX_ARTEFACTS = 2  # ... that are artefacts (shape / background / dump); this many or more fails
-ARTEFACT_CHECKS = ("shape", "background", "momentum_dump")
+ISOLATED_FRACTION = 0.8  # other dips at >= 80% of this single's / duo's SNR ...
+ISOLATED_MAX_ARTEFACTS = 2  # ... this many or more fails `isolated`
+ARTEFACT_CHECKS = ("shape", "background", "momentum_dump")  # for the reason text
 SINGLE_MUST_RUN = ("snr", "size", "duration", "edge", "momentum_dump", "shape", "background", "isolated")
 DUO_MUST_RUN = SINGLE_MUST_RUN + ("depth_consistency", "aliases")
 COULD_NOT_RUN = {
@@ -183,10 +184,12 @@ class FlatTier:
     window: float
 
 
-def _tier(t, f, g, mask, window) -> FlatTier:
+def _tier(t, f, g, mask, window) -> FlatTier | None:
     flat, keep = detrend.flatten(t, f, window, mask)
     use = keep & ~mask
     tt, ff, gg = t[use], flat[use], g[use]
+    if len(tt) < 20:  # e.g. everything masked by known planets
+        return None
     cad = cadence_of(tt, gg)
     return FlatTier(tt, ff, gg, _local_sigma(tt, ff), cad, np.concatenate([[0.0], np.cumsum(ff)]), {}, window)
 
@@ -269,6 +272,8 @@ def find_events(t: np.ndarray, f: np.ndarray, g: np.ndarray, mask: np.ndarray,
     events: list[Event] = []
     for lo, hi in TIERS:
         tier = _tier(t, f, g, mask, 3 * hi / 24)
+        if tier is None:
+            return [], {}
         tiers[hi] = tier
         durs = DURATIONS_H[(DURATIONS_H >= lo) & (DURATIONS_H <= hi)]
         events += _peaks(tier, durs, min_ses)
@@ -455,18 +460,22 @@ def check_background(e: Event, t: np.ndarray, bkg: np.ndarray | None) -> Check:
                  float(min(1.0, max(0.0, 1 - z / BKG_SIGMA))))
 
 
-def check_isolated(e: Event, events: list[Event]) -> Check:
-    peers = [o for o in events if o is not e and o.ses >= ISOLATED_FRACTION * e.ses
-             and any(c.name in ARTEFACT_CHECKS and c.passed is False for c in o.checks)]
+def check_isolated(own: list[Event], events: list[Event]) -> Check:
+    """Fails when 2+ OTHER dips on the star (any kind: artefacts, or clean dips of an eclipsing binary or a
+    variable star) are at >= 80% of this single's / duo's weakest dip's SNR. A lone real transit rarely has
+    company that strong; on the calibration stars one variable star alone produced 7 duos and 2 singles of
+    clean ~1.5% dips when only artefacts counted."""
+    floor = ISOLATED_FRACTION * min(e.ses for e in own)
+    peers = sorted((o for o in events if all(o is not e for e in own) and o.ses >= floor), key=lambda o: -o.ses)
     n = len(peers)
     if n >= ISOLATED_MAX_ARTEFACTS:
+        kinds = sum(1 for o in peers if any(c.name in ARTEFACT_CHECKS and c.passed is False for c in o.checks))
         return Check("isolated", False, float(n),
                      f"{n} other dips in this star's light curve are as strong (e.g. BTJD {peers[0].tc:.2f}, SNR "
-                     f"{peers[0].ses:.0f}) and are artefacts (shape, background or momentum dump): a light curve "
-                     f"this busy cannot vouch for any one dip.", 0.0)
-    return Check("isolated", True, float(n), "No other dip this strong in the light curve is an artefact."
-                 if n == 0 else "One other dip this strong in the light curve is an artefact.",
-                 1.0 if n == 0 else 0.5)
+                     f"{peers[0].ses:.0f}; {kinds} of them artefacts): a light curve this busy (systematics, an "
+                     f"eclipsing binary or a variable star) cannot vouch for any one dip.", 0.0)
+    return Check("isolated", True, float(n), "No other dip in the light curve is this strong."
+                 if n == 0 else "One other dip in the light curve is this strong.", 1.0 if n == 0 else 0.5)
 
 
 def vet_event(e: Event, tiers: dict[float, FlatTier], edges: np.ndarray, lc, t_raw: np.ndarray,
@@ -702,7 +711,7 @@ def _merge_event_checks(events: list[Event]) -> list[Check]:
     """One check per name over all dips: fails if any dip fails, could-not-run if any could not, else passes
     with the smallest margin."""
     out = []
-    for name in ("edge", "momentum_dump", "shape", "background", "isolated"):
+    for name in ("edge", "momentum_dump", "shape", "background"):
         cs = [c for e in events for c in e.checks if c.name == name]
         label = [f"dip {i + 1}: " if len(events) > 1 else "" for i in range(len(cs))]
         reason = " ".join(lb + c.reason for lb, c in zip(label, cs))
@@ -824,14 +833,14 @@ def search(star: Star, lc, mask: np.ndarray) -> tuple[list[Event], list[DipResul
     t, f, g = lc.time, lc.flux, lc.sector
     events, tiers = find_events(t, f, g, mask)
     t_search = _t.perf_counter() - t0
+    if not tiers:
+        return [], [], {"events": 0, "clean_events": 0, "search_s": round(t_search, 2), "total_s": round(t_search, 2),
+                        "why": "too few unmasked points"}
     edges = segment_edges(t, g)
     native = {int(p["sector"]): float(p["exptime"]) / 86400 for p in lc.products}
     for e in events:
         fit_trapezoid(e, t[~mask], f[~mask], g[~mask], tier_for(tiers, e.box_duration or e.duration).window)
         vet_event(e, tiers, edges, lc, t, f, lc.bkg, native)
-    iso = [check_isolated(e, events) for e in events]  # needs every event's own checks first
-    for e, c in zip(events, iso):
-        e.checks.append(c)
     base = tiers[min(tiers)]
     covered = Coverage(base.t, base.cad)
     span = (float(t.min()), float(t.max())) if len(t) else (0.0, 0.0)
@@ -860,6 +869,8 @@ def search(star: Star, lc, mask: np.ndarray) -> tuple[list[Event], list[DipResul
         if e.failed() and e.ses >= SINGLE_MIN_SNR:
             r = _single(e, star, covered, span)
             results.append(r)
+    for r in results:
+        r.checks.append(check_isolated(r.events, events))
     info = {"events": len(events), "clean_events": len(clean), "search_s": round(t_search, 2),
             "total_s": round(_t.perf_counter() - t0, 2),
             "windows_d": {f"{lo:g}-{hi:g} h": round(3 * hi / 24, 3) for lo, hi in TIERS}}
