@@ -10,6 +10,7 @@ import { StarGlyph, TransitGlyph } from "@/components/monitor/Glyphs";
 import { InkPlot, type Series } from "./InkPlot";
 import { PixelCheck } from "./PixelCheck";
 import { VoteBox } from "./VoteBox";
+import { gaiaVariable, mimics, notRun, ran } from "./vetting";
 import s from "./finder.module.css";
 
 const r = (x: number, n = 2) => Number(x.toFixed(n));
@@ -122,31 +123,40 @@ function Checks({ c }: { c: Candidate }) {
 }
 
 function VettingBlock({ v }: { v: Vetting }) {
-  const mimic = v.gaia.neighbours.filter((n) => n.can_mimic);
+  const mimic = mimics(v.gaia);
+  const near = `within ${Math.round(mimic.radius)}″`;
   const rows: { name: string; what: string; result: string; ran: boolean }[] = [
     {
       name: "LEO",
       what: "Automated vetting of the light curve's shape",
       ran: v.leo.ran,
-      result: v.leo.ran ? (v.leo.passed ? "passed" : `flagged: ${v.leo.flags.join(", ") || "see flags"}`) : "not run yet",
+      result: v.leo.ran ? (v.leo.passed ? "passed" : `flagged: ${v.leo.flags.join(", ") || "see flags"}`) : notRun(v.leo),
     },
     {
       name: "TRICERATOPS",
       what: "Chance the dip comes from something other than a planet on this star",
       ran: v.triceratops.ran,
-      result: v.triceratops.ran && v.triceratops.fpp != null ? `false-positive chance ${Math.round(v.triceratops.fpp * 100)}%${v.triceratops.nfpp != null ? `, from a nearby star ${Math.round(v.triceratops.nfpp * 100)}%` : ""}` : "not run yet",
+      result: v.triceratops.ran && v.triceratops.fpp != null ? `false-positive chance ${Math.round(v.triceratops.fpp * 100)}%${v.triceratops.nfpp != null ? `, from a nearby star ${Math.round(v.triceratops.nfpp * 100)}%` : ""}` : notRun(v.triceratops),
     },
     {
       name: "Gaia DR3",
       what: "Is the star single, and could a neighbour fake the dip?",
-      ran: true,
-      result: `${v.gaia.ruwe != null ? `RUWE ${v.gaia.ruwe.toFixed(2)}${v.gaia.binary_hint ? ", hints at a binary" : ", a single star"}` : "no RUWE"}; ${mimic.length === 0 ? "no neighbour within 42″ is bright enough to fake it" : `${mimic.length} neighbour${mimic.length > 1 ? "s" : ""} within 42″ could be`}`,
+      ran: ran(v.gaia),
+      result: !ran(v.gaia)
+        ? notRun(v.gaia)
+        : `${v.gaia.ruwe != null ? `RUWE ${v.gaia.ruwe.toFixed(2)}${v.gaia.binary_hint ? ", hints at a binary" : ", a single star"}` : "no RUWE"}; ${mimic.count === 0 ? `no neighbour ${near} is bright enough to fake it` : `${mimic.count} neighbour${mimic.count > 1 ? "s" : ""} ${near} could be`}`,
     },
     {
       name: "Variability",
       what: "Is the star a known variable?",
-      ran: true,
-      result: v.variability.vsx_match ? `in VSX as ${v.variability.vsx_match.name} (${v.variability.vsx_match.type})` : v.variability.gaia_variable ? "Gaia flags it as variable" : "not in VSX, not flagged by Gaia",
+      ran: ran(v.variability),
+      result: !ran(v.variability)
+        ? notRun(v.variability)
+        : v.variability.vsx_match
+          ? `in VSX as ${v.variability.vsx_match.name} (${v.variability.vsx_match.type})`
+          : gaiaVariable(v.variability.gaia_variable)
+            ? "Gaia flags it as variable"
+            : "not in VSX, not flagged by Gaia",
     },
   ];
   return (

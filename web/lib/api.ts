@@ -228,16 +228,40 @@ export type Candidate = {
 
 export type StandIn = { name: string; disposition: string | null; note: string };
 
+/**
+ * VET's block (vet/README.md). The mock writes an older shape (gaia_id, can_mimic, needed_depth, a yes/no
+ * gaia_variable, no `ran` on gaia and variability); skyvet writes source_id, could_mimic, required_depth, an object
+ * for gaia_variable, and `ran` everywhere. Both are accepted; components/finder/vetting.ts reads them.
+ */
 export type Vetting = {
-  leo: { ran: boolean; passed: boolean | null; flags: string[] };
-  triceratops: { ran: boolean; fpp: number | null; nfpp: number | null };
+  leo: { ran: boolean; passed: boolean | null; flags: string[]; reason?: string };
+  triceratops: { ran: boolean; fpp: number | null; nfpp: number | null; reason?: string };
   gaia: {
+    ran?: boolean;
+    reason?: string;
     ruwe: number | null;
-    neighbours: { gaia_id: string; sep_arcsec: number; gmag: number; can_mimic?: boolean; needed_depth?: number }[];
-    binary_hint: boolean;
+    neighbours: {
+      gaia_id?: string;
+      source_id?: string;
+      sep_arcsec: number;
+      gmag: number;
+      can_mimic?: boolean | null;
+      could_mimic?: boolean | null;
+      needed_depth?: number | null;
+      required_depth?: number | null;
+    }[];
+    binary_hint: boolean | null;
     gaia_id?: string | null;
+    source_id?: string | null;
+    radius_arcsec?: number;
+    n_could_mimic?: number;
   };
-  variability: { vsx_match: { name: string; type: string; sep_arcsec: number; period_d: number | null } | null; gaia_variable: boolean };
+  variability: {
+    ran?: boolean;
+    reason?: string;
+    vsx_match: { name: string; type: string; sep_arcsec: number; period_d: number | null } | null;
+    gaia_variable: boolean | { phot_variable_flag?: string | null; class?: string | null } | null;
+  };
   summary: { verdict: string; reasons: string[] };
 };
 
