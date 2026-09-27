@@ -2,7 +2,7 @@
 
 How planet-hunter is put together, from the TESS archive to the public site. Every diagram follows the code on
 `origin/v2` and on the feature branches named below. Anything not built yet is marked **planned** and drawn with a
-dashed border.
+dashed border; built code whose hosting is not set up yet is drawn dotted.
 
 Status words used throughout:
 
@@ -10,7 +10,9 @@ Status words used throughout:
 |---|---|
 | **built** | on `v2`, with tests |
 | **branch** | built and tested on a feature branch (`deephunt`, `vet`, `faint`, `monitorui`), not merged into `v2` yet |
-| **written** | the file exists but is not installed or running (the nightly workflows) |
+| **dry-run tested** | built on branch `runner` and proven end to end: `runner/deploy.sh` installed it on a fresh Ubuntu 24.04 arm64 container, which searched 20 real TESS stars and ingested into Postgres (27 Sep 2026). **Not deployed** to the real server yet |
+| **written** | the file exists but is not installed or running (the GitHub Actions workflows) |
+| **not deployed** | the code is built, but the hosting it targets (Oracle server, Render, Supabase, Vercel) is not set up yet; drawn dotted |
 | **planned** | a decision in `docs/plan/ROADMAP.md` (branch `finder-plan`) or `docs/plan/PRODUCT.md`, with no code yet |
 
 Contents:
@@ -40,6 +42,8 @@ flowchart TB
         FAINT["faint/ · skyfaint<br/>faint M-dwarf targets, TGLC curves<br/><b>branch</b> faint"]
     end
 
+    RUN["runner/ · scheduler<br/>daily run on one server: ledger, queues,<br/>monitor posts, vetting, merge, ingest<br/><b>branch</b> runner · <b>dry-run tested</b>"]
+
     subgraph svc["Service"]
         API["api/ · FastAPI<br/>finder, monitor, admin export<br/><b>built</b>"]
         DB[("Postgres in production<br/>SQLite in dev and tests")]
@@ -57,9 +61,10 @@ flowchart TB
     GAIA --> PIX
     GAIA --> VET
     PIPE -->|path dependency| HUNT
-    FAINT -. "light curves in hunt's shape (planned)" .-> HUNT
-    HUNT -->|"candidates/*.json, summary.json,<br/>sensitivity.json"| API
-    VET -. "vetting block in the candidate JSON (planned in the nightly flow)" .-> API
+    RUN -->|"runs fast, deep and faint queues"| HUNT
+    RUN -->|"TGLC curves for the faint queue"| FAINT
+    RUN -->|"vets each candidate"| VET
+    RUN -->|"POST /monitor/progress with each star's record;<br/>then merge + finder_ingest"| API
     PIX -->|"called by finder_ingest"| API
     API <--> DB
     WEB -->|"HTTPS, lib/api.ts"| API
@@ -71,10 +76,12 @@ flowchart TB
 
 **In plain English.** Everything starts from public archives. `pipeline/` knows how to search one star. `hunt/` uses
 it to work through hundreds of thousands of stars, adds the extra checks and the known-object filtering, and writes
-one JSON file per candidate. The API loads those files into a database, runs the pixel check (`pixels/`) on new
-candidates, and serves them to the website. `vet/` and `faint/` are finished packages on their own branches: `vet/`
-adds a vetting block from published tools to a candidate (the API already has a column for it), and `faint/` finds
-faint M dwarfs and loads their TGLC light curves. Neither is part of the nightly flow yet. Nothing goes to ExoFOP
+one JSON file per candidate. `vet/` adds a vetting block from published tools to a candidate, and `faint/` finds
+faint M dwarfs and loads their TGLC light curves. `runner/` ties them together on one server: every day it works
+through three queues of stars, posts each finished star to the API's live monitor, vets each candidate, then merges
+the day's output and runs the ingest. The API loads the candidates into a database, runs the pixel check (`pixels/`)
+on them, and serves them to the website. `deephunt`, `vet`, `faint`, `monitorui` and `runner` are still separate
+branches; the runner's dry run used a local merge of `v2 + deephunt + vet + faint + runner`. Nothing goes to ExoFOP
 automatically: the API can produce the upload file, but the owner uploads it by hand, and only after a refereed
 paper.
 
@@ -86,53 +93,91 @@ only by the ingest command, so the web API's deploy stays small.
 
 ## 2. Nightly data flow on the Oracle server
 
-> **Mostly planned.** On 26 Sep 2026 the owner decided that the bulk search will run on an **Oracle Cloud Always
-> Free server (4 cores, 24 GB)** on its own timer, with GitHub's hosted runners used for CI only (ROADMAP,
-> "Decisions (26 Sep)"). No server code exists yet. The steps below reuse commands that **are** built (`hunt
-> targets`, `hunt run`, `hunt merge`, `skyvet`, `python -m api.finder_ingest`). The dashed parts are new.
+> **Built and dry-run tested, not deployed.** `runner/` (branch `runner`) runs the daily search on an **Oracle Cloud
+> Always Free server** (Ampere A1, 4 cores, 24 GB, Ubuntu 24.04 arm64) on its own systemd timer. It is not a GitHub
+> runner: the server pulls the public repository read-only over HTTPS, and only SSH is open. On 27 Sep 2026 the whole
+> install and a real run were proven in an Ubuntu 24.04 arm64 container (below). The real server is not provisioned
+> yet, and the API, database and website are not hosted yet (dotted boxes).
 
 ```mermaid
 flowchart TB
-    T["Server timer<br/><b>planned</b>"] --> TG["hunt targets<br/>ranked lists + known-list snapshot<br/><b>built</b>"]
-    TG --> L{"Search ledger:<br/>which stars are still to do,<br/>or have a new sector?<br/><b>planned</b>"}
-    L --> F["Fast pass<br/>hunt run (newest ≤ 3 sectors)<br/><b>built</b>"]
-    L --> D["Deep pass<br/>hunt run, deephunt version<br/>(every sector)<br/><b>branch</b>"]
-    F -->|"promising or many-sector stars"| D
-    F --> R["results/&lt;tic&gt;.json<br/>candidates/&lt;tic&gt;_&lt;n&gt;.json"]
+    T["systemd timer<br/>00:15 UTC, and 3 min after every boot"] --> U["scheduler update<br/>git fetch + reset to PH_REPO_REF,<br/>refresh venvs whose lock changed"]
+    U --> P["Prepare<br/>hunt targets if the list is &gt; 7 days old;<br/>one known-list snapshot for the run"]
+    P --> L{"Ledger (SQLite)<br/>claim the next star not done on these sectors;<br/>split: fast 45 % · deep 40 % · faint 15 %"}
+    L --> F["fast queue<br/>hunt's ranked list<br/>newest 3 sectors, BLS"]
+    L --> D["deep queue<br/>promoted stars, then ≥ 5-sector groups<br/>every sector: BLS + TLS + dips"]
+    L --> FA["faint queue<br/>tier-1 faint M dwarfs<br/>TGLC curves, deep search"]
+    F -->|"promising → deep"| D
+    F --> R["Per star: ledger row +<br/>monitor record (monitor_record.py)"]
     D --> R
-    F -. "POST /monitor/progress<br/>(emitter planned; endpoint built)" .-> API
-    D -. "POST /monitor/progress" .-> API
-    R --> LU["Ledger update<br/><b>planned</b>"]
-    R --> M["hunt merge<br/>ranked index, funnel, summary<br/><b>built</b>"]
-    M --> V["skyvet on each candidate<br/>adds the vetting block<br/><b>branch</b>; step <b>planned</b>"]
-    V --> I["python -m api.finder_ingest<br/>upsert, re-check lists, pixel check,<br/>load monitor stars<br/><b>built</b>"]
-    I --> DB[("Postgres<br/>Supabase free tier <b>planned</b>")]
-    API["API<br/>Render free tier <b>planned</b>"] <--> DB
-    WEB["Website<br/>Vercel Hobby <b>planned</b>"] --> API
+    FA --> R
+    R -->|"POST /monitor/progress (shard per queue),<br/>heartbeat every 2 min"| API
+    R -->|"each new candidate"| V["skyvet<br/>1 worker, as candidates appear"]
+    L -->|"21:45 UTC: stop starting stars"| W["Wrap-up<br/>hunt merge over the three queues;<br/>attach vetting blocks; collect monitor records"]
+    V --> W
+    W --> I["python -m api.finder_ingest<br/>store candidates, re-check lists,<br/>pixel check, load monitor stars, run done"]
+    I --> DB[("Postgres<br/>Supabase free tier")]
+    API["API<br/>Render free tier"] <--> DB
+    WEB["Website<br/>Vercel Hobby"] --> API
+    J["Janitor, every 10 min<br/>disk cap 150 GB: prune old runs,<br/>then least-used downloads"] -.- L
 
-    classDef planned stroke-dasharray: 5 5
-    class T,L,LU,V planned
+    classDef notlive stroke-dasharray: 2 4
+    class API,DB,WEB notlive
 ```
 
-**In plain English.** Each night the server refreshes the ranked target list and snapshots the known-object lists,
-so every star that night is checked against the same lists. A **search ledger** (planned) records which stars are
-done with which sectors, so the server moves down the list instead of searching the top again. Today's code does not
-do this yet: `hunt run` skips stars whose `results/` file exists, but nothing carries that folder from night to
-night. The fast pass covers the list; the deep pass takes the promising and many-sector stars. `hunt merge` collects
-the night's output. The planned vetting step adds `skyvet`'s block. `finder_ingest` then writes everything to the
-database, pixel-checks up to 20 new candidates (within a 90-minute budget in the CI version), dismisses any candidate
-that has since appeared on a known list, and loads the night's per-star records for the monitor's replay.
+**In plain English.** Once a day the timer starts a run, named `oracle-YYYYMMDD`. The server first updates itself
+to the tip of its branch, refreshes the ranked star list when it is a week old, and snapshots the known-object lists
+so every star that day is checked against the same lists. Four worker processes then search until 21:45 UTC, one
+star each. A SQLite **ledger** records every star per queue with the sectors it was searched on, so the server moves
+down the list day after day, retries a failed star up to three times, and searches a star again only when a new
+sector of it becomes public. Claiming a star is a single SQL statement, and after a crash or reboot the run resumes
+without repeating a finished star.
 
-**What else is missing for the monitor.** The API side is built: `POST /monitor/progress` for live progress and
-`finder_ingest --monitor-dir` for per-star records (`monitor/<tic>.json`: light curve, detections, outcome). Neither
-version of `hunt run` writes those files or posts progress yet. The `monitorui` site runs today on a real replay of
-the 26 Sep 2026 sweep, built by a one-off script.
+Three queues share the four workers by a target share of the day's worker time:
+- **fast** (45 %) goes down hunt's ranked list with the cheap 3-sector search;
+- **deep** (40 %) takes first the stars the fast pass flagged as **promising** (a candidate, or a periodic signal at
+  SNR ≥ 7 that failed only on SDE, the transit count or one check), then the bright quiet stars with ≥ 5 sectors,
+  then all other ≥ 5-sector stars;
+- **faint** (15 %) searches faint M dwarfs on TGLC light curves, for public candidates only (roadmap decision 4).
 
-**What exists as files today.** Before the Oracle decision, the nightly flow was written for GitHub Actions:
+Each finished star is posted to `POST /monitor/progress` with its **monitor record**: star parameters, sectors,
+observation dates, the searched light curve normalised per sector and binned (10 min, wider on long baselines so it
+stays under 4,000 points), every detection with its outcome (`candidate`, `known` or `rejected`) and reason, and the
+star's outcome. hunt does not write these records; the runner builds them from hunt's per-star result. A heartbeat
+every 2 minutes keeps the site's monitor **Live** while long stars run. Posting never blocks the search: if the API
+is down, the search carries on. Each candidate is vetted by `skyvet` on one worker as soon as it appears.
+
+At wrap-up, `hunt merge` combines the three queues (ranking, the funnel, and the nearby-stars artefact test for
+single and double dips), the vetting blocks are attached, and `finder_ingest` writes everything to Postgres: it
+stores the candidates, pixel-checks them, dismisses any that are now on a known list, loads every star's monitor
+record for the replay, and marks the run done. A janitor keeps the data under 150 GB.
+
+**Dry run, 27 Sep 2026** (`runner/dryrun/results_2026-09-27.json`): `deploy.sh` → `bootstrap.sh` on a fresh Ubuntu
+24.04.5 arm64 container with systemd, SSH and 4 CPUs, posting to a local copy of the API on Postgres 16.
+
+| Queue | Stars searched | Mean s per star per worker | Stars per hour on 4 workers |
+|---|---|---|---|
+| fast | 14 | 36.2 | 398 |
+| deep | 11 (6 group-0, 5 promoted by the fast pass) | 270.1 | 53 |
+| faint | 6 | 218.1 | 66 |
+
+The monitor was live for the whole search (44 of 44 polls), with 103 posts and none failed. The run found 55
+signals and 1 candidate, a single dip on TIC 389051009 (SNR 28.8). It has no period, so skyvet and the pixel check do
+not apply. The ingest stored it and marked the run done, and after a reboot the timer's start exited at once because
+the day's run was done. The caches were cold, the samples small, and the host a shared laptop; Ampere cores are
+slower per core.
+
+**Not built or not done yet:**
+- the real Oracle server (the runner is installed with `runner/deploy.sh <ip> <key>` once it exists);
+- hosting for the API (Render), database (Supabase) and website (Vercel);
+- one branch holding everything the server runs: the default `PH_REPO_REF` is `v2`, which does not yet contain
+  `runner/`, deephunt's `hunt/`, `vet/` or `faint/`.
+
+**The GitHub Actions version.** Before the Oracle decision, the nightly flow was written for GitHub Actions:
 `hunt/ci/sweep.yml` (targets → 20 shards × 350 min → merge → `candidates` artifact) and `api/ci/finder.yml` (runs
-`finder_ingest` when a sweep succeeds). Neither is installed in `.github/workflows/`. GitHub's terms for hosted runners
-exclude "activity unrelated to the production, testing, deployment, or publication of the software project", and
-that is why the bulk search moved off them (SCIENCE.md §9 on branch `finder-plan`).
+`finder_ingest` when a sweep succeeds). Neither is installed, and the runner replaces them for the search. GitHub's
+terms for hosted runners exclude "activity unrelated to the production, testing, deployment, or publication of the
+software project", which is why the bulk search moved off them (SCIENCE.md §9 on branch `finder-plan`).
 
 ---
 
@@ -269,9 +314,10 @@ labelled as one.
 
 ## 4. The two-speed search
 
-Two versions of the same `hunt/` package. The **fast pass** is `hunt/` on `v2`. The **deep pass** is `hunt/` on
-branch `deephunt`, which rewrites the search to use every sector. Running both, with the deep pass taking the best
-stars from the fast pass and a ledger in between, is the **planned** design (ROADMAP decision 2).
+Two modes of the same `hunt/` package. The **fast pass** is the search on `v2`; the **deep pass** is branch
+`deephunt`'s rewrite, which uses every sector (with deephunt's hunt, the fast pass is the same code with the deep and
+dip searches switched off). `runner/` runs both as queues, promotes promising stars from the fast pass to the deep
+pass, and keeps the ledger in between (branch `runner`, **dry-run tested**).
 
 ```mermaid
 flowchart TB
@@ -294,22 +340,22 @@ flowchart TB
         D1 --> D2 --> D3 --> D4 --> D5
     end
 
-    LEDGER{"Search ledger<br/><b>planned</b>"}
+    LEDGER{"Ledger · runner/<br/>one row per star per queue,<br/>with the sectors searched"}
 
     LIST --> fast
-    LIST --> deep
-    fast -. "promising or many-sector stars (planned)" .-> deep
+    LIST -->|"≥ 5 sectors: group 0, then group 1"| deep
+    fast -->|"promising: a candidate, or SNR ≥ 7 failing<br/>only on SDE, transit count or one check"| deep
     fast --> LEDGER
     deep --> LEDGER
-
-    classDef planned stroke-dasharray: 5 5
-    class LEDGER planned
+    LEDGER -->|"skip done stars; re-queue on a new sector"| LIST
 ```
 
 **In plain English.** The fast pass looks at the newest three sectors of a star for orbits up to 15 days. It is
 cheap and can cover the whole list within a few nights. Many TESS stars have been observed in five or more sectors
 across several years. Joining all of them makes long orbits and small planets visible, but it costs about ten times
-more per star. So the deep pass is kept for the stars where it adds most. It also finds planets that show only one
+more per star. So the deep pass is kept for the stars where it adds most: the ones the fast pass found promising,
+and the stars with five or more sectors, brightest and quietest first. The fast pass skips a star the deep pass
+already searched on the same sectors. It also finds planets that show only one
 or two dips. For those it estimates a period range from the dip's length and the star's density, and it scores them
 lower than repeating signals.
 
@@ -318,7 +364,8 @@ lower than repeating signals.
 | Data | newest ≤ 3 sectors | every sector, stitched (median 6 in calibration, up to 42 in tests) |
 | Periods | 0.5–15 d | 0.5 d to half the baseline, plus single and double dips |
 | Methods | BLS | BLS (short and long grids), TLS, box matched filter for single dips |
-| Time per star (measured) | median 26 s with download, 18 s of search (20-star benchmark; deephunt README) | median 216 s, mean 237 s (360-star calibration) |
+| Time per star (measured) | median 26 s with download, 18 s of search (20-star benchmark); mean 36 s in the runner dry run | median 216 s, mean 237 s (360-star calibration); mean 270 s in the runner dry run |
+| Share of the day (runner) | 45 % | 40 % (faint queue: 15 %) |
 | Star timeout | 5 min | 15 min |
 | Sensitivity | measured: 61% of 2,000 injections recovered | not measured yet (ROADMAP Phase 1b) |
 
@@ -342,7 +389,7 @@ flowchart TB
     C3["3 · Known lists · hunt<br/>confirmed, TOI, CTOI, TESS EB on the star<br/>or any listed star within 2.5′; period ±1% or ×2 ×3 ½ ⅓"] --> C4
     C4["4 · Candidate JSON + score"] --> C5
     C5["5 · Pixel check · pixels via finder_ingest<br/>on target / possible neighbour / off target / inconclusive"] --> C6
-    C6["6 · Published tools · skyvet (branch vet)<br/>LEO-vetter, TRICERATOPS FPP/NFPP, Gaia DR3, VSX<br/>pass / flag / fail"] --> C7
+    C6["6 · Published tools · skyvet (branch vet, run by runner)<br/>LEO-vetter, TRICERATOPS FPP/NFPP, Gaia DR3, VSX<br/>pass / flag / fail"] --> C7
     C7["7 · Re-check at every ingest<br/>now on a list → dismissed"] --> C8
     C8["8 · Public review<br/>votes with reason chips (built)<br/>structured flags with replies (planned)"] --> C9
     C9["9 · Two-person review, refereed paper,<br/>then ExoFOP CTOI upload<br/><b>planned</b>"]
@@ -396,4 +443,5 @@ up as a failing test.
 | Monitor site, replay data | `web/docs/monitorui/README.md`, `web/public/data/monitor/README.md` (monitorui) |
 | Decisions, roadmap, science plan, site plan | `docs/plan/ROADMAP.md`, `SCIENCE.md`, `PRODUCT.md` (finder-plan) |
 | ExoFOP rules, throughput, data, methods text | `docs/plan/EXOFOP.md`, `THROUGHPUT.md`, `DATA.md`, `METHODS.md` (plan) |
-| Nightly workflows as written | `hunt/ci/sweep.yml`, `api/ci/finder.yml` (v2) |
+| Daily run on the server: ledger, queues, monitor records, dry run | `runner/README.md`, `runner/scheduler/`, `runner/systemd/`, `runner/dryrun/` (runner) |
+| GitHub Actions workflows as written | `hunt/ci/sweep.yml`, `api/ci/finder.yml` (v2) |

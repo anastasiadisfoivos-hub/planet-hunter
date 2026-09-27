@@ -47,12 +47,15 @@ Diagrams of every part, with what is built and what is planned, are in [docs/arc
 
 ## Honest results so far
 
-**0 new candidates so far.** Everything below was run locally. `main` has no deploy and no nightly run yet.
+**No candidate has reached a public site yet: nothing is deployed.** Everything below was run locally or in the
+server dry run.
 
 - **Stars searched.**
   - The fast search ran on the top 200 stars of the 26 Sep 2026 target list. It found 297 signals. 23 passed the signal-to-noise, periodogram and three-dip cuts, and all 23 failed at least one check (duration 22, sector depth 16, secondary eclipse 10, period alias 7, odd/even 5; a signal can fail several).
   - The deep search had a calibration run on 360 stars, run twice. It produced no periodic or double-dip candidates, one single-dip candidate in the first run and none in the second.
   - The two samples come from lists ranked in different ways, so they may overlap.
+  - The server dry run (27 Sep 2026) searched 20 real stars through all three queues. It found 55 signals and 1
+    candidate: a single dip on TIC 389051009 (SNR 28.8). It has no period and has not been reviewed.
   - The target lists hold 730,692 stars at Tmag ≤ 13, and 2,993,304 faint M dwarfs at Tmag 13–16 for TGLC.
 - **What it recovers.**
   - **Injection-recovery** (fast search, 200 quiet stars, 2,000 fake planets): 61% recovered overall. By size: 28% at 1–2 R⊕, 55% at 2–3 R⊕, 66–72% above 3 R⊕. By period: 82–84% under 2 d, 45% at 7–10 d, 7% at 10–15 d.
@@ -82,14 +85,16 @@ Diagrams of every part, with what is built and what is planned, are in [docs/arc
 | Fast search: newest ≤ 3 sectors, BLS 0.5–15 d | `hunt/` | Built (v2) |
 | Deep search: all sectors, long-period BLS, TLS, single and double dips | `hunt/` on branch `deephunt` | Built, not merged |
 | Pixel check (`skypixels`) | `pixels/` | Built (v2) |
-| Vetting with published tools (`skyvet`) | `vet/` on branch `vet` | Built, not merged, not yet in the nightly flow |
-| Faint M dwarfs with TGLC (`skyfaint`) | `faint/` on branch `faint` | Targets and light curves built, not merged. Search not wired in |
+| Vetting with published tools (`skyvet`) | `vet/` on branch `vet` | Built, not merged. Run on every candidate by the runner (dry-run tested) |
+| Faint M dwarfs with TGLC (`skyfaint`) | `faint/` on branch `faint` | Built, not merged. Searched by the runner's faint queue (dry-run tested) |
 | API: candidates, votes, pixel checks, monitor, ExoFOP export | `api/` | Built (v2) |
 | Website: finder pages | `web/` | Built (v2) |
 | Website: the chart-recorder monitor, dossiers, log, methods | `web/` on branch `monitorui` | Built on replayed real data, not merged |
-| Nightly workflows (`sweep.yml`, `finder.yml`) | `hunt/ci/`, `api/ci/` | Written, not installed |
-| Bulk search on an Oracle Cloud Always Free server, search ledger, search → monitor feed | | Planned |
-| Hosting: Render (API), Supabase (Postgres), Vercel (web) | | Planned |
+| Daily search on one Oracle Cloud Always Free server: systemd timer, ledger, fast / deep / faint queues, live monitor posts with each star's record, vetting, merge, ingest | `runner/` on branch `runner` | Built and dry-run tested (Ubuntu 24.04 arm64 container, 20 real stars, 27 Sep 2026). Not deployed |
+| GitHub Actions workflows (`sweep.yml`, `finder.yml`) | `hunt/ci/`, `api/ci/` | Written, not installed; the runner replaces them for the search |
+| The Oracle server itself; hosting on Render (API), Supabase (Postgres), Vercel (web) | | Not set up yet |
+| One branch with everything the server runs (`v2` + deephunt + vet + faint + runner) | | Not merged yet (the dry run used a local merge) |
+| Structured public flags, two-person review, refereed paper, ExoFOP upload | | Planned |
 
 ## Tech stack
 
@@ -99,7 +104,7 @@ Diagrams of every part, with what is built and what is planned, are in [docs/arc
   - LEO-vetter, TRICERATOPS and transit-diffImage for vetting.
 - **API:** FastAPI, Pydantic, psycopg 3. Postgres in production, SQLite for development and tests, and every storage test runs on both.
 - **Web:** Next.js 16 (App Router), React 19, TypeScript, tested with `node --test`.
-- **Automation:** GitHub Actions for CI and the nightly workflows. The bulk search is planned for an Oracle Cloud Always Free server (4 cores, 24 GB).
+- **Automation:** the daily search runs on an Oracle Cloud Always Free server (Ampere A1, 4 cores, 24 GB, Ubuntu 24.04 arm64) under systemd, with a standard-library Python scheduler and a SQLite ledger (built and dry-run tested, not deployed). GitHub Actions is for CI.
 
 ## Run locally
 
