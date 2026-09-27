@@ -2,13 +2,14 @@
 
 import { EXPLAIN } from "@/components/shell/explain";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getCandidates, MOCK_REPLAY_OF, type CandidateList, type CandidateRow } from "@/lib/api";
 import { fmtDate, fmtDepth, fmtPeriod, thousands } from "@/components/monitor/format";
 import { EmptyTrace, Icon, StarGlyph, TransitGlyph } from "@/components/monitor/Glyphs";
 import { PageHead } from "@/components/shell/PageHead";
 import { TempKey } from "@/components/monitor/TempKey";
-import { fmtSize, sizeClass, sortCandidates, DEFAULT_SORT, verdictLabel } from "./finder";
+import { fmtSize, rowClickTarget, sizeClass, sortCandidates, DEFAULT_SORT, verdictLabel } from "./finder";
 import s from "./finder.module.css";
 
 const VOTE_WORD = { planet: "Looks like a planet", fake: "Probably not", unsure: "Not sure" } as const;
@@ -31,8 +32,14 @@ function Funnel({ list }: { list: CandidateList }) {
 
 function Row({ c }: { c: CandidateRow }) {
   const href = `/candidates/${c.id}`;
+  const router = useRouter();
+  const onClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
+    const act = rowClickTarget(e, window.getSelection()?.toString() ?? "");
+    if (act === "open") router.push(href);
+    else if (act === "new-tab") window.open(href, "_blank", "noopener");
+  };
   return (
-    <tr className={s.row}>
+    <tr className={s.row} onClick={onClick} data-href={href}>
       <th scope="row" className={s.cellStar}>
         <span className={s.rowStar}>
           <StarGlyph teff={c.star?.teff ?? null} radius={c.star?.rad ?? null} size={36} />

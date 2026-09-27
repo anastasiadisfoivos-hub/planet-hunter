@@ -178,14 +178,10 @@
   text-decoration: none !important;
 }
 
-.rowLink::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-}
-
+/* The whole row answers a click (Row's onClick); the link in the name cell is the real target for keyboards
+   and screen readers. No stretched ::after overlay: a <tr> is not a reliable containing block for it. */
 .row {
-  position: relative;
+  cursor: pointer;
 }
 
 .rowTic {
