@@ -1,0 +1,250 @@
+{
+ "date": "2026-09-27",
+ "what": "kaggle/dryrun/run_dryrun.sh: kaggle/planet_hunter_nightly.ipynb executed with nbconvert in a clean python:3.11-bookworm container (--cpus=4 --memory=7g), no Kaggle Secrets (env instead); it cloned github.com/anastasiadisfoivos-hub/planet-hunter at the ref, synced hunt/faint/vet/api venvs with runner/sync-venvs.sh, ran RUNNER's scheduler and posted to the repo's API served locally (uvicorn, SQLite), polled every 30 s",
+ "host": "Apple-silicon Mac (10 cores, 24 GB) with Docker Desktop (linux/arm64). Kaggle runs x86-64 Xeons (Skylake/Broadwell/AMD, 'variable'): slower per core than this host",
+ "ref": "79e7627c6d878122d835c64ea375040862f08099 (branch kaggle)",
+ "stars": {
+  "s1": "20 real TESS stars: 14 from hunt's ranked list (group column: DEEPHUNT), 6 tier-1 faint M dwarfs (the lists of runner/'s dry run)",
+  "s2": "the same lists plus 4 new M dwarfs from hunt's ranked list; session 1's output mounted at /kaggle/input/planet-hunter-nightly/",
+  "s3": "no input: must stop at the guard"
+ },
+ "session_settings": {
+  "PH_SESSION_HOURS": 2,
+  "PH_WRAP_HOURS": 0.5,
+  "PH_HEARTBEAT_S": 60
+ },
+ "sessions": {
+  "s1": {
+   "output_written": true,
+   "install_min": 1.7,
+   "session_min": 18.2,
+   "run_id": "kaggle-20260927",
+   "state": "done",
+   "scheduler_exit": 0,
+   "done_total": 31,
+   "counts": {
+    "deep": {
+     "done": 11
+    },
+    "faint": {
+     "done": 6
+    },
+    "fast": {
+     "done": 14
+    }
+   },
+   "restored_done_total": 0,
+   "restored_from": null,
+   "cache_mb": 6.5,
+   "error": null,
+   "stars_per_hour": {
+    "fast": {
+     "stars": 14,
+     "mean_s_per_star": 23.1,
+     "median_s_per_star": 23.5,
+     "stars_per_hour_all_workers": 623.4,
+     "no_data": 0
+    },
+    "deep": {
+     "stars": 11,
+     "mean_s_per_star": 146.9,
+     "median_s_per_star": 167.7,
+     "stars_per_hour_all_workers": 98.0,
+     "no_data": 0
+    },
+    "faint": {
+     "stars": 6,
+     "mean_s_per_star": 88.9,
+     "median_s_per_star": 93.4,
+     "stars_per_hour_all_workers": 162.0,
+     "no_data": 0
+    }
+   },
+   "poster": {
+    "sent": 88,
+    "failed": 0,
+    "dropped": 0,
+    "stars_sent": 31,
+    "last_ok_at": 1790538536.2192276,
+    "last_error": null
+   },
+   "ingest": {
+    "run_id": "kaggle-20260927",
+    "pixels": {
+     "vetted": 0,
+     "failed": 0,
+     "stale": 0,
+     "skipped_for_time": 0
+    },
+    "error": null,
+    "ingest": {
+     "chunks": 1,
+     "created": 1,
+     "updated": 0,
+     "unchanged": 0,
+     "invalid": [],
+     "dismissed": [],
+     "monitor_stars": 20
+    }
+   },
+   "merge": {
+    "dirs": [
+     "fast",
+     "faint",
+     "deep"
+    ],
+    "candidates": 1,
+    "rejected_at_merge": 0
+   }
+  },
+  "s2": {
+   "output_written": true,
+   "install_min": 2.2,
+   "session_min": 2.7,
+   "run_id": "kaggle-2-20260927",
+   "state": "done",
+   "scheduler_exit": 0,
+   "done_total": 35,
+   "counts": {
+    "deep": {
+     "done": 11
+    },
+    "faint": {
+     "done": 6
+    },
+    "fast": {
+     "done": 18
+    }
+   },
+   "restored_done_total": 31,
+   "restored_from": "/kaggle/input/planet-hunter-nightly/ph-state",
+   "cache_mb": 6.5,
+   "error": null,
+   "stars_per_hour": {
+    "fast": {
+     "stars": 4,
+     "mean_s_per_star": 22.0,
+     "median_s_per_star": 23.7,
+     "stars_per_hour_all_workers": 655.9,
+     "no_data": 0
+    }
+   },
+   "poster": {
+    "sent": 13,
+    "failed": 0,
+    "dropped": 0,
+    "stars_sent": 4,
+    "last_ok_at": 1790538757.130711,
+    "last_error": null
+   },
+   "ingest": {
+    "run_id": "kaggle-2-20260927",
+    "pixels": {
+     "vetted": 0,
+     "failed": 0,
+     "stale": 0,
+     "skipped_for_time": 0
+    },
+    "error": null,
+    "ingest": {
+     "chunks": 1,
+     "created": 0,
+     "updated": 0,
+     "unchanged": 0,
+     "invalid": [],
+     "dismissed": [],
+     "monitor_stars": 4
+    }
+   },
+   "merge": {
+    "dirs": [
+     "fast"
+    ],
+    "candidates": 0,
+    "rejected_at_merge": 0
+   }
+  },
+  "s3": {
+   "output_written": false,
+   "install_min": null,
+   "session_min": null,
+   "stopped_with": "STOP: the restored ledger has 0 finished stars, but the API last heard 35. The previous run's output is not attached (Add Input > this notebook's output), so searching now would repeat stars. Attach it and run again (kaggle/README.md, 'If a run stops'); set PH_ALLOW_FRESH_LEDGER=1 only to start over on purpose."
+  }
+ },
+ "reload": {
+  "s1_rows": 31,
+  "s2_rows": 35,
+  "s1_rows_kept_in_s2": 31,
+  "searched_in_s2": [
+   [
+    "fast",
+    32208408
+   ],
+   [
+    "fast",
+    80315364
+   ],
+   [
+    "fast",
+    175516858
+   ],
+   [
+    "fast",
+    192642951
+   ]
+  ],
+  "repeats": []
+ },
+ "monitor": {
+  "polls": 40,
+  "live_polls": 23,
+  "live_run_ids": [
+   "kaggle-20260927"
+  ],
+  "first_live": "2026-09-27T19:33:14Z",
+  "last_live": "2026-09-27T19:48:38Z",
+  "runner_states": [
+   "idle",
+   "none",
+   "searching"
+  ],
+  "final": {
+   "mode": "replay",
+   "run_id": "kaggle-2-20260927",
+   "progress": {
+    "done": 4,
+    "total": 4
+   }
+  },
+  "s1_run_id": "kaggle-20260927"
+ },
+ "kaggle_projection": {
+  "cores": 4,
+  "session_h": 11.5,
+  "search_h": 10.22,
+  "split": {
+   "fast": 0.45,
+   "deep": 0.4,
+   "faint": 0.15
+  },
+  "queues": {
+   "fast": {
+    "mean_s_per_star": 23.1,
+    "stars_per_hour_4_cores": 623.4,
+    "per_session_at_split": 2867
+   },
+   "deep": {
+    "mean_s_per_star": 146.9,
+    "stars_per_hour_4_cores": 98.0,
+    "per_session_at_split": 400
+   },
+   "faint": {
+    "mean_s_per_star": 88.9,
+    "stars_per_hour_4_cores": 162.0,
+    "per_session_at_split": 248
+   }
+  },
+  "total": 3515
+ },
+ "monitor_note": "every poll during session 1's search was live (23 of 23, 19:33:14-19:48:38 UTC); the poller itself made no requests 19:37:44-19:42:38 (curl without a timeout; fixed with --max-time), the runner's heartbeats continued. Session 2's 4 stars finished between polls. The final state is the replay of the last run, runner idle."
+}

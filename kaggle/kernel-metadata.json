@@ -1,0 +1,15 @@
+{
+  "id": "YOUR-KAGGLE-USERNAME/planet-hunter-nightly",
+  "title": "planet-hunter-nightly",
+  "code_file": "planet_hunter_nightly.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": ["YOUR-KAGGLE-USERNAME/planet-hunter-nightly"],
+  "model_sources": []
+}
