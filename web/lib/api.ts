@@ -5,6 +5,8 @@
 // candidates are stand-ins and say so. In live mode each call maps the API's JSON onto the shapes below,
 // which the components are written against.
 
+import { toSensitivity, type HuntSensitivity } from "@/components/finder/sensitivityData";
+
 export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE ?? "").replace(/\/$/, "");
 export const API_MOCK = API_BASE === "";
 
@@ -444,7 +446,10 @@ export async function submitVote(id: string, vote: VoteChoice | null, reasons: s
 }
 
 export async function getSensitivity(signal?: AbortSignal): Promise<Served<Sensitivity>> {
-  if (!API_MOCK) return { data: (await getJson<{ sensitivity: Sensitivity }>(`${API_BASE}/finder/sensitivity`, signal)).sensitivity, demo: false, standIn: null };
+  if (!API_MOCK) {
+    const r = await getJson<{ sensitivity: Sensitivity | HuntSensitivity }>(`${API_BASE}/finder/sensitivity`, signal);
+    return { data: toSensitivity(r.sensitivity), demo: false, standIn: null };
+  }
   return { data: await getJson<Sensitivity>(`${MON}/sensitivity.json`, signal), demo: true, standIn: null };
 }
 

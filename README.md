@@ -5,8 +5,8 @@
 <!-- Screenshots: SHIP adds the real images at these paths. -->
 | | |
 |---|---|
-| ![The live monitor: a star's TESS light curve drawn as one ink line on chart-recorder paper, with each dip marked in the margin](docs/screenshots/monitor.png) | ![The candidate list, ranked by score, with each candidate's pixel-check verdict and status](docs/screenshots/candidates.png) |
-| ![One candidate's dossier: light curves, every check with its reason, and the pixel check](docs/screenshots/dossier.png) | ![The sensitivity grid: the share of injected fake planets the search recovers, by size and orbital period](docs/screenshots/sensitivity.png) |
+| ![The live monitor: a star's TESS light curve drawn as one ink line on chart-recorder paper, with each dip marked in the margin](docs/screenshots/monitor.png) | ![The candidates page: the 26 Sep 2026 search's funnel (200 stars, 297 repeating dips, 0 new candidates) and the empty list saying so](docs/screenshots/candidates.png) |
+| ![A dossier in the site's demo mode: TOI-7303.01, a known TESS Object of Interest shown as a labelled stand-in, with its folded dip, star and known lists](docs/screenshots/dossier.png) | ![The sensitivity grid: the share of injected fake planets the search recovers, by size and orbital period](docs/screenshots/sensitivity.png) |
 
 ## What it does
 
