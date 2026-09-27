@@ -100,7 +100,7 @@ after each sweep, with `PH_ADAPTERS=real` and `uv sync --extra finder` (see [doc
 `votes`, always descending. A `cursor` only works with the sort that made it. Each item is the
 candidate's `tic, kind, period_d, t0_btjd, duration_h, depth_ppm, snr, sde, n_transits, sectors,
 radius_rjup, radius_low, radius_high, radius_rjup_best, known_lists, score_parts` (no curves, no
-checks), plus `id, score, checks_passed, checks_total, pixel_verdict, status, status_reason,
+checks), plus `id, score, checks_passed, checks_total, pixel_verdict, verdict` (VET's, or null), `status, status_reason,
 votes: {planet, fake, unsure, total}, created_at, updated_at`. `checks_total` counts the checks
 that ran (`passed` true or false); `checks_passed` those that passed.
 

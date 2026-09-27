@@ -266,6 +266,13 @@ def sweep_stages(summary: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
+def _vetting_verdict(vetting: Any) -> str | None:
+    """VET's verdict ("pass", "flag", "fail") from the stored vetting block, for the list."""
+    summary = vetting.get("summary") if isinstance(vetting, dict) else None
+    verdict = summary.get("verdict") if isinstance(summary, dict) else None
+    return verdict if isinstance(verdict, str) else None
+
+
 def summary_view(row: dict[str, Any]) -> dict[str, Any]:
     """A stored candidate as one item of GET /candidates."""
     rec = row["record"]
@@ -277,6 +284,7 @@ def summary_view(row: dict[str, Any]) -> dict[str, Any]:
         checks_total=total,
         score=row["score"],
         pixel_verdict=row["pixel_verdict"],
+        verdict=_vetting_verdict(row.get("vetting")),
         status=row["status"],
         status_reason=row["status_reason"],
         votes=row["votes"],

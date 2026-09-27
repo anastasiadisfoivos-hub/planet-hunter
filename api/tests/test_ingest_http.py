@@ -153,3 +153,22 @@ def test_progress_label_shows_on_now_and_in_the_log(make_client, monkeypatch):
     bad = {**body, "label": "Deep Pass"}
     assert c.post("/monitor/progress", headers=AUTH, json=bad).status_code == 422
     assert json.dumps(now)  # serialisable
+
+
+def test_list_items_carry_the_vetting_verdict(make_client):
+    c = make_client(ingest_token=TOKEN)
+    vetted = candidate(
+        100, vetting={"summary": {"verdict": "flag", "reasons": ["TRICERATOPS not run"]}}
+    )
+    c.post(
+        "/finder/ingest",
+        headers=AUTH,
+        json=chunk(
+            candidates=[
+                {"id": "100_1", "candidate": vetted},
+                {"id": "200_1", "candidate": candidate(200)},
+            ]
+        ),
+    )
+    items = {i["id"]: i for i in c.get("/finder/candidates").json()["items"]}
+    assert items["100_1"]["verdict"] == "flag" and items["200_1"]["verdict"] is None
