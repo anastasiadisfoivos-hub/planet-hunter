@@ -191,6 +191,21 @@ export function nextSort(cur: Sort, key: SortKey): Sort {
   return { key, dir: SORTS.find((x) => x.key === key)?.firstDir ?? "desc" };
 }
 
+/**
+ * What a click on a candidate row does: open its dossier, unless it landed on a link or button (they act for
+ * themselves), ended a text selection, or was modified (a new tab, as a link would), or was not the main button.
+ */
+export function rowClickTarget(
+  e: { target: EventTarget | null; metaKey: boolean; ctrlKey: boolean; shiftKey: boolean; button: number },
+  selection: string,
+): "ignore" | "open" | "new-tab" {
+  if (e.button !== 0) return "ignore";
+  const el = e.target as { closest?: (sel: string) => unknown } | null;
+  if (el?.closest?.("a, button, input, label")) return "ignore";
+  if (selection) return "ignore";
+  return e.metaKey || e.ctrlKey || e.shiftKey ? "new-tab" : "open";
+}
+
 // ---------- the vote box ----------
 
 export const REASONS: { id: string; label: string }[] = [
