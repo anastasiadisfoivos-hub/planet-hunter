@@ -50,7 +50,10 @@ def start(env, log):
 def ledger_rows(install):
     db = sqlite3.connect(install["data"] / "ledger.sqlite")
     db.row_factory = sqlite3.Row
-    return [dict(r) for r in db.execute("SELECT * FROM stars")]
+    try:
+        return [dict(r) for r in db.execute("SELECT * FROM stars")]
+    except sqlite3.OperationalError:  # the scheduler has created the file but not its tables yet
+        return []
 
 
 def test_full_run(tmp_path, install, api):

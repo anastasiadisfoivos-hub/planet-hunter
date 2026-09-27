@@ -22,6 +22,7 @@ import io
 import math
 import os
 import pickle
+import re
 import tempfile
 import zipfile
 from importlib.metadata import version
@@ -165,8 +166,28 @@ def _cameras(star: dict) -> dict[int, tuple[int, int]]:
     return {int(k): tuple(v) for k, v in cache.cached("tess-point", str(star["tic"]), fetch).items()}
 
 
+DIFF_KEY = re.compile(r"^(\d+)_s(\d+)_P([\d.]+)_E([\d.]+)_D([\d.]+)-")
+
+
+def _recorded_key(tic: int, sector: int, planet: dict) -> str | None:
+    """Offline only: a recorded difference image for the same ephemeris within the fit's platform jitter (LEO
+    refits the ephemeris, and the last digit of the epoch can differ between machines, e.g. 1327.50980 on macOS
+    arm64 against 1327.50981 on Linux x86_64). None when there is no such record."""
+    for f in (cache.root() / "diffimage").glob(f"{int(tic)}_s{int(sector)}_P*"):
+        m = DIFF_KEY.match(f.name)
+        if not m:
+            continue
+        p, e, d = (float(x) for x in m.group(3, 4, 5))
+        if (abs(p / planet["period"] - 1) < 1e-5 and abs(e - planet["epoch"]) < 5e-4
+                and abs(d - planet["durationHours"]) < 0.01):
+            return f"{m.group(1)}:s{m.group(2)}:P{m.group(3)}:E{m.group(4)}:D{m.group(5)}"
+    return None
+
+
 def difference_image(star: dict, planet: dict, sector: int, cam: int, ccd: int) -> dict:
     key = f"{star['tic']}:s{sector}:P{planet['period']:.6f}:E{planet['epoch']:.5f}:D{planet['durationHours']:.4f}"
+    if cache.offline() and not cache.path_for("diffimage", key, "pickle").exists():
+        key = _recorded_key(star["tic"], sector, planet) or key
 
     def fetch() -> dict:
         from leo_vetter.pixel import star_dict
