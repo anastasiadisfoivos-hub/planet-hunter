@@ -111,10 +111,20 @@ export function Coverage({ stars, teffOf }: { stars: CoverageStar[]; teffOf: Map
           ))}
         </div>
         <TempKey />
-        <p className={s.legendNote}>
-          Mollweide projection, RA 0h at the centre and increasing to the left. Faint band: the Milky Way. Dashed: the ecliptic.
-          {latest.length > 0 && ` Outlines: TESS's CCDs in sectors ${latest.join(", ")}.`}
-        </p>
+        <ul className={s.legendNote}>
+          <li>
+            <span className={s.swBand} aria-hidden /> Milky Way
+          </li>
+          <li>
+            <span className={s.swEcl} aria-hidden /> Ecliptic
+          </li>
+          {latest.length > 0 && (
+            <li>
+              <span className={s.swSector} aria-hidden /> TESS, sectors {latest.join(", ")}
+            </li>
+          )}
+          <li className="label">Mollweide, RA 0h centre</li>
+        </ul>
       </figcaption>
     </figure>
   );

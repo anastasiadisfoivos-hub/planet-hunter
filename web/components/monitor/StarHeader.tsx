@@ -12,7 +12,8 @@ export function StarHeader({ star }: { star: MonitorStar }) {
       <div className={s.nameRow}>
         <StarGlyph teff={star.teff} radius={star.radius_rsun} size={64} />
         <h1 className={s.starName}>
-          <span className={s.tic}>TIC</span> {star.tic}
+          <span className={s.tic}>TIC</span>
+          {star.tic}
         </h1>
       </div>
       <span className={s.starRule} aria-hidden />

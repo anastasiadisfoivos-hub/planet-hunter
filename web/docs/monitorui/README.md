@@ -97,3 +97,38 @@ decorative glyph had an empty accessible name. The monitor still runs at 60 fps 
 Rejected, DESIGN.md wins: the skill's ban on hand-drawn SVG (the owner asked for it and it is the recorder's own line),
 its call for photographs (the data is the image), and its discouragement of a serif and a warm paper ground (the
 product is a paper chart recorder); impeccable's "paper ground is an AI default" stands rejected as before.
+
+## v3: white sheet, bold type, icons that explain (27 Sep 2026)
+
+Screenshots in [`screens-v3/`](screens-v3/): monitor, candidates, the TOI-4257.01 dossier, log and methods at 1440, 1920
+and 390, plus the monitor at night (1440, 390). DESIGN.md was rewritten first (v3) and governs this pass.
+
+* **Day by default** on `#FAFAF7` with black ink, whatever the operating system prefers; **Night** is a switch in the
+  top bar, remembered in this browser and applied before first paint (`html[data-theme="night"]`, flat `#0C0D12`,
+  no glows).
+* **Type**: **Archivo** (Omnibus-Type, SIL OFL 1.1), headings 800 at width 112, names 700, body 500; **Martian Mono**
+  (Evil Martians, SIL OFL 1.1) 500 for numbers and edge labels. Newsreader is gone.
+* **Hand-coded look**: square corners everywhere, 2px ink rules under the top bar, page heads and table heads, end
+  ticks on the head rule, hairlines between rows, asymmetric 5/7 heads. Removed: grain, glows, blur, shadows,
+  rounded boxes.
+* **Navigation**: each section is an icon and one word; on phones the four icons sit in one row under the name.
+* **Explainer strip** on every screen (`components/shell/explain.ts`): 3 or 4 icon + two-word keys, each a toggletip
+  with one sentence (Escape, a second tap or a tap elsewhere closes it). The prose that used to open each page is
+  gone; long explanations belong in /methods.
+* **Icons**: 20 new hand-drawn icons in the glyph set (one 1.5 stroke on 24px), used in the nav, the strips, the
+  methods steps, the mode box and the Day/Night switch.
+* **Kept**: the streaming trace, star temperature colours, the red pen, catalogue blue, the replay label, data dates,
+  "candidate" not "discovered", counts after voting, reduced motion.
+
+Checks: 143 tests (new `explain.test.ts` holds the strip rules) plus the live redirect test; lint, typecheck and
+`next build` clean; the monitor runs at 61 fps; Day stays the default when the OS is dark; Night is remembered after
+a reload.
+
+/impeccable audit, v3: detector clean; on all six pages, day and night, 1440 and 390: AA contrast everywhere, one
+h1, no skipped headings, every control named, no horizontal scroll, 44px touch targets. Fixed during the pass: the
+Day/Night switch had no accessible name on phones (its word is hidden there) and was 40px tall; a 6px left border on
+the honesty line (a side stripe, banned); the monitor's blur crossfade and a shadow on the star rule; two page titles
+that wrapped ("TIC" is now a mono kicker above the number); explainer tips that ran to two sentences.
+Rejected, DESIGN.md wins: the skill's ban on hand-drawn SVG icons (the owner asked for them, and one hand-drawn set
+matches the trace), its call for photographs, and its preference for an icon library.
+`monitor.gif` still shows the v1 look; the screenshots are current.

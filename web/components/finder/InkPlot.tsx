@@ -1,5 +1,6 @@
 "use client";
 
+import { onThemeChange } from "@/components/shell/ThemeSwitch";
 import { useEffect, useRef } from "react";
 import { readInk } from "@/components/monitor/draw";
 import s from "./finder.module.css";
@@ -117,11 +118,10 @@ export function InkPlot({
     paint();
     const ro = new ResizeObserver(paint);
     ro.observe(canvas);
-    const mq = matchMedia("(prefers-color-scheme: dark)");
-    mq.addEventListener("change", paint);
+    const offTheme = onThemeChange(paint);
     return () => {
       ro.disconnect();
-      mq.removeEventListener("change", paint);
+      offTheme();
     };
   }, [series, xRange, yRange, xTicks, xLabel, yLabel, marks]);
   return <canvas ref={ref} className={s.plot} style={{ height }} role="img" aria-label={label} />;

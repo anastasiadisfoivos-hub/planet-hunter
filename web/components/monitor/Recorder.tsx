@@ -1,5 +1,6 @@
 "use client";
 
+import { onThemeChange } from "@/components/shell/ThemeSwitch";
 import { useEffect, useMemo, useRef } from "react";
 import type { MonitorStar } from "@/lib/api";
 import { drawCursor, gutterFor, drawFluxScale, drawMarks, drawPaper, drawPen, drawScale, drawTrace, makeGeom, readInk, traceYAt, type MarkState } from "./draw";
@@ -37,11 +38,10 @@ export function StillTrace({ star, label }: { star: MonitorStar; label: string }
     paint();
     const ro = new ResizeObserver(paint);
     ro.observe(canvas);
-    const mq = matchMedia("(prefers-color-scheme: dark)");
-    mq.addEventListener("change", paint);
+    const offTheme = onThemeChange(paint);
     return () => {
       ro.disconnect();
-      mq.removeEventListener("change", paint);
+      offTheme();
     };
   }, [tape, star.detections]);
   return <canvas ref={ref} className={s.canvas} role="img" aria-label={label} />;
@@ -238,18 +238,17 @@ export function StreamTrace({
       else stop();
     });
     io.observe(canvas);
-    const mq = matchMedia("(prefers-color-scheme: dark)");
     const theme = () => {
       ink = readInk(canvas);
       dirty.current = true;
     };
-    mq.addEventListener("change", theme);
+    const offTheme = onThemeChange(theme);
     return () => {
       stop();
       ro.disconnect();
       io.disconnect();
       document.removeEventListener("visibilitychange", vis);
-      mq.removeEventListener("change", theme);
+      offTheme();
     };
   }, []);
 

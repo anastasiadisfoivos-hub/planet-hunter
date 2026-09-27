@@ -8,18 +8,24 @@
 
 .head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--s-5);
-  align-items: start;
-  padding-top: var(--s-6);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--s-5) var(--s-6);
+  align-items: end;
+  padding-top: var(--s-5);
   padding-bottom: var(--s-4);
+}
+
+.side {
+  display: grid;
+  gap: var(--s-3);
+  min-width: 0;
 }
 
 .starHead {
   display: grid;
   gap: var(--s-2);
   min-height: 150px;
-  animation: arrive var(--d-panel) var(--ease-out);
+  animation: arrive var(--d-tick) var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -29,12 +35,10 @@
   }
 }
 
-/* a new star's name: a short crossfade, the blur hides the swap of one number for another */
+/* a new star's name: a plain 160ms fade (no blur, DESIGN.md v3) */
 @keyframes arrive {
   from {
     opacity: 0;
-    filter: blur(2px);
-    transform: translateY(3px);
   }
 }
 
@@ -47,9 +51,10 @@
 
 .starName {
   font-size: var(--t-display) !important;
-  line-height: 0.95 !important;
-  letter-spacing: -0.03em !important;
-  font-weight: var(--w-name) !important;
+  line-height: 0.9 !important;
+  letter-spacing: -0.04em !important;
+  font-weight: var(--w-head) !important;
+  font-variation-settings: "wdth" 100 !important;
   font-variant-numeric: lining-nums;
   white-space: nowrap;
 }
@@ -60,7 +65,7 @@
   width: min(100%, 12ch);
   height: 4px;
   background: var(--star);
-  box-shadow: 0 0 0 1px var(--grid-strong);
+  outline: 1px solid var(--ink);
 }
 
 .kindWord {
@@ -68,9 +73,14 @@
 }
 
 .tic {
-  font-style: italic;
-  font-weight: var(--w-head);
-  color: var(--ink-2);
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-variation-settings: "wdth" 87;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
 }
 
 .starKind {
@@ -94,24 +104,32 @@
 }
 
 .mode {
-  display: grid;
-  justify-items: end;
-  gap: var(--s-2);
-  text-align: right;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-3);
 }
 
 .modeTag {
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
+  margin: 0;
   font-family: var(--mono);
+  font-weight: 500;
   font-size: 0.8125rem;
   font-variation-settings: "wdth" 87;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--ink);
-  padding: 5px 10px;
-  border: 1px solid var(--ink);
-  border-radius: var(--radius);
+  min-height: 44px;
+  padding: 0 12px 0 8px;
+  border: 1.5px solid var(--ink);
+}
+
+.modeTag svg * {
+  stroke: currentColor;
 }
 
 .modeTag[data-mode="live"] {
@@ -135,7 +153,6 @@
 .controls {
   display: flex;
   gap: var(--s-2);
-  margin-top: var(--s-2);
 }
 
 .paper {
@@ -279,6 +296,13 @@
   background: var(--paper);
 }
 
+@media (max-width: 899px) {
+  .head {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}
+
 @media (max-width: 719px) {
   .head {
     grid-template-columns: 1fr;
@@ -297,10 +321,6 @@
     align-items: center;
     text-align: left;
     gap: var(--s-2) var(--s-3);
-  }
-
-  .modeLine {
-    flex: 1 1 12rem;
   }
 
   .controls {

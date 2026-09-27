@@ -1,0 +1,122 @@
+/* The explainer strip (DESIGN.md v3). Hard edges: the items sit between hairlines like the keys of a panel. */
+
+.strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--grid-strong);
+}
+
+.item {
+  position: relative;
+  min-width: 0;
+}
+
+.item + .item {
+  border-left: 1px solid var(--grid-strong);
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 14px 8px 12px; /* one pixel less on the left than the right, like hand-set type */
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  cursor: help;
+  transition: background-color var(--d-hover) var(--ease-out);
+}
+
+.btn:hover {
+  background: var(--paper-2);
+}
+
+.btn[aria-expanded="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn[aria-expanded="true"] svg * {
+  stroke: var(--paper);
+}
+
+.word {
+  line-height: 1.1;
+}
+
+.tip {
+  position: absolute;
+  z-index: 5;
+  top: 100%;
+  left: -1px;
+  width: max(100%, 280px);
+  max-width: min(360px, 90vw);
+  margin: 0;
+  padding: 12px 14px;
+  font-size: var(--t-small);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-top: 0;
+}
+
+.tip:not([hidden]) {
+  animation: drop var(--d-tick) var(--ease-out);
+}
+
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+.item:last-child .tip {
+  left: auto;
+  right: -1px;
+}
+
+@media (max-width: 719px) {
+  .strip {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .item + .item {
+    border-left: 0;
+  }
+
+  .item:nth-child(even) {
+    border-left: 1px solid var(--grid-strong);
+  }
+
+  .item:nth-child(n + 3) {
+    border-top: 1px solid var(--grid-strong);
+  }
+
+  .item:nth-child(even) .tip {
+    left: auto;
+    right: -1px;
+  }
+
+  .tip {
+    width: min(300px, 88vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip:not([hidden]) {
+    animation: none;
+  }
+}

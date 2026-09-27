@@ -15,7 +15,7 @@ export function Site({ children, end, bleed = false }: { children: React.ReactNo
         {children}
       </main>
       <footer className={`wrap ${s.foot}`}>
-        <TessGlyph size={52} />
+        <TessGlyph size={48} />
         <p className={s.credit}>
           Light curves from NASA&apos;s TESS, SPOC pipeline, via MAST. Stars from the TESS Input Catalog, Gaia DR3 and AAVSO VSX.
         </p>

@@ -1,10 +1,13 @@
 "use client";
 
+import { EXPLAIN } from "@/components/shell/explain";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getMonitorNow, getMonitorStats, type Detection, type MonitorNow, type MonitorStar, type MonitorStats } from "@/lib/api";
 import { MonitorClient } from "./client";
-import { btjdToMs, detectionLabel, detectionSentence, modeLabel, modeShort, observedLine, OUTCOME_WORD, plural, starKind, thousands } from "./format";
+import { btjdToMs, detectionLabel, detectionSentence, modeLabel, observedLine, OUTCOME_WORD, plural, starKind, thousands } from "./format";
+import { Explainer } from "@/components/shell/Explainer";
+import { Icon } from "./Glyphs";
 import { StarHeader } from "./StarHeader";
 import { TempKey } from "./TempKey";
 import { StillTrace, StreamTrace } from "./Recorder";
@@ -154,25 +157,27 @@ export function MonitorScreen() {
     <section className={s.monitor} aria-label="Monitor">
       <div className={`wrap ${s.head}`}>
         {star ? <StarHeader star={star} /> : <div className={s.starHead} aria-busy="true" />}
-        <div className={s.mode}>
-          {now && (
-            <>
+        <div className={s.side}>
+          <Explainer
+            items={EXPLAIN.monitor}
+          />
+          <div className={s.mode}>
+            {now && (
               <p className={s.modeTag} data-mode={now.mode}>
-                {now.mode === "live" && <span className={s.liveDot} aria-hidden />}
-                {modeShort(now.mode)}
+                <Icon name={now.mode === "live" ? "live" : "replay"} size={20} />
+                <span>{modeLabel(now.mode, now.replay_of)}</span>
               </p>
-              <p className={s.modeLine}>{modeLabel(now.mode, now.replay_of)}</p>
-            </>
-          )}
-          <div className={s.controls}>
-            {!still && (
-              <button type="button" className="btn" onClick={() => setPaused((p) => !p)} aria-pressed={paused} disabled={!now}>
-                {paused ? "Resume" : "Pause"}
-              </button>
             )}
-            <button type="button" className="btn" onClick={next} disabled={!now || busy}>
-              Next star
-            </button>
+            <div className={s.controls}>
+              {!still && (
+                <button type="button" className="btn" onClick={() => setPaused((p) => !p)} aria-pressed={paused} disabled={!now}>
+                  {paused ? "Resume" : "Pause"}
+                </button>
+              )}
+              <button type="button" className="btn" onClick={next} disabled={!now || busy}>
+                Next star
+              </button>
+            </div>
           </div>
         </div>
       </div>

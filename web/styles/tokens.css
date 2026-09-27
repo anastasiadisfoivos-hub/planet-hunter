@@ -4,36 +4,37 @@
 .site {
   color-scheme: light;
 
-  /* colour: paper, ink and one pen */
-  --paper: #ede8dc;
-  --paper-2: #e5dfd1;
-  --ink: #1c1a16;
-  --ink-2: #4f4a41;
-  --ink-3: #645e53;
-  --pen: #ae2f18;
-  --known: #2c5a86;
+  /* colour (DESIGN.md v3): white sheet, black ink, one red pen, catalogue blue */
+  --paper: #fafaf7;
+  --paper-2: #efefea;
+  --ink: #0b0b0a;
+  --ink-2: #3a3a36;
+  --ink-3: #5c5c56;
+  --pen: #c8260c;
+  --known: #1d55a0;
   --rejected: var(--ink-3);
-  --grid: rgb(28 26 22 / 0.07);
-  --grid-strong: rgb(28 26 22 / 0.15);
-  --pen-wash: rgb(174 47 24 / 0.08);
-  --grain-opacity: 0.035;
+  --grid: rgb(11 11 10 / 0.07);
+  --grid-strong: rgb(11 11 10 / 0.16);
+  --pen-wash: rgb(200 38 12 / 0.08);
   --ground: var(--paper);
 
   /* type */
-  --serif: var(--font-newsreader), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --sans: var(--font-archivo), system-ui, sans-serif;
   --mono: var(--font-martian), ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --t-display: clamp(3rem, 1.7rem + 4.6vw, 6rem);
-  --t-h1: clamp(2.5rem, 1.6rem + 3vw, 4.25rem);
-  --t-h2: clamp(1.875rem, 1.45rem + 1.3vw, 2.75rem);
-  --t-h3: clamp(1.375rem, 1.25rem + 0.4vw, 1.625rem);
-  --t-body: clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);
-  --t-small: 1.0625rem;
+  --t-display: clamp(2.75rem, 1.6rem + 4.3vw, 5.75rem);
+  --t-h1: clamp(2.125rem, 1.55rem + 2vw, 3.5rem);
+  --t-h2: clamp(1.5rem, 1.3rem + 0.7vw, 2rem);
+  --t-h3: 1.25rem;
+  --t-body: clamp(1.0625rem, 1rem + 0.2vw, 1.1875rem);
+  --t-small: 0.9375rem;
   --t-label: 0.75rem;
   --t-num: 0.9375rem;
-  /* weights: Newsreader 500 for headings, 600 for names; Martian Mono 500 for numbers */
-  --w-head: 500;
-  --w-name: 600;
+  /* weights: Archivo 800 headings, 700 names, 500 body; Martian Mono 500 */
+  --w-head: 800;
+  --w-name: 700;
+  --w-body: 500;
   --w-num: 500;
+  --wd-head: 112;
   --label-tracking: 0.06em;
   --measure: 62ch;
 
@@ -48,10 +49,10 @@
   --s-8: 72px;
   --s-9: 112px;
   /* the page uses the whole screen: fluid side margins, no centred column */
-  --gutter: clamp(24px, 4vw, 80px);
+  --gutter: clamp(20px, 4vw, 80px);
   --section: 72px;
-  --bar-h: 64px;
-  --radius: 2px;
+  --bar-h: 60px;
+  --radius: 0;
   --tap: 44px;
 
   /* motion */
@@ -70,27 +71,24 @@
 @media (max-width: 719px) {
   .site {
     --section: 48px;
+    --bar-h: 102px; /* the name row (44) + the icon keys (56) + the 2px rule */
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .site {
-    color-scheme: dark;
-    /* night: deep space ink, a very dark blue-violet, with a faint glow from above (DESIGN.md: Colour) */
-    --paper: #0b0c18;
-    --paper-2: #15172c;
-    --ink: #ece9f2;
-    --ink-2: #b4b0c4;
-    --ink-3: #8e8aa2;
-    --pen: #ff7458;
-    --known: #93b9ee;
-    --grid: rgb(200 204 255 / 0.075);
-    --grid-strong: rgb(200 204 255 / 0.15);
-    --pen-wash: rgb(255 116 88 / 0.1);
-    --grain-opacity: 0.04;
-    --ground: radial-gradient(120% 70% at 72% -10%, rgb(74 64 160 / 0.22), transparent 62%),
-      radial-gradient(90% 60% at 0% 110%, rgb(40 60 130 / 0.14), transparent 60%), #0b0c18;
-  }
+/* night is an option, never the default: the switch in the top bar sets html[data-theme="night"] */
+html[data-theme="night"] .site {
+  color-scheme: dark;
+  --paper: #0c0d12;
+  --paper-2: #16171f;
+  --ink: #f2f2ee;
+  --ink-2: #bdbdb6;
+  --ink-3: #8f8f88;
+  --pen: #ff6a4a;
+  --known: #86b2f0;
+  --grid: rgb(242 242 238 / 0.08);
+  --grid-strong: rgb(242 242 238 / 0.17);
+  --pen-wash: rgb(255 106 74 / 0.1);
+  --ground: var(--paper);
 }
 
 @media (prefers-reduced-motion: reduce) {

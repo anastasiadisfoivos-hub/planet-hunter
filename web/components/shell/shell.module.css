@@ -1,4 +1,4 @@
-/* The top bar, the page frame and the footer (DESIGN.md, Components: Top bar). */
+/* The top bar, the page frame and the footer (DESIGN.md v3: Top bar). Hard edges, a 2px ink rule. */
 
 .bar {
   position: sticky;
@@ -6,28 +6,26 @@
   z-index: var(--z-bar);
   height: var(--bar-h);
   min-height: 0;
-  background: var(--ground);
-  background-attachment: fixed;
-  border-bottom: 1px solid var(--grid-strong);
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
 }
 
 .inner {
   height: 100%;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: var(--s-6);
 }
 
 .wordmark {
   display: inline-flex;
   align-items: center;
-  min-height: var(--tap);
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 600;
-  font-size: 1.4375rem;
+  font-family: var(--sans);
+  font-weight: 800;
+  font-variation-settings: "wdth" 112;
+  font-size: 1.25rem;
+  letter-spacing: -0.025em;
   line-height: 1;
-  letter-spacing: -0.01em;
   white-space: nowrap;
   text-decoration: none !important;
   color: var(--ink);
@@ -36,32 +34,37 @@
 .nav {
   display: flex;
   align-items: stretch;
-  gap: var(--s-5);
-  height: 100%;
+  gap: 0;
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.nav::-webkit-scrollbar {
-  display: none;
 }
 
 .link {
   position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   min-height: var(--tap);
-  font-size: 1.1875rem;
-  font-weight: 500;
+  padding: 0 14px 0 12px;
+  font-size: 1rem;
+  font-weight: 700;
   white-space: nowrap;
   color: var(--ink-2);
   text-decoration: none !important;
-  transition: color var(--d-hover) var(--ease-out);
+  border-left: 1px solid var(--grid-strong);
+  transition: color var(--d-hover) var(--ease-out), background-color var(--d-hover) var(--ease-out);
+}
+
+.link:last-child {
+  border-right: 1px solid var(--grid-strong);
 }
 
 .link:hover {
   color: var(--ink);
+  background: var(--paper-2);
+}
+
+.link svg * {
+  stroke: currentColor;
 }
 
 .link[aria-current="page"] {
@@ -71,10 +74,10 @@
 .link[aria-current="page"]::after {
   content: "";
   position: absolute;
-  left: 0;
+  left: -1px;
   right: 0;
-  bottom: -1px;
-  height: 2px;
+  bottom: -2px;
+  height: 4px;
   background: var(--pen);
 }
 
@@ -84,6 +87,37 @@
   align-items: center;
   gap: var(--s-3);
   white-space: nowrap;
+}
+
+.theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  min-width: 44px;
+  @media (pointer: coarse) {
+    min-height: var(--tap);
+  }
+  padding: 0 12px 0 10px;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variation-settings: "wdth" 87;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.theme:hover {
+  background: var(--paper-2);
+}
+
+.theme svg * {
+  stroke: currentColor;
 }
 
 .main {
@@ -99,9 +133,9 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--s-3) var(--s-5);
-  padding-top: var(--s-6);
-  padding-bottom: var(--s-7);
-  border-top: 1px solid var(--grid-strong);
+  padding-top: var(--s-5);
+  padding-bottom: var(--s-6);
+  border-top: 2px solid var(--ink);
 }
 
 .credit {
@@ -112,29 +146,11 @@
 
 .footLink {
   font-size: var(--t-small);
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .foot a {
-  color: var(--ink-2);
-}
-
-@media (max-width: 719px) {
-  .inner {
-    gap: var(--s-4);
-  }
-
-  .wordmark {
-    font-size: 1.0625rem;
-  }
-
-  .nav {
-    gap: var(--s-3);
-  }
-
-  .link {
-    font-size: 0.9375rem;
-  }
+  color: var(--ink);
 }
 
 .skip {
@@ -151,4 +167,57 @@
 
 .skip:focus-visible {
   transform: none;
+}
+
+@media (max-width: 899px) {
+  .themeWord {
+    display: none;
+  }
+}
+
+/* phone: the name on its own line, then the four sections as icon-over-word keys */
+@media (max-width: 719px) {
+  .bar {
+    height: auto;
+  }
+
+  .inner {
+    flex-wrap: wrap;
+    gap: 0;
+    padding-inline: 0;
+  }
+
+  .wordmark {
+    min-height: 44px;
+    padding-left: var(--gutter);
+    font-size: 1.125rem;
+  }
+
+  .end {
+    padding-right: var(--gutter);
+  }
+
+  .nav {
+    order: 3;
+    flex-basis: 100%;
+    border-top: 1px solid var(--grid-strong);
+  }
+
+  .link {
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 56px;
+    padding: 6px 0 4px;
+    font-size: 0.8125rem;
+  }
+
+  .link:first-child {
+    border-left: 0;
+  }
+
+  .link:last-child {
+    border-right: 0;
+  }
 }

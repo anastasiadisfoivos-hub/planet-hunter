@@ -1,12 +1,12 @@
-// The top bar's links (DESIGN.md, Components: Top bar). These are the only names for the sections.
+// The top bar's links (DESIGN.md: Top bar). These are the only names for the sections, each with its icon.
 
 export const HOME = { href: "/", label: "Planet Hunter" } as const;
 
 export const NAV = [
-  { href: "/", label: "Monitor" },
-  { href: "/candidates", label: "Candidates" },
-  { href: "/log", label: "Log" },
-  { href: "/methods", label: "Methods" },
+  { href: "/", label: "Monitor", icon: "monitor" },
+  { href: "/candidates", label: "Candidates", icon: "candidates" },
+  { href: "/log", label: "Log", icon: "log" },
+  { href: "/methods", label: "Methods", icon: "methods" },
 ] as const;
 
 export type NavHref = (typeof NAV)[number]["href"];
