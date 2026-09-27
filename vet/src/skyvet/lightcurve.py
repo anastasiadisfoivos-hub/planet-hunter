@@ -1,8 +1,10 @@
 """TESS light curve for a candidate: MAST products via lightkurve, cached per sector as plain arrays.
 
-Product choice per sector: SPOC 2-min (PDCSAP) > TESS-SPOC FFI (PDCSAP) > QLP FFI (KSPSAP). The newest
+Product choice per sector: SPOC 2-min (PDCSAP) > TESS-SPOC FFI (PDCSAP) > QLP FFI (SYS_RM_FLUX, else KSPSAP). The newest
 `max_sectors` sectors are used, limited to the candidate's own `sectors` when it lists them. Cadences flagged by
-the default lightkurve quality bitmask and NaNs are dropped; each sector is normalised to its median.
+the default lightkurve quality bitmask and NaNs are dropped; for QLP every cadence with a non-zero QUALITY is
+dropped too, since the default bitmask keeps QLP's own bad-data bits 29-30 (scattered light), and QLP's flux is
+SYS_RM_FLUX where the file has it. Each sector is normalised to its median.
 
 Detrending (for LEO-vetter and TRICERATOPS): lightkurve's Savitzky-Golay `flatten` per sector, with the
 candidate's transits (±1 duration around each mid-time) masked out of the trend.
@@ -79,7 +81,9 @@ def choose(prods: list[dict], sectors: list[int] | None, max_sectors: int) -> li
 
 
 def sector_data(tic: int, prod: dict) -> dict:
-    key = f"{int(tic)}:s{prod['sector']}:{prod['author']}:{int(prod['exptime'])}:v2"
+    # v4 for QLP: QUALITY == 0 only and SYS_RM_FLUX (the v2 records kept QLP's bad-data bits)
+    version = "v4" if prod["author"] == "QLP" else "v2"
+    key = f"{int(tic)}:s{prod['sector']}:{prod['author']}:{int(prod['exptime'])}:{version}"
 
     def fetch() -> dict:
         import lightkurve as lk
@@ -89,18 +93,43 @@ def sector_data(tic: int, prod: dict) -> dict:
         if len(res) == 0:
             raise LookupError(f"no {prod['author']} light curve for TIC {tic} sector {prod['sector']}")
         lc = res[0].download(quality_bitmask="default")
-        col = "kspsap_flux" if prod["author"] == "QLP" and "kspsap_flux" in lc.colnames else "pdcsap_flux"
-        if col in lc.colnames:
-            lc = lc.select_flux(col)
-        t = np.asarray(lc.time.value, dtype=float)
-        f = np.asarray(lc.flux.value, dtype=float)
-        e = np.asarray(lc.flux_err.value, dtype=float)
+        if prod["author"] == "QLP":
+            t, f, e, col = _qlp_arrays(lc)
+        else:
+            col = "pdcsap_flux"
+            if col in lc.colnames:
+                lc = lc.select_flux(col)
+            t = np.asarray(lc.time.value, dtype=float)
+            f = np.asarray(lc.flux.value, dtype=float)
+            e = np.asarray(lc.flux_err.value, dtype=float)
         ok = np.isfinite(t) & np.isfinite(f) & np.isfinite(e) & (e > 0)
         med = np.nanmedian(f[ok])
         return {"time": t[ok], "flux": (f[ok] / med).astype(np.float32), "flux_err": (e[ok] / med).astype(np.float32),
                 "flux_column": col, "aperture": _aperture(lc.meta.get("FILENAME")), **prod}
 
     return cache.cached("lc", key, fetch, fmt="pickle")
+
+
+def _values(col) -> np.ndarray:
+    return np.asarray(col.value if hasattr(col, "value") else col, dtype=float)
+
+
+def _qlp_arrays(lc) -> tuple[np.ndarray, np.ndarray, np.ndarray, str]:
+    """A QLP sector as QLP recommends (as hunt and the pipeline read it): QUALITY == 0 only, SYS_RM_FLUX
+    (systematics removed, not spline-detrended) when the file has it, else KSPSAP_FLUX, else SAP_FLUX. Newer QLP
+    files (sector 101 on) have no KSPSAP column and no usable error on the default flux, so the error comes from
+    that column's own error, else DET_FLUX_ERR."""
+    names = set(lc.colnames)
+    ok = _values(lc["quality"]) == 0 if "quality" in names else np.ones(len(lc), bool)
+    col = next(c for c in ("sys_rm_flux", "kspsap_flux", "sap_flux", "flux") if c in names)
+    err = next((c for c in (f"{col}_err", "det_flux_err", "flux_err") if c in names and np.isfinite(_values(lc[c])).any()),
+               None)
+    t = np.asarray(lc.time.value, dtype=float)[ok]
+    f = _values(lc[col])[ok]
+    e = _values(lc[err])[ok] if err else np.full(ok.sum(), np.nan)
+    if not np.isfinite(e).any():  # no error column: the point-to-point scatter
+        e = np.full(len(f), np.nanmedian(np.abs(np.diff(f))) / np.sqrt(2))
+    return t, f, e, col
 
 
 def _aperture(path: str | None) -> list[list[int]] | None:

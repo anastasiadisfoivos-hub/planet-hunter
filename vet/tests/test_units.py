@@ -150,3 +150,25 @@ def test_leo_odd_even_without_metrics_still_fails():
     v = _ok_blocks()
     v["leo"]["flags"] = ["FP: odd-even transit differences"]
     assert summarise(v, None, None)["verdict"] == "fail"
+
+
+def test_qlp_sector_keeps_quality_zero_and_prefers_sys_rm_flux():
+    """QLP as QLP recommends: QUALITY == 0 only (the default bitmask keeps QLP's bits 29-30), SYS_RM_FLUX when the
+    file has it, and DET_FLUX_ERR when the flux column has no error (newer QLP files)."""
+    import lightkurve as lk
+    import numpy as np
+
+    from skyvet.lightcurve import _qlp_arrays
+
+    n = 100
+    q = np.zeros(n, int)
+    q[10:20] = 1 << 29
+    q[50:55] = 1 << 30
+    lc = lk.LightCurve(time=3000 + np.arange(n) / 144, flux=np.full(n, 5.0), flux_err=np.full(n, np.nan))
+    lc["quality"] = q
+    lc["sap_flux"] = np.full(n, 1000.0)
+    lc["sys_rm_flux"] = np.where(q == 0, 2000.0, 1500.0)
+    lc["det_flux_err"] = np.full(n, 0.5)
+    t, f, e, col = _qlp_arrays(lc)
+    assert col == "sys_rm_flux" and len(t) == 85
+    assert np.all(f == 2000.0) and np.all(e == 0.5)

@@ -358,18 +358,18 @@
     "offset_arcsec": 23.1,
     "source_ra": 138.739355,
     "source_dec": -45.11665,
-    "offset_mean_arcsec": 24.65,
+    "offset_mean_arcsec": 24.62,
     "threshold_arcsec": 15.0,
     "sectors": [
      {
       "sector": 89,
       "cam": 3,
       "ccd": 1,
-      "offset_arcsec": 24.536497,
-      "offset_pix": 1.212006,
-      "quality": 0.594981,
-      "fit_ra": 138.739959,
-      "fit_dec": -45.116177
+      "offset_arcsec": 24.443895,
+      "offset_pix": 1.207481,
+      "quality": 0.586984,
+      "fit_ra": 138.739973,
+      "fit_dec": -45.116202
      },
      {
       "sector": 63,
@@ -406,31 +406,31 @@
    "not_evaluated": [],
    "thresholds": "leo_vetter.thresholds defaults",
    "metrics": {
-    "MES": 21.851145,
+    "MES": 22.050129,
     "N_transit": 15.0,
     "new_N_transit": 15.0,
-    "dep": 0.002046,
-    "Rp": 9.950468,
-    "Rp_err": 18.761116,
+    "dep": 0.002064,
+    "Rp": 9.977401,
+    "Rp_err": 18.716829,
     "transit_b": 1.0,
-    "transit_RpRs": 0.082928,
-    "sig_pri": 22.136301,
-    "sig_sec": 2.495157,
-    "dep_sec": 0.000235,
-    "albedo": 5.351274,
-    "Fred": 0.986032,
-    "SHP": 0.121492,
-    "CHI": 17.155287,
-    "DMM": 1.254665,
-    "sine_sig": 0.558915,
-    "odd_dep": 0.001801,
-    "even_dep": 0.002333,
-    "sig_dep": 2.829358,
-    "trap_sig_dep": 2.540408,
-    "transit_sig_dep": 2.564215,
-    "trap_sig_epo": 0.460102,
-    "transit_sig_epo": 0.382549,
-    "offset_mean": 24.65236,
+    "transit_RpRs": 0.083152,
+    "sig_pri": 22.334915,
+    "sig_sec": 2.615296,
+    "dep_sec": 0.00025,
+    "albedo": 5.660475,
+    "Fred": 0.970845,
+    "SHP": 0.119916,
+    "CHI": 17.185266,
+    "DMM": 1.266524,
+    "sine_sig": 0.476982,
+    "odd_dep": 0.001835,
+    "even_dep": 0.002332,
+    "sig_dep": 2.647341,
+    "trap_sig_dep": 2.349759,
+    "transit_sig_dep": 2.34278,
+    "trap_sig_epo": 0.237518,
+    "transit_sig_epo": 0.18695,
+    "offset_mean": 24.622063,
     "offset_qual": 23.102227
    },
    "stellar": {
@@ -451,40 +451,40 @@
   "triceratops": {
    "ran": true,
    "fpp": 1.0,
-   "nfpp": 0.329,
+   "nfpp": 0.328,
    "version": "1.1.0",
    "tool": "TRICERATOPS",
    "N": 100000,
    "budget_s": 900.0,
    "seed": 20260926,
    "classification": "likely nearby false positive (NFPP > 0.1)",
-   "fpp_raw": 0.9999462948235083,
-   "nfpp_raw": 0.3293737120113774,
+   "fpp_raw": 0.9999652664530336,
+   "nfpp_raw": 0.32789396263274134,
    "top_scenarios": [
     {
      "scenario": "SEBx2P",
      "tic": "75208638",
-     "prob": 0.606
+     "prob": 0.608
     },
     {
      "scenario": "NEB",
      "tic": "75208648",
-     "prob": 0.0711
-    },
-    {
-     "scenario": "BEBx2P",
-     "tic": "75208638",
-     "prob": 0.0581
+     "prob": 0.0709
     },
     {
      "scenario": "NEBx2P",
      "tic": "75208617",
-     "prob": 0.0535
+     "prob": 0.0584
+    },
+    {
+     "scenario": "BEBx2P",
+     "tic": "75208638",
+     "prob": 0.058
     },
     {
      "scenario": "NEB",
      "tic": "75208623",
-     "prob": 0.0437
+     "prob": 0.0445
     }
    ],
    "n_stars_considered": 12,
@@ -502,7 +502,7 @@
     "89": "5x5 default"
    },
    "background_population": true,
-   "runtime_s": 103.6
+   "runtime_s": 34.7
   },
   "gaia": {
    "ran": true,
@@ -789,7 +789,7 @@
    "verdict": "fail",
    "reasons": [
     "LEO-vetter FP: off-target: the difference-image source is 23.1\" from the target (threshold 15\"); the star at the fitted position is TIC 75208617 = Gaia DR3 5423774792624492928 (G = 14.32, 25.0\" from the target, 2.2\" from the fit)",
-    "TRICERATOPS NFPP = 0.329 > 0.1: likely a nearby false positive (FPP = 1; most probable: SEBx2P on TIC 75208638 0.61; NEB on TIC 75208648 0.07; BEBx2P on TIC 75208638 0.06)"
+    "TRICERATOPS NFPP = 0.328 > 0.1: likely a nearby false positive (FPP = 1; most probable: SEBx2P on TIC 75208638 0.61; NEB on TIC 75208648 0.07; NEBx2P on TIC 75208617 0.06)"
    ],
    "notes": [
     "6 Gaia DR3 neighbour(s) within 42\" could cause the dip (weighed by TRICERATOPS / the pixel test)"
@@ -813,20 +813,20 @@
      "exptime": 200.0
     }
    ],
-   "n_points": 46410,
+   "n_points": 46060,
    "detrend": "lightkurve flatten (Savitzky-Golay), window max(0.75 d, 3 x duration), transits masked"
   },
   "runtime_s": {
    "tic": 0.0,
-   "lightcurve": 0.1,
-   "leo": 9.8,
-   "triceratops": 103.6,
+   "lightcurve": 3.5,
+   "leo": 30.8,
+   "triceratops": 34.7,
    "gaia": 0.0,
    "variability": 0.0,
-   "total": 113.6
+   "total": 68.9
   },
   "skyvet_version": "0.1.0",
-  "vetted_at": "2026-09-27T08:24:57+00:00",
+  "vetted_at": "2026-09-27T19:28:02+00:00",
   "offline": false
  },
  "eb_408512382": {
