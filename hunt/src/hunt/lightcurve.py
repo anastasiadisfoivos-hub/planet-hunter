@@ -6,7 +6,8 @@ extra checks need to know where they were, and the single-dip search needs the b
 scattered light, so the same cached FITS files are re-read here for TIME / QUALITY / SAP_BKG.
 
 Stitching (stitch()): every sector with a light curve, best product per sector (SPOC 2-min, else TESS-SPOC,
-else QLP FFI; hunter.fetch.choose_products), each normalised by its own median (hunter.fetch), quality-flagged
+else QLP FFI; hunter.fetch.choose_products; QLP sectors re-read with QLP's own quality flags, see
+_clean_qlp_sectors), each normalised by its own median (hunter.fetch), quality-flagged
 cadences dropped (lightkurve "default" bitmask), and points more than 50% below the median dropped (defects). The curve keeps its native cadence; the searches work on a copy
 averaged into BIN_MINUTES bins inside each sector (bin_lc: a 40-sector star is ~150k points instead of ~650k;
 cadences already longer than a bin are kept as they are) and measure and vet on the native curve, because
@@ -100,7 +101,8 @@ def _read_extras(product: dict) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.
     ok = np.isfinite(t)
     t, q, bkg = t[ok], q[ok], bkg[ok]
     dumps = t[(q & MOMENTUM_DUMP_BIT) > 0]
-    flagged = t[((q & DEFAULT_BITMASK) > 0) & ((q & MOMENTUM_DUMP_BIT) == 0)]
+    bad = q != 0 if product.get("author") == "QLP" else (q & DEFAULT_BITMASK) > 0  # QLP: every flag (see above)
+    flagged = t[bad & ((q & MOMENTUM_DUMP_BIT) == 0)]
     return dumps, flagged, t, bkg, head
 
 
@@ -116,8 +118,59 @@ def _normalise_bkg(b: np.ndarray) -> np.ndarray:
     return (b - med) / s
 
 
+def _qlp_clean(product: dict) -> tuple[np.ndarray, np.ndarray, np.ndarray, str] | None:
+    """A QLP sector as QLP recommends: only cadences with QUALITY == 0 (QLP flags scattered light and bad data
+    with its own bits 29-30, which lightkurve's default mask ignores), flux from SYS_RM_FLUX (systematics removed,
+    not spline-detrended, so long transits survive) where the file has it, else SAP_FLUX; median-normalised."""
+    from astropy.io import fits
+
+    with fits.open(fits_dir() / product["filename"], memmap=False) as hdul:
+        d = hdul[1].data
+        names = [c.upper() for c in d.columns.names]
+        col = "SYS_RM_FLUX" if "SYS_RM_FLUX" in names else "SAP_FLUX"
+        if col not in names or "QUALITY" not in names:
+            return None
+        t = np.asarray(d["TIME"], float)
+        f = np.asarray(d[col], float)
+        q = np.asarray(d["QUALITY"], np.int64)
+        err_col = next((c for c in ("DET_FLUX_ERR", "KSPSAP_FLUX_ERR", "SAP_FLUX_ERR") if c in names), None)
+        e = np.asarray(d[err_col], float) if err_col else np.full(len(t), np.nan)
+    ok = np.isfinite(t) & np.isfinite(f) & (f > 0) & (q == 0)
+    if ok.sum() < 100:
+        return None
+    med = float(np.median(f[ok]))
+    return t[ok], f[ok] / med, np.where(np.isfinite(e[ok]), e[ok] / med, np.nan), col.lower()
+
+
+def _clean_qlp_sectors(lc) -> None:
+    """hunter.fetch reads QLP files through lightkurve: SAP_FLUX with the SPOC default quality mask, which keeps
+    QLP's own bad-data flags. On the newest QLP sectors that left 1-4% of cadences more than 2% low (scattered
+    light), which folded into strong fake periodic signals and hid injected 5-8 R_earth planets. Replace each QLP
+    sector with _qlp_clean."""
+    for p in lc.products:
+        if p["author"] != "QLP":
+            continue
+        try:
+            got = _qlp_clean(p)
+        except Exception:
+            got = None
+        if got is None:
+            continue
+        t, f, e, col = got
+        keep = lc.sector != p["sector"]
+        fill = float(np.nanmedian(np.abs(np.diff(f)))) / np.sqrt(2)
+        times = np.concatenate([lc.time[keep], t])
+        order = np.argsort(times, kind="stable")
+        lc.time = times[order]
+        lc.flux = np.concatenate([lc.flux[keep], f])[order]
+        lc.flux_err = np.concatenate([lc.flux_err[keep], np.where(np.isfinite(e), e, fill)])[order]
+        lc.sector = np.concatenate([lc.sector[keep], np.full(len(t), p["sector"])])[order]
+        p["flux_column"] = f"{col} (QUALITY == 0)"
+
+
 def fetch(tic: int, max_sectors: int = 3, refresh: bool = False) -> StarLC:
     lc = hfetch.fetch(int(tic), max_sectors=max_sectors, refresh=refresh)
+    _clean_qlp_sectors(lc)
     dumps, flagged, read_all = [], [], True
     bkg = np.full(len(lc.time), np.nan)
     products = []
