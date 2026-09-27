@@ -1,0 +1,303 @@
+{
+ "date": "2026-09-26",
+ "code": "origin/deephunt 30bbe36 (hunt/ + pipeline/), hunt run --workers 1, cold caches, --catalogue snapshot",
+ "machine": "Apple Silicon, 10 cores, 24 GB; shared with other jobs, load average 35-85 during the run, so wall times are inflated",
+ "sample": "12 stars at even ranks 500..46150 of the 730,799-row deep_targets.csv (i.e. within the top 50k); 8 finished before the run was stopped",
+ "cpu_s_per_star_sampled": [
+  170,
+  85,
+  59,
+  70,
+  48,
+  128,
+  129,
+  180
+ ],
+ "cpu_note": "per-star process CPU time sampled every 5 s with ps; star 1 value is approximate (sampler started late)",
+ "stars": [
+  {
+   "tic": 234991587,
+   "rank": 8262,
+   "tmag": 7.767,
+   "n_sectors": 6,
+   "n_points": 84074,
+   "cadence_mix": {
+    "QLP 200 s": [
+     102,
+     104
+    ],
+    "SPOC 120 s": [
+     1,
+     28,
+     68,
+     95
+    ]
+   },
+   "wall_s": 536.2,
+   "timings_s": {
+    "fetch": 25.6,
+    "analyse": 510.63,
+    "periodic": 504.82,
+    "vetting": 0.24,
+    "dips": 5.57,
+    "bls_short_s": 20.48,
+    "detrend_long_s": 1.63,
+    "bls_long_s": 109.16,
+    "tls_s": 233.21,
+    "measure_s": 93.42
+   },
+   "signals": 1,
+   "candidates": 0
+  },
+  {
+   "tic": 71344880,
+   "rank": 74671,
+   "tmag": 8.21,
+   "n_sectors": 5,
+   "n_points": 89147,
+   "cadence_mix": {
+    "SPOC 120 s": [
+     4,
+     31,
+     97,
+     105,
+     106
+    ]
+   },
+   "wall_s": 216.4,
+   "timings_s": {
+    "fetch": 21.41,
+    "analyse": 195.02,
+    "periodic": 193.49,
+    "vetting": 0.11,
+    "dips": 1.42,
+    "bls_short_s": 36.35,
+    "detrend_long_s": 1.72,
+    "bls_long_s": 68.27,
+    "tls_s": 46.77,
+    "measure_s": 31.16
+   },
+   "signals": 1,
+   "candidates": 0
+  },
+  {
+   "tic": 80064194,
+   "rank": 133313,
+   "tmag": 10.552,
+   "n_sectors": 4,
+   "n_points": 22467,
+   "cadence_mix": {
+    "QLP 200 s": [
+     104
+    ],
+    "TESS-SPOC 1800 s": [
+     13
+    ],
+    "TESS-SPOC 200 s": [
+     67
+    ],
+    "TESS-SPOC 600 s": [
+     27
+    ]
+   },
+   "wall_s": 148.8,
+   "timings_s": {
+    "fetch": 15.43,
+    "analyse": 133.37,
+    "periodic": 123.87,
+    "vetting": 0.07,
+    "dips": 9.43,
+    "bls_short_s": 21.45,
+    "detrend_long_s": 1.54,
+    "bls_long_s": 56.7,
+    "tls_s": 29.31,
+    "measure_s": 10.97
+   },
+   "signals": 2,
+   "candidates": 0
+  },
+  {
+   "tic": 466241255,
+   "rank": 660273,
+   "tmag": 8.389,
+   "n_sectors": 7,
+   "n_points": 56429,
+   "cadence_mix": {
+    "QLP 1800 s": [
+     13
+    ],
+    "QLP 200 s": [
+     101,
+     102,
+     103,
+     104
+    ],
+    "QLP 600 s": [
+     27
+    ],
+    "TESS-SPOC 200 s": [
+     67
+    ]
+   },
+   "wall_s": 155.7,
+   "timings_s": {
+    "fetch": 16.78,
+    "analyse": 138.93,
+    "periodic": 137.7,
+    "vetting": 0.03,
+    "dips": 1.19,
+    "bls_short_s": 11.93,
+    "detrend_long_s": 0.98,
+    "bls_long_s": 29.34,
+    "tls_s": 85.76,
+    "measure_s": 6.07
+   },
+   "signals": 1,
+   "candidates": 0
+  },
+  {
+   "tic": 464985799,
+   "rank": 666734,
+   "tmag": 10.477,
+   "n_sectors": 5,
+   "n_points": 37870,
+   "cadence_mix": {
+    "QLP 1800 s": [
+     12
+    ],
+    "QLP 200 s": [
+     66,
+     93,
+     104
+    ],
+    "QLP 600 s": [
+     39
+    ]
+   },
+   "wall_s": 67.1,
+   "timings_s": {
+    "fetch": 12.09,
+    "analyse": 55.03,
+    "periodic": 53.93,
+    "vetting": 0.03,
+    "dips": 1.07,
+    "bls_short_s": 6.9,
+    "detrend_long_s": 0.71,
+    "bls_long_s": 27.17,
+    "tls_s": 11.58,
+    "measure_s": 4.66
+   },
+   "signals": 1,
+   "candidates": 0
+  },
+  {
+   "tic": 372301452,
+   "rank": 2045,
+   "tmag": 12.781,
+   "n_sectors": 5,
+   "n_points": 50688,
+   "cadence_mix": {
+    "QLP 200 s": [
+     101,
+     102,
+     104
+    ],
+    "SPOC 120 s": [
+     13
+    ],
+    "TESS-SPOC 600 s": [
+     27
+    ]
+   },
+   "wall_s": 215.0,
+   "timings_s": {
+    "fetch": 13.58,
+    "analyse": 201.38,
+    "periodic": 198.66,
+    "vetting": 0.03,
+    "dips": 2.68,
+    "bls_short_s": 9.24,
+    "detrend_long_s": 1.01,
+    "bls_long_s": 60.54,
+    "tls_s": 114.55,
+    "measure_s": 8.47
+   },
+   "signals": 1,
+   "candidates": 0
+  },
+  {
+   "tic": 350224276,
+   "rank": 7097,
+   "tmag": 12.535,
+   "n_sectors": 7,
+   "n_points": 55455,
+   "cadence_mix": {
+    "QLP 200 s": [
+     95,
+     102,
+     103,
+     104
+    ],
+    "TESS-SPOC 1800 s": [
+     1
+    ],
+    "TESS-SPOC 200 s": [
+     68
+    ],
+    "TESS-SPOC 600 s": [
+     28
+    ]
+   },
+   "wall_s": 162.9,
+   "timings_s": {
+    "fetch": 18.99,
+    "analyse": 143.91,
+    "periodic": 140.92,
+    "vetting": 0.04,
+    "dips": 2.95,
+    "bls_short_s": 12.09,
+    "detrend_long_s": 1.0,
+    "bls_long_s": 56.9,
+    "tls_s": 58.61,
+    "measure_s": 7.24
+   },
+   "signals": 1,
+   "candidates": 0
+  },
+  {
+   "tic": 62350319,
+   "rank": 12073,
+   "tmag": 12.689,
+   "n_sectors": 5,
+   "n_points": 36306,
+   "cadence_mix": {
+    "QLP 1800 s": [
+     13
+    ],
+    "QLP 200 s": [
+     67,
+     94,
+     104
+    ],
+    "QLP 600 s": [
+     27
+    ]
+   },
+   "wall_s": 90.3,
+   "timings_s": {
+    "fetch": 11.81,
+    "analyse": 78.46,
+    "periodic": 75.82,
+    "vetting": 0.02,
+    "dips": 2.62,
+    "bls_short_s": 8.34,
+    "detrend_long_s": 0.86,
+    "bls_long_s": 45.01,
+    "tls_s": 13.5,
+    "measure_s": 4.73
+   },
+   "signals": 1,
+   "candidates": 0
+  }
+ ]
+}
