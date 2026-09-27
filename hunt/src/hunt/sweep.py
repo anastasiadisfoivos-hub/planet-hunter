@@ -40,8 +40,8 @@ from .singles import DUO_MUST_RUN, SINGLE_MUST_RUN
 
 _CATALOGUE = None
 SOCKET_TIMEOUT_S = 120
-STAR_TIMEOUT_S = 900  # hard wall-clock limit per star; the parent kills the star's process after this
-# (a 40-sector continuous-viewing-zone star needs ~150 s to download and ~250 s to search on a CI runner)
+STAR_TIMEOUT_S = 1500  # hard wall-clock limit per star; the parent kills the star's process after this
+# (600 s of coherent BLS + 60 s of TLS + up to 6 rounds of measuring, on a loaded runner)
 NEIGHBOUR_DIPS_DEG = 1.0  # stars this close, in the same sector, see the same scattered light and dumps
 NEIGHBOUR_DIPS_MIN_STARS = 2  # one other star with a dip at the same time can be chance; two is an artefact
 # Why a process per star: MAST sometimes stops answering mid-read, and requests passes timeout=None, which

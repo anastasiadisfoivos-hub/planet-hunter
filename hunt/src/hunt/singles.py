@@ -59,7 +59,8 @@ from .stars import RHO_SUN_KG_M3, Star
 DURATIONS_H = np.array([1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 24.0])
 TIERS = ((1.0, 4.0), (6.0, 12.0), (16.0, 24.0))  # hours; each is flattened with a window 3x its longest
 EVENT_MIN_SES = 7.0  # recorded as an event (for duos and neighbour comparison)
-SINGLE_MIN_SNR = 12.0  # a single becomes a candidate at this SES: ~3 per 1,000 stars (README "False alarms")
+SINGLE_MIN_SNR = 15.0  # a single becomes a candidate at this SES: ~3 per 1,000 stars (README "False alarms")
+MAX_DIP_DURATION_D = 1.1  # a fitted T14 above the longest searched duration (24 h) + 10% fails `duration`
 DUO_MIN_SNR = 10.0  # a duo needs this combined SNR ...
 DUO_MIN_EACH = 7.0  # ... and each dip at least this
 MAX_EVENTS = 20
@@ -733,10 +734,18 @@ def _snr_check(snr: float, need: float, what: str) -> Check:
                                    f"noise (need {need:.0f}).", None)
 
 
+def _too_long(duration: float) -> Check:
+    return Check("duration", False, duration * 24,
+                 f"The dip lasts {duration * 24:.1f} h, longer than the longest dip searched (24 h, +10%): the search "
+                 f"cannot measure it as a transit (slow systematics, or a star much larger than this one).", 0.0)
+
+
 def _single(e: Event, star: Star, covered, span) -> DipResult:
     est, _ = period_posterior(e.duration, e.depth, star, e.tc, covered, span)
     sz, sz_extra = size_check(e.depth, e.depth_err, star)
-    if est.median is None:
+    if e.duration > MAX_DIP_DURATION_D:
+        dur = _too_long(e.duration)
+    elif est.median is None:
         dur = Check("duration", None if "no stellar density" in est.detail.get("why", "") else False, None,
                     "The duration cannot be matched to an orbit: " + est.detail.get("why", "") + ".",
                     None if "no stellar density" in est.detail.get("why", "") else 0.0)
@@ -794,7 +803,9 @@ def _duo(e1: Event, e2: Event, star: Star, tier: FlatTier, covered, span) -> Dip
         al = Check("aliases", True, len(alive), f"{len(alive)} of {len(rows)} periods gap/n (>= {ALIAS_MIN_P:.0f} "
                    f"d) survive; the others would put a dip where the data show none.", 1 / len(alive))
     rho = star.density_solar()[0]
-    if not alive:
+    if dur > MAX_DIP_DURATION_D:
+        dcheck = _too_long(dur)
+    elif not alive:
         dcheck = Check("duration", None, None, "Could not run: no period survives.")
     elif rho is None:
         dcheck = Check("duration", None, None, "Could not run: the TIC has no radius for this star.")

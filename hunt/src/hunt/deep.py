@@ -156,7 +156,8 @@ def long_blocks(pmin: float, pmax: float, rho: float) -> list[tuple[float, float
         hi = min(2 * lo, pmax)
         d_lo = max(0.35 * central_duration(lo, 3 * rho), 1.0 / 24)
         d_hi = min(1.5 * central_duration(hi, rho / 3), LONG_DURATION_MAX_D)
-        d_hi = max(d_hi, d_lo * 1.3)
+        d_hi = min(max(d_hi, d_lo * 1.3), 0.45 * lo)  # astropy needs every duration below the shortest period
+        d_lo = min(d_lo, 0.8 * d_hi)
         n = max(3, int(math.ceil(math.log(d_hi / d_lo) / math.log(1.3))) + 1)
         out.append((lo, hi, np.geomspace(d_lo, d_hi, n)))
         lo = hi

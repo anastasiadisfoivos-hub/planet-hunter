@@ -107,7 +107,7 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--no-plots", action="store_true")
     r.add_argument("--source", choices=["mast", "tglc"], default="mast",
                    help="light curves: MAST SPOC/TESS-SPOC/QLP (default) or TGLC via faint/'s skyfaint loader")
-    r.add_argument("--star-timeout-s", type=float, default=900.0, help="kill a star's process after this long")
+    r.add_argument("--star-timeout-s", type=float, default=1500.0, help="kill a star's process after this long")
     r.set_defaults(fn=cmd_run)
 
     m = sub.add_parser("merge", help="merge shard outputs into ranked candidates + funnel")

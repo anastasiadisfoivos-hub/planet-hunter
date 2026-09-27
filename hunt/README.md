@@ -14,6 +14,7 @@ built here.
 cd hunt && uv sync
 uv run hunt targets --out targets                                   # ranked target lists
 uv run hunt run --tic-file targets/targets.csv --shard 3/20 --time-budget-min 350 --out shard3
+uv run hunt run --tic-file ../faint/results/targets_faint_top.csv --source tglc --out faint0   # TGLC via skyfaint
 uv run hunt merge shard*/ --tic-file targets/targets.csv --out merged   # ranked candidates + funnel
 uv run hunt inject --tic-file targets/targets.csv --out sensitivity.json   # injection-recovery
 uv run pytest                                                         # offline, recorded real data
@@ -287,69 +288,90 @@ cuts are run.
 - `sensitivity.json` holds per-bin counts and fractions, marginals by radius and by period, and the star list.
   `sensitivity_injections.jsonl` holds every injection.
 
-HUNT's run (2026-09-26, `results/sensitivity.json`, 3 sectors, 0.5–15 d grid only): 200 quiet stars (mostly M dwarfs and small stars from
+HUNT's run (2026-09-26, now `results/sensitivity_hunt_2026-09-26.json`, 3 sectors, 0.5–15 d grid only): 200 quiet stars (mostly M dwarfs and small stars from
 the top of list A), 2,000 injections, overall recovery 0.61. By radius, 1–2 R⊕ 0.28, 2–3 R⊕ 0.55,
 ≥ 3 R⊕ 0.66–0.72. By period, < 2 d 0.82–0.84, 7–10 d 0.45, 10–15 d 0.07.
 
 Beyond about 7 d, the SDE ≥ 9 cut is the limit, not the search: 77% of 10–15 d injections are still
 detected, and 425 of the 480 detected-but-rejected injections failed only on SDE.
 
+**DEEPHUNT's run** (2026-09-27, `results/sensitivity.json`, the final search on stitched curves): 24 quiet
+list-A stars (5–11 sectors), 96 injections, 4 per star, cycling single-transit, long-period and short-period bins.
+The single threshold (SES 15) and the 26.4-h duration limit were set after the run and are applied to the
+recorded injections (one single at SES 12.8 no longer counts). Small numbers per bin; read them as indicative.
+
+| Grid | injected | with a transit in the data | recovered | as |
+|---|---|---|---|---|
+| short period, 0.5–15 d (HUNT's grid) | 28 | 28 | **28 (100 %)**, 8 of 8 at 1–2 R⊕ | periodic |
+| long period, 30–400 d | 48 | 28 | **16 (33 %; 57 % of those in the data)** | 5 periodic, 3 duo, 8 single |
+| single transit (100–1,000-d planet) | 20 | 20 | **17 (85 %)**; period range contains the truth for **17 of 17** | single |
+
+Long periods by period: 30–60 d 6 of 12, 60–120 d 3 of 12, 120–240 d 4 of 12, 240–400 d 3 of 12; most losses are
+planets that never transit while TESS looks (20 of 48). Single transits are lost below ~2 R⊕ (0 of 2 at 1–2 R⊕).
+The same injections found three search failures, all fixed: a one-epoch glitch hiding a real planet, QLP's
+unflagged scattered light, and variable stars flooding the single/duo list (section 7b).
+
 ## 7b. Runtime, stars per night and false alarms (measured)
 
-**Calibration run**: the first 360 stars of HUNT's 2026-09-25 target list re-ranked with the new groups (list B
-siblings interleaved with list A, i.e. what a night would search first), every sector stitched. It was run
-twice: once before and once after the QLP fix below (2026-09-27, 5 workers on a 10-core M-series laptop shared
-with an injection run and other jobs, so these times are on the slow side). Second run: 360 finished, 0
-timeouts, 1 crash (a star whose points were all masked; fixed since).
+**Calibration run** (final search, 2026-09-27): the first 360 stars of HUNT's 2026-09-25 target list re-ranked
+with the new groups (list B siblings interleaved with list A, i.e. what a night would search first), every sector
+stitched, 5–7 workers on a 10-core M-series laptop shared with an injection run and other jobs (so these times
+are on the slow side). All 360 finished (the 41 that first hit the old 900-s limit or a crash were re-run
+after the fixes below; none timed out at 1,500 s).
 
-| Per star (s), second run | median | mean |
+| Per star (s) | median | mean |
 |---|---|---|
-| download + stitch | 6 | 8 |
-| `bls_short` (0.5–15 d) | 20 | 23 |
-| `bls_long` (15 d – ½ baseline) | 109 | 124 |
-| `tls` | 54 | 50 |
-| native re-measuring | 16 | 19 |
+| download + stitch | 3 | 4 |
+| `bls_short` (coherent, 0.5–15 d) | 55 | 69 |
+| `bls_long` (15 d – ½ baseline) | 111 | 133 |
+| `tls` | 49 | 43 |
+| native re-measuring (up to 6 rounds) | 17 | 21 |
 | single / duo search | 1 | 1 |
-| **whole star** | **216** | **237** |
+| **whole star** | **247** | **285** |
 
-(The first run, 8 workers: median 225 s, mean 251 s.) Stars had a median of 6 sectors (90th percentile 10,
-max 12) over baselines of ~2,500–2,900 d; `bls_long` reached half the baseline on 329 of 359 stars (median
-1,425 d) and stopped at its 180-s budget on the rest. TLS fitted its 60-s budget only on the newest ~2
-sectors (median) for every star: with sectors spread over eight years its period grid is huge, so on stitched
-curves TLS mainly helps small planets in recent data, and BLS covers the whole baseline. HUNT's 3-sector BLS
-took a median 18 s per star.
+Stars had a median of 6 sectors (90th percentile 10) over baselines of ~2,500–2,900 d; the shared 600-s BLS
+budget stopped the search early on 36 of 360 stars. Most stars ended after 1–2 signal rounds (196 after one);
+14 used all 6. The scattered-light / edge mask removed a median 6 % of cadences (90th percentile 14 %). TLS
+fitted its 60-s budget only on the newest ~2 sectors: with sectors spread over eight years its period grid is
+huge, so the coherent BLS carries the stitched search. HUNT's 3-sector BLS took a median 18 s per star.
 
-**Nightly CI** (public repo, 20 shards × 350-min budget, 4 workers per `ubuntu-latest` runner): the budget,
-not the list, sets the minutes, which stay at about 20 × 355 + 15 ≈ **7,100 runner-minutes a night** (as
-HUNT). At ~240–250 s per star per worker that is 20 × 350 × 60 × 4 / 250 ≈ **6,700 stars a night** (HUNT:
-~90k at ~18 s). A runner vCPU may be slower than a laptop core, so plan on **4,000–7,000**; the time budget
-keeps a slow night inside 350 minutes either way. The 19,489 group-0 stars take about 3–5 nights, the 536k
-stars with ≥ 5 sectors about 80–130 nights.
+**Nightly CI** (public repo, 20 shards × 350-min budget, 4 workers per `ubuntu-latest` runner): the budget, not
+the list, sets the minutes, which stay at about 20 × 355 + 15 ≈ **7,100 runner-minutes a night** (as HUNT). At
+285 s per star per worker that is 20 × 350 × 60 × 4 / 285 ≈ **5,900 stars a night** (HUNT: ~90k at ~18 s). A
+runner vCPU may be slower than a laptop core, so plan on **3,500–6,000**. The 19,489 group-0 stars take about 3–6
+nights, the 536k stars with ≥ 5 sectors about 90–150 nights.
 
-**False alarms** (the same 359 stars, final rules applied to every star from its recorded dip events):
+**False alarms** (the same 360 stars, final rules applied to every star from its recorded dips and events):
 
-| Kind, threshold | pass every check, not on a list: run 1 / run 2 | per 1,000 stars | per night (6,700 stars) |
+| Kind, threshold | pass every check, not on a list | per 1,000 stars | per night (5,900 stars) |
 |---|---|---|---|
-| single, SES ≥ 10 | 1 / 0 | ≤ 2.8 | ≤ ~19 |
-| **single, SES ≥ 12 (used)** | **1 / 0** | **≤ 2.8** | **≤ ~19** |
-| single, SES ≥ 15 | 0 / 0 | – | – |
-| duo, combined ≥ 10 (used) | 0 / 0 | – | – |
-| periodic (SNR ≥ 10, SDE ≥ 9 or SNR ≥ 30) | 0 / 0 | – | – |
+| single, SES ≥ 10 | 4 | 11.1 | ~65 |
+| single, SES ≥ 12 | 2 | 5.6 | ~33 |
+| **single, SES ≥ 15 (used)** | **1** | **2.8** | **~16** |
+| duo, combined ≥ 10 (used) | 0 | < 2.8 | – |
+| periodic (SNR ≥ 10, SDE ≥ 9 or SNR ≥ 30) | 2 | 5.6 | ~33 |
 
-The single threshold is **SES ≥ 12** and the duo threshold combined SNR ≥ 10 (each dip ≥ 7), which keeps the
-nightly list at roughly 20 or fewer. These numbers rest on very few events: 0–1 in 359 stars puts the combined
-single + duo rate anywhere up to ~5 per 1,000 (84% Poisson upper limit for 1 event), i.e. up to ~35 a night.
-The first real nights' `funnel.json` (`dips.single.candidates_per_1000_stars`) should be used to re-set it.
-What set these rules:
-
-- In run 2 (clean QLP) one variable star (TIC 352400977) alone produced 7 duos and 2 singles out of clean,
-  ~1.5 %-deep dips of varying length. That is why `isolated` counts every other dip as strong as the
-  candidate's, not only artefacts.
-- In run 2's funnel, 1,104 of 1,143 dip events with SES ≥ 7 failed a per-dip check (`shape` 827, `edge` 823,
-  `background` 600, `momentum_dump` 409; several per event). Run 1, on raw QLP flux, had 3,599 events.
+The single threshold is **SES ≥ 15** (duos: combined ≥ 10, each dip ≥ 7), so singles and duos together stay near
+20 a night or fewer. These numbers rest on very few events: one single in 360 stars puts the rate anywhere up to
+~5 per 1,000 (84 % Poisson upper limit), i.e. up to ~30 a night, and the first real nights' `funnel.json`
+(`dips.single.candidates_per_1000_stars`) should be used to re-set it. The single at SES ≥ 15 is TIC 67583849
+(6.5 % deep, 2.2 h: 1.6 R_Jup, most likely an eclipsing binary, within the size limit). The two periodic
+candidates are TIC 360955814 (12.73 d, SNR 11.8, SDE 11.3) and TIC 76923707 (TOI-181's host, 9.48 d, SNR 13.5,
+SDE 10.3); the coherent search finds more than HUNT's did, and whether these are real is for review. The single
+threshold was raised from 12 to 15 on these numbers; it costs one of the 26 recovered injected dips (a 1.4 R⊕
+single at SES 12.8). Dips fitted longer than 26.4 h (24 h searched + 10 %) now fail `duration`: three of the five
+SES ≥ 12 singles were such 28–30-h disturbances, two of them in sector 68.
 
 **Found and fixed on the way (all from these runs and injection-recovery):**
 
+- (FAINT) The 0.5–15-d search BLS-ed each sector separately and added the powers without aligning phases,
+  so TOI-1680 b (SNR ~5 per sector) vanished; and scattered-light dips filled all 3 signal slots. Now one
+  coherent BLS over all sectors, a scattered-light mask with shoulders, and up to 6 signals (section 2).
+- The mask's background part, applied to SPOC data at first, took 55 % of TOI-813's curve and 2 of TOI-2180 b's
+  3 transits: a per-cadence background gradient at 2-min cadence is noise, and SPOC's PDCSAP is already
+  background-corrected. It now applies to FFI photometry (TGLC, QLP) only, with the rate on 1-h bins.
+- `secondary_eclipse` rejected TOI-1680 b on a 3.8σ (white-noise) box at phase 0.56; it now uses the empirical
+  scatter of boxes elsewhere in the orbit and a look-elsewhere correction (2.0σ; the EB fixture stays at 16.6σ).
 - QLP sectors: the pipeline reads QLP files through lightkurve with SAP_FLUX and the SPOC quality mask, which
   keeps QLP's own bad-data flags (bits 29–30). On QLP sectors 101–104, 1–4 % of cadences were > 2 % low; they
   folded into fake periodic signals and hid injected 5–8 R⊕ planets (0 of 4 recovered on such stars, 4 of 4

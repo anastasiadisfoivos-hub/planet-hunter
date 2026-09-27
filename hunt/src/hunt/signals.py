@@ -258,7 +258,8 @@ def _deep_round(c: _Curves, mask, star, window, tls_left: float, runtime: dict) 
     baseline = float(np.ptp(c.tb)) if len(c.tb) else 0.0
 
     def left() -> float:
-        return max(BLS_BUDGET_S - runtime.get("bls_short_s", 0.0) - runtime.get("bls_long_s", 0.0), 0.0)
+        return max(runtime.get("bls_budget_s", BLS_BUDGET_S) - runtime.get("bls_short_s", 0.0)
+                   - runtime.get("bls_long_s", 0.0), 0.0)
 
     # bls_short: ONE phase-coherent BLS over every sector at once (0.5-15 d), not per sector: the pipeline's
     # per-sector coarse stage adds powers without aligning phases and lost TOI-1680 b (SNR ~5 per sector, 24 in all).
@@ -318,7 +319,8 @@ def _deep_round(c: _Curves, mask, star, window, tls_left: float, runtime: dict) 
 
 
 def find_signals(lc: StarLC, premask: np.ndarray | None = None, max_signals: int | None = None,
-                 star=None, deep_search: bool = False, tls_budget_s: float = deep.TLS_BUDGET_S) -> SearchOutput:
+                 star=None, deep_search: bool = False, tls_budget_s: float = deep.TLS_BUDGET_S,
+                 bls_budget_s: float = BLS_BUDGET_S) -> SearchOutput:
     """Up to max_signals periodic signals, each found with the others masked.
 
     deep_search=False: the pipeline's BLS only (0.5-15 d), as HUNT ran it.
@@ -334,7 +336,7 @@ def find_signals(lc: StarLC, premask: np.ndarray | None = None, max_signals: int
         max_signals = DEEP_MAX_SIGNALS if deep_search else MAX_SIGNALS
     signals: list[Signal] = []
     methods: list[dict] = []
-    runtime: dict = {}
+    runtime: dict = {"bls_budget_s": bls_budget_s}
     window = long_window(star, float(np.ptp(t)) if len(t) else 0.0) if deep_search else None
     curves = _curves(lc) if deep_search else None
 
