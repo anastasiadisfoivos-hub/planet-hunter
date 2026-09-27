@@ -183,6 +183,74 @@ def ingest(
     return out
 
 
+def ingest_chunk(storage: Storage, body: dict[str, Any], *, keep_runs: int = 3) -> dict[str, Any]:
+    """POST /finder/ingest: one chunk of a night's output, sent over HTTP by the search server so it
+    needs no database URL. `body`: {run_id, run_started_at?, candidates: [{id, candidate}],
+    monitor: [star records], summary?, sensitivity?, final}. Steps 1, 2a, 3 and 4 above, the same
+    way: candidates upserted (unchanged ones not rewritten), dismissed from their own
+    `known_lists`, summary and sensitivity stored, monitor stars stored under run `run_id`,
+    which stays "running" until the `final` chunk marks it done and prunes old runs. The
+    known-list re-check (2b) and the pixel check (5) are not done here; the server runs pixel
+    checks itself through GET /finder/pixel-queue and POST /finder/candidates/{id}/pixel-vet."""
+    now = utcnow()
+    run_id = body["run_id"]
+    started: datetime | None = body.get("run_started_at")
+    out: dict[str, Any] = {
+        "run_id": run_id,
+        "candidates": {"created": 0, "updated": 0, "unchanged": 0},
+        "invalid": [],
+        "dismissed": [],
+        "summary_stored": False,
+        "sensitivity_stored": False,
+        "monitor_stars": 0,
+        "final": bool(body.get("final")),
+    }
+    records: dict[str, dict[str, Any]] = {}
+    for item in body.get("candidates") or []:
+        cid = item.get("id")
+        if not isinstance(cid, str) or not CANDIDATE_ID.match(cid):
+            out["invalid"].append({"file": str(cid)[:80], "error": "id must be <tic>_<n>"})
+            continue
+        try:
+            records[cid] = parse_candidate(cid, item.get("candidate"))
+        except (InvalidCandidate, ValueError) as exc:
+            out["invalid"].append({"file": cid, "error": str(exc)[:300]})
+    stars = []
+    for i, rec in enumerate(body.get("monitor") or []):
+        try:
+            stars.append(monitor.parse_star(rec, now))
+        except monitor.InvalidStar as exc:
+            tic = rec.get("tic") if isinstance(rec, dict) else None
+            out["invalid"].append({"file": f"monitor[{i}] tic {tic}", "error": str(exc)[:300]})
+
+    with storage.atomic():
+        hashes = storage.candidate_hashes(list(records))
+        for cid, rec in records.items():
+            row = candidate_row(cid, rec, now)
+            same = hashes.get(cid) == row.content_hash
+            out["candidates"]["unchanged" if same else storage.upsert_candidate(row)] += 1
+        for cid, rec in records.items():
+            if (match := known_match(rec.get("known_lists"))) and storage.dismiss_candidate(
+                cid, honesty.soften(match.reason()), now
+            ):
+                out["dismissed"].append({"id": cid, "reason": match.reason()})
+        if isinstance(body.get("summary"), dict):
+            storage.put_finder_doc("finder_sweep", honesty.clean(body["summary"]), now)
+            out["summary_stored"] = True
+        if isinstance(body.get("sensitivity"), dict):
+            storage.put_finder_doc("sensitivity", honesty.clean(body["sensitivity"]), now)
+            out["sensitivity_stored"] = True
+        if stars or out["final"]:
+            storage.put_monitor_run(run_id, started, "running", now)
+            for star in stars:
+                storage.put_monitor_star(run_id, star)
+            out["monitor_stars"] = len(stars)
+    if out["final"]:
+        storage.put_monitor_run(run_id, started, "done", utcnow())
+        out["pruned_runs"] = storage.prune_monitor_runs(keep_runs)
+    return out
+
+
 def load_monitor(
     storage: Storage,
     folder: Path,

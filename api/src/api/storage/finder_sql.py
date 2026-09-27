@@ -20,7 +20,7 @@ LIST_COLUMNS = (
     " c.votes_planet, c.votes_fake, c.votes_unsure, c.votes_total, c.exported_at,"
     " c.vetting, c.created_at, c.updated_at"
 )
-DOC_TABLES = ("sensitivity", "finder_sweep")
+DOC_TABLES = ("sensitivity", "finder_sweep", "monitor_heartbeat")
 
 
 class FinderSql:
@@ -201,6 +201,11 @@ class FinderSql:
                 )
 
     # Pixel vets --------------------------------------------------------------------------
+
+    def candidate_ephemeris_key(self, candidate_id: str) -> str | None:
+        r = self._one(self._sql("SELECT ephemeris_key FROM candidates WHERE id = ?"),
+                      (candidate_id,))  # fmt: skip
+        return r["ephemeris_key"] if r else None
 
     def candidates_to_vet(self, limit: int, max_attempts: int) -> list[VetTodo]:
         """Open candidates with no vet for their current ephemeris (never-vetted first, then by

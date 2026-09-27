@@ -43,7 +43,7 @@ class HonestClient(TestClient):
 BACKENDS = [b.strip() for b in os.environ.get("PH_TEST_BACKENDS", "sqlite,postgres").split(",")]
 TABLES = (
     "candidates, pixel_vets, votes, sensitivity, finder_sweep, monitor_runs, monitor_shards,"
-    " monitor_stars, monitor_seen, monitor_sectors, monitor_reasons"
+    " monitor_stars, monitor_seen, monitor_sectors, monitor_reasons, monitor_heartbeat"
 )
 # Dropped by 0006, listed so a database left by an older test run starts clean.
 OLD_TABLES = (

@@ -27,7 +27,7 @@ def test_migrations_are_recorded(storage, backend):
         versions = [r[0] for r in storage._all("SELECT version FROM schema_migrations")]
         assert versions == [
             "0002_events", "0003_analyze", "0004_stardata", "0005_finder", "0006_finder_only",
-            "0007_monitor_detail",
+            "0007_monitor_detail", "0008_runner",
         ]  # fmt: skip
         assert storage.migrate() == []  # idempotent
         tables = {r[0] for r in storage._all("SELECT name FROM sqlite_master WHERE type='table'")}
@@ -35,7 +35,7 @@ def test_migrations_are_recorded(storage, backend):
         rows = storage._all("SELECT version FROM schema_migrations ORDER BY version")
         assert [r["version"] for r in rows] == [
             "0001_init", "0002_events", "0003_analyze", "0004_stardata", "0005_finder",
-            "0006_finder_only", "0007_monitor_detail",
+            "0006_finder_only", "0007_monitor_detail", "0008_runner",
         ]  # fmt: skip
         tables = {
             r["tablename"]
@@ -148,7 +148,8 @@ def test_0007_backfills_sqlite(monkeypatch):
     from api.storage import sqlite
 
     files = sqlite.migration_files()
-    assert files[-1][0] == "0007_monitor_detail"
+    i = [v for v, _ in files].index("0007_monitor_detail")
+    files = files[: i + 1]  # up to 0007: later migrations are not what this test is about
     monkeypatch.setattr(sqlite, "migration_files", lambda: files[:-1])
     s = SqliteStorage(":memory:")
     try:
@@ -168,8 +169,10 @@ def test_0007_backfills_postgres(pg_url, pg_storage, monkeypatch):
     from api.storage import postgres
     from tests.conftest import OLD_TABLES, TABLES
 
-    files = postgres.migration_files()
-    assert files[-1][0] == "0007_monitor_detail"
+    every = postgres.migration_files()
+    files = every
+    i = [v for v, _ in files].index("0007_monitor_detail")
+    files = files[: i + 1]  # up to 0007: later migrations are not what this test is about
     with psycopg.connect(pg_url, autocommit=True) as conn:
         conn.execute(f"DROP TABLE IF EXISTS {TABLES}, {OLD_TABLES}, schema_migrations CASCADE")
         monkeypatch.setattr(postgres, "migration_files", lambda: files[:-1])
@@ -178,6 +181,8 @@ def test_0007_backfills_postgres(pg_url, pg_storage, monkeypatch):
             conn.execute(sql.format(t=T.isoformat()))
         monkeypatch.setattr(postgres, "migration_files", lambda: files)
         assert postgres.migrate(conn) == ["0007_monitor_detail"]
+        monkeypatch.setattr(postgres, "migration_files", lambda: every)
+        postgres.migrate(conn)  # back to the current schema, which the shared wipe expects
     try:
         _check_backfill(pg_storage)
     finally:

@@ -39,6 +39,9 @@ class Settings:
     monitor_live_timeout_s: float = 900.0  # "live" until a running sweep is silent this long
     monitor_step_s: float = 20.0  # replay: seconds per star
     monitor_keep_runs: int = 3  # finished runs whose stars (light curves) are kept
+    # The search server: silent this long after its last heartbeat, it is "not responding".
+    runner_stale_s: float = 900.0
+    ingest_max_bytes: int = 8_000_000  # POST /finder/ingest: bigger chunks answer 413
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -62,4 +65,6 @@ class Settings:
             monitor_live_timeout_s=_float("PH_MONITOR_LIVE_TIMEOUT_S", 900.0),
             monitor_step_s=_float("PH_MONITOR_STEP_S", 20.0),
             monitor_keep_runs=_int("PH_MONITOR_KEEP_RUNS", 3),
+            runner_stale_s=_float("PH_RUNNER_STALE_S", 900.0),
+            ingest_max_bytes=_int("PH_INGEST_MAX_BYTES", 8_000_000),
         )

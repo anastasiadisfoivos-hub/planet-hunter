@@ -5,6 +5,7 @@ totals. While a sweep runs, its shards POST /monitor/progress with PH_INGEST_TOK
 from __future__ import annotations
 
 import hmac
+import re
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
@@ -18,6 +19,8 @@ from api.timeutil import utcnow
 router = APIRouter(prefix="/monitor", tags=["monitor"])
 
 MAX_LOG = 200
+LABEL = r"^[a-z][a-z0-9_-]{0,19}$"
+RUNNER_STATES = ("searching", "vetting", "ingesting", "idle")
 SPARK_NOTE = "each bin keeps its lowest point; sectors joined end to end"
 _limit = rate_limited("ingest")
 
@@ -44,16 +47,24 @@ def now(
     after: Annotated[int | None, Query(ge=1)] = None,
 ) -> dict:
     """{mode: "live"|"replay", run_id, run_started_at, progress: {done, total}, star, next_at,
-    next_tic}. `next_at` (replay only) is when the replay moves to the next star. `after`
-    (replay only; ignored live): return the star after this tic in the run's search order
-    instead of the server-timed one. `next_tic` (replay only): the star after the returned one."""
-    return monitor.now_view(
+    next_tic, label, runner}. `next_at` (replay only) is when the replay moves to the next
+    star. `after` (replay only; ignored live): return the star after this tic in the run's
+    search order instead of the server-timed one. `next_tic` (replay only): the star after the
+    returned one.
+    `label`: which search found the star ("fast", "deep", "faint"), when the server said.
+    `runner`: the search server's last heartbeat, {state, run_id, next_run_at, last_seen_at,
+    responding}, or null if it never sent one."""
+    at = utcnow()
+    view = monitor.now_view(
         services.storage,
-        utcnow(),
+        at,
         live_timeout_s=settings.monitor_live_timeout_s,
         step_s=settings.monitor_step_s,
         after=after,
     )
+    view["label"] = (view["star"] or {}).get("label")
+    view["runner"] = monitor.runner_view(services.storage, at, stale_s=settings.runner_stale_s)
+    return view
 
 
 @router.get("/stars/{tic}")
@@ -120,6 +131,7 @@ class ProgressIn(BaseModel):
     done: int = Field(ge=0)
     total: int = Field(ge=0)
     star: dict[str, Any] | None = None  # the star this shard just finished (monitor shape)
+    label: str | None = Field(default=None, pattern=LABEL)  # which search: fast, deep, faint
 
 
 @router.post("/progress", dependencies=[Depends(require_ingest)], include_in_schema=False)
@@ -134,8 +146,11 @@ def progress(body: ProgressIn, services: ServicesDep) -> dict:
         started = started.replace(tzinfo=UTC)
     star = None
     if body.star is not None:
+        record = dict(body.star)
+        if body.label is not None:
+            record["label"] = body.label
         try:
-            star = monitor.parse_star(body.star, at)
+            star = monitor.parse_star(record, at)
         except monitor.InvalidStar as exc:
             raise HTTPException(422, f"star: {exc}") from None
     with storage.atomic():
@@ -149,3 +164,44 @@ def progress(body: ProgressIn, services: ServicesDep) -> dict:
         "state": run["state"],
         "progress": {"done": run["done"], "total": run["total"]},
     }
+
+
+class QueueCounts(BaseModel):
+    done: int = Field(ge=0)
+    listed: int | None = Field(default=None, ge=0)
+    running: int = Field(default=0, ge=0)
+
+
+class HeartbeatIn(BaseModel):
+    runner_id: str | None = Field(default=None, pattern=monitor.RUN_ID.pattern)
+    state: str = Field(pattern="^(" + "|".join(RUNNER_STATES) + ")$")
+    run_id: str | None = Field(default=None, pattern=monitor.RUN_ID.pattern)
+    next_run_at: datetime | None = None
+    queues: dict[str, QueueCounts] | None = Field(default=None, max_length=20)
+
+
+@router.post("/heartbeat", dependencies=[Depends(require_ingest)], include_in_schema=False)
+def heartbeat(body: HeartbeatIn, services: ServicesDep) -> dict:
+    """The search server says it is alive: what it is doing, when its next run starts, and its
+    ledger's counts per queue. While it works on a run, that run stays "live" on the monitor."""
+    for name in body.queues or {}:
+        if not re.match(LABEL, name):
+            raise HTTPException(422, f"queue name {name!r}: lower-case letters, digits, '_', '-'")
+    at = utcnow()
+    record = body.model_dump(mode="json")
+    with services.storage.atomic():
+        services.storage.put_finder_doc("monitor_heartbeat", record, at)
+        if body.run_id and body.state != "idle":
+            services.storage.put_monitor_run(body.run_id, None, "running", at)
+    return {"ok": True, "received_at": at}
+
+
+@router.get("/coverage/queues")
+def coverage_queues(_: Reader, services: ServicesDep) -> dict:
+    """The search ledger's counts per queue, as of the server's last heartbeat:
+    {updated_at, queues: {name: {done, listed, running}}}; empty until one arrives."""
+    doc = services.storage.get_finder_doc("monitor_heartbeat")
+    if doc is None:
+        return {"updated_at": None, "queues": {}}
+    record, updated_at = doc
+    return {"updated_at": updated_at, "queues": record.get("queues") or {}}

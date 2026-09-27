@@ -29,11 +29,18 @@ uv run --extra finder python -m api.finder_ingest --dir ../sweep/candidates --ru
 | GET | `/finder/funnel` | | `{sweep_at, stages: [{stage, count, source}], by_status, by_pixel_verdict}` |
 | GET | `/finder/sensitivity` | | `{updated_at, sensitivity}` (404 until one is stored) |
 | POST | `/finder/export/ctoi` | `Authorization: Bearer <PH_ADMIN_TOKEN>`; `{ids, tag?, paper_url?}` | ExoFOP CTOI upload file (text) |
-| GET | `/monitor/now` | | `{mode: "live"\|"replay", run_id, run_started_at, progress: {done, total}, star, next_at}` |
+| GET | `/monitor/now` | `after` (replay: the star after this tic) | `{mode: "live"\|"replay", run_id, run_started_at, progress: {done, total}, star, next_at, next_tic, label, runner}` |
+| GET | `/monitor/stars/{tic}` | | the star's latest stored record (404 once pruned) |
+| GET | `/monitor/sparks` | | `{unit, bins, note, stars: {tic: [ppm, ...]}}` |
+| GET | `/monitor/coverage/queues` | | `{updated_at, queues: {name: {done, listed, running}}}` |
 | GET | `/monitor/log` | `limit` 1–200 (default 50) | `{items: [{tic, outcome, detections_count, searched_at}]}`, newest first |
 | GET | `/monitor/coverage` | | `{stars_searched_total, by_sector: [{sector, stars}], cell_deg, sky_cells: [{ra, dec, stars}]}` |
 | GET | `/monitor/stats` | | `{stars_searched, signals, candidates, rejected_by_reason: {reason: n}, last_run_at}` |
-| POST | `/monitor/progress` | `Authorization: Bearer <PH_INGEST_TOKEN>`; `{run_id, run_started_at?, shard, done, total, star?}` | `{run_id, state, progress: {done, total}}` |
+| POST | `/monitor/progress` | `Authorization: Bearer <PH_INGEST_TOKEN>`; `{run_id, run_started_at?, shard, done, total, star?, label?}` | `{run_id, state, progress: {done, total}}` |
+| POST | `/monitor/heartbeat` | ingest token; `{state, runner_id?, run_id?, next_run_at?, queues?}` | `{ok, received_at}` |
+| POST | `/finder/ingest` | ingest token; `{run_id, run_started_at?, candidates: [{id, candidate}], monitor: [record], summary?, sensitivity?, final}` | the chunk's summary |
+| GET | `/finder/pixel-queue` | ingest token; `limit` ≤ 100, `max_attempts` | `{items: [{id, ephemeris_key, candidate}]}` |
+| POST | `/finder/candidates/{id}/pixel-vet` | ingest token; `{ephemeris_key, vet \| error}` | `{id, state}` |
 | GET | `/healthz` | | `{ok: true}` |
 
 ## Planet Finder
@@ -228,6 +235,43 @@ records, and an index on `monitor_stars (tic, searched_at DESC)`):
   into 180 bins (`numpy.linspace(0, n, 181).astype(int)` edges; fewer when n < 180), each
   `round((min - 1) * 1e6)`. Computed per request from the kept records.
 
+## The search server over HTTP
+
+The search server (runner/) needs no database URL: it holds only the API's address and
+`PH_INGEST_TOKEN`, and everything it writes goes through these token-protected routes (404 while
+`PH_INGEST_TOKEN` is unset, 403 with a wrong token, off the OpenAPI page).
+
+**`python -m api.remote_ingest --api-url URL --dir RUN/candidates [--monitor-dir DIR] [--summary
+FILE] [--sensitivity FILE] --run-id ID [--run-started-at ISO] [--no-pixels]`** is the server's
+side, in place of `finder_ingest`. It sends the night in chunks, then runs the pixel checks:
+
+- **`POST /finder/ingest`**, one chunk per request, at most `PH_INGEST_MAX_BYTES` (8 MB; 413
+  above it; `Content-Length` required). Body: `{run_id, run_started_at?, candidates: [{id:
+  "<tic>_<n>", candidate: {...}}], monitor: [star records], summary?, sensitivity?, final}`.
+  Candidates are upserted exactly as `finder_ingest` step 1 does (their `vetting` block
+  included), and dismissed from their own `known_lists` (step 2a). The summary and sensitivity
+  are stored (step 3). Monitor records are stored under `run_id`, which stays `running` until the
+  chunk with `final: true` marks it done and prunes old runs (step 4). Answer: `{run_id,
+  candidates: {created, updated, unchanged}, invalid: [{file, error}], dismissed, summary_stored,
+  sensitivity_stored, monitor_stars, final, pruned_runs?}`. Invalid items are listed; the rest are
+  stored. Not done over HTTP: the network re-check against the known lists (step 2b; HUNT
+  already checks against the day's snapshot) and the pixel check (step 5, below).
+- **`GET /finder/pixel-queue?limit=20&max_attempts=3`**: `{items: [{id, ephemeris_key,
+  candidate}]}`, the same selection as step 5 (open, with a period, no vet for the current
+  ephemeris or a failed one with attempts left; never-vetted first, then by score).
+- **`POST /finder/candidates/{id}/pixel-vet`** `{ephemeris_key, vet}` or `{ephemeris_key,
+  error}`: stores the server's `vet_pixels` result (checked like step 5's) or its failure (which
+  counts toward `max_attempts`). 409 when the candidate's ephemeris changed meanwhile, 404 for an
+  unknown id, 422 for both or neither of `vet` / `error` or an unknown verdict.
+- **`POST /monitor/heartbeat`** `{state: "searching"|"vetting"|"ingesting"|"idle", runner_id?,
+  run_id?, next_run_at?, queues?: {name: {done, listed?, running?}}}`, every few minutes. The
+  latest one is kept. While `state` isn't `idle`, it keeps `run_id` live on the monitor. It feeds
+  `GET /monitor/now`'s `runner`: `{state, run_id, next_run_at, last_seen_at, responding}`
+  (`responding` is false after `PH_RUNNER_STALE_S` of silence; `null` if it never beat), and
+  `GET /monitor/coverage/queues`: `{updated_at, queues}`, the ledger's counts per queue.
+- **`label`** on `POST /monitor/progress` (`fast`, `deep`, `faint`: lower-case slug, ≤ 20): stored
+  in the star's record as `label`; `GET /monitor/now` repeats it at the top level.
+
 ## Configuration (env)
 
 | Variable | Default | What it sets |
@@ -243,11 +287,13 @@ records, and an index on `monitor_stars (tic, searched_at DESC)`):
 | `PH_RATE_ADMIN_PER_MIN` | `6` | export requests per IP per minute |
 | `PH_FINDER_VOTES_NEEDED` | `5` | `needs_votes=true`: open candidates with fewer votes than this |
 | `PH_ADMIN_TOKEN` | none | enables `POST /finder/export/ctoi` (404 while unset) |
-| `PH_INGEST_TOKEN` | none | enables `POST /monitor/progress` (404 while unset); the sweep's shards send it |
+| `PH_INGEST_TOKEN` | none | enables the search server's routes (progress, heartbeat, ingest, pixel queue; 404 while unset) |
 | `PH_RATE_INGEST_PER_MIN` | `600` | progress posts per IP per minute |
 | `PH_MONITOR_LIVE_TIMEOUT_S` | `900` | a running sweep silent this long is no longer "live" |
 | `PH_MONITOR_STEP_S` | `20` | replay: seconds per star |
 | `PH_MONITOR_KEEP_RUNS` | `3` | finished runs whose stars (with light curves) are kept |
+| `PH_RUNNER_STALE_S` | `900` | the search server is "not responding" after this long without a heartbeat |
+| `PH_INGEST_MAX_BYTES` | `8000000` | largest `POST /finder/ingest` chunk |
 
 ## Storage
 
@@ -268,6 +314,8 @@ numbered file to both folders; never edit one that has been applied.
 | `0004_stardata` | `star_lightcurves` (one row per TIC: `status` `stored`/`no_data`, `data_marker`, `stored_at`, `curve`), `known_planets` (one row per TIC: `host_name`, `star`, `planets`, `fetched_at`). Dropped by 0006 |
 | `0005_finder` | `candidates` (`id` "<tic>_<n>", `record` jsonb, `score`, `status` `new`/`under review`/`dismissed`/`exported`, `status_reason`, plus copies for filters: radius, period, pixel verdict, vote tallies), `pixel_vets` (latest vet per candidate and the ephemeris it ran on), `votes` (PK candidate + hashed voter key), `sensitivity` and `finder_sweep` (one row each) |
 | `0006_finder_only` | Drops every table of 0001–0004 and `ph_sep_deg()` (v2 is the finder only). Adds `candidates.vetting` (VET's block) and the monitor: `monitor_runs` (`run_id` PK, `state` `running`/`done`, `started_at`, `finished_at`, `updated_at`), `monitor_shards` (progress per shard), `monitor_stars` (every star of the kept runs, full `record`), `monitor_seen` (each star's latest search: outcome, counts, 5° cell), `monitor_sectors`, `monitor_reasons` |
+| `0007_monitor_detail` | `monitor_seen.known_count` / `rejected_count` (backfilled) and an index on `monitor_stars (tic, searched_at DESC)` |
+| `0008_runner` | `monitor_heartbeat`: the search server's latest heartbeat (one row) |
 
 `uv run pytest` runs every storage-touching test on both backends. Postgres comes from
 `PH_TEST_DATABASE_URL`, a throwaway database that the tests wipe. If that's unset, it comes from a

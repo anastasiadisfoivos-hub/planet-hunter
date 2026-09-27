@@ -67,7 +67,7 @@ def test_empty_monitor(client):
     now = client.get("/monitor/now").json()
     assert now == {"mode": "replay", "run_id": None, "run_started_at": None,
                    "progress": {"done": 0, "total": 0}, "star": None, "next_at": None,
-                   "next_tic": None}  # fmt: skip
+                   "next_tic": None, "label": None, "runner": None}  # fmt: skip
     assert client.get("/monitor/log").json() == {"items": []}
     assert client.get("/monitor/coverage").json() == {
         "stars_searched_total": 0, "by_sector": [], "cell_deg": 5, "sky_cells": [], "stars": []

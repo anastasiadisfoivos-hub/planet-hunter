@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.ratelimit import RateLimiter
-from api.routes import admin, finder, monitor
+from api.routes import admin, finder, ingest, monitor
 from api.settings import Settings
 from api.wiring import Services, build_services
 
@@ -40,6 +40,7 @@ def create_app(
     app.include_router(finder.router)
     app.include_router(admin.router)
     app.include_router(monitor.router)
+    app.include_router(ingest.router)
 
     @app.get("/healthz", tags=["meta"])
     def healthz() -> dict:
