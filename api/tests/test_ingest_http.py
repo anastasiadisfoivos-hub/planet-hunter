@@ -4,7 +4,7 @@ heartbeat (runner block, per-queue coverage) and the search label. SQLite and Po
 from __future__ import annotations
 
 import json
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import api.routes.monitor as monitor_routes
 from api.fakes.finder import FakePixelVetter
@@ -118,6 +118,13 @@ def test_heartbeat_runner_block_and_queue_coverage(make_client, monkeypatch):
     assert q["queues"]["fast"] == {"done": 2300, "listed": 50000, "running": 0}
     assert q["queues"]["deep"] == {"done": 500, "listed": None, "running": 0}
 
+    # Idle until its next run (the timer starts it then): quiet, but responding.
+    now[0] += timedelta(hours=20)
+    assert c.get("/monitor/now").json()["runner"]["responding"] is True
+    # ...until the next run is due and nothing came.
+    now[0] = datetime(2026, 9, 27, 0, 31, tzinfo=UTC)
+    assert c.get("/monitor/now").json()["runner"]["responding"] is False
+    c.post("/monitor/heartbeat", headers=AUTH, json={"state": "vetting"})
     now[0] += timedelta(minutes=16)
     assert c.get("/monitor/now").json()["runner"]["responding"] is False
 

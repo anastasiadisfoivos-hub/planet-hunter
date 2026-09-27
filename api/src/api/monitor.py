@@ -190,16 +190,25 @@ def now_view(
 
 
 def runner_view(storage: Storage, now: datetime, *, stale_s: float) -> dict[str, Any] | None:
-    """The search server's last heartbeat for GET /monitor/now: `responding` is false once it has
-    been silent longer than `stale_s` (an idle server still beats, so silence means trouble)."""
+    """The search server's last heartbeat for GET /monitor/now. `responding` is false once it has
+    been silent longer than `stale_s`, except that an idle server which said when its next run
+    starts (it runs only then) is responding until `stale_s` after that time."""
     doc = storage.get_finder_doc("monitor_heartbeat")
     if doc is None:
         return None
     record, seen = doc
+    quiet_until = seen
+    if record.get("state") == "idle" and isinstance(record.get("next_run_at"), str):
+        try:
+            next_run = parse(record["next_run_at"].replace("Z", "+00:00"))
+        except ValueError:
+            next_run = None
+        if next_run is not None and next_run.tzinfo is not None:
+            quiet_until = max(seen, next_run)
     return {
         "state": record.get("state"),
         "run_id": record.get("run_id"),
         "next_run_at": record.get("next_run_at"),
         "last_seen_at": seen,
-        "responding": (now - seen).total_seconds() <= stale_s,
+        "responding": (now - quiet_until).total_seconds() <= stale_s,
     }
