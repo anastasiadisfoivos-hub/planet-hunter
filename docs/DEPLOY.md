@@ -130,8 +130,8 @@ Never paste these into GitHub, an issue, a chat, or a file in the repository.
      label.
      - **OCPUs and memory: see the warning.** Oracle's Always Free page (checked 27 Sep 2026) says
        A1 is free for the first **1,500 OCPU hours and 9,000 GB hours per month, "equivalent to
-       2 OCPUs and 12 GB of memory"**. Older guides (and our roadmap) say 4 OCPUs / 24 GB. Choose
-       **2 OCPUs, 12 GB** unless the console clearly shows 4 / 24 as Always Free for your account.
+       2 OCPUs and 12 GB of memory"**. Older guides (and our roadmap) say 4 OCPUs / 24 GB. **Decided
+       (27 Sep): 2 OCPUs, 12 GB**, the current free amount; the runner uses 2 workers (one per core).
        Anything above the free amount uses trial credit for 30 days and then is not free.
    - Networking: create a new VCN with a **public subnet**, **assign a public IPv4 address**.
    - SSH keys: **Generate a key pair for me** → **Save private key** (e.g. to

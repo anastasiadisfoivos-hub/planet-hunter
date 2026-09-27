@@ -1,7 +1,7 @@
 # runner/: the nightly Planet Finder search on one always-on server
 
 Everything needed to run the Planet Finder's search every day on an **Oracle Cloud Always Free** server (Ampere A1,
-4 cores, 24 GB, Ubuntu 24.04, arm64). It is **not** a GitHub self-hosted runner: the repository is public, so the
+2 cores, 12 GB, Ubuntu 24.04, arm64: the free amount since Oracle halved it; decided 27 Sep). It is **not** a GitHub self-hosted runner: the repository is public, so the
 server pulls it read-only over HTTPS and runs on its own systemd timer. Nothing listens on the internet except SSH
 (key only).
 
@@ -51,8 +51,8 @@ venv whose lock file changed is refreshed (`PH_AUTO_UPDATE=1`).
 
 1. **Prepare.** The ranked star list (`hunt targets`) is rebuilt if it is older than 7 days. One snapshot of the
    known-planet / TOI / CTOI / EB lists is taken for the whole run.
-2. **Search, until 21:45 UTC.** 4 worker processes run, one star each, one BLAS thread each, so the 4 cores stay
-   busy (Oracle reclaims idle free machines).
+2. **Search, until 21:45 UTC.** One worker process per core (`PH_WORKERS`, 2 on the free instance) runs one star
+   each, one BLAS thread each, so the cores stay busy (Oracle reclaims idle free machines).
 3. **Record every star.** Each finished star:
    - is written to the SQLite **ledger** (`/var/lib/planet-hunter/ledger.sqlite`);
    - is posted to the API: `POST /monitor/progress` with `Authorization: Bearer PH_INGEST_TOKEN` and
@@ -103,8 +103,8 @@ Three search queues each go down their own ranked list. The ledger skips every s
   planets come from and feeds the paper route (brighter stars); faint stars give public candidates only (roadmap
   decision 4).
 
-**At 21.5 h × 4 workers**, with the priors from DEEPHUNT and FAINT (60 s / 250 s / 90 s per star per core), that is
-about 2,300 fast, 500 deep and 520 faint stars a day. The ledger's measured times replace those priors from the
+**At 21.5 h × 2 workers** (the free instance), with the priors from DEEPHUNT and FAINT (60 s / 250 s / 90 s per star
+per core), that is about 1,150 fast, 250 deep and 260 faint stars a day (twice that on 4 cores). The ledger's measured times replace those priors from the
 first night on (see **Measured** below).
 
 ### Ledger

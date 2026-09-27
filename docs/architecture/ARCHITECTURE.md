@@ -94,7 +94,7 @@ only by the ingest command, so the web API's deploy stays small.
 ## 2. Nightly data flow on the Oracle server
 
 > **Built and dry-run tested, not deployed.** `runner/` (branch `runner`) runs the daily search on an **Oracle Cloud
-> Always Free server** (Ampere A1, 4 cores, 24 GB, Ubuntu 24.04 arm64) on its own systemd timer. It is not a GitHub
+> Always Free server** (Ampere A1, 2 cores, 12 GB, Ubuntu 24.04 arm64) on its own systemd timer. It is not a GitHub
 > runner: the server pulls the public repository read-only over HTTPS, and only SSH is open. On 27 Sep 2026 the whole
 > install and a real run were proven in an Ubuntu 24.04 arm64 container (below). The real server is not provisioned
 > yet, and the API, database and website are not hosted yet (dotted boxes).
@@ -127,13 +127,13 @@ flowchart TB
 
 **In plain English.** Once a day the timer starts a run, named `oracle-YYYYMMDD`. The server first updates itself
 to the tip of its branch, refreshes the ranked star list when it is a week old, and snapshots the known-object lists
-so every star that day is checked against the same lists. Four worker processes then search until 21:45 UTC, one
-star each. A SQLite **ledger** records every star per queue with the sectors it was searched on, so the server moves
+so every star that day is checked against the same lists. One worker process per core (two on the free
+instance) then searches until 21:45 UTC, one star each. A SQLite **ledger** records every star per queue with the sectors it was searched on, so the server moves
 down the list day after day, retries a failed star up to three times, and searches a star again only when a new
 sector of it becomes public. Claiming a star is a single SQL statement, and after a crash or reboot the run resumes
 without repeating a finished star.
 
-Three queues share the four workers by a target share of the day's worker time:
+Three queues share the workers by a target share of the day's worker time:
 - **fast** (45 %) goes down hunt's ranked list with the cheap 3-sector search;
 - **deep** (40 %) takes first the stars the fast pass flagged as **promising** (a candidate, or a periodic signal at
   SNR ≥ 7 that failed only on SDE, the transit count or one check), then the bright quiet stars with ≥ 5 sectors,

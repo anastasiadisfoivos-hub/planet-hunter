@@ -105,7 +105,7 @@ server dry run.
   - LEO-vetter, TRICERATOPS and transit-diffImage for vetting.
 - **API:** FastAPI, Pydantic, psycopg 3. Postgres in production, SQLite for development and tests, and every storage test runs on both.
 - **Web:** Next.js 16 (App Router), React 19, TypeScript, tested with `node --test`.
-- **Automation:** the daily search runs on an Oracle Cloud Always Free server (Ampere A1, 4 cores, 24 GB, Ubuntu 24.04 arm64) under systemd, with a standard-library Python scheduler and a SQLite ledger (built and dry-run tested, not deployed). GitHub Actions is for CI.
+- **Automation:** the daily search runs on an Oracle Cloud Always Free server (Ampere A1, 2 cores, 12 GB, Ubuntu 24.04 arm64) under systemd, with a standard-library Python scheduler and a SQLite ledger (built and dry-run tested, not deployed). GitHub Actions is for CI.
 
 ## Run locally
 

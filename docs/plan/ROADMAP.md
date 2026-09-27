@@ -25,7 +25,8 @@ cleanup in [REMOVE.md](REMOVE.md).
 
 Taken by the owner on 2026-09-26. Where a phase below says otherwise, these win.
 
-1. **Compute.** The bulk search runs on an **Oracle Cloud Always Free server (4 cores, 24 GB)**
+1. **Compute.** The bulk search runs on an **Oracle Cloud Always Free server (4 cores, 24 GB;
+   27 Sep: Oracle's free A1 amount is now 2 cores, 12 GB, and that is the size chosen)**
    on its own timer. It is **not** a GitHub self-hosted runner, because the repository is public.
    GitHub's hosted runners are used **for CI only**. (Replaces the platform options in Phase 2 and
    SCIENCE.md §9.)
