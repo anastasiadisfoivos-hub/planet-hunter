@@ -61,6 +61,10 @@ uv run pytest -m "not deep"                                           # the same
 Each star runs as its own process: stitch every sector → mask known planets (list B) → periodic search →
 checks → known lists → filter → score → single / double dip search on what is left.
 
+**Light curves.** Two sources, both giving the same `StarLC` (with `bkg`): MAST products (default, below), or
+TGLC for faint stars through FAINT's loader, `skyfaint.tglc.get_lightcurves(tic).to_hunt()` (faint/INTEGRATION.md),
+chosen per row (`source` column = `tglc`) or per run (`hunt run --source tglc`). TGLC ends at sector 55.
+
 **Stitching** (`lightcurve.stitch`). Every sector with a light curve, the best product per sector (SPOC 2-min,
 else TESS-SPOC, else QLP FFI; the pipeline's `choose_products`), each normalised by its own median, cadences
 with lightkurve's default quality flags dropped. The same FITS files are re-read for the QUALITY column
@@ -77,11 +81,19 @@ transits left out of the trend. The window is 3× the longest duration each sear
 short-period BLS (HUNT's), 3× the longest duration of the long-period grid for the long BLS and TLS (3 d for most
 stars, never less than 0.9 d), and 0.5 / 1.5 / 3 d for the dip search's 1–4 h / 6–12 h / 16–24 h tiers.
 
-**Periodic search** (`deep.py`, `signals.py`), up to 3 signals per star, each with the previous ones masked:
+**Scattered-light mask** (`scatter.py`), before any search: cadences whose per-sector background is > 3σ or
+changing faster than 1σ per hour, each such stretch grown by a 0.5-d **shoulder** on both sides, plus 0.25 d at
+every orbit gap and sector edge. Masked cadences are left out of the trend *and* of every search, so no dimmed
+edge is exposed beside a new gap. That is the failure FAINT found with a hard 3σ cut (TOI-5688: SDE 10.1 → 5.6,
+faint/README §2). On FAINT's TGLC curves it masks 9 % (TOI-5688) and 20 % (TOI-1680) of cadences; the fraction
+is recorded per star (`search.scattered_light`).
+
+**Periodic search** (`deep.py`, `signals.py`), up to **6** signals per star: find, mask, search again while the SDE
+stays up (and past strong non-repeating defects), within a shared **600-s BLS budget** per star:
 
 | Search | Periods | How |
 |---|---|---|
-| `bls_short` | 0.5–15 d | the pipeline's two-pass BLS, unchanged |
+| `bls_short` | 0.5–15 d | **one phase-coherent BLS over all sectors at once** (the same block grid as `bls_long`, 0.9-d detrending window). The pipeline's search, which BLS-es each sector separately and adds the powers without aligning phases, lost TOI-1680 b (SNR ~5 per sector, 24 in all); it is no longer used by the deep search |
 | `bls_long` | 15 d – half the baseline | astropy BLS on a frequency grid whose step lets a transit of half the central-transit duration drift at most a third of that over the baseline (the Ofir 2014 / TLS convention); factor-2 period blocks, each with durations from 0.35× the central duration for 3× the star's density up to 1.5× it for ⅓ (1–24 h), its own bin width, and astropy phase bins of a third of the shortest duration. Blocks run in increasing period within a 180-s budget per round; the longest period reached is recorded (`bls_long_pmax_d`, `bls_long_stopped_by_budget`) |
 | `tls` | 0.5 d – half the baseline | transitleastsquares (limb-darkened template, better than a box for small planets), single-threaded. Its cost (points × periods) is predicted first; if the whole curve would take over 60 s, TLS runs on the newest sectors that fit and the BLS searches still cover everything. What it ran on is recorded per star (`search.periodic.runtime.tls_runs`) |
 
@@ -127,7 +139,7 @@ Every check has `value`, `passed` (true / false / null = could not run or a flag
 |---|---|---|
 | `snr` | pipeline | SNR < 7 |
 | `odd_even` | pipeline | alternate dips differ by > 3σ and > 5%. DEEPHUNT measures the odd and even depths from the per-dip depths (each against its own local baseline, red-noise errors) instead of one global baseline, and widens the errors by the scatter *within* the odd and within the even dips. Why: TOI-2180 b has three transits in three sectors; one starts 0.35 d after its sector's first cadence and depths differ between sectors (crowding corrections), which on HUNT's version read as an odd/even difference. An EB's alternation is between the groups and stays visible |
-| `secondary_eclipse` | pipeline | a dip at phase 0.4–0.6 is > 3σ and > 10% of the main dip |
+| `secondary_eclipse` | pipeline | a dip at phase 0.4–0.6 is > 3σ and > 10% of the main dip. DEEPHUNT judges the best box against the scatter of same-width boxes elsewhere in the orbit (not σ/√n), with a look-elsewhere correction for taking the best of the ~20 positions in 0.4–0.6. On TOI-1680 b (1.5 R⊕) a 724-ppm box at phase 0.56 was 3.8σ on white-noise errors, 3.1σ against the empirical scatter, 2.0σ after the correction; the EB fixture's secondary stays at 16.6σ |
 | `size` | pipeline | even the low end of the radius range is > 2 R_Jup |
 | `period_alias` | hunt | P/2: a dip half an orbit later is > 50% as deep (> 3σ). 2P / 3P: the dips split into every-2nd / every-3rd groups, and one group is < 50% as deep as the rest (> 3σ) |
 | `momentum_dump` | hunt | reaction-wheel desaturations (QUALITY bit 32) or other default-masked cadences fall within half a duration (at most 1 h) + 30 min of mid-transit: fails if fewer than 2 dips are clean, the clean dips are < 50% as deep (> 3σ), or > 50% of dips are affected. The 1-h cap is DEEPHUNT's: a day-long transit nearly always contains a dump somewhere |
@@ -391,6 +403,12 @@ the repository small, which does not affect 11- and 24-hour transits):
   by `background` ("the sky background rises during the dip (21.3 sigma ...): scattered light or a passing
   object"), `edge` and `momentum_dump`. A weaker one, TOI-2180's sector-75 dip (0.9 h, SNR 9.2, below the cut
   anyway), sits on a reaction-wheel momentum dump and is rejected by `momentum_dump` too.
+- **TOI-1680 b** (TIC 259168516, 1.47 R⊕, 24 TGLC sectors, Tmag 13.3; FAINT's fixture, `tests/test_faint_real.py`):
+  missed by HUNT's per-sector search and by the first deep search (artefacts filled all signal slots). Now the
+  first signal: P = 4.80263 d (catalogue 4.8026345), SNR 18.5, SDE 48.6, 86 transits, 1.5 R⊕, found by the
+  coherent `bls_short`. The test also re-checks FAINT's facts (the transit is in the data at SNR > 15).
+- **TOI-5688 A b** (TIC 193634953, TGLC): still found with the scattered-light mask on, P = 2.948156 d, SDE 59.7
+  (FAINT: 10.1 without a cut, 5.6 with a hard cut and no shoulders).
 - **Known-good periodic** (HUNT's tests, unchanged and passing on the deep search): TOI-7303.01 found and
   filtered as known, the EB rejected by `secondary_eclipse`, the injected 1.6 R⊕ planet recovered as a candidate,
   and the TOI-1130 / TOI-181 sibling masking cases.

@@ -229,7 +229,7 @@ def analyse(star: Star, lc: StarLC, catalogue: Catalogue | None, list_kind: str 
     premask, masked = known_transit_mask(lc.time, lc.flux, known_here)
     scatter_info = {"applied": False}
     if scatter_mask and deep_search:  # scattered light, orbit-gap and sector-edge windows (scatter.py)
-        sl, scatter_info = scattered_light_mask(lc.time, lc.sector, lc.bkg)
+        sl, scatter_info = scattered_light_mask(lc.time, lc.sector, lc.bkg, products=lc.products)
         scatter_info["applied"] = True
         premask = premask | sl
     out = find_signals(lc, premask, max_signals, star=star, deep_search=deep_search, tls_budget_s=budget)

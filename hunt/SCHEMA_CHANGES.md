@@ -36,8 +36,8 @@ dips (1 or 2).
 | `dips` | list | one entry per dip. periodic: `mid_btjd`, `depth_ppm`, `depth_err_ppm`, `duration_h`. single/duo: also `mid_err_d`, `duration_err_h`, `ingress_h`, `snr`, `sector`, `coverage`, `shape_fit` (`"trapezoid"` or `"box"`). |
 | `sectors_used` | list of ints | every sector stitched for this star (`sectors` keeps its old meaning: the same list). |
 | `baseline_d` | number | first to last data point, days. |
-| `stitch` | object | `sectors_used`, `n_sectors`, `baseline_d`, `cadence_mix` (e.g. `{"SPOC 120 s": [..], "QLP 600 s": [..]}`), `bin_minutes`, `n_points`, `days_with_data`, `background_read`. |
-| `found_by` | list | which searches found this period: `bls_short`, `bls_long`, `tls`, or `dip_search`. |
+| `stitch` | object | `sectors_used`, `n_sectors`, `baseline_d`, `cadence_mix` (e.g. `{"SPOC 120 s": [..], "QLP 600 s": [..], "TGLC 600 s": [..]}`), `bin_minutes`, `n_points`, `days_with_data`, `background_read`. |
+| `found_by` | list | which searches found this period: `bls_short` (phase-coherent over all sectors, 0.5–15 d), `bls_long`, `tls`, or `dip_search`. |
 | `search` | object | `kept` (the search whose result was kept), `found_by`, `each_search` (period/SNR/SDE per search). |
 | `dip_curves` | list | singles/duos: each dip's own zoom (`mid_btjd`, `hours_from_mid`, `flux`). |
 
@@ -76,7 +76,8 @@ a duo's is folded at its most probable alias and lists the aliases.
 Added: `dips` (every single/duo examined, compact, with `kind`, `mid_times_btjd`, `period_d`,
 `period_range_d`, `n_aliases`, `failed_stage`, `failed_checks`, `score`), `events` (every dip with SNR >= 7:
 `mid_btjd`, `duration_h`, `depth_ppm`, `snr`, `sector`, `failed_checks`, ...; the merge compares these across
-nearby stars), `stitch`, `search` (BLS/TLS runtimes, what TLS ran on, detrending windows). `signals[]` entries
+nearby stars), `stitch`, `search` (BLS/TLS runtimes, what TLS ran on, detrending windows, and `scattered_light`: `masked_fraction`,
+`background_fraction`, `shoulder_fraction`, `edge_fraction`, `rule`). `signals[]` entries
 gain `kind`, `found_by`, `kept` and `failed_reasons` (`{check: reason}` for every failed check). `events[]`
 entries carry `rejected_because` (`{check: reason}`). `timings_s` has new keys (`periodic`, `vetting`, `dips`, `bls_short_s`,
 `bls_long_s`, `tls_s`, ...).
