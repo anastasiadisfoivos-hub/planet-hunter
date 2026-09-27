@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import type { MonitorStar } from "@/lib/api";
-import { drawCursor, drawFluxScale, drawMarks, drawPaper, drawPen, drawScale, drawTrace, makeGeom, readInk, traceYAt, type MarkState } from "./draw";
+import { drawCursor, gutterFor, drawFluxScale, drawMarks, drawPaper, drawPen, drawScale, drawTrace, makeGeom, readInk, traceYAt, type MarkState } from "./draw";
 import { ADVANCE_S, buildTape, drawSeconds, easeInOut, PEN_AT, penAt, phaseAt, type Tape } from "./trace";
 import s from "./monitor.module.css";
 
@@ -24,9 +24,9 @@ export function StillTrace({ star, label }: { star: MonitorStar; label: string }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const ink = readInk(canvas);
       const compact = w < 720;
-      const pad = compact ? 12 : 32;
+      const pad = gutterFor(window.innerWidth);
       const pxPerDay = (w - 2 * pad) / Math.max(tape.length, 1);
-      const g = makeGeom(w, h, pxPerDay, pad, 0, compact);
+      const g = makeGeom(w, h, pxPerDay, pad, 0, compact, pad);
       drawPaper(ctx, g, ink);
       const marks: MarkState[] = tape.marks.map((mark) => ({ mark, age: 1 }));
       drawMarks(ctx, g, ink, tape, star.detections, marks, (x) => traceYAt(g, tape, x), compact);
@@ -188,7 +188,7 @@ export function StreamTrace({
         const p = easeInOut(leave.t / leave.dur);
         const o = leave.run;
         const shift = p * penPx;
-        const g = makeGeom(w, h, ppd, penPx - shift, o.tape.length, compact);
+        const g = makeGeom(w, h, ppd, penPx - shift, o.tape.length, compact, gutterFor(window.innerWidth));
         drawPaper(ctx, g, ink, o.phase);
         const marks = o.tape.marks.flatMap((mark, k) => (o.reached[k] >= 0 ? [{ mark, age: 1 }] : []));
         drawMarks(ctx, g, ink, o.tape, o.star.detections, marks, (x) => traceYAt(g, o.tape, x), compact);
@@ -197,7 +197,7 @@ export function StreamTrace({
         return;
       }
 
-      const g = makeGeom(w, h, ppd, penPx, penX, compact);
+      const g = makeGeom(w, h, ppd, penPx, penX, compact, gutterFor(window.innerWidth));
       drawPaper(ctx, g, ink, r.phase);
       const marks: MarkState[] = r.tape.marks.flatMap((mark, k) => (r.reached[k] >= 0 ? [{ mark, age: r.elapsed - r.reached[k] }] : []));
       drawMarks(ctx, g, ink, r.tape, r.star.detections, marks, (x) => traceYAt(g, r.tape, x), compact);

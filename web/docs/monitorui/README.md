@@ -68,3 +68,32 @@ can send it binned coarser if needed.
 | A page with no entrance motion | DESIGN.md: no entry animations on scroll; only the trace moves. |
 
 Left as is (P3): hunt's own check sentences say "R_sun"; they are shown verbatim because they are the search's words.
+
+## v2: the owner's feedback pass (27 Sep 2026)
+
+Screenshots in [`screens-v2/`](screens-v2/): monitor, log, candidates and the TOI-4257.01 dossier at 1440, 1920 and 390,
+plus the monitor and log at night (1440 and 390).
+
+| asked | done |
+| --- | --- |
+| Bolder and bigger | Body 18→21px, labels 12px, numbers 15px Martian Mono 500; Newsreader 500 for headings, 600 for names; display up to 96px; section titles at `--t-h1`; log rows at least 84px. |
+| Use the whole screen | No centred column anywhere: `--gutter: clamp(24px, 4vw, 80px)` and full-width grids; the sky map and the star table run edge to edge. (The retired pages' global `.wrap` max-width is reset under `.site`.) |
+| Colour that means something | Each star in its blackbody colour from its TIC temperature (`starColour.ts`, Mitchell Charity's table): log rows, sky dots, candidate rows, the dossier and the rule under the monitor's star name, always with the key. Night is deep space ink `#0B0C18` under two faint radial glows. Pen and catalogue blue unchanged. |
+| SVG art | `Glyphs.tsx`: star type (M/K/G/F dwarf, subgiant, giant), a planet crossing its star, TESS, and an empty trace for "no candidate yet"; one 1.25px stroke. |
+| All-sky map | Mollweide, RA 0h centred and increasing to the left, graticule, Milky Way band with ±10° edges, the ecliptic, and TESS's CCD footprints for sectors 104 to 106 from tess-point (`components/monitor/data/build_sectors.py`). |
+| Empty sparklines | Cause: only the 19 replayed stars had a stored curve. Now every searched star has a 180-point trace (`sparks.json`, lowest point per bin so dips survive): 205 of 205. A star without one would say "no curve stored". |
+| 205/309 vs 200/297 | Two sources: the monitor counted the log (and known planets masked before the search), the candidates page read the sweep file. Now both read `/monitor/stats`: 205 stars, 307 signals the search found, one funnel over the same stars. `tests/monitor/data.test.ts` holds it. |
+| Margin notes flush left | Canvas text (notes, dates, flux scale) aligns to the same gutter as the page. |
+
+### /impeccable audit, v2
+
+Detector: no findings. Browser checks on all six pages, light and night, 1440 and 390: every text pair at least 4.5:1
+against its real background (night palette: ink 16.2, ink-2 9.2, ink-3 5.8, pen 7.3, blue 9.6 on `#0B0C18`), one h1,
+no skipped heading levels, every control named, 44px targets on touch, no horizontal scroll. Fixed on the way: the
+phone nav cut off "Methods" at the bigger size, the star name and dossier title wrapped on phones, mono numbers
+could wrap ("9 598 / K"), plot captions and sub-lines were still 14px, declination labels sat under dots, and a
+decorative glyph had an empty accessible name. The monitor still runs at 60 fps at 1920.
+
+Rejected, DESIGN.md wins: the skill's ban on hand-drawn SVG (the owner asked for it and it is the recorder's own line),
+its call for photographs (the data is the image), and its discouragement of a serif and a warm paper ground (the
+product is a paper chart recorder); impeccable's "paper ground is an AI default" stands rejected as before.

@@ -95,21 +95,25 @@ export function fmtTmag(t: number | null): string {
   return t == null ? "" : `T ${t.toFixed(1)}`;
 }
 
+export type SpectralType = "M" | "K" | "G" | "F" | "A" | "B";
+export type StarClass = { type: SpectralType; size: "dwarf" | "subgiant" | "giant" } | null;
+
+/** Spectral type from temperature and size from radius (TIC values); null without a temperature. */
+export function starClass(teff: number | null, radius: number | null): StarClass {
+  if (teff == null) return null;
+  const type: SpectralType = teff < 3900 ? "M" : teff < 5300 ? "K" : teff < 6000 ? "G" : teff < 7500 ? "F" : teff < 10000 ? "A" : "B";
+  const size = radius != null && radius > 3 ? "giant" : radius != null && radius > 1.6 ? "subgiant" : "dwarf";
+  return { type, size };
+}
+
 /** A plain-language kind of star from its temperature and radius (TIC values). */
 export function starKind(teff: number | null, radius: number | null): string {
-  if (teff == null) return "a star";
-  const giant = radius != null && radius > 3;
-  const sub = radius != null && radius > 1.6 && !giant;
-  let type: string;
-  if (teff < 3900) type = "M";
-  else if (teff < 5300) type = "K";
-  else if (teff < 6000) type = "G";
-  else if (teff < 7500) type = "F";
-  else if (teff < 10000) type = "A";
-  else type = "B";
-  if (giant) return `${type === "M" || type === "K" ? "a red" : "an evolved"} giant`;
+  const c = starClass(teff, radius);
+  if (!c) return "a star";
+  const { type } = c;
+  if (c.size === "giant") return `${type === "M" || type === "K" ? "a red" : "an evolved"} giant`;
   const an = (w: string) => `${"AFM".includes(w[0]) ? "an" : "a"} ${w}`; // "an F", "an M", "a K"
-  if (sub) return an(`${type} subgiant`);
+  if (c.size === "subgiant") return an(`${type} subgiant`);
   return an(type === "A" || type === "B" ? `${type} star` : `${type} dwarf`);
 }
 

@@ -52,8 +52,7 @@ export function InkPlot({
       const B = 24;
       const px = (x: number) => L + ((x - xRange[0]) / (xRange[1] - xRange[0])) * (w - L - R);
       const py = (y: number) => T + ((yRange[1] - y) / (yRange[1] - yRange[0])) * (h - T - B);
-      ctx.fillStyle = ink.paper;
-      ctx.fillRect(0, 0, w, h);
+      ctx.clearRect(0, 0, w, h);
       ctx.lineWidth = 1;
       for (let k = 0; k <= 10; k++) {
         const x = Math.round(L + ((w - L - R) * k) / 10) + 0.5;
@@ -71,7 +70,7 @@ export function InkPlot({
         ctx.lineTo(w - R, y);
         ctx.stroke();
       }
-      ctx.font = `10.5px ${ink.mono}`;
+      ctx.font = `500 11.5px ${ink.mono}`;
       ctx.fillStyle = ink.ink3;
       ctx.textBaseline = "alphabetic";
       for (const t of xTicks) {

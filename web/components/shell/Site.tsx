@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TessGlyph } from "@/components/monitor/Glyphs";
 import { TopBar } from "./TopBar";
 import s from "./shell.module.css";
 
@@ -14,9 +15,11 @@ export function Site({ children, end, bleed = false }: { children: React.ReactNo
         {children}
       </main>
       <footer className={`wrap ${s.foot}`}>
-        <p className="label">Light curves: NASA TESS, SPOC pipeline, via MAST</p>
-        <p className="label">Stars: TESS Input Catalog · Gaia DR3 · AAVSO VSX</p>
-        <p className="label">
+        <TessGlyph size={52} />
+        <p className={s.credit}>
+          Light curves from NASA&apos;s TESS, SPOC pipeline, via MAST. Stars from the TESS Input Catalog, Gaia DR3 and AAVSO VSX.
+        </p>
+        <p className={s.footLink}>
           <Link href="/methods">How the search works</Link>
         </p>
       </footer>

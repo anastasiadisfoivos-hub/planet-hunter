@@ -401,6 +401,8 @@ export type MonitorStats = {
   candidates: number;
   rejected: number;
   known: number;
+  /** What the search kept at each step, over the same stars: the one source for every count on the site. */
+  funnel?: FunnelStep[];
 };
 
 const MON = "/data/monitor";
@@ -436,6 +438,21 @@ export async function getMonitorCoverage(signal?: AbortSignal): Promise<MonitorC
 
 export async function getMonitorStats(signal?: AbortSignal): Promise<MonitorStats> {
   return getJson<MonitorStats>(API_MOCK ? `${MON}/stats.json` : `${API_BASE}/monitor/stats`, signal);
+}
+
+export type Sparks = { unit: "ppm"; bins: number; stars: Record<string, number[]> };
+let sparksFile: Promise<Sparks | null> | null = null;
+
+/**
+ * Row-sized traces for the log: every searched star's whole curve in about 180 points (each keeps its lowest
+ * value, so dips survive). The mock has one for every star it downloaded; a live API without the route gives none,
+ * and the log says "no curve stored".
+ */
+export function getSparks(): Promise<Sparks | null> {
+  sparksFile ??= API_MOCK
+    ? getJson<Sparks>(`${MON}/sparks.json`).catch(() => null)
+    : getJson<Sparks>(`${API_BASE}/monitor/sparks`).catch(() => null);
+  return sparksFile;
 }
 
 /** A searched star's light curve, when the mock has it (the log itself carries none). */
@@ -563,20 +580,11 @@ export type CandidateReport = { candidate: Candidate; pixels: PixelVet | null; v
 type CandidateIndexMock = { run_at: string; candidates: CandidateRow[] };
 let candIndex: Promise<CandidateIndexMock> | null = null;
 const candMockIndex = () => (candIndex ??= getJson<CandidateIndexMock>(`${MON}/candidates/index.json`));
-type StatsMock = MonitorStats & { sweep_2026_09_26?: Record<string, number | Record<string, number> | string[]> };
 
-/** The search's funnel, from the recorded sweep's own counts. */
-async function mockFunnel(): Promise<FunnelStep[]> {
-  const s = await getJson<StatsMock>(`${MON}/stats.json`);
-  const f = (s.sweep_2026_09_26 ?? {}) as Record<string, number>;
-  return [
-    { key: "stars", label: "Stars searched", count: f.stars_searched ?? s.stars_searched },
-    { key: "signals", label: "Repeating dips found", count: f.signals_found ?? s.signals },
-    { key: "snr", label: "Strong enough", count: f.after_snr ?? 0 },
-    { key: "sde", label: "Stand out from other periods", count: f.after_sde ?? 0 },
-    { key: "checks", label: "Passed the checks", count: f.after_checks ?? 0 },
-    { key: "candidates", label: "New candidates", count: f.candidates ?? s.candidates },
-  ];
+/** The search's funnel, from /monitor/stats: the same counts the monitor's tally shows. */
+async function statsFunnel(signal?: AbortSignal): Promise<FunnelStep[] | null> {
+  const st = await getMonitorStats(signal).catch(() => null);
+  return st?.funnel ?? null;
 }
 
 /** Demo votes: this browser's own vote, kept per candidate on top of the mock's counts. */
@@ -608,9 +616,12 @@ function withMyVote(id: string, base: Votes): Votes {
 }
 
 export async function getCandidates(signal?: AbortSignal): Promise<CandidateList> {
-  if (!API_MOCK) return { ...(await getJson<Omit<CandidateList, "demo">>(`${API_BASE}/finder/candidates`, signal)), demo: false };
-  const [ix, funnel] = await Promise.all([candMockIndex(), mockFunnel()]);
-  return { run_at: ix.run_at, funnel, candidates: ix.candidates.map((c) => ({ ...c, votes: withMyVote(c.id, c.votes) })), demo: true };
+  if (!API_MOCK) {
+    const [list, funnel] = await Promise.all([getJson<Omit<CandidateList, "demo">>(`${API_BASE}/finder/candidates`, signal), statsFunnel(signal)]);
+    return { ...list, funnel: funnel ?? list.funnel, demo: false };
+  }
+  const [ix, funnel] = await Promise.all([candMockIndex(), statsFunnel(signal)]);
+  return { run_at: ix.run_at, funnel: funnel ?? [], candidates: ix.candidates.map((c) => ({ ...c, votes: withMyVote(c.id, c.votes) })), demo: true };
 }
 
 export async function getCandidate(id: string, signal?: AbortSignal): Promise<CandidateReport> {

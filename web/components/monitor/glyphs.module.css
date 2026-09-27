@@ -1,0 +1,79 @@
+/* Glyph inks (DESIGN.md: Glyphs): one stroke weight, round ends, the page's own ink. */
+
+.glyph {
+  display: inline-block;
+  flex: none;
+  overflow: visible;
+  vertical-align: middle;
+  stroke-linecap: round;
+}
+
+.ink {
+  stroke: var(--ink);
+}
+
+.inkFill {
+  fill: var(--ink);
+}
+
+.pen {
+  fill: var(--pen);
+}
+
+.faint {
+  stroke: var(--ink-3);
+}
+
+.grid {
+  stroke: var(--grid);
+  stroke-width: 1;
+}
+
+.gridStrong {
+  stroke: var(--grid-strong);
+  stroke-width: 1;
+}
+
+.empty {
+  display: block;
+  width: min(100%, 520px);
+  height: auto;
+  stroke-linecap: round;
+}
+
+/* the temperature key */
+.key {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 340px);
+}
+
+.keyBar {
+  display: block;
+  height: 10px;
+  border: 1px solid var(--grid-strong);
+  border-radius: 1px;
+}
+
+.keyTicks {
+  position: relative;
+  display: block;
+  height: 1.3em;
+}
+
+.keyTicks > span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 0.75rem !important;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.keyTicks > span:first-child {
+  transform: none;
+}
+
+.keyTicks > span:last-child {
+  transform: translateX(-100%);
+}

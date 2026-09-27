@@ -17,8 +17,48 @@
 
 .pageHead h1 {
   font-size: var(--t-display);
-  line-height: 0.98;
-  letter-spacing: -0.025em;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-weight: var(--w-name);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+
+.funnelRow2 {
+  display: grid;
+  grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+  gap: var(--s-7);
+  align-items: end;
+}
+
+.emptyFig {
+  margin: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+
+.empty {
+  display: grid;
+  gap: var(--s-3);
+  justify-items: start;
+}
+
+.afterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--s-5);
+}
+
+.rowStar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
 }
 
 .lead {
@@ -33,7 +73,8 @@
 }
 
 .after {
-  font-size: var(--t-small);
+  font-size: var(--t-body);
+  font-weight: 500;
 }
 
 .skeleton {
@@ -73,7 +114,8 @@
 
 .funnelNum {
   font-family: var(--serif);
-  font-size: var(--t-h2);
+  font-weight: var(--w-name);
+  font-size: var(--t-h1);
   line-height: 1;
   font-variant-numeric: lining-nums tabular-nums;
 }
@@ -87,7 +129,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--t-small);
+  font-size: var(--t-body);
 }
 
 .table thead th {
@@ -106,8 +148,8 @@
 .row th {
   text-align: left;
   font-weight: 400;
-  vertical-align: top;
-  padding: var(--s-4) var(--s-3) var(--s-4) 0;
+  vertical-align: middle;
+  padding: var(--s-5) var(--s-3) var(--s-5) 0;
   border-bottom: 1px solid var(--grid-strong);
 }
 
@@ -141,7 +183,8 @@
 
 .rowTic {
   font-family: var(--serif);
-  font-size: 1.1875rem;
+  font-size: 1.4375rem;
+  font-weight: var(--w-name);
 }
 
 .rowLink:hover .rowTic {
@@ -157,7 +200,7 @@
 
 .sub {
   display: block;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--ink-2);
   font-family: var(--serif);
 }
@@ -191,8 +234,9 @@
 
 .dossierTitle {
   font-size: var(--t-display) !important;
-  line-height: 0.98 !important;
-  letter-spacing: -0.025em !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.03em !important;
+  font-weight: var(--w-name) !important;
 }
 
 .dossierSub {
@@ -230,6 +274,12 @@
   gap: var(--s-4);
 }
 
+.main h2 {
+  font-size: var(--t-h1);
+  font-weight: var(--w-name);
+  letter-spacing: -0.02em;
+}
+
 .numbers {
   display: flex;
   flex-wrap: wrap;
@@ -239,7 +289,8 @@
 
 .numbers dd {
   margin: 2px 0 0;
-  font-size: var(--t-h3);
+  font-size: var(--t-h2);
+  font-weight: var(--w-name);
   font-variant-numeric: lining-nums tabular-nums;
 }
 
@@ -262,7 +313,7 @@
 }
 
 .voteCell {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--ink-2);
 }
 
@@ -272,7 +323,7 @@
 }
 
 .cap {
-  font-size: 0.875rem;
+  font-size: 1rem;
   line-height: 1.45;
   color: var(--ink-2);
   max-width: 70ch;
@@ -287,11 +338,11 @@
 
 .check {
   display: grid;
-  grid-template-columns: 5.5rem minmax(0, 14rem) minmax(0, 1fr);
-  gap: var(--s-2) var(--s-4);
-  padding: var(--s-3) 0;
-  border-bottom: 1px solid var(--grid);
-  font-size: var(--t-small);
+  grid-template-columns: 6rem minmax(0, 17rem) minmax(0, 1fr);
+  gap: var(--s-2) var(--s-5);
+  padding: var(--s-4) 0;
+  border-bottom: 1px solid var(--grid-strong);
+  font-size: var(--t-body);
 }
 
 .checkWord {
@@ -307,7 +358,7 @@
 }
 
 .checkName {
-  font-weight: 500;
+  font-weight: var(--w-name);
 }
 
 .checkReason {
@@ -360,9 +411,9 @@
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   gap: var(--s-4);
-  padding: var(--s-3) 0;
-  border-bottom: 1px solid var(--grid);
-  font-size: var(--t-small);
+  padding: var(--s-4) 0;
+  border-bottom: 1px solid var(--grid-strong);
+  font-size: var(--t-body);
 }
 
 .vetRow dt {
@@ -375,7 +426,7 @@
 }
 
 .vetName {
-  font-weight: 500;
+  font-weight: var(--w-name);
 }
 
 /* pixels */
@@ -545,12 +596,23 @@
 .marginList {
   margin: 0;
   display: grid;
-  gap: var(--s-4);
-  font-size: var(--t-small);
+  gap: var(--s-5);
+  font-size: var(--t-body);
 }
 
 .marginList dd {
   margin: 2px 0 0;
+}
+
+.starDd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.starDdName {
+  font-size: 1.25rem;
+  font-weight: var(--w-name);
 }
 
 .lists {
@@ -585,6 +647,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     row-gap: var(--s-4);
   }
+
+  .funnelRow2 {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 719px) {
@@ -599,6 +665,20 @@
 
   .check {
     grid-template-columns: 4.5rem minmax(0, 1fr);
+  }
+
+  .dossierTitle {
+    font-size: clamp(2.25rem, 1.2rem + 4.8vw, 3rem) !important;
+    white-space: nowrap;
+  }
+
+  .titleRow svg {
+    width: 44px;
+    height: auto;
+  }
+
+  .pageHead h1 {
+    font-size: clamp(2.5rem, 1.4rem + 5vw, 3.5rem);
   }
 
   .checkReason {

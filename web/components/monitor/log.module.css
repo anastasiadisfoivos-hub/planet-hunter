@@ -1,4 +1,4 @@
-/* The log: coverage map and the helicorder rows (DESIGN.md: Other pages). */
+/* The log: the all-sky coverage map and the helicorder rows, across the whole screen (DESIGN.md: Other pages). */
 
 .page {
   padding-top: var(--s-7);
@@ -17,26 +17,36 @@
 
 .head h1 {
   font-size: var(--t-display);
-  line-height: 0.98;
-  letter-spacing: -0.025em;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-weight: var(--w-name);
 }
 
-.head .prose {
+.lead {
   display: grid;
-  gap: var(--s-2);
+  gap: var(--s-3);
+  max-width: 64ch;
 }
 
-.where {
+.where,
+.rowsSec {
   display: grid;
-  gap: var(--s-4);
+  gap: var(--s-5);
 }
+
+.where h2,
+.rowsSec h2 {
+  font-size: var(--t-h1);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- the sky ---------- */
 
 .coverage {
   margin: 0;
   display: grid;
-  grid-template-columns: minmax(0, 9fr) minmax(0, 3fr);
-  gap: var(--s-3) var(--s-6);
-  align-items: end;
+  gap: var(--s-5);
 }
 
 .sky {
@@ -48,44 +58,86 @@
 
 .skyBg {
   fill: var(--paper-2);
-}
-
-.skyMinor {
-  stroke: var(--grid);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-}
-
-.skyMajor {
   stroke: var(--grid-strong);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
+.graticule path {
+  fill: none;
+  stroke: var(--grid);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.milkyWay {
+  fill: none;
+  stroke: var(--ink);
+  stroke-opacity: 0.07;
+  stroke-width: 34;
+  stroke-linejoin: round;
+}
+
+.milkyEdge {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-opacity: 0.45;
+  stroke-width: 1;
+  stroke-dasharray: 1 4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.ecliptic {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-opacity: 0.6;
+  stroke-width: 1;
+  stroke-dasharray: 6 5;
+  vector-effect: non-scaling-stroke;
+}
+
+.sector path {
+  fill: none;
+  stroke: var(--known);
+  stroke-opacity: 0.4;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.skyNote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  fill: var(--ink-2);
+}
+
 .skyLabel {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 500;
   fill: var(--ink-3);
 }
 
 .dot {
-  fill: none;
-  stroke: var(--ink-2);
+  stroke: var(--ink);
   stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .dot[data-outcome="none"] {
   stroke: var(--ink-3);
+  stroke-dasharray: 2 2;
 }
 
 .dot[data-outcome="known"] {
-  fill: var(--known);
   stroke: var(--known);
+  stroke-width: 2.5;
 }
 
 .dot[data-outcome="candidate"] {
-  fill: var(--pen);
   stroke: var(--pen);
+  stroke-width: 3;
 }
 
 .skyWait {
@@ -94,31 +146,40 @@
 }
 
 .legend {
-  display: grid;
-  gap: var(--s-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--s-4) var(--s-7);
   font-size: var(--t-small);
-  padding-bottom: 28px;
+}
+
+.legendGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
 }
 
 .legendItem {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .legendItem svg {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   overflow: visible;
 }
 
-.legend .label {
-  margin-top: var(--s-2);
+.legendNote {
+  flex: 1 1 32ch;
+  color: var(--ink-2);
+  max-width: 70ch;
 }
 
+/* ---------- the rows ---------- */
+
 .rowsSec {
-  display: grid;
-  gap: var(--s-4);
   justify-items: start;
 }
 
@@ -138,18 +199,19 @@
 }
 
 .filter {
-  min-height: 36px;
-  @media (pointer: coarse) {
-    min-height: var(--tap);
-  }
+  min-height: 40px;
   padding: 0 var(--s-3);
   font-size: var(--t-small);
+  font-weight: 500;
   color: var(--ink-2);
   background: transparent;
   border: 0;
   border-bottom: 2px solid transparent;
   cursor: pointer;
   transition: color var(--d-hover) var(--ease-out);
+  @media (pointer: coarse) {
+    min-height: var(--tap);
+  }
 }
 
 .filter:hover {
@@ -161,55 +223,81 @@
   border-bottom-color: var(--pen);
 }
 
+.colHead,
+.row {
+  display: grid;
+  grid-template-columns: 7rem minmax(15rem, 3fr) 9rem minmax(12rem, 4fr) minmax(18rem, 6fr);
+  gap: var(--s-5);
+  width: 100%;
+}
+
+.colHead {
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--grid-strong);
+  background: var(--paper-2);
+}
+
+.colHead > :first-child {
+  padding-left: var(--s-3);
+}
+
 .rows {
   list-style: none;
   margin: 0;
   padding: 0;
   width: 100%;
-  border-top: 1px solid var(--grid-strong);
 }
 
 /* one star = one line of the drum */
 .row {
-  display: grid;
-  grid-template-columns: 5.5rem minmax(0, 11rem) 8.5rem minmax(0, 13rem) minmax(0, 1fr);
-  gap: var(--s-4);
   align-items: center;
-  padding: var(--s-2) 0;
-  min-height: 56px;
-  border-bottom: 1px solid var(--grid);
+  padding: var(--s-4) 0;
+  min-height: 84px;
+  border-bottom: 1px solid var(--grid-strong);
 }
 
 .when {
   display: grid;
-  line-height: 1.3;
-}
-
-.when .num {
-  font-size: 0.75rem;
+  line-height: 1.35;
+  padding-left: var(--s-3);
 }
 
 .who {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.whoText {
   display: grid;
   line-height: 1.25;
+  min-width: 0;
 }
 
 .tic {
-  font-size: 1.0625rem;
+  font-size: 1.3125rem;
+  font-weight: var(--w-name);
+  letter-spacing: -0.005em;
 }
 
 .kind {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--ink-2);
+}
+
+.kind .num {
+  font-size: 0.8125rem;
 }
 
 .sectors {
   white-space: normal;
+  color: var(--ink-2);
 }
 
 .spark {
   width: 100%;
-  height: 26px;
+  height: 40px;
   display: block;
   overflow: visible;
 }
@@ -217,19 +305,23 @@
 .spark path {
   fill: none;
   stroke: var(--ink);
-  stroke-width: 1;
+  stroke-width: 1.25;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 
-.flat {
-  stroke: var(--grid-strong);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
+.noCurve {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  border: 1px dashed var(--grid-strong);
+  border-radius: var(--radius);
 }
 
 .what {
   display: grid;
-  gap: 1px;
+  gap: 3px;
   font-size: var(--t-small);
   min-width: 0;
 }
@@ -238,6 +330,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
+  font-weight: 600;
 }
 
 .outcome[data-outcome="candidate"] {
@@ -253,21 +346,28 @@
   font-style: italic;
 }
 
+.count {
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
 .why {
   color: var(--ink-2);
-  font-size: 0.875rem;
-  line-height: 1.4;
+  font-size: 1rem;
+  line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-@media (max-width: 1099px) {
+@media (max-width: 1199px) {
+  .colHead,
   .row {
-    grid-template-columns: 5rem minmax(0, 10rem) minmax(0, 10rem) minmax(0, 1fr);
+    grid-template-columns: 6rem minmax(13rem, 3fr) minmax(10rem, 3fr) minmax(16rem, 5fr);
   }
 
+  .colHead > :nth-child(3),
   .sectors {
     display: none;
   }
@@ -284,40 +384,37 @@
     align-items: start;
   }
 
+  .colHead {
+    display: none;
+  }
+
   .row {
-    grid-template-columns: 4rem minmax(0, 1fr) 5.5rem;
+    grid-template-columns: minmax(0, 1fr) 6.5rem;
     grid-template-areas:
-      "when who spark"
-      "when what what";
-    row-gap: var(--s-1);
-    padding: var(--s-3) 0;
+      "who spark"
+      "what what"
+      "when when";
+    row-gap: var(--s-2);
+    padding: var(--s-4) 0;
   }
 
   .when {
     grid-area: when;
-    align-self: start;
+    display: flex;
+    gap: var(--s-2);
+    padding-left: 0;
   }
 
   .who {
     grid-area: who;
   }
 
-  .spark {
+  .spark,
+  .noCurve {
     grid-area: spark;
   }
 
   .what {
     grid-area: what;
-  }
-
-  .coverage {
-    grid-template-columns: 1fr;
-  }
-
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2) var(--s-4);
-    padding-bottom: 0;
   }
 }
