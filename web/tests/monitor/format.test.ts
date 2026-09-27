@@ -6,6 +6,10 @@ import {
   fmtPeriod,
   fmtSpan,
   modeLabel,
+  modeLine,
+  queueLine,
+  thousands,
+  runnerLine,
   modeShort,
   observedLine,
   starKind,
@@ -46,4 +50,26 @@ test("a kind of star in words, from the TIC", () => {
   assert.equal(starKind(6226, 1.9), "an F subgiant");
   assert.equal(starKind(4800, 11), "a red giant");
   assert.equal(starKind(null, null), "a star");
+});
+
+test("the mode line names the search that found the star", () => {
+  assert.equal(modeLine("live", null, "deep"), "Live · deep search, every sector");
+  assert.equal(modeLine("replay", "2026-09-26T07:57:39Z", null), modeLabel("replay", "2026-09-26T07:57:39Z"));
+  assert.equal(modeLine("live", null, "odd"), "Live · odd search");
+});
+
+test("the search server's line: resting until its next run, or not answering", () => {
+  const base = { run_id: "oracle-20260927", last_seen_at: "2026-09-27T23:40:00Z", next_run_at: null };
+  assert.equal(runnerLine(null), null);
+  assert.equal(runnerLine({ ...base, state: "searching", responding: true }), null);
+  assert.equal(
+    runnerLine({ ...base, state: "idle", responding: true, next_run_at: "2026-09-28T00:15:00Z" }),
+    "The search server is resting; the next search starts 28 Sep 2026, 00:15 UTC.",
+  );
+  assert.equal(runnerLine({ ...base, state: "searching", responding: false }), "The search server has not answered since 27 Sep 2026, 23:40 UTC.");
+});
+
+test("a queue's coverage in words", () => {
+  assert.equal(queueLine("deep", { done: 512, listed: 48000, running: 3 }), `Deep search, every sector: 512 of ${thousands(48000)} stars on its list (3 now)`);
+  assert.equal(queueLine("fast", { done: 1, listed: null, running: 0 }), "Fast search, newest 3 sectors: 1 star");
 });

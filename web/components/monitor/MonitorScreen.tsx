@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getMonitorNow, getMonitorStats, type Detection, type MonitorNow, type MonitorStar, type MonitorStats } from "@/lib/api";
 import { MonitorClient } from "./client";
-import { btjdToMs, detectionLabel, detectionSentence, modeLabel, modeShort, observedLine, OUTCOME_WORD, plural, starKind, thousands } from "./format";
+import { btjdToMs, detectionLabel, detectionSentence, modeLine, modeShort, observedLine, runnerLine, OUTCOME_WORD, plural, starKind, thousands } from "./format";
 import { StarHeader } from "./StarHeader";
 import { TempKey } from "./TempKey";
 import { StillTrace, StreamTrace } from "./Recorder";
@@ -172,7 +172,12 @@ export function MonitorScreen() {
                 {now.mode === "live" && <span className={s.liveDot} aria-hidden />}
                 {modeShort(now.mode)}
               </p>
-              <p className={s.modeLine}>{modeLabel(now.mode, now.replay_of)}</p>
+              <p className={s.modeLine}>{modeLine(now.mode, now.replay_of, now.label ?? now.star?.label)}</p>
+              {runnerLine(now.runner) && (
+                <p className={`${s.modeLine} italic quiet`} role="status">
+                  {runnerLine(now.runner)}
+                </p>
+              )}
             </>
           )}
           <div className={s.controls}>

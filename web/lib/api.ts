@@ -69,12 +69,28 @@ export type MonitorStar = {
   detections: Detection[];
   outcome: StarOutcome;
   searched_at: string;
+  /** Which search found it ("fast", "deep", "faint"), when the server said. */
+  label?: string | null;
 };
 
 export type MonitorMode = "live" | "replay";
 
+/** The search server's last heartbeat (API: /monitor/now `runner`). */
+export type RunnerState = {
+  state: "searching" | "vetting" | "ingesting" | "idle" | string;
+  run_id: string | null;
+  next_run_at: string | null;
+  last_seen_at: string;
+  /** False once the server has been silent too long (an idle one counts until its announced next run). */
+  responding: boolean;
+};
+
 export type MonitorNow = {
   mode: MonitorMode;
+  /** Which search found this star: "fast", "deep" or "faint", when the server said. */
+  label?: string | null;
+  /** Live API only; null when the server never sent a heartbeat. */
+  runner?: RunnerState | null;
   /** Null when the API has no searched star yet. */
   star: MonitorStar | null;
   /** Replay only: when the search being replayed ran (ISO). */
@@ -100,7 +116,14 @@ export type MonitorStats = {
 };
 
 // The API's monitor answers (api/README.md, Monitor), mapped onto the shapes above.
-type ApiNow = { mode: MonitorMode; run_started_at: string | null; star: MonitorStar | null; next_tic?: number | null };
+type ApiNow = {
+  mode: MonitorMode;
+  run_started_at: string | null;
+  star: MonitorStar | null;
+  next_tic?: number | null;
+  label?: string | null;
+  runner?: RunnerState | null;
+};
 type ApiLogItem = { tic: number; outcome: string | null; detections_count: number; searched_at: string; record?: LogStar | null };
 type ApiStats = { stars_searched: number; signals: number; candidates: number; rejected_by_reason?: Record<string, number>; rejected?: number; known?: number; last_run_at: string | null; funnel?: FunnelStep[] };
 const MAX_LOG = 200;
@@ -133,7 +156,14 @@ export async function getMonitorNow(opts: { after?: number | null; signal?: Abor
   if (!API_MOCK) {
     const q = opts.after != null ? `?after=${opts.after}` : "";
     const r = await getJson<ApiNow>(`${API_BASE}/monitor/now${q}`, opts.signal);
-    return { mode: r.mode, star: r.star, replay_of: r.mode === "replay" ? r.run_started_at : null, next_tic: r.next_tic ?? null };
+    return {
+      mode: r.mode,
+      star: r.star,
+      replay_of: r.mode === "replay" ? r.run_started_at : null,
+      next_tic: r.next_tic ?? null,
+      label: r.label ?? r.star?.label ?? null,
+      runner: r.runner ?? null,
+    };
   }
   const { order } = await replay();
   const i = opts.after == null ? 0 : (order.indexOf(opts.after) + 1) % order.length;
@@ -175,6 +205,15 @@ export function getSparks(): Promise<Sparks | null> {
     ? getJson<Sparks>(`${MON}/sparks.json`).catch(() => null)
     : getJson<Sparks>(`${API_BASE}/monitor/sparks`).catch(() => null);
   return sparksFile;
+}
+
+/** The search ledger's counts per queue (fast, deep, faint), as of the server's last heartbeat. */
+export type QueueCoverage = { updated_at: string | null; queues: Record<string, { done: number; listed: number | null; running: number }> };
+
+/** Live API only: the mock has no search server behind it, so no queues. */
+export async function getQueueCoverage(signal?: AbortSignal): Promise<QueueCoverage | null> {
+  if (API_MOCK) return null;
+  return getJson<QueueCoverage>(`${API_BASE}/monitor/coverage/queues`, signal).catch(() => null);
 }
 
 /** A searched star's light curve: the mock's file, or the API's latest stored record of it. */

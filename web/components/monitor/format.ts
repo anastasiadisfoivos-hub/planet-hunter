@@ -1,7 +1,7 @@
 // Words and numbers for the monitor, the log and the dossier (DESIGN.md: Numbers and units, Words).
 // No React and no "@/" value imports, so node --test can load it directly.
 
-import type { Detection, DetectionOutcome, MonitorMode, StarOutcome } from "@/lib/api";
+import type { Detection, DetectionOutcome, MonitorMode, RunnerState, StarOutcome } from "@/lib/api";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const THIN = " ";
@@ -151,4 +151,36 @@ export function modeShort(mode: MonitorMode): string {
 
 export function plural(n: number, one: string, many = `${one}s`): string {
   return `${thousands(n)} ${n === 1 ? one : many}`;
+}
+
+/** A search's name, from the server's label. */
+export const SEARCH_WORD: Record<string, string> = {
+  fast: "fast search, newest 3 sectors",
+  deep: "deep search, every sector",
+  faint: "faint-star search",
+};
+
+/** The mode line with the search that found the star, when the server said. */
+export function modeLine(mode: MonitorMode, replayOf: string | null, label: string | null | undefined): string {
+  const base = modeLabel(mode, replayOf);
+  const word = label ? (SEARCH_WORD[label] ?? `${label} search`) : null;
+  return word ? `${base} · ${word}` : base;
+}
+
+/** One quiet line about the search server itself, or null when there is nothing to add to the mode. */
+export function runnerLine(r: RunnerState | null | undefined): string | null {
+  if (!r) return null;
+  if (!r.responding) return `The search server has not answered since ${fmtDateTime(r.last_seen_at)}.`;
+  if (r.state === "idle") return r.next_run_at ? `The search server is resting; the next search starts ${fmtDateTime(r.next_run_at)}.` : "The search server is resting.";
+  if (r.state === "vetting") return "The search server is vetting what it found.";
+  if (r.state === "ingesting") return "The search server is storing the day's results.";
+  return null;
+}
+
+/** One queue's coverage: "Deep search, every sector: 512 of 48,000 stars on its list (3 now)". */
+export function queueLine(name: string, c: { done: number; listed: number | null; running: number }): string {
+  const word = SEARCH_WORD[name] ?? `${name} search`;
+  const head = word.charAt(0).toUpperCase() + word.slice(1);
+  const of = c.listed != null ? ` of ${thousands(c.listed)} stars on its list` : ` ${c.done === 1 ? "star" : "stars"}`;
+  return `${head}: ${thousands(c.done)}${of}${c.running ? ` (${thousands(c.running)} now)` : ""}`;
 }

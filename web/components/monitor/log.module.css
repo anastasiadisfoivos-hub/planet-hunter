@@ -418,3 +418,14 @@
     grid-area: what;
   }
 }
+
+.queues {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+
+.queues ul {
+  margin: 0;
+  padding-left: 1.1em;
+}

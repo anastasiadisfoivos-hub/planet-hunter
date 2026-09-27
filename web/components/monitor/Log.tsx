@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getMonitorCoverage, getMonitorLog, getSparks, type LogStar, type MonitorCoverage, type Sparks, type StarOutcome } from "@/lib/api";
+import { getMonitorCoverage, getMonitorLog, getQueueCoverage, getSparks, type LogStar, type MonitorCoverage, type QueueCoverage, type Sparks, type StarOutcome } from "@/lib/api";
 import { Coverage } from "./Coverage";
-import { fmtDateTime, fmtDay, fmtTemp, OUTCOME_WORD, sectorWord, starKind, thousands } from "./format";
+import { fmtDateTime, fmtDay, fmtTemp, OUTCOME_WORD, queueLine, sectorWord, starKind, thousands } from "./format";
 import { StarGlyph } from "./Glyphs";
 import { Tick } from "./MonitorScreen";
 import s from "./log.module.css";
@@ -74,10 +74,25 @@ function Row({ star, spark }: { star: LogStar; spark: number[] | undefined }) {
   );
 }
 
+/** How far each search has gone down its own list, from the search server's ledger. */
+function QueueList({ q }: { q: QueueCoverage }) {
+  return (
+    <div className={s.queues}>
+      <ul className="prose">
+        {Object.entries(q.queues).map(([name, c]) => (
+          <li key={name}>{queueLine(name, c)}</li>
+        ))}
+      </ul>
+      {q.updated_at && <p className="label quiet">From the search server&apos;s ledger, {fmtDateTime(q.updated_at)}</p>}
+    </div>
+  );
+}
+
 export function Log() {
   const [stars, setStars] = useState<LogStar[] | null>(null);
   const [cov, setCov] = useState<MonitorCoverage | null>(null);
   const [sparks, setSparks] = useState<Sparks | null>(null);
+  const [queues, setQueues] = useState<QueueCoverage | null>(null);
   const [error, setError] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [shown, setShown] = useState(PAGE);
@@ -90,6 +105,7 @@ export function Log() {
       .then(setCov)
       .catch(() => {});
     getSparks().then(setSparks);
+    getQueueCoverage(ac.signal).then(setQueues);
     return () => ac.abort();
   }, []);
   const rows = useMemo(() => (stars ?? []).filter((x) => filter === "all" || x.outcome === filter), [stars, filter]);
@@ -109,6 +125,7 @@ export function Log() {
       <section aria-labelledby="where" className={s.where}>
         <h2 id="where">Where it has looked</h2>
         {cov ? <Coverage stars={cov.stars} teffOf={teffOf} /> : <div className={s.skyWait} aria-hidden />}
+        {queues && Object.keys(queues.queues).length > 0 && <QueueList q={queues} />}
       </section>
 
       <section aria-labelledby="rows" className={s.rowsSec}>
