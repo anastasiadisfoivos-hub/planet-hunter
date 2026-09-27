@@ -1,6 +1,6 @@
 """One search day, start to finish (the systemd service runs `python3 -m scheduler run` once a day, and at boot).
 
-  run id      "oracle-YYYYMMDD": the day whose PH_RUN_START_UTC (00:15) last passed. Starting again the same day
+  run id      "oracle-YYYYMMDD" (PH_RUN_PREFIX, "kaggle" on Kaggle): the day whose PH_RUN_START_UTC (00:15) last passed. Starting again the same day
               (reboot, crash, `systemctl restart`) resumes that run: same id, same deadline, the ledger skips what
               finished, and stars cut off mid-search are retried without costing an attempt.
   prepare     target lists (rebuilt when older than PH_TARGETS_MAX_AGE_DAYS), one known-list snapshot per run.
@@ -38,7 +38,7 @@ def run_day(cfg: Config, now: datetime | None = None) -> tuple[str, datetime]:
     start = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
     if now < start:
         start -= timedelta(days=1)
-    return f"oracle-{start:%Y%m%d}", start
+    return f"{cfg.run_prefix}-{start:%Y%m%d}", start
 
 
 def pipeline_version(cfg: Config) -> str | None:

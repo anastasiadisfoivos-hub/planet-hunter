@@ -51,6 +51,7 @@ class Config:
     workers: int = 4
     split: dict[str, float] = field(default_factory=lambda: dict(DEFAULT_SPLIT))
     run_start_utc: str = "00:15"  # a search day starts here (the timer fires then)
+    run_prefix: str = "oracle"  # run ids are "<prefix>-YYYYMMDD" (kaggle/ sets "kaggle")
     search_hours: float = 21.5  # stop starting new stars this long after the day's start
     wrap_hours: float = 2.0  # merge + vet the rest + ingest must fit in this
     disk_cap_gb: float = 150.0  # everything under `data` stays below this
@@ -125,6 +126,7 @@ class Config:
             workers=_int(env, "PH_WORKERS", 4),
             split=parse_split(env.get("PH_SPLIT")),
             run_start_utc=env.get("PH_RUN_START_UTC") or "00:15",
+            run_prefix=env.get("PH_RUN_PREFIX") or "oracle",
             search_hours=_float(env, "PH_SEARCH_HOURS", 21.5),
             wrap_hours=_float(env, "PH_WRAP_HOURS", 2.0),
             disk_cap_gb=_float(env, "PH_DISK_CAP_GB", 150.0),
