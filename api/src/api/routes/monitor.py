@@ -8,7 +8,7 @@ import hmac
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Path, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from api import monitor
@@ -18,6 +18,7 @@ from api.timeutil import utcnow
 router = APIRouter(prefix="/monitor", tags=["monitor"])
 
 MAX_LOG = 200
+SPARK_NOTE = "each bin keeps its lowest point; sectors joined end to end"
 _limit = rate_limited("ingest")
 
 
@@ -36,15 +37,33 @@ def require_ingest(
 
 
 @router.get("/now")
-def now(_: Reader, services: ServicesDep, settings: SettingsDep) -> dict:
-    """{mode: "live"|"replay", run_id, run_started_at, progress: {done, total}, star, next_at}.
-    `next_at` (replay only) is when the replay moves to the next star."""
+def now(
+    _: Reader,
+    services: ServicesDep,
+    settings: SettingsDep,
+    after: Annotated[int | None, Query(ge=1)] = None,
+) -> dict:
+    """{mode: "live"|"replay", run_id, run_started_at, progress: {done, total}, star, next_at,
+    next_tic}. `next_at` (replay only) is when the replay moves to the next star. `after`
+    (replay only; ignored live): return the star after this tic in the run's search order
+    instead of the server-timed one. `next_tic` (replay only): the star after the returned one."""
     return monitor.now_view(
         services.storage,
         utcnow(),
         live_timeout_s=settings.monitor_live_timeout_s,
         step_s=settings.monitor_step_s,
+        after=after,
     )
+
+
+@router.get("/stars/{tic}")
+def star(_: Reader, services: ServicesDep, tic: Annotated[int, Path(ge=1)]) -> dict:
+    """The star's latest stored monitor record (full, light curve included). Only the last
+    PH_MONITOR_KEEP_RUNS runs keep records: 404 otherwise."""
+    record = services.storage.monitor_star_latest(tic)
+    if record is None:
+        raise HTTPException(404, f"No stored monitor record for TIC {tic}.")
+    return record
 
 
 @router.get("/log")
@@ -52,23 +71,46 @@ def log(
     _: Reader,
     services: ServicesDep,
     limit: Annotated[int, Query(ge=1, le=MAX_LOG)] = 50,
+    detail: bool = False,
 ) -> dict:
-    """The most recently searched stars, newest first (each star's latest search)."""
-    return {"items": services.storage.monitor_log(limit)}
+    """The most recently searched stars, newest first (each star's latest search). With
+    detail=true each item also has `record`: that search's monitor record without `lightcurve`
+    (null once its run is pruned)."""
+    return {"items": services.storage.monitor_log(limit, detail=detail)}
 
 
 @router.get("/coverage")
 def coverage(_: Reader, services: ServicesDep) -> dict:
     """Every star ever searched, by TESS sector and by 5-degree sky cell (ra/dec: the cell's
-    centre, degrees)."""
+    centre, degrees), and `stars`: each one's latest search {tic, ra, dec, outcome, sectors}
+    (ra/dec in degrees, null when the record had none), by tic."""
     return services.storage.monitor_coverage()
 
 
 @router.get("/stats")
 def stats(_: Reader, services: ServicesDep) -> dict:
-    """Totals over each star's latest search: signals = detections, candidates = detections
-    whose outcome is "candidate", rejected_by_reason = the rest by reason."""
-    return services.storage.monitor_stats()
+    """Totals over each star's latest search: signals = detections, candidates / known /
+    rejected = detections whose outcome is "candidate" / "known" / "rejected",
+    rejected_by_reason = the non-candidates by reason (known ones included, under their reason
+    or "known"). `funnel` (only when a sweep summary is stored): its counts per step."""
+    stats = services.storage.monitor_stats()
+    doc = services.storage.get_finder_doc("finder_sweep")
+    steps = monitor.funnel(doc[0] if doc else None)
+    if steps is not None:
+        stats["funnel"] = steps
+    return stats
+
+
+@router.get("/sparks")
+def sparks(_: Reader, services: ServicesDep, response: Response) -> dict:
+    """{unit: "ppm", bins, note, stars: {"<tic>": [ppm, ...]}}: every star whose latest search's
+    record (light curve) is still kept, its whole curve in at most `bins` bins."""
+    stars = {}
+    for tic, f in services.storage.monitor_curves():
+        if points := monitor.spark(f):
+            stars[str(tic)] = points
+    response.headers["Cache-Control"] = "public, max-age=300"
+    return {"unit": "ppm", "bins": monitor.SPARK_BINS, "note": SPARK_NOTE, "stars": stars}
 
 
 class ProgressIn(BaseModel):

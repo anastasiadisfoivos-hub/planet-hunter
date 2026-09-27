@@ -30,6 +30,8 @@ class MonitorSql:
     # Hooks, supplied by the backend (see FinderSql).
     PH: str
     FOR_UPDATE: str
+    NO_LIGHTCURVE: str  # SQL: monitor_stars s's record without its "lightcurve" key
+    LIGHTCURVE_F: str  # SQL: monitor_stars s's lightcurve.f (JSON array, or NULL)
 
     # Runs --------------------------------------------------------------------------------
 
@@ -150,14 +152,15 @@ class MonitorSql:
             cell_ra, cell_dec = sky_cell(star.ra, star.dec)
             values = (
                 run_id, at, star.outcome, star.ra, star.dec, cell_ra, cell_dec,
-                star.detections_count, star.candidates_count, star.tic,
+                star.detections_count, star.candidates_count, star.known_count,
+                star.rejected_count, star.tic,
             )  # fmt: skip
             if old is None:
                 self._exec(
                     self._sql(
                         "INSERT INTO monitor_seen (run_id, searched_at, outcome, ra_deg, dec_deg,"
-                        " cell_ra, cell_dec, detections_count, candidates_count, tic)"
-                        " VALUES (?,?,?,?,?,?,?,?,?,?)"
+                        " cell_ra, cell_dec, detections_count, candidates_count, known_count,"
+                        " rejected_count, tic) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
                     ),
                     values,
                 )
@@ -166,7 +169,8 @@ class MonitorSql:
                     self._sql(
                         "UPDATE monitor_seen SET run_id = ?, searched_at = ?, outcome = ?,"
                         " ra_deg = ?, dec_deg = ?, cell_ra = ?, cell_dec = ?,"
-                        " detections_count = ?, candidates_count = ? WHERE tic = ?"
+                        " detections_count = ?, candidates_count = ?, known_count = ?,"
+                        " rejected_count = ? WHERE tic = ?"
                     ),
                     values,
                 )
@@ -218,25 +222,80 @@ class MonitorSql:
             (run_id, index),
         ))  # fmt: skip
 
+    def monitor_next_tic(self, run_id: str, tic: int) -> int | None:
+        """The tic after `tic` in the run's search order, wrapping around (the first tic when
+        `tic` is the last or not in the run). None when the run has no stars."""
+        r = self._one(
+            self._sql(
+                "SELECT s.tic FROM monitor_stars s"
+                " JOIN monitor_stars me ON me.run_id = s.run_id AND me.tic = ?"
+                " WHERE s.run_id = ? AND (s.searched_at > me.searched_at"
+                " OR (s.searched_at = me.searched_at AND s.tic > me.tic))"
+                " ORDER BY s.searched_at, s.tic LIMIT 1"
+            ),
+            (tic, run_id),
+        )
+        if r is None:
+            r = self._one(
+                self._sql(
+                    "SELECT tic FROM monitor_stars WHERE run_id = ?"
+                    " ORDER BY searched_at, tic LIMIT 1"
+                ),
+                (run_id,),
+            )
+        return int(r["tic"]) if r else None
+
+    def monitor_star_latest(self, tic: int) -> dict[str, Any] | None:
+        """The star's latest full record still kept (any run), or None."""
+        return self._star(self._one(
+            self._sql(
+                "SELECT record FROM monitor_stars WHERE tic = ?"
+                " ORDER BY searched_at DESC, run_id DESC LIMIT 1"
+            ),
+            (tic,),
+        ))  # fmt: skip
+
     # Log, coverage, stats ----------------------------------------------------------------
 
-    def monitor_log(self, limit: int) -> list[dict[str, Any]]:
+    def monitor_log(self, limit: int, *, detail: bool = False) -> list[dict[str, Any]]:
+        """Newest searches first. With `detail`, each item's `record` is that search's full
+        record without the light curve (None once its run is pruned)."""
+        record = f", {self.NO_LIGHTCURVE} AS record" if detail else ""
+        join = ""
+        if detail:
+            join = " LEFT JOIN monitor_stars s ON s.run_id = m.run_id AND s.tic = m.tic"
         rows = self._all(
             self._sql(
-                "SELECT tic, outcome, detections_count, searched_at FROM monitor_seen"
-                " ORDER BY searched_at DESC, tic DESC LIMIT ?"
+                f"SELECT m.tic, m.outcome, m.detections_count, m.searched_at{record}"
+                f" FROM monitor_seen m{join} ORDER BY m.searched_at DESC, m.tic DESC LIMIT ?"
             ),
             (limit,),
         )
-        return [
-            {
+        items = []
+        for r in rows:
+            item = {
                 "tic": int(r["tic"]),
                 "outcome": r["outcome"],
                 "detections_count": int(r["detections_count"]),
                 "searched_at": self._to(r["searched_at"]),
             }
-            for r in rows
-        ]
+            if detail:
+                item["record"] = self._jo(r["record"])
+            items.append(item)
+        return items
+
+    def monitor_curves(self) -> list[tuple[int, list[Any]]]:
+        """(tic, lightcurve.f) of every star whose latest search's record is still kept."""
+        rows = self._all(
+            f"SELECT m.tic, {self.LIGHTCURVE_F} AS f FROM monitor_seen m"
+            " JOIN monitor_stars s ON s.run_id = m.run_id AND s.tic = m.tic ORDER BY m.tic"
+        )
+        out = []
+        for r in rows:
+            f = self._jo(r["f"])
+            if isinstance(f, list):
+                out.append((int(r["tic"]), f))
+        return out
 
     def monitor_coverage(self) -> dict[str, Any]:
         total = self._one("SELECT COUNT(*) AS n FROM monitor_seen")["n"]
@@ -249,6 +308,19 @@ class MonitorSql:
             " GROUP BY cell_ra, cell_dec ORDER BY cell_dec, cell_ra"
         )
         half = CELL_DEG / 2
+        # Every star's latest search, one row per (star, sector): grouped here into one list.
+        rows = self._all(
+            "SELECT m.tic, m.ra_deg, m.dec_deg, m.outcome, x.sector FROM monitor_seen m"
+            " LEFT JOIN monitor_sectors x ON x.tic = m.tic ORDER BY m.tic, x.sector"
+        )
+        stars: list[dict[str, Any]] = []
+        for r in rows:
+            tic = int(r["tic"])
+            if not stars or stars[-1]["tic"] != tic:
+                stars.append({"tic": tic, "ra": r["ra_deg"], "dec": r["dec_deg"],
+                              "outcome": r["outcome"], "sectors": []})  # fmt: skip
+            if r["sector"] is not None:
+                stars[-1]["sectors"].append(int(r["sector"]))
         return {
             "stars_searched_total": int(total),
             "by_sector": [{"sector": int(r["sector"]), "stars": int(r["n"])} for r in sectors],
@@ -261,12 +333,14 @@ class MonitorSql:
                 }
                 for r in cells
             ],
+            "stars": stars,
         }
 
     def monitor_stats(self) -> dict[str, Any]:
         r = self._one(
             "SELECT COUNT(*) AS n, SUM(detections_count) AS signals,"
-            " SUM(candidates_count) AS candidates FROM monitor_seen"
+            " SUM(candidates_count) AS candidates, SUM(known_count) AS known,"
+            " SUM(rejected_count) AS rejected FROM monitor_seen"
         )
         reasons = self._all(
             "SELECT reason, SUM(n) AS n FROM monitor_reasons GROUP BY reason ORDER BY reason"
@@ -276,6 +350,8 @@ class MonitorSql:
             "stars_searched": int(r["n"]),
             "signals": int(r["signals"] or 0),
             "candidates": int(r["candidates"] or 0),
+            "known": int(r["known"] or 0),
+            "rejected": int(r["rejected"] or 0),
             "rejected_by_reason": {x["reason"]: int(x["n"]) for x in reasons},
             "last_run_at": (last["started_at"] or last["updated_at"]) if last else None,
         }

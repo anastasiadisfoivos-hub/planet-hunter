@@ -33,6 +33,8 @@ def _dump(obj: Any) -> str:
 class SqliteStorage(FinderSql, MonitorSql):
     PH = "?"
     FOR_UPDATE = ""  # BEGIN IMMEDIATE already serializes writers
+    NO_LIGHTCURVE = "json_remove(s.record, '$.lightcurve')"
+    LIGHTCURVE_F = "json_extract(s.record, '$.lightcurve.f')"
 
     def __init__(self, path: str = ":memory:") -> None:
         self._conn = sqlite3.connect(path, check_same_thread=False, isolation_level=None)

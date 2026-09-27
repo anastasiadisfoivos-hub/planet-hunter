@@ -69,6 +69,8 @@ def _utc(dt: datetime | None) -> datetime | None:
 class PostgresStorage(FinderSql, MonitorSql):
     PH = "%s"
     FOR_UPDATE = " FOR UPDATE"
+    NO_LIGHTCURVE = "s.record - 'lightcurve'"
+    LIGHTCURVE_F = "s.record->'lightcurve'->'f'"
 
     def __init__(
         self,

@@ -66,14 +66,15 @@ def ingest(storage, root: Path, run_id: str = "18000000001", **kw) -> dict:
 def test_empty_monitor(client):
     now = client.get("/monitor/now").json()
     assert now == {"mode": "replay", "run_id": None, "run_started_at": None,
-                   "progress": {"done": 0, "total": 0}, "star": None, "next_at": None}  # fmt: skip
+                   "progress": {"done": 0, "total": 0}, "star": None, "next_at": None,
+                   "next_tic": None}  # fmt: skip
     assert client.get("/monitor/log").json() == {"items": []}
     assert client.get("/monitor/coverage").json() == {
-        "stars_searched_total": 0, "by_sector": [], "cell_deg": 5, "sky_cells": []
+        "stars_searched_total": 0, "by_sector": [], "cell_deg": 5, "sky_cells": [], "stars": []
     }  # fmt: skip
     assert client.get("/monitor/stats").json() == {
-        "stars_searched": 0, "signals": 0, "candidates": 0, "rejected_by_reason": {},
-        "last_run_at": None,
+        "stars_searched": 0, "signals": 0, "candidates": 0, "known": 0, "rejected": 0,
+        "rejected_by_reason": {}, "last_run_at": None,
     }  # fmt: skip
 
 
@@ -188,7 +189,7 @@ def test_log_coverage_and_stats(client, storage, tmp_path):
 
     stats = client.get("/monitor/stats").json()
     assert stats == {
-        "stars_searched": 3, "signals": 4, "candidates": 1,
+        "stars_searched": 3, "signals": 4, "candidates": 1, "known": 1, "rejected": 2,
         "rejected_by_reason": {"known": 1, "odd-even depth mismatch": 2},
         "last_run_at": stats["last_run_at"],
     }  # fmt: skip
@@ -229,3 +230,207 @@ def test_monitor_text_follows_the_honesty_rule(client, storage, tmp_path):
     assert client.get("/monitor/stats").json()["rejected_by_reason"] == {
         "not a planet candidate": 1
     }  # fmt: skip
+
+
+def test_now_after_steps_through_the_replay(client, storage, tmp_path, at):
+    write_monitor(tmp_path, [star(300, 2), star(100, 0), star(200, 1)])
+    ingest(storage, tmp_path)
+    # Without `after`: the server-timed star, plus the one after it.
+    body = client.get("/monitor/now").json()
+    order = [100, 200, 300]
+    assert body["next_tic"] == order[(order.index(body["star"]["tic"]) + 1) % 3]
+    # With `after`: the star after it in search order, wrapping around.
+    for after, want, nxt in [(100, 200, 300), (200, 300, 100), (300, 100, 200)]:
+        body = client.get(f"/monitor/now?after={after}").json()
+        assert body["mode"] == "replay" and body["run_id"] == "18000000001"
+        assert (body["star"]["tic"], body["next_tic"]) == (want, nxt)
+        assert body["star"]["lightcurve"]["f"] == [1.0, 0.9991, 1.0]
+        assert body["next_at"] is not None  # the server-timed slot is still reported
+    # A tic that isn't in the run: the first star.
+    body = client.get("/monitor/now?after=999").json()
+    assert (body["star"]["tic"], body["next_tic"]) == (100, 200)
+    assert client.get("/monitor/now?after=0").status_code == 422
+    assert client.get("/monitor/now?after=x").status_code == 422
+
+
+def test_now_after_single_star_and_empty(client, storage, tmp_path, at):
+    assert client.get("/monitor/now?after=5").json()["next_tic"] is None  # nothing to replay
+    write_monitor(tmp_path, [star(100, 0)])
+    ingest(storage, tmp_path)
+    body = client.get("/monitor/now?after=100").json()
+    assert (body["star"]["tic"], body["next_tic"]) == (100, 100)
+
+
+def test_now_after_is_ignored_live(make_client, at):
+    live = make_client(ingest_token=TOKEN)
+    for shard, (tic, minute) in enumerate([(400, 600), (500, 601)]):
+        live.post("/monitor/progress", headers=AUTH,
+                  json={"run_id": "18000000002", "shard": shard, "done": 1, "total": 5,
+                        "star": star(tic, minute)})  # fmt: skip
+    for q in ("", "?after=400", "?after=500"):
+        body = live.get(f"/monitor/now{q}").json()
+        assert body["mode"] == "live" and body["star"]["tic"] == 500
+        assert body["next_tic"] is None and body["next_at"] is None
+
+
+def test_star_route_returns_the_latest_stored_record(client, storage, tmp_path):
+    assert client.get("/monitor/stars/100").status_code == 404
+    write_monitor(tmp_path, [star(100, 0, outcome="nothing")])
+    ingest(storage, tmp_path, run_id="run-1")
+    write_monitor(tmp_path, [star(100, 60)])  # a later run searches it again
+    ingest(storage, tmp_path, run_id="run-2")
+    body = client.get("/monitor/stars/100").json()
+    assert body["tic"] == 100 and body["outcome"] == "candidate"
+    assert body["searched_at"].startswith("2026-09-26T03:17")
+    assert body["lightcurve"] == {"t": [1468.3, 1468.4, 1468.5], "f": [1.0, 0.9991, 1.0]}
+    assert len(body["detections"]) == 2
+    assert client.get("/monitor/stars/101").status_code == 404
+    assert client.get("/monitor/stars/0").status_code == 422
+    # Once every run holding it is pruned, the record is gone (the log still has the star).
+    write_monitor(tmp_path, [star(200, 120)])
+    (tmp_path / "monitor" / "100.json").unlink()
+    ingest(storage, tmp_path, run_id="run-3", keep_runs=1)
+    assert client.get("/monitor/stars/100").status_code == 404
+    assert client.get("/monitor/stars/200").status_code == 200
+
+
+def test_log_detail_adds_the_record_without_lightcurve(client, storage, tmp_path):
+    write_monitor(tmp_path, [star(100, 0), star(200, 1, outcome="nothing", detections=[])])
+    ingest(storage, tmp_path, run_id="run-1")
+    plain = client.get("/monitor/log").json()["items"]
+    assert all(set(i) == {"tic", "outcome", "detections_count", "searched_at"} for i in plain)
+    items = client.get("/monitor/log?detail=true&limit=10").json()["items"]
+    assert [i["tic"] for i in items] == [200, 100]
+    assert [{k: v for k, v in i.items() if k != "record"} for i in items] == plain
+    rec = items[1]["record"]
+    assert "lightcurve" not in rec
+    assert rec["tic"] == 100 and rec["sectors"] == [6, 33] and len(rec["detections"]) == 2
+    assert rec["observed_from"] == "2018-12-15T00:00:00Z" and rec["tmag"] == 10.2
+    assert items[0]["record"]["detections"] == []
+    # A later run prunes run-1: 100's latest search has no record left; 300's has.
+    for f in (tmp_path / "monitor").iterdir():
+        f.unlink()
+    write_monitor(tmp_path, [star(300, 5)])
+    ingest(storage, tmp_path, run_id="run-2", keep_runs=1)
+    items = client.get("/monitor/log?detail=true").json()["items"]
+    assert [(i["tic"], i["record"] is None) for i in items] == [
+        (300, False), (200, True), (100, True)
+    ]  # fmt: skip
+    assert "lightcurve" not in items[0]["record"]
+
+
+def test_coverage_lists_every_star(client, storage, tmp_path):
+    write_monitor(tmp_path, [
+        star(300, 0, ra=359.9, dec=89.9, sectors=[60, 33], outcome="nothing", detections=[]),
+        star(100, 1),
+        star(200, 2, ra=None, dec=None, sectors=[]),
+    ])  # fmt: skip
+    ingest(storage, tmp_path, run_id="run-1")
+    write_monitor(tmp_path, [star(100, 30, ra=10.5, dec=-5.25, sectors=[7], outcome="known")])
+    ingest(storage, tmp_path, run_id="run-2")  # a later search of 100 replaces it
+    cov = client.get("/monitor/coverage").json()
+    assert cov["stars"] == [
+        {"tic": 100, "ra": 10.5, "dec": -5.25, "outcome": "known", "sectors": [7]},
+        {"tic": 200, "ra": None, "dec": None, "outcome": "candidate", "sectors": []},
+        {"tic": 300, "ra": 359.9, "dec": 89.9, "outcome": "nothing", "sectors": [33, 60]},
+    ]
+    assert cov["stars_searched_total"] == 3
+
+
+def test_stats_known_and_rejected_follow_the_latest_search(client, storage, tmp_path):
+    def det(outcome, reason=None):
+        return {"t0": 1.0, "duration_h": 1.0, "depth_ppm": 50.0, "period_d": 1.5,
+                "kind": "periodic", "outcome": outcome, "reason": reason}  # fmt: skip
+
+    write_monitor(tmp_path, [
+        star(100, 0, detections=[det("known", "TOI 123.01"), det("rejected", "eclipsing binary"),
+                                 det("rejected", "odd-even depth mismatch")]),
+        star(200, 1, detections=[det("known"), det("candidate")]),
+    ])  # fmt: skip
+    ingest(storage, tmp_path, run_id="run-1")
+    stats = client.get("/monitor/stats").json()
+    assert (stats["known"], stats["rejected"], stats["candidates"], stats["signals"]) == (
+        2,
+        2,
+        1,
+        5,
+    )
+    # A reason on a known detection files it under that reason, but it still counts as known.
+    assert stats["rejected_by_reason"]["TOI 123.01"] == 1
+    write_monitor(tmp_path, [star(100, 60, detections=[det("candidate")])])
+    (tmp_path / "monitor" / "200.json").unlink()
+    ingest(storage, tmp_path, run_id="run-2")
+    stats = client.get("/monitor/stats").json()
+    assert (stats["known"], stats["rejected"], stats["candidates"]) == (1, 0, 2)
+
+
+def test_new_monitor_routes_follow_the_honesty_rule(client, storage, tmp_path, at):
+    write_monitor(tmp_path, [star(100, 0, outcome="new planet discovered", detections=[
+        {"t0": 1.0, "duration_h": 1.0, "depth_ppm": 50.0, "period_d": None, "kind": "single",
+         "outcome": "rejected", "reason": "not a new planet"}],
+        note="discovered by hunt")])  # fmt: skip
+    ingest(storage, tmp_path)
+    # HonestClient fails the test on any violation.
+    assert client.get("/monitor/stars/100").json()["note"] == "detected by hunt"
+    rec = client.get("/monitor/log?detail=true").json()["items"][0]["record"]
+    assert rec["detections"][0]["reason"] == "not a planet candidate"
+    assert client.get("/monitor/coverage").json()["stars"][0]["outcome"] == (
+        "planet candidate detected"
+    )
+    assert client.get("/monitor/now?after=100").json()["star"]["outcome"] == (
+        "planet candidate detected"
+    )
+
+
+def test_sparks_bin_each_latest_curve(client, storage, tmp_path):
+    empty = client.get("/monitor/sparks")
+    assert empty.json() == {
+        "unit": "ppm", "bins": 180, "stars": {},
+        "note": "each bin keeps its lowest point; sectors joined end to end",
+    }  # fmt: skip
+    assert empty.headers["cache-control"] == "public, max-age=300"
+    long_f = [1.0 + ((i % 7) - 3) * 1e-4 for i in range(1000)]
+    long_f[500] = 0.99  # a dip survives: its bin keeps the lowest point
+    write_monitor(tmp_path, [
+        star(100, 0),  # 3 points: one bin each
+        star(200, 1, lightcurve={"t": list(range(1000)), "f": long_f}),
+        star(300, 2, lightcurve=None),  # no curve: not listed
+        star(400, 3, lightcurve={"t": [1, 2, 3], "f": [None, 0.9995, None]}),
+    ])  # fmt: skip
+    ingest(storage, tmp_path)
+    body = client.get("/monitor/sparks").json()
+    assert set(body["stars"]) == {"100", "200", "400"}
+    assert body["stars"]["100"] == [0, -900, 0]
+    assert body["stars"]["400"] == [-500]
+    s200 = body["stars"]["200"]
+    assert len(s200) == 180 and min(s200) == -10000 and s200.index(-10000) == 90
+    # numpy.linspace(0, 1000, 181).astype(int) edges; bin 0 = points 0..4 -> lowest 1 - 3e-4.
+    assert s200[0] == -300
+    # A later search without a curve replaces the trace; a pruned record drops it.
+    for f in (tmp_path / "monitor").iterdir():
+        f.unlink()
+    write_monitor(tmp_path, [star(100, 60, lightcurve=None)])
+    ingest(storage, tmp_path, run_id="run-2", keep_runs=1)
+    assert client.get("/monitor/sparks").json()["stars"] == {}
+
+
+def test_stats_funnel_from_the_stored_sweep_summary(client, storage, tmp_path):
+    assert "funnel" not in client.get("/monitor/stats").json()
+    summary = {"created_at": "2026-09-26T08:00:00Z", "funnel": {
+        "stars_in_list": 200, "stars_searched": 200, "signals_found": 297, "after_snr": 118,
+        "after_sde": 23, "after_transits": 23, "after_checks": 5, "candidates": 1}}  # fmt: skip
+    (tmp_path / "candidates").mkdir()
+    (tmp_path / "summary.json").write_text(json.dumps(summary))
+    ingest(storage, tmp_path)
+    assert client.get("/monitor/stats").json()["funnel"] == [
+        {"key": "stars", "label": "Stars searched", "count": 200},
+        {"key": "signals", "label": "Repeating dips found", "count": 297},
+        {"key": "snr", "label": "Strong enough", "count": 118},
+        {"key": "sde", "label": "Stand out from other periods", "count": 23},
+        {"key": "checks", "label": "Passed the checks", "count": 5},
+        {"key": "candidates", "label": "New candidates", "count": 1},
+    ]
+    # A summary without those counts: no funnel.
+    (tmp_path / "summary.json").write_text(json.dumps({"funnel": {"odd": "x"}}))
+    ingest(storage, tmp_path, run_id="run-2")
+    assert "funnel" not in client.get("/monitor/stats").json()

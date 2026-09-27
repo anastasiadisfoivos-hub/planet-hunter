@@ -12,7 +12,9 @@ Modes of GET /monitor/now:
   star is the run's most recently searched one (null until a shard posts a star).
 - "replay": otherwise. The newest finished run that has stars (else any run with stars) is
   cycled in search order, one star per PH_MONITOR_STEP_S of server time, so every viewer sees
-  the same star at the same moment.
+  the same star at the same moment. With ?after=<tic> the client steps itself: the star after
+  <tic> in search order (wrapping around; a tic not in the run gives the first star). Either
+  way `next_tic` is the star after the returned one (live: null).
 """
 
 from __future__ import annotations
@@ -29,6 +31,8 @@ from api.timeutil import parse
 
 RUN_ID = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")
 CANDIDATE_OUTCOME = "candidate"
+KNOWN_OUTCOME = "known"
+REJECTED_OUTCOME = "rejected"
 
 
 class InvalidStar(ValueError):
@@ -77,6 +81,8 @@ def parse_star(record: Any, now: datetime, tic: int | None = None) -> MonitorSta
     rec.setdefault("detections", [])
     rec["searched_at"] = searched_at.isoformat()
     candidates = sum(1 for d in detections if d.get("outcome") == CANDIDATE_OUTCOME)
+    known = sum(1 for d in detections if d.get("outcome") == KNOWN_OUTCOME)
+    rejected_n = sum(1 for d in detections if d.get("outcome") == REJECTED_OUTCOME)
     rejected: dict[str, int] = {}
     for d in rec["detections"]:
         if d.get("outcome") == CANDIDATE_OUTCOME:
@@ -95,7 +101,43 @@ def parse_star(record: Any, now: datetime, tic: int | None = None) -> MonitorSta
         detections_count=len(detections),
         candidates_count=candidates,
         rejected=rejected,
+        known_count=known,
+        rejected_count=rejected_n,
     )
+
+
+SPARK_BINS = 180
+FUNNEL = (  # GET /monitor/stats funnel: (key, label, the sweep summary's count)
+    ("stars", "Stars searched", "stars_searched"),
+    ("signals", "Repeating dips found", "signals_found"),
+    ("snr", "Strong enough", "after_snr"),
+    ("sde", "Stand out from other periods", "after_sde"),
+    ("checks", "Passed the checks", "after_checks"),
+    ("candidates", "New candidates", "candidates"),
+)
+
+
+def spark(f: list[Any], bins: int = SPARK_BINS) -> list[int]:
+    """A row-sized trace of a whole light curve (normalised flux, sectors joined end to end):
+    `bins` bins by point index, each keeping its lowest point, as round((f - 1) * 1e6) ppm.
+    Non-numbers are dropped; a curve shorter than `bins` gives one bin per point."""
+    v = [x for x in (_num(x) for x in f) if x is not None]
+    step = len(v) / bins  # the same edges as numpy.linspace(0, len, bins + 1).astype(int)
+    edges = [int(i * step) for i in range(bins)] + [len(v)]
+    return [round((min(v[a:b]) - 1) * 1e6) for a, b in zip(edges, edges[1:], strict=False) if b > a]
+
+
+def funnel(summary: dict[str, Any] | None) -> list[dict[str, Any]] | None:
+    """The stored sweep summary's funnel as [{key, label, count}], or None without one."""
+    if not isinstance(summary, dict):
+        return None
+    counts = summary.get("funnel") if isinstance(summary.get("funnel"), dict) else summary
+    steps = [
+        {"key": key, "label": label, "count": counts[name]}
+        for key, label, name in FUNNEL
+        if isinstance(counts.get(name), int) and not isinstance(counts.get(name), bool)
+    ]
+    return steps or None
 
 
 def _progress(run: dict[str, Any] | None) -> dict[str, int]:
@@ -103,7 +145,12 @@ def _progress(run: dict[str, Any] | None) -> dict[str, int]:
 
 
 def now_view(
-    storage: Storage, now: datetime, *, live_timeout_s: float, step_s: float
+    storage: Storage,
+    now: datetime,
+    *,
+    live_timeout_s: float,
+    step_s: float,
+    after: int | None = None,
 ) -> dict[str, Any]:
     running = storage.latest_monitor_run("running")
     if running and (now - running["updated_at"]).total_seconds() <= live_timeout_s:
@@ -114,20 +161,29 @@ def now_view(
             "progress": _progress(running),
             "star": storage.latest_monitor_star(running["run_id"]),
             "next_at": None,
+            "next_tic": None,
         }
     run = storage.latest_monitor_run("done", with_stars=True) or storage.latest_monitor_run(
         with_stars=True
     )
     if run is None:
         return {"mode": "replay", "run_id": None, "run_started_at": None,
-                "progress": _progress(None), "star": None, "next_at": None}  # fmt: skip
+                "progress": _progress(None), "star": None, "next_at": None,
+                "next_tic": None}  # fmt: skip
+    run_id = run["run_id"]
     slot = int(now.timestamp() // step_s)
-    index = slot % run["stars"]
+    if after is None:
+        star = storage.monitor_star_at(run_id, slot % run["stars"])
+    else:  # the client steps through the run itself
+        tic = storage.monitor_next_tic(run_id, after)
+        star = storage.get_monitor_star(run_id, tic) if tic is not None else None
+    next_tic = storage.monitor_next_tic(run_id, star["tic"]) if star is not None else None
     return {
         "mode": "replay",
-        "run_id": run["run_id"],
+        "run_id": run_id,
         "run_started_at": run["started_at"],
         "progress": _progress(run),
-        "star": storage.monitor_star_at(run["run_id"], index),
+        "star": star,
         "next_at": datetime.fromtimestamp((slot + 1) * step_s, UTC),
+        "next_tic": next_tic,
     }
