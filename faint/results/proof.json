@@ -1,0 +1,257 @@
+{
+ "toi5688": {
+  "tic": 193634953,
+  "tmag": 14.2085,
+  "rad": 0.577963,
+  "sectors": [
+   25,
+   26,
+   40,
+   51,
+   52,
+   53,
+   54
+  ],
+  "points": 19626,
+  "hunt_signals": [
+   {
+    "period_d": 2.948141,
+    "depth_ppm": 27184,
+    "depth_err_ppm": 512,
+    "snr": 46.0,
+    "sde": 10.1,
+    "n_transits": 57,
+    "duration_h": 1.22
+   },
+   {
+    "period_d": 13.059636,
+    "depth_ppm": 5622,
+    "depth_err_ppm": 436,
+    "snr": 9.6,
+    "sde": 3.7,
+    "n_transits": 14,
+    "duration_h": 7.2
+   },
+   {
+    "period_d": 0.999955,
+    "depth_ppm": 2751,
+    "depth_err_ppm": 149,
+    "snr": 14.8,
+    "sde": 4.2,
+    "n_transits": 168,
+    "duration_h": 7.2
+   }
+  ],
+  "noise": {
+   "tic": 193634953,
+   "tmag": 14.2085,
+   "rad_rsun": 0.577963,
+   "cdpp_1h_ppm": 4786.9,
+   "cdpp_2h_ppm": 3784.7,
+   "predicted_cdpp_1h_ppm": 4467.2,
+   "detectable": {
+    "snr_threshold": 10.0,
+    "days_with_data": 177.0,
+    "noise_slope_alpha": -0.339,
+    "density_solar": 2.951,
+    "density_from": "TIC density",
+    "by_period": {
+     "1": {
+      "radius_rearth": 3.63,
+      "depth_ppm": 3320,
+      "duration_h": 1.27,
+      "n_transits": 177.0
+     },
+     "5": {
+      "radius_rearth": 4.96,
+      "depth_ppm": 6189,
+      "duration_h": 2.17,
+      "n_transits": 35.4
+     },
+     "10": {
+      "radius_rearth": 5.67,
+      "depth_ppm": 8094,
+      "duration_h": 2.73,
+      "n_transits": 17.7
+     }
+    }
+   }
+  },
+  "catalogue": {
+   "name": "TOI-5688 A b",
+   "tic": 193634953,
+   "period_d": 2.948155,
+   "ratror": 0.164,
+   "depth_ppm_from_ratror": 26896,
+   "exofop_depth_ppm": 24090,
+   "rade": 10.3,
+   "st_rad": 0.57,
+   "source": "NASA Exoplanet Archive ps table, default solution Reji et al. 2025 (AJ 169, 187); the ExoFOP TOI depth (24090 ppm) is from the TESS pipelines' undiluted-by-companion fit"
+  },
+  "top_signal_period_error_pct": -0.0005
+ },
+ "toi1680": {
+  "tic": 259168516,
+  "tmag": 13.3081,
+  "rad": 0.213459,
+  "sectors": [
+   14,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21,
+   22,
+   23,
+   24,
+   25,
+   26,
+   40,
+   41,
+   47,
+   48,
+   49,
+   50,
+   51,
+   52,
+   53,
+   54,
+   55
+  ],
+  "points": 47928,
+  "hunt_signals": [
+   {
+    "period_d": 13.651822,
+    "depth_ppm": 5576,
+    "depth_err_ppm": 278,
+    "snr": 15.2,
+    "sde": 4.2,
+    "n_transits": 22,
+    "duration_h": 2.38
+   },
+   {
+    "period_d": 14.077075,
+    "depth_ppm": 2251,
+    "depth_err_ppm": 215,
+    "snr": 8.1,
+    "sde": 4.2,
+    "n_transits": 38,
+    "duration_h": 2.38
+   }
+  ],
+  "noise": {
+   "tic": 259168516,
+   "tmag": 13.3081,
+   "rad_rsun": 0.213459,
+   "cdpp_1h_ppm": 1952.5,
+   "cdpp_2h_ppm": 1435.5,
+   "predicted_cdpp_1h_ppm": 2443.8,
+   "detectable": {
+    "snr_threshold": 10.0,
+    "days_with_data": 549.5,
+    "noise_slope_alpha": -0.444,
+    "density_solar": 18.761,
+    "density_from": "TIC density",
+    "by_period": {
+     "1": {
+      "radius_rearth": 0.73,
+      "depth_ppm": 986,
+      "duration_h": 0.68,
+      "n_transits": 549.5
+     },
+     "5": {
+      "radius_rearth": 0.97,
+      "depth_ppm": 1737,
+      "duration_h": 1.17,
+      "n_transits": 109.9
+     },
+     "10": {
+      "radius_rearth": 1.1,
+      "depth_ppm": 2217,
+      "duration_h": 1.47,
+      "n_transits": 55.0
+     }
+    }
+   }
+  },
+  "catalogue": {
+   "name": "TOI-1680 b",
+   "tic": 259168516,
+   "period_d": 4.8026345,
+   "t0_btjd": 2013.8425400000997,
+   "duration_h": 1.186,
+   "ratror": 0.0638,
+   "depth_ppm": 4070,
+   "rade": 1.466,
+   "st_rad": 0.2106,
+   "source": "NASA Exoplanet Archive ps table, default solution (Ghachoui et al. 2023)"
+  },
+  "top_signal_period_error_pct": 184.2569,
+  "at_catalogue_ephemeris": {
+   "depth_ppm": 4643,
+   "in_transit_points": 384,
+   "snr": 23.7
+  }
+ },
+ "quiet": {
+  "tic": 219223283,
+  "tmag": 14.8191,
+  "rad": 0.588137,
+  "sectors": [
+   3,
+   4,
+   5,
+   30,
+   31
+  ],
+  "points": 9040,
+  "hunt_signals": [
+   {
+    "period_d": 12.170269,
+    "depth_ppm": 15047,
+    "depth_err_ppm": 2434,
+    "snr": 4.9,
+    "sde": 4.4,
+    "n_transits": 10,
+    "duration_h": 0.94
+   }
+  ],
+  "noise": {
+   "tic": 219223283,
+   "tmag": 14.8191,
+   "rad_rsun": 0.588137,
+   "cdpp_1h_ppm": 6819.8,
+   "cdpp_2h_ppm": 4883.8,
+   "predicted_cdpp_1h_ppm": 7484.7,
+   "detectable": {
+    "snr_threshold": 10.0,
+    "days_with_data": 110.5,
+    "noise_slope_alpha": -0.482,
+    "density_solar": 2.843,
+    "density_from": "TIC density",
+    "by_period": {
+     "1": {
+      "radius_rearth": 4.87,
+      "depth_ppm": 5752,
+      "duration_h": 1.28,
+      "n_transits": 110.5
+     },
+     "5": {
+      "radius_rearth": 6.39,
+      "depth_ppm": 9933,
+      "duration_h": 2.2,
+      "n_transits": 22.1
+     },
+     "10": {
+      "radius_rearth": 7.19,
+      "depth_ppm": 12567,
+      "duration_h": 2.77,
+      "n_transits": 11.1
+     }
+    }
+   }
+  }
+ }
+}
