@@ -32,6 +32,7 @@ as_user() { runuser -u "$USER_NAME" -- env HOME="$DATA_DIR" PH_HOME="$HOME_DIR" 
   UV_CACHE_DIR="$DATA_DIR/cache/uv" UV_PYTHON_INSTALL_DIR="$HOME_DIR/python" PATH="/usr/local/bin:/usr/bin:/bin" "$@"; }
 
 [[ $EUID -eq 0 ]] || { echo "run as root (sudo bash bootstrap.sh)" >&2; exit 1; }
+cd /  # the service user runs commands from here: it cannot read the SSH user's home
 . /etc/os-release
 [[ "${VERSION_ID:-}" == "24.04" ]] || echo "warning: tested on Ubuntu 24.04, this is ${PRETTY_NAME:-unknown}"
 [[ "$(uname -m)" == "aarch64" ]] || echo "warning: built for arm64 (Ampere A1); this machine is $(uname -m)"

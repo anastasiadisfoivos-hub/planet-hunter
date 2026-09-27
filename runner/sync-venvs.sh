@@ -19,6 +19,7 @@ export UV_CACHE_DIR="${UV_CACHE_DIR:-$PH_DATA/cache/uv}"
 export UV_PYTHON_INSTALL_DIR="${UV_PYTHON_INSTALL_DIR:-$PH_HOME/python}"
 export UV_LINK_MODE=copy
 force="${1:-}"
+cd "$PH_HOME"  # uv reads uv.toml from the working directory; never from a caller's home
 # Locked packages with no Linux arm64 wheel and no sdist at the locked version: on arm64 they are left out of the
 # locked install and built from source at the newest version that has an sdist. (batman-package 2.5.3, pulled in by
 # transitleastsquares and triceratops, ships x86 / macOS wheels only; 2.5.2 has an sdist.) The lasting fix is in
