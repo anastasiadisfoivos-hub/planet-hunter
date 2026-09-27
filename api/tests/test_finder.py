@@ -432,6 +432,11 @@ def test_funnel_and_sensitivity(client, storage, run, cands, tmp_path):
     s = client.get("/finder/sensitivity").json()
     assert s["sensitivity"]["recovery"][0] == [0.2, 0.9] and s["updated_at"]
 
+    # a summary that says when the sweep ran is dated by that, not by when it was stored
+    summary.write_text(json.dumps({"created_at": "2026-09-26T08:51:27+00:00", "stages": []}))
+    run(cands, summary=summary)
+    assert client.get("/finder/funnel").json()["sweep_at"].startswith("2026-09-26T08:51:27")
+
 
 # admin export --------------------------------------------------------------------------------
 

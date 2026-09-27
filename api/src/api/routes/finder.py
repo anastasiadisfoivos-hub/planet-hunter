@@ -202,6 +202,21 @@ def vote(
     }
 
 
+def _sweep_at(doc: tuple[dict[str, Any], Any] | None) -> Any:
+    """When the sweep ran: the summary's own `created_at`, else when it was stored."""
+    if doc is None:
+        return None
+    created = doc[0].get("created_at")
+    if isinstance(created, str):
+        try:
+            at = parse(created.replace("Z", "+00:00"))
+        except ValueError:
+            at = None
+        if at is not None and at.tzinfo is not None:
+            return at
+    return doc[1]
+
+
 @router.get("/funnel")
 def funnel(_: Reader, services: ServicesDep) -> dict:
     """The latest sweep's stages (from HUNT's summary), then what happened in the finder."""
@@ -220,7 +235,7 @@ def funnel(_: Reader, services: ServicesDep) -> dict:
         {"stage": "exported", "count": by_status["exported"], "source": "finder"},
     ]
     return {
-        "sweep_at": doc[1] if doc else None,
+        "sweep_at": _sweep_at(doc),
         "stages": stages,
         "by_status": by_status,
         "by_pixel_verdict": by_verdict,
