@@ -1,0 +1,11 @@
+[Unit]
+Description=Start the Planet Finder search every day at 00:15 UTC and after every boot
+
+[Timer]
+OnCalendar=*-*-* 00:15:00 UTC
+OnBootSec=3min
+Persistent=true
+Unit=planet-hunter.service
+
+[Install]
+WantedBy=timers.target

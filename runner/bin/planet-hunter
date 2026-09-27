@@ -1,0 +1,24 @@
+#!/bin/sh
+# planet-hunter: the owner's handle on the runner (installed to /usr/local/bin by bootstrap.sh).
+set -e
+as_runner() {
+  set -a; . /etc/planet-hunter.conf; set +a
+  cd /opt/planet-hunter/repo/runner
+  exec sudo -u planethunter env PH_HOME=/opt/planet-hunter PH_DATA=/var/lib/planet-hunter \
+    PH_REPO_REF="$PH_REPO_REF" PH_REPO_URL="$PH_REPO_URL" PH_DISK_CAP_GB="${PH_DISK_CAP_GB:-150}" \
+    PH_HEARTBEAT_S="${PH_HEARTBEAT_S:-120}" HOME=/var/lib/planet-hunter \
+    UV_CACHE_DIR=/var/lib/planet-hunter/cache/uv UV_PYTHON_INSTALL_DIR=/opt/planet-hunter/python \
+    PYTHONPATH=/opt/planet-hunter/repo/runner /usr/bin/python3 -m scheduler "$@"
+}
+case "${1:-status}" in
+  status)  shift || true; systemctl --no-pager status planet-hunter.timer planet-hunter.service 2>/dev/null | grep -E "Active|Trigger|●" || true
+           as_runner status "$@" ;;
+  logs)    exec journalctl -u planet-hunter -f -n 100 ;;
+  start)   exec sudo systemctl start --no-block planet-hunter.service ;;
+  stop)    exec sudo systemctl stop planet-hunter.service ;;
+  pause)   sudo systemctl disable --now planet-hunter.timer; exec sudo systemctl stop planet-hunter.service ;;
+  resume)  exec sudo systemctl enable --now planet-hunter.timer ;;
+  update)  shift; as_runner update "$@" ;;
+  janitor) as_runner janitor ;;
+  *) echo "usage: planet-hunter [status|logs|start|stop|pause|resume|update [--force-sync]|janitor]" >&2; exit 2 ;;
+esac

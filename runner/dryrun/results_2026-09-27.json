@@ -1,0 +1,434 @@
+{
+ "date": "2026-09-27",
+ "what": "runner/dryrun/run_dryrun.sh: deploy.sh -> bootstrap.sh on a fresh Ubuntu 24.04.5 arm64 container (systemd, SSH, ufw, --cpus=4, 7 GB) -> systemd timer/service -> 20 real TESS stars -> local API (api/, uvicorn) on Postgres 16 -> finder_ingest into the same Postgres",
+ "host": "Apple-silicon Mac (10 cores, load average ~12 from other work) running Docker Desktop; container limited to 4 CPUs",
+ "ref": "local integration ref 1a41b8e = origin/v2 + deephunt + vet + faint + runner (not pushed)",
+ "stars": {
+  "fast_list": 14,
+  "faint_list": 6,
+  "distinct": 20,
+  "searches": 31
+ },
+ "stars_per_hour": {
+  "fast": {
+   "stars": 14,
+   "mean_s_per_star": 36.2,
+   "median_s_per_star": 32.6,
+   "stars_per_hour_all_workers": 397.5,
+   "no_data": 0
+  },
+  "deep": {
+   "stars": 11,
+   "mean_s_per_star": 270.1,
+   "median_s_per_star": 273.0,
+   "stars_per_hour_all_workers": 53.3,
+   "no_data": 0
+  },
+  "faint": {
+   "stars": 6,
+   "mean_s_per_star": 218.1,
+   "median_s_per_star": 213.2,
+   "stars_per_hour_all_workers": 66.0,
+   "no_data": 0
+  }
+ },
+ "wall_clock_min": 22.5,
+ "monitor": {
+  "polls_every_30s": 59,
+  "live": 44,
+  "first_live": "2026-09-27T09:18:33Z",
+  "last_live": "2026-09-27T09:40:18Z",
+  "after_ingest": "replay of oracle-20260927"
+ },
+ "poster": {
+  "sent": 103,
+  "failed": 0,
+  "dropped": 0,
+  "stars_sent": 31,
+  "last_ok_at": 1790502023.752927,
+  "last_error": null
+ },
+ "merge": {
+  "dirs": [
+   "fast",
+   "faint",
+   "deep"
+  ],
+  "candidates": 1,
+  "rejected_at_merge": 0
+ },
+ "vetting": {
+  "with_vetting": 0,
+  "without_vetting": 1,
+  "verdicts": {}
+ },
+ "ingest": {
+  "candidates": {
+   "created": 1,
+   "updated": 0,
+   "unchanged": 0
+  },
+  "invalid": [],
+  "dismissed": [],
+  "recheck": {
+   "checked": 0,
+   "errors": 0
+  },
+  "pixels": {
+   "vetted": 0,
+   "failed": 0,
+   "skipped_for_time": 0
+  },
+  "summary_stored": true,
+  "sensitivity_stored": true,
+  "monitor": {
+   "run_id": "oracle-20260927",
+   "stars": 20,
+   "pruned_runs": 0
+  }
+ },
+ "reboot": "container restarted after the run: timer fired at boot, service printed 'oracle-20260927 is already done' and exited in 1 s",
+ "ledger": [
+  {
+   "queue": "fast",
+   "tic": 142937186,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 49.3,
+   "n_sectors": 3,
+   "n_signals": 3,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "deep",
+   "tic": 370133522,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 535.3,
+   "n_sectors": 8,
+   "n_signals": 2,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "faint",
+   "tic": 35025268,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 238.3,
+   "n_sectors": 3,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 0
+  },
+  {
+   "queue": "fast",
+   "tic": 166833457,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 31.5,
+   "n_sectors": 3,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 0
+  },
+  {
+   "queue": "fast",
+   "tic": 178284730,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 48.6,
+   "n_sectors": 3,
+   "n_signals": 3,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "fast",
+   "tic": 257605131,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 37.8,
+   "n_sectors": 3,
+   "n_signals": 3,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "fast",
+   "tic": 370133522,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 7.2,
+   "n_sectors": 3,
+   "n_signals": 0,
+   "n_candidates": 0,
+   "promising": 0
+  },
+  {
+   "queue": "fast",
+   "tic": 224269420,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 38.3,
+   "n_sectors": 3,
+   "n_signals": 3,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "fast",
+   "tic": 118327550,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 31.8,
+   "n_sectors": 3,
+   "n_signals": 2,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "fast",
+   "tic": 139733308,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 32.6,
+   "n_sectors": 3,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 0
+  },
+  {
+   "queue": "faint",
+   "tic": 316993844,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 156.6,
+   "n_sectors": 4,
+   "n_signals": 5,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "deep",
+   "tic": 257605131,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 99.6,
+   "n_sectors": 4,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "fast",
+   "tic": 146520535,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 98.9,
+   "n_sectors": 3,
+   "n_signals": 2,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "deep",
+   "tic": 178284730,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 312.6,
+   "n_sectors": 4,
+   "n_signals": 3,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "fast",
+   "tic": 97409519,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 20.7,
+   "n_sectors": 3,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 0
+  },
+  {
+   "queue": "deep",
+   "tic": 142937186,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 127.4,
+   "n_sectors": 3,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 0
+  },
+  {
+   "queue": "fast",
+   "tic": 269217040,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 29.0,
+   "n_sectors": 3,
+   "n_signals": 2,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "deep",
+   "tic": 146520535,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 463.7,
+   "n_sectors": 4,
+   "n_signals": 4,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "fast",
+   "tic": 62020444,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 22.1,
+   "n_sectors": 3,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 0
+  },
+  {
+   "queue": "fast",
+   "tic": 165096120,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 21.8,
+   "n_sectors": 3,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 0
+  },
+  {
+   "queue": "fast",
+   "tic": 234994474,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 37.5,
+   "n_sectors": 3,
+   "n_signals": 3,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "deep",
+   "tic": 234994474,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 254.1,
+   "n_sectors": 7,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 0
+  },
+  {
+   "queue": "faint",
+   "tic": 277539431,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 189.3,
+   "n_sectors": 3,
+   "n_signals": 2,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "faint",
+   "tic": 44568897,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 120.1,
+   "n_sectors": 3,
+   "n_signals": 2,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "deep",
+   "tic": 269217040,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 114.5,
+   "n_sectors": 3,
+   "n_signals": 3,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "deep",
+   "tic": 118327550,
+   "status": "done",
+   "outcome": "known",
+   "elapsed_s": 292.1,
+   "n_sectors": 7,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 0
+  },
+  {
+   "queue": "faint",
+   "tic": 401984769,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 213.2,
+   "n_sectors": 4,
+   "n_signals": 3,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "deep",
+   "tic": 224269420,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 180.1,
+   "n_sectors": 5,
+   "n_signals": 2,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "faint",
+   "tic": 389051009,
+   "status": "done",
+   "outcome": "candidate",
+   "elapsed_s": 391.2,
+   "n_sectors": 3,
+   "n_signals": 4,
+   "n_candidates": 1,
+   "promising": 1
+  },
+  {
+   "queue": "deep",
+   "tic": 62020444,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 318.9,
+   "n_sectors": 6,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 1
+  },
+  {
+   "queue": "deep",
+   "tic": 165096120,
+   "status": "done",
+   "outcome": "rejected",
+   "elapsed_s": 273.0,
+   "n_sectors": 6,
+   "n_signals": 1,
+   "n_candidates": 0,
+   "promising": 0
+  }
+ ]
+}
