@@ -93,7 +93,12 @@ export function CandidateTable() {
 
       {error && <p className="italic quiet">The candidates could not be loaded ({error}).</p>}
       {!list && !error && <div className={s.skeleton} role="status" aria-label="Loading candidates" />}
-      {list && list.candidates.length === 0 && <p className="italic quiet">No candidates yet. When the search keeps a signal, it appears here.</p>}
+      {list && list.candidates.length === 0 && (
+        <p className="italic quiet">
+          {list.demo ? "No candidates yet." : `No candidates yet: the search, last run ${fmtDate(list.run_at)}, has kept no signal.`} When the search keeps a signal, it
+          appears here.
+        </p>
+      )}
       {list && list.candidates.length > 0 && (
         <table className={s.table}>
           <caption className="sr-only">Planet candidates and stand-ins, highest priority first</caption>

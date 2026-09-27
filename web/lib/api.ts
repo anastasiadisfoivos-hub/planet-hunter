@@ -1,12 +1,12 @@
 // Typed client for the planet finder API (api/README.md). The site is the planet finder only (v2).
 //
-// MOCK mode is ON by default: it serves web/public/data/finder/* (see below). For a real server, set
-// NEXT_PUBLIC_API_MOCK=false and NEXT_PUBLIC_API_BASE. In live mode each call maps the API's JSON onto
-// the shapes below, which the finder's components are written against.
+// With NEXT_PUBLIC_API_BASE set, the site talks to that API and shows only what it answers, an empty
+// candidate list included. Without it, MOCK mode serves web/public/data/monitor/* (see below), where the
+// candidates are stand-ins and say so. In live mode each call maps the API's JSON onto the shapes below,
+// which the components are written against.
 
-
-export const API_MOCK = process.env.NEXT_PUBLIC_API_MOCK !== "false";
 export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE ?? "").replace(/\/$/, "");
+export const API_MOCK = API_BASE === "";
 
 export class ApiError extends Error {
   constructor(
@@ -75,7 +75,8 @@ export type MonitorMode = "live" | "replay";
 
 export type MonitorNow = {
   mode: MonitorMode;
-  star: MonitorStar;
+  /** Null when the API has no searched star yet. */
+  star: MonitorStar | null;
   /** Replay only: when the search being replayed ran (ISO). */
   replay_of: string | null;
   /** The star that comes after this one, so the client can fetch it early. */
@@ -96,6 +97,24 @@ export type MonitorStats = {
   known: number;
 };
 
+// The API's monitor answers (api/README.md, Monitor), mapped onto the shapes above.
+type ApiNow = { mode: MonitorMode; run_started_at: string | null; star: MonitorStar | null; next_tic?: number | null };
+type ApiLogItem = { tic: number; outcome: string | null; detections_count: number; searched_at: string; record?: LogStar | null };
+type ApiStats = { stars_searched: number; signals: number; candidates: number; rejected_by_reason?: Record<string, number>; rejected?: number; known?: number; last_run_at: string | null };
+const MAX_LOG = 200;
+
+const OUTCOMES: StarOutcome[] = ["candidate", "known", "rejected", "none"];
+
+/** A log row from the API: its stored record when still kept, else the bare row. */
+function logStar(i: ApiLogItem): LogStar {
+  const outcome = OUTCOMES.includes(i.outcome as StarOutcome) ? (i.outcome as StarOutcome) : "none";
+  if (i.record) return { ...i.record, outcome, searched_at: i.searched_at };
+  return {
+    tic: i.tic, tmag: null, teff: null, radius_rsun: null, ra: 0, dec: 0, sectors: [],
+    observed_from: null, observed_to: null, detections: [], outcome, searched_at: i.searched_at,
+  }; // prettier-ignore
+}
+
 const MON = "/data/monitor";
 type ReplayFile = { built_at: string; order: number[] };
 let replayFile: Promise<ReplayFile> | null = null;
@@ -111,7 +130,8 @@ export const MOCK_REPLAY_OF = "2026-09-26T07:57:39Z";
 export async function getMonitorNow(opts: { after?: number | null; signal?: AbortSignal } = {}): Promise<MonitorNow> {
   if (!API_MOCK) {
     const q = opts.after != null ? `?after=${opts.after}` : "";
-    return getJson<MonitorNow>(`${API_BASE}/monitor/now${q}`, opts.signal);
+    const r = await getJson<ApiNow>(`${API_BASE}/monitor/now${q}`, opts.signal);
+    return { mode: r.mode, star: r.star, replay_of: r.mode === "replay" ? r.run_started_at : null, next_tic: r.next_tic ?? null };
   }
   const { order } = await replay();
   const i = opts.after == null ? 0 : (order.indexOf(opts.after) + 1) % order.length;
@@ -120,20 +140,28 @@ export async function getMonitorNow(opts: { after?: number | null; signal?: Abor
 }
 
 export async function getMonitorLog(signal?: AbortSignal): Promise<MonitorLog> {
-  return getJson<MonitorLog>(API_MOCK ? `${MON}/log.json` : `${API_BASE}/monitor/log`, signal);
+  if (API_MOCK) return getJson<MonitorLog>(`${MON}/log.json`, signal);
+  const r = await getJson<{ items: ApiLogItem[] }>(`${API_BASE}/monitor/log?limit=${MAX_LOG}&detail=true`, signal);
+  return { stars: r.items.map(logStar) };
 }
 
 export async function getMonitorCoverage(signal?: AbortSignal): Promise<MonitorCoverage> {
-  return getJson<MonitorCoverage>(API_MOCK ? `${MON}/coverage.json` : `${API_BASE}/monitor/coverage`, signal);
+  if (API_MOCK) return getJson<MonitorCoverage>(`${MON}/coverage.json`, signal);
+  const r = await getJson<{ stars?: CoverageStar[] }>(`${API_BASE}/monitor/coverage`, signal);
+  return { stars: r.stars ?? [] };
 }
 
 export async function getMonitorStats(signal?: AbortSignal): Promise<MonitorStats> {
-  return getJson<MonitorStats>(API_MOCK ? `${MON}/stats.json` : `${API_BASE}/monitor/stats`, signal);
+  if (API_MOCK) return getJson<MonitorStats>(`${MON}/stats.json`, signal);
+  const r = await getJson<ApiStats>(`${API_BASE}/monitor/stats`, signal);
+  const at = r.last_run_at ?? new Date().toISOString();
+  const rejected = r.rejected ?? Object.values(r.rejected_by_reason ?? {}).reduce((a, b) => a + b, 0);
+  return { since: at, updated_at: at, stars_searched: r.stars_searched, signals: r.signals, candidates: r.candidates, rejected, known: r.known ?? 0 };
 }
 
-/** A searched star's light curve, when the mock has it (the log itself carries none). */
+/** A searched star's light curve: the mock's file, or the API's latest stored record of it. */
 export async function getStarCurve(tic: number, signal?: AbortSignal): Promise<MonitorStar | null> {
-  if (!API_MOCK) return null;
+  if (!API_MOCK) return getJson<MonitorStar>(`${API_BASE}/monitor/stars/${tic}`, signal).catch(() => null);
   if (!(await replay()).order.includes(tic)) return null;
   return getJson<MonitorStar>(`${MON}/stars/${tic}.json`, signal).catch(() => null);
 }
@@ -311,7 +339,7 @@ export async function getCandidates(signal?: AbortSignal): Promise<CandidateList
 export async function getCandidate(id: string, signal?: AbortSignal): Promise<CandidateReport> {
   if (!API_MOCK) {
     const r = await getJson<ApiReport>(`${API_BASE}/finder/candidates/${encodeURIComponent(id)}`, signal, { "X-Voter-Key": voterKey() });
-    return { candidate: { ...r.candidate, radius_rjup: radiusOf(r.candidate) }, pixels: r.pixel_vet, votes: toVotes(r.votes, r.my_vote), demo: false };
+    return { candidate: { ...r.candidate, radius_rjup: radiusOf(r.candidate), stand_in: null }, pixels: r.pixel_vet, votes: toVotes(r.votes, r.my_vote), demo: false };
   }
   if (!/^[a-z0-9_-]+$/i.test(id)) throw new ApiError(404, `No candidate ${id}`);
   const r = await getJson<Omit<CandidateReport, "demo">>(`${MON}/candidates/${id}.json`, signal).catch((e: unknown) => {
@@ -403,6 +431,7 @@ async function liveCandidates(signal?: AbortSignal): Promise<CandidateList> {
     candidates: rows.map((r) => ({
       ...r,
       radius_rjup: radiusOf(r),
+      stand_in: null, // stand-ins are the mock's alone: the live list is only what the search kept
       votes: toVotes(r.votes, mine[r.id] ? { vote: mine[r.id].vote, reason_chips: mine[r.id].reasons } : null),
     })),
     demo: false,

@@ -58,7 +58,7 @@ export class MonitorClient {
 
   #prefetch(signal?: AbortSignal) {
     const cur = this.#current;
-    if (!cur || cur.mode !== "replay") return;
+    if (!cur || cur.mode !== "replay" || !cur.star) return;
     this.#nextAfter = cur.star.tic;
     this.#next = this.#get(cur.star.tic, signal);
     this.#next.catch(() => {}); // an abort here is handled by whoever awaits it
@@ -76,11 +76,12 @@ export class MonitorClient {
     const cur = this.#current;
     if (!cur) return this.start(signal);
     let next: MonitorNow;
+    const tic = cur.star?.tic ?? null;
     if (cur.mode === "replay") {
-      next = this.#next && this.#nextAfter === cur.star.tic ? await this.#next : await this.#get(cur.star.tic, signal);
+      next = this.#next && this.#nextAfter === tic ? await this.#next : await this.#get(tic, signal);
     } else {
       next = await this.#get(null, signal);
-      while (next.mode === "live" && next.star.tic === cur.star.tic) {
+      while (next.mode === "live" && (next.star?.tic ?? null) === tic) {
         await this.#sleep(LIVE_POLL_MS, signal);
         next = await this.#get(null, signal);
       }

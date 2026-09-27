@@ -35,8 +35,8 @@ const noSleep = async () => {};
 test("replay: starts at the first star and walks the order, wrapping round", async () => {
   const { fetchNow } = replayServer([11, 22, 33]);
   const c = new MonitorClient(fetchNow, noSleep);
-  const seen = [(await c.start()).star.tic];
-  for (let k = 0; k < 4; k++) seen.push((await c.advance()).star.tic);
+  const seen = [(await c.start()).star?.tic];
+  for (let k = 0; k < 4; k++) seen.push((await c.advance()).star?.tic);
   assert.deepEqual(seen, [11, 22, 33, 11, 22]);
 });
 
@@ -65,9 +65,9 @@ test("live: waits while the server is still on the same star, then moves on", as
   const c = new MonitorClient(fetchNow, async (ms) => {
     waits.push(ms);
   });
-  assert.equal((await c.start()).star.tic, 101);
+  assert.equal((await c.start()).star?.tic, 101);
   const next = await c.advance();
-  assert.equal(next.star.tic, 202);
+  assert.equal(next.star?.tic, 202);
   assert.equal(next.mode, "live");
   assert.deepEqual(waits, [LIVE_POLL_MS, LIVE_POLL_MS]);
 });
@@ -84,7 +84,7 @@ test("failures retry with a growing wait and report each retry", async () => {
     waits.push(ms);
   });
   c.onRetry = (n) => retries.push(n);
-  assert.equal((await c.start()).star.tic, 7);
+  assert.equal((await c.start()).star?.tic, 7);
   assert.deepEqual(waits.slice(0, 3), RETRY_MS.slice(0, 3));
   assert.deepEqual(retries.slice(0, 3), [1, 2, 3]);
 });
@@ -98,4 +98,15 @@ test("an abort stops the retries", async () => {
     ac.abort();
   });
   await assert.rejects(c.start(ac.signal));
+});
+
+test("live: an API with no star yet keeps polling until one arrives", async () => {
+  const answers: (number | null)[] = [null, null, 303];
+  const fetchNow: FetchNow = async () => {
+    const tic = answers.length ? answers.shift()! : 303;
+    return { mode: "live", star: tic === null ? null : star(tic), replay_of: null, next_tic: null };
+  };
+  const c = new MonitorClient(fetchNow, noSleep);
+  assert.equal((await c.start()).star, null);
+  assert.equal((await c.advance()).star?.tic, 303);
 });

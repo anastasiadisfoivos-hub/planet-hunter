@@ -66,6 +66,8 @@ function useReducedMotion(): boolean | null {
   return rm;
 }
 
+const NO_CURVE_MS = 8000;
+
 export function MonitorScreen() {
   const client = useRef<MonitorClient | null>(null);
   const [now, setNow] = useState<MonitorNow | null>(null);
@@ -98,7 +100,9 @@ export function MonitorScreen() {
   /** The star on the paper: in a stream it changes when the paper has advanced, not when the data arrives. */
   const [drawn, setDrawn] = useState<MonitorStar | null>(null);
   const incoming = now?.star ?? null;
-  const star = rmStill ? incoming : (drawn ?? null);
+  /** A star the API sent without a stored light curve: its header and signals show at once, with no trace. */
+  const noCurve = incoming !== null && !incoming.lightcurve;
+  const star = rmStill || noCurve ? incoming : (drawn ?? null);
 
   // the live text twin: says each new star, and each dip, politely and not more than once every 2 s
   const say = useCallback((text: string, force = false) => {
@@ -135,12 +139,19 @@ export function MonitorScreen() {
     [say],
   );
 
-  const still = rmStill;
+  // with no trace to draw, nothing would call `next`: move on after a pause, as a finished trace does
+  useEffect(() => {
+    if (!noCurve || paused || rmStill) return;
+    const id = setTimeout(next, NO_CURVE_MS);
+    return () => clearTimeout(id);
+  }, [noCurve, paused, rmStill, next, incoming]);
+
+  const still = rmStill || noCurve;
   const shownDets = star ? (still ? star.detections : reached.tic === star.tic ? reached.dets.map((k) => star.detections[k]) : []) : [];
   const label = star ? `Light curve of TIC ${star.tic}: brightness against time, ${plural(star.detections.length, "signal")} marked.` : "";
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === " " && !still) {
+    if (e.key === " " && !rmStill) {
       e.preventDefault();
       setPaused((p) => !p);
     } else if (e.key === "ArrowRight") {
@@ -164,7 +175,7 @@ export function MonitorScreen() {
             </>
           )}
           <div className={s.controls}>
-            {!still && (
+            {!rmStill && (
               <button type="button" className="btn" onClick={() => setPaused((p) => !p)} aria-pressed={paused} disabled={!now}>
                 {paused ? "Resume" : "Pause"}
               </button>
@@ -184,7 +195,10 @@ export function MonitorScreen() {
             <StreamTrace star={incoming} paused={paused} onFinished={next} onMark={onMark} onStart={setDrawn} label={label} />
           )
         ) : (
-          <div className={s.canvas} aria-hidden />
+          <div className={s.canvas} aria-hidden={!now}>
+            {now && !incoming && <p className={`${s.note} ${s.paperNote} italic quiet`}>The search has not stored a star yet.</p>}
+            {noCurve && <p className={`${s.note} ${s.paperNote} italic quiet`}>No light curve is stored for this star; what the search found is below.</p>}
+          </div>
         )}
         {paused && !still && <p className={`label ${s.pausedTag}`}>Paused</p>}
       </div>

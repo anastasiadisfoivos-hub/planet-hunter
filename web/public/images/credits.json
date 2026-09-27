@@ -1,34 +1,4 @@
 {
- "sky/eso0733a.jpg": {
-  "url": "https://www.eso.org/public/images/eso0733a/",
-  "title": "The planet, the galaxy and the laser",
-  "credit": "ESO/Y. Beletsky",
-  "licence": "CC BY 4.0",
-  "source": "ESO",
-  "width": 2400,
-  "height": 1594,
-  "file": "https://cdn.eso.org/images/large/eso0733a.jpg"
- },
- "feature/heic0406a.jpg": {
-  "url": "https://esahubble.org/images/heic0406a/",
-  "title": "Hubble sees galaxies galore (Hubble Ultra Deep Field)",
-  "credit": "NASA, ESA, and S. Beckwith (STScI) and the HUDF Team",
-  "licence": "CC BY 4.0",
-  "source": "ESA/Hubble",
-  "width": 2400,
-  "height": 2400,
-  "file": "https://cdn.esahubble.org/archives/images/large/heic0406a.jpg"
- },
- "feature/heic0715a.jpg": {
-  "url": "https://esahubble.org/images/heic0715a/",
-  "title": "Extreme star cluster bursts into life (NGC 3603)",
-  "credit": "NASA, ESA and the Hubble Heritage (STScI/AURA)-ESA/Hubble Collaboration",
-  "licence": "CC BY 4.0",
-  "source": "ESA/Hubble",
-  "width": 2400,
-  "height": 2412,
-  "file": "https://cdn.esahubble.org/archives/images/large/heic0715a.jpg"
- },
  "stars/tic100100827.jpg": {
   "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=24.354460&dec=-45.677790&format=jpg",
   "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around WASP-18",
@@ -300,26 +270,5 @@
    "u": 0.5,
    "v": 0.5
   }
- },
- "events/donki-2026-09-19T17-57-00-FLR-001.jpg": {
-  "url": "https://sdo.gsfc.nasa.gov/assets/img/browse/2026/09/19/20260919_181456_1024_0131.jpg",
-  "title": "NASA SDO/AIA 131 Å image of the whole Sun, 2026-09-19 18:14 UTC, 2 min before the flare peak (18:17 UTC) of this flare. 131 Å shows plasma near 10 million °C, where flares glow brightest. The source reports the flare at N14E90 (NOAA active region 14535): on the left (east) edge of the disk, 14° north of the equator.",
-  "credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams",
-  "licence": "Not copyrighted (NASA SDO image-use rules); credit line required",
-  "source": "event image",
-  "width": 1024,
-  "height": 1024,
-  "event": "donki:2026-09-19T17:57:00-FLR-001",
-  "kind": "solar",
-  "archive": false
- },
- "data/wasp18-tess-pixels-s0104.png": {
-  "url": "https://archive.stsci.edu/missions-and-data/tess",
-  "title": "WASP-18 in TESS pixels, sector 104 (between dips)",
-  "credit": "NASA TESS mission, via MAST; rendered by Planet Hunter",
-  "licence": "Public domain (NASA data)",
-  "source": "Planet Hunter render of TESS data",
-  "width": 1056,
-  "height": 1056
  }
 }

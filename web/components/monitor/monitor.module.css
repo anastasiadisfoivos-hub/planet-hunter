@@ -148,6 +148,16 @@
   touch-action: pan-y;
 }
 
+.paperNote {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0 var(--s-5);
+  text-align: center;
+}
+
 .canvas:focus-visible {
   outline-offset: -3px;
 }
