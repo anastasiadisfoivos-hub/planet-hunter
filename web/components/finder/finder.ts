@@ -43,6 +43,11 @@ export const CHECK_LABELS: Record<string, { label: string; unit?: string }> = {
   odd_even: { label: "Odd and even dips match", unit: "σ apart" },
   secondary_eclipse: { label: "No second dip halfway round", unit: "σ" },
   size: { label: "Planet-sized", unit: "R♃" },
+  period_alias: { label: "The period is the real one" },
+  momentum_dump: { label: "Not the spacecraft's thrusters" },
+  sector_depth: { label: "Same depth in every sector" },
+  duration: { label: "Right length for this star" },
+  single_sector: { label: "Seen in more than one sector" },
   transit_count: { label: "Enough dips", unit: "dips" },
   depth_consistency: { label: "Same depth every sector", unit: "σ change" },
 };
