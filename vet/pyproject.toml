@@ -29,6 +29,16 @@ skyvet = "skyvet.cli:main"
 requires = ["uv_build>=0.12.19,<0.13.0"]
 build-backend = "uv_build"
 
+[tool.uv]
+# The search server is Linux arm64 (Oracle Ampere); CI is Linux x86_64. batman-package 2.5.3 (through
+# triceratops) has no Linux arm64 wheel and no sdist, so 2.5.2, which has an sdist, is pinned: it builds there.
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+override-dependencies = ["batman-package==2.5.2"]
+
 [tool.uv.sources]
 transit-diffimage = { git = "https://github.com/stevepur/transit-diffImage" }
 
