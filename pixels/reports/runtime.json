@@ -1,0 +1,74 @@
+{
+ "wasp18": {
+  "cold_s": {
+   "catalogues": 30.78,
+   "search": 4.4,
+   "download": 28.42,
+   "reduce": 0.26,
+   "analyze": 0.2,
+   "total": 64.61
+  },
+  "warm_s": {
+   "catalogues": 0.0,
+   "search": 0.0,
+   "download": 0.06,
+   "reduce": 0.28,
+   "analyze": 0.33,
+   "total": 1.29
+  },
+  "sectors": [
+   104,
+   105,
+   106
+  ],
+  "verdict": "on target"
+ },
+ "toi4257": {
+  "cold_s": {
+   "catalogues": 14.4,
+   "search": 0.78,
+   "download": 35.35,
+   "reduce": 0.36,
+   "analyze": 0.81,
+   "total": 52.22
+  },
+  "warm_s": {
+   "catalogues": 0.0,
+   "search": 0.0,
+   "download": 0.06,
+   "reduce": 0.38,
+   "analyze": 1.07,
+   "total": 2.32
+  },
+  "sectors": [
+   62,
+   63,
+   89
+  ],
+  "verdict": "off target"
+ },
+ "quiet": {
+  "cold_s": {
+   "catalogues": 14.35,
+   "search": 0.85,
+   "download": 37.83,
+   "reduce": 0.25,
+   "analyze": 0.16,
+   "total": 53.93
+  },
+  "warm_s": {
+   "catalogues": 0.0,
+   "search": 0.0,
+   "download": 0.06,
+   "reduce": 0.32,
+   "analyze": 0.22,
+   "total": 1.12
+  },
+  "sectors": [
+   104,
+   105,
+   106
+  ],
+  "verdict": "inconclusive"
+ }
+}

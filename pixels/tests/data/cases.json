@@ -1,0 +1,25 @@
+{
+ "wasp18": {
+  "label": "WASP-18 b (known planet, on target)",
+  "tic": 100100827, "period_d": 0.9414525, "t0_btjd": 3205.353322, "duration_h": 2.05,
+  "sectors": [104, 105, 106],
+  "expect": "on target",
+  "source": "ExoFOP TOI-185.01 (TFOPWG disposition KP, 'WASP-18 b'); ephemeris from the ExoFOP TOI table"
+ },
+ "toi4257": {
+  "label": "TOI-4257.01 (TFOP false positive: nearby eclipsing binary)",
+  "tic": 75208638, "period_d": 4.6512523, "t0_btjd": 2990.712909, "duration_h": 2.251,
+  "sectors": [62, 63, 89],
+  "expect": "off target",
+  "culprit_tic": 75208617,
+  "culprit_gaia_dr3": "5423774792624492928",
+  "source": "ExoFOP TOI-4257.01: TESS disposition EB, TFOPWG disposition FP; comment 'found in faint-star QLP search; offset on TIC 75208617 in SPOC s62; retired as TFOP FP/NEB' (https://exofop.ipac.caltech.edu/tess/target.php?id=75208638)"
+ },
+ "quiet": {
+  "label": "TIC 100101861 (no TOI, made-up ephemeris: clean non-detection)",
+  "tic": 100101861, "period_d": 3.1234, "t0_btjd": 3000.0, "duration_h": 3.0,
+  "sectors": [104, 105, 106],
+  "expect": "inconclusive",
+  "source": "T=9.3 star 17' from WASP-18 with 2-min data in sector 106 and no TOI/CTOI; ephemeris invented"
+ }
+}

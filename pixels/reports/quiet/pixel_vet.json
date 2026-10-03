@@ -1,0 +1,272 @@
+{
+ "tic_id": 100101861,
+ "ephemeris": {
+  "period_d": 3.1234,
+  "t0_btjd": 3000.0,
+  "duration_h": 3.0
+ },
+ "verdict": "inconclusive",
+ "reason": "the dip is not visible in the pixels (best difference-image SNR -0.5 < 5 over 3 sector(s)), so its source cannot be located",
+ "on_target_probability": null,
+ "centroid_offset_arcsec": null,
+ "centroid_offset_px": null,
+ "offset_sigma": null,
+ "offset_east_north_arcsec": null,
+ "depth_on_target": null,
+ "depth_on_target_err": null,
+ "depth_upper_limit_3sigma": 0.0001,
+ "tic_contamination_ratio": 0.00374419522,
+ "target_tmag": 9.2654,
+ "suspect_neighbours": [],
+ "neighbours": [
+  {
+   "gaia_id": "4955182045176059008",
+   "sep_arcsec": 17.74,
+   "east_north_arcsec": [
+    6.36,
+    -16.56
+   ],
+   "gmag": 15.717,
+   "tmag": 15.265,
+   "flux_ratio": 0.003984,
+   "needed_depth": null,
+   "centroid_distance_sigma": null,
+   "excluded_by_centroid": null,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955182045176059136",
+   "sep_arcsec": 23.64,
+   "east_north_arcsec": [
+    11.64,
+    -20.57
+   ],
+   "gmag": 18.473,
+   "tmag": 17.93,
+   "flux_ratio": 0.000342,
+   "needed_depth": null,
+   "centroid_distance_sigma": null,
+   "excluded_by_centroid": null,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955182006519736960",
+   "sep_arcsec": 79.55,
+   "east_north_arcsec": [
+    79.55,
+    0.13
+   ],
+   "gmag": 18.574,
+   "tmag": 17.655,
+   "flux_ratio": 0.000441,
+   "needed_depth": null,
+   "centroid_distance_sigma": null,
+   "excluded_by_centroid": null,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955181804657890944",
+   "sep_arcsec": 91.15,
+   "east_north_arcsec": [
+    56.96,
+    -71.16
+   ],
+   "gmag": 15.693,
+   "tmag": 15.233,
+   "flux_ratio": 0.004101,
+   "needed_depth": null,
+   "centroid_distance_sigma": null,
+   "excluded_by_centroid": null,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955182178318432384",
+   "sep_arcsec": 102.52,
+   "east_north_arcsec": [
+    78.95,
+    65.4
+   ],
+   "gmag": 19.381,
+   "tmag": 19.544,
+   "flux_ratio": 7.7e-05,
+   "needed_depth": null,
+   "centroid_distance_sigma": null,
+   "excluded_by_centroid": null,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955182113895536128",
+   "sep_arcsec": 124.71,
+   "east_north_arcsec": [
+    122.69,
+    22.38
+   ],
+   "gmag": 15.507,
+   "tmag": 15.068,
+   "flux_ratio": 0.004774,
+   "needed_depth": null,
+   "centroid_distance_sigma": null,
+   "excluded_by_centroid": null,
+   "suspect": false
+  },
+  {
+   "gaia_id": "4955181907737106304",
+   "sep_arcsec": 126.02,
+   "east_north_arcsec": [
+    119.8,
+    -39.08
+   ],
+   "gmag": 15.767,
+   "tmag": 15.336,
+   "flux_ratio": 0.003729,
+   "needed_depth": null,
+   "centroid_distance_sigma": null,
+   "excluded_by_centroid": null,
+   "suspect": false
+  }
+ ],
+ "per_sector": [
+  {
+   "sector": 104,
+   "kind": "ffi",
+   "n_transits": 7,
+   "n_in_transit_frames": 302,
+   "n_out_of_transit_frames": 756,
+   "detected": false,
+   "reason": "dip not seen in the pixels (difference-image SNR -0.7 < 5)",
+   "diff_snr": -0.67,
+   "depth_on_target": -2.9e-05,
+   "depth_on_target_err": 4.3e-05,
+   "target_px": [
+    7.919,
+    7.541
+   ],
+   "centroid_px": [
+    -0.093,
+    3.892
+   ],
+   "centroid_offset_arcsec": null,
+   "offset_east_north_arcsec": null,
+   "offset_sigma": null,
+   "pixel_scale_arcsec": 21.028,
+   "wcs_shift_px": [
+    0.169,
+    -0.037
+   ],
+   "psf_sigma_px": [
+    1.018,
+    1.194
+   ],
+   "notes": [
+    "difference-image noise scaled \u00d71.72 to match transit-to-transit scatter"
+   ]
+  },
+  {
+   "sector": 105,
+   "kind": "ffi",
+   "n_transits": 7,
+   "n_in_transit_frames": 282,
+   "n_out_of_transit_frames": 723,
+   "detected": false,
+   "reason": "dip not seen in the pixels (difference-image SNR -0.5 < 5)",
+   "diff_snr": -0.52,
+   "depth_on_target": -7e-05,
+   "depth_on_target_err": 0.000133,
+   "target_px": [
+    7.667,
+    7.4
+   ],
+   "centroid_px": [
+    11.011,
+    9.149
+   ],
+   "centroid_offset_arcsec": null,
+   "offset_east_north_arcsec": null,
+   "offset_sigma": null,
+   "pixel_scale_arcsec": 21.093,
+   "wcs_shift_px": [
+    0.162,
+    -0.034
+   ],
+   "psf_sigma_px": [
+    1.097,
+    1.166
+   ],
+   "notes": [
+    "difference-image noise scaled \u00d76.83 to match transit-to-transit scatter"
+   ]
+  },
+  {
+   "sector": 106,
+   "kind": "tpf",
+   "n_transits": 5,
+   "n_in_transit_frames": 301,
+   "n_out_of_transit_frames": 839,
+   "detected": false,
+   "reason": "dip not seen in the pixels (difference-image SNR -1.8 < 5)",
+   "diff_snr": -1.77,
+   "depth_on_target": -0.000103,
+   "depth_on_target_err": 5.8e-05,
+   "target_px": [
+    4.604,
+    4.377
+   ],
+   "centroid_px": [
+    6.264,
+    3.792
+   ],
+   "centroid_offset_arcsec": null,
+   "offset_east_north_arcsec": null,
+   "offset_sigma": null,
+   "pixel_scale_arcsec": 19.988,
+   "wcs_shift_px": [
+    -0.108,
+    0.418
+   ],
+   "psf_sigma_px": [
+    0.953,
+    1.115
+   ],
+   "notes": []
+  }
+ ],
+ "heuristic": "P(on target) = L_t / (L_t + \u03a3_i w_i\u00b7L_i + e^(-4.5)),  L = exp(-\u00bd d\u00b2),  d = Mahalanobis distance of the combined difference-image centroid from that star, using the combined covariance plus a (0.1 px)\u00b2 floor; i runs over Gaia neighbours able to make the dip (needed depth \u2264 100%) with w_i = 0.25 (needed \u2264 50%) or 0.05 (50\u2013100%); the e^(-4.5) term is 'somewhere else' (uncatalogued source or systematics). A centroid exactly on the target gives \u2248 0.99; 3\u03c3 off with no neighbour gives \u2248 0.5.",
+ "data": [
+  {
+   "sector": 104,
+   "kind": "ffi",
+   "filename": "tesscut_tic100101861_s0104_15x15.fits"
+  },
+  {
+   "sector": 105,
+   "kind": "ffi",
+   "filename": "tesscut_tic100101861_s0105_15x15.fits"
+  },
+  {
+   "sector": 106,
+   "kind": "tpf",
+   "filename": "tess2026192185000-s0106-0000000100101861-0308-s_tp.fits"
+  }
+ ],
+ "warnings": [],
+ "timings_s": {
+  "catalogues": 0.0,
+  "search": 0.0,
+  "download": 0.06,
+  "reduce": 0.32,
+  "analyze": 0.22,
+  "total": 1.12
+ },
+ "files": {
+  "pngs": [
+   "tic100101861_s0104_pixels.png",
+   "tic100101861_s0105_pixels.png",
+   "tic100101861_s0106_pixels.png"
+  ],
+  "json": [
+   "tic100101861_s0104_pixels.json",
+   "tic100101861_s0105_pixels.json",
+   "tic100101861_s0106_pixels.json"
+  ]
+ }
+}

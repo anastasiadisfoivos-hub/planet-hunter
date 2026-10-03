@@ -1,0 +1,38 @@
+# Render Blueprint: the planet finder API as ONE free web service (docs/DEPLOY.md).
+# Render reads this file when you create a Blueprint from the repository (New > Blueprint).
+# `sync: false` values are asked for once, when the Blueprint is first created; Render never
+# reads them from this file and ignores them on later Blueprint syncs (edit them in the dashboard).
+services:
+  - type: web
+    name: planet-hunter-api # the runner's default API URL is https://planet-hunter-api.onrender.com
+    runtime: docker
+    plan: free # keep this: without `plan`, Render creates a PAID instance (0.5c-512mb)
+    region: frankfurt
+    branch: main
+    rootDir: api # only changes under api/ trigger a deploy
+    dockerContext: ./api # relative to the repo root
+    dockerfilePath: ./api/Dockerfile # relative to the repo root
+    healthCheckPath: /healthz
+    autoDeployTrigger: checksPass # deploy a main commit only after its GitHub checks (ci.yml) pass
+    envVars:
+      # Supabase SESSION pooler URL (IPv4), port 5432, with ?sslmode=require. See docs/DEPLOY.md.
+      - key: PH_DATABASE_URL
+        sync: false
+      # Long random strings (openssl rand -hex 32). The runner on the Oracle server needs the same
+      # PH_INGEST_TOKEN. PH_ADMIN_TOKEN enables the ExoFOP export; it is optional.
+      - key: PH_ADMIN_TOKEN
+        sync: false
+      - key: PH_INGEST_TOKEN
+        sync: false
+      # The Vercel site's origin for CORS, e.g. https://planet-hunter.vercel.app (no trailing slash;
+      # comma-separated for several).
+      - key: PH_WEB_ORIGIN
+        sync: false
+      # Render's proxy appends one X-Forwarded-For entry: per-IP rate limits need this.
+      - key: PH_TRUSTED_PROXY_HOPS
+        value: "1"
+      - key: PH_ADAPTERS
+        value: fake # the web API never pixel-checks; ingestion runs on the Oracle server
+      # A small pool: the free instance is small and Supabase free limits connections.
+      - key: PH_DB_POOL_MAX
+        value: "3"

@@ -1,0 +1,14 @@
+{
+ "id": "proof:100100827:1",
+ "tic": 100100827,
+ "period_d": 0.9414525,
+ "t0_btjd": 3205.353322,
+ "duration_h": 2.05,
+ "depth_ppm": 11445.0,
+ "sectors": [
+  104,
+  105,
+  106
+ ],
+ "source": "ExoFOP TOI-185.01 (WASP-18 b, TFOPWG KP): ephemeris, duration and depth as listed"
+}

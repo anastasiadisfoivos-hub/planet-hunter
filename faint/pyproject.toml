@@ -1,0 +1,55 @@
+[project]
+name = "skyfaint"
+version = "0.1.0"
+description = "planet-hunter FAINT: TGLC light curves and a ranked target list for faint (Tmag 13-16) stars, mainly M dwarfs"
+readme = "README.md"
+authors = [
+    { name = "Foivos Anastasiadis", email = "anastasiadis.foivos@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "astropy>=8.0.1",
+    "astroquery>=0.4.11",
+    "numpy>=2.5.3",
+    "requests>=2.34.2",
+    "tess-point>=0.9.5.post1",
+]
+
+[project.scripts]
+skyfaint = "skyfaint.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+# hunt/ (and through it the pipeline) is only needed to run searches in the proof tests and scripts; it is
+# imported read-only and never edited from here.
+dev = [
+    "pytest>=9.1.1",
+    "hunt",
+]
+
+[tool.uv]
+# The search server is Linux arm64 (Oracle Ampere); CI is Linux x86_64. batman-package 2.5.3 (through
+# hunt's transitleastsquares) has no Linux arm64 wheel and no sdist, and 2.5.2's sdist builds against numpy 1 headers
+# (oldest-supported-numpy), which fail to import under numpy 2. On Linux arm64 it is built from upstream's
+# 2.5.3 source at a pinned commit, whose build requires numpy >= 2; elsewhere the 2.5.3 wheels are used.
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+override-dependencies = [
+    "batman-package @ git+https://github.com/lkreidberg/batman@3c69c4381d9785cd4d06e898c2cdf83b22ffb365 ; sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "batman-package==2.5.3 ; sys_platform != 'linux' or platform_machine != 'aarch64'",
+]
+
+[tool.uv.sources]
+hunt = { path = "../hunt", editable = true }
+hunter = { path = "../pipeline", editable = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]

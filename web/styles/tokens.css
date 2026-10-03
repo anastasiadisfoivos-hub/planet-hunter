@@ -1,0 +1,101 @@
+/* The chart recorder's tokens (DESIGN.md: Colour, Type, Space, Motion). Scoped to .site so the retired pages,
+   which still read app/tokens.css, are untouched until they are removed. */
+
+.site {
+  color-scheme: light;
+
+  /* colour (DESIGN.md v3): white sheet, black ink, one red pen, catalogue blue */
+  --paper: #fafaf7;
+  --paper-2: #efefea;
+  --ink: #0b0b0a;
+  --ink-2: #3a3a36;
+  --ink-3: #5c5c56;
+  --pen: #c8260c;
+  --known: #1d55a0;
+  --rejected: var(--ink-3);
+  --grid: rgb(11 11 10 / 0.07);
+  --grid-strong: rgb(11 11 10 / 0.16);
+  --pen-wash: rgb(200 38 12 / 0.08);
+  --ground: var(--paper);
+
+  /* type */
+  --sans: var(--font-archivo), system-ui, sans-serif;
+  --mono: var(--font-martian), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --t-display: clamp(2.75rem, 1.6rem + 4.3vw, 5.75rem);
+  --t-h1: clamp(2.125rem, 1.55rem + 2vw, 3.5rem);
+  --t-h2: clamp(1.5rem, 1.3rem + 0.7vw, 2rem);
+  --t-h3: 1.25rem;
+  --t-body: clamp(1.0625rem, 1rem + 0.2vw, 1.1875rem);
+  --t-small: 0.9375rem;
+  --t-label: 0.75rem;
+  --t-num: 0.9375rem;
+  /* weights: Archivo 800 headings, 700 names, 500 body; Martian Mono 500 */
+  --w-head: 800;
+  --w-name: 700;
+  --w-body: 500;
+  --w-num: 500;
+  --wd-head: 112;
+  --label-tracking: 0.06em;
+  --measure: 62ch;
+
+  /* space: 4px base */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 72px;
+  --s-9: 112px;
+  /* the page uses the whole screen: fluid side margins, no centred column */
+  --gutter: clamp(20px, 4vw, 80px);
+  --section: 72px;
+  --bar-h: 60px;
+  --radius: 0;
+  --tap: 44px;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --d-hover: 120ms;
+  --d-tick: 160ms;
+  --d-panel: 240ms;
+  --d-advance: 900ms;
+
+  /* layers */
+  --z-bar: 10;
+  --z-grain: 20;
+}
+
+@media (max-width: 719px) {
+  .site {
+    --section: 48px;
+    --bar-h: 102px; /* the name row (44) + the icon keys (56) + the 2px rule */
+  }
+}
+
+/* night is an option, never the default: the switch in the top bar sets html[data-theme="night"] */
+html[data-theme="night"] .site {
+  color-scheme: dark;
+  --paper: #0c0d12;
+  --paper-2: #16171f;
+  --ink: #f2f2ee;
+  --ink-2: #bdbdb6;
+  --ink-3: #8f8f88;
+  --pen: #ff6a4a;
+  --known: #86b2f0;
+  --grid: rgb(242 242 238 / 0.08);
+  --grid-strong: rgb(242 242 238 / 0.17);
+  --pen-wash: rgb(255 106 74 / 0.1);
+  --ground: var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site {
+    --d-hover: 0ms;
+    --d-tick: 0ms;
+    --d-panel: 0ms;
+    --d-advance: 0ms;
+  }
+}

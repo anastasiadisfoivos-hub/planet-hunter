@@ -1,0 +1,84 @@
+/* /credits: every picture with its credit and licence. */
+
+.page {
+  padding-top: var(--s-16);
+  padding-bottom: var(--section);
+}
+
+.h1 {
+  font-size: var(--t-h1);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.line {
+  margin-top: var(--s-3);
+  color: var(--ink-secondary);
+  font-size: var(--text-16);
+}
+
+.group {
+  margin-top: var(--s-16);
+}
+
+.list {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: var(--s-4);
+  align-items: center;
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--line-faint);
+}
+
+.thumb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: var(--radius-tag);
+  background: var(--well);
+}
+
+.text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  color: var(--ink);
+}
+
+.credit {
+  color: var(--ink-secondary);
+  font-size: var(--text-13);
+  max-width: 72ch;
+}
+
+.link {
+  color: var(--ink-secondary);
+  font-size: var(--text-13);
+  white-space: nowrap;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 639px) {
+  .row {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+  .thumb {
+    width: 48px;
+    height: 48px;
+  }
+  .link {
+    grid-column: 2;
+  }
+}

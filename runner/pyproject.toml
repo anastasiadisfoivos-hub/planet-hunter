@@ -1,0 +1,22 @@
+[project]
+name = "planet-hunter-runner"
+version = "0.1.0"
+description = "planet-hunter RUNNER: the nightly Planet Finder search on one always-on server (ledger, queues, workers, posting, ingest)"
+requires-python = ">=3.12"
+# The scheduler itself is standard library only: it runs on the server's system python3 and starts each star in
+# hunt's / faint's / vet's own venv. numpy is only needed by star_job (which runs inside hunt's venv) and its tests.
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8", "numpy>=2"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"

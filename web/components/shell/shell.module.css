@@ -1,0 +1,223 @@
+/* The top bar, the page frame and the footer (DESIGN.md v3: Top bar). Hard edges, a 2px ink rule. */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-bar);
+  height: var(--bar-h);
+  min-height: 0;
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
+}
+
+.inner {
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-6);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--sans);
+  font-weight: 800;
+  font-variation-settings: "wdth" 112;
+  font-size: 1.25rem;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none !important;
+  color: var(--ink);
+}
+
+.nav {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+}
+
+.link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 0 14px 0 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--ink-2);
+  text-decoration: none !important;
+  border-left: 1px solid var(--grid-strong);
+  transition: color var(--d-hover) var(--ease-out), background-color var(--d-hover) var(--ease-out);
+}
+
+.link:last-child {
+  border-right: 1px solid var(--grid-strong);
+}
+
+.link:hover {
+  color: var(--ink);
+  background: var(--paper-2);
+}
+
+.link svg * {
+  stroke: currentColor;
+}
+
+.link[aria-current="page"] {
+  color: var(--ink);
+}
+
+.link[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: 0;
+  bottom: -2px;
+  height: 4px;
+  background: var(--pen);
+}
+
+.end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  white-space: nowrap;
+}
+
+.theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  min-width: 44px;
+  @media (pointer: coarse) {
+    min-height: var(--tap);
+  }
+  padding: 0 12px 0 10px;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variation-settings: "wdth" 87;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.theme:hover {
+  background: var(--paper-2);
+}
+
+.theme svg * {
+  stroke: currentColor;
+}
+
+.main {
+  padding-bottom: var(--section);
+}
+
+.bleed {
+  padding-bottom: 0;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3) var(--s-5);
+  padding-top: var(--s-5);
+  padding-bottom: var(--s-6);
+  border-top: 2px solid var(--ink);
+}
+
+.credit {
+  flex: 1 1 36ch;
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.footLink {
+  font-size: var(--t-small);
+  font-weight: 700;
+}
+
+.foot a {
+  color: var(--ink);
+}
+
+.skip {
+  position: fixed;
+  top: var(--s-2);
+  left: var(--s-2);
+  z-index: calc(var(--z-bar) + 1);
+  padding: var(--s-2) var(--s-3);
+  background: var(--ink);
+  color: var(--paper) !important;
+  text-decoration: none !important;
+  transform: translateY(-150%);
+}
+
+.skip:focus-visible {
+  transform: none;
+}
+
+@media (max-width: 899px) {
+  .themeWord {
+    display: none;
+  }
+}
+
+/* phone: the name on its own line, then the four sections as icon-over-word keys */
+@media (max-width: 719px) {
+  .bar {
+    height: auto;
+  }
+
+  .inner {
+    flex-wrap: wrap;
+    gap: 0;
+    padding-inline: 0;
+  }
+
+  .wordmark {
+    min-height: 44px;
+    padding-left: var(--gutter);
+    font-size: 1.125rem;
+  }
+
+  .end {
+    padding-right: var(--gutter);
+  }
+
+  .nav {
+    order: 3;
+    flex-basis: 100%;
+    border-top: 1px solid var(--grid-strong);
+  }
+
+  .link {
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 56px;
+    padding: 6px 0 4px;
+    font-size: 0.8125rem;
+  }
+
+  .link:first-child {
+    border-left: 0;
+  }
+
+  .link:last-child {
+    border-right: 0;
+  }
+}

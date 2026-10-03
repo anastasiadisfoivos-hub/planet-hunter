@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below. Please also cite the data and tools it depends on; see the README's 'Data credits and licences' section."
+type: software
+title: "planet-hunter: an open search of TESS light curves for planet candidates"
+abstract: >-
+  planet-hunter searches public NASA TESS light curves for repeating transit-like dips.
+  It vets each signal with flux-level checks, catalogue cross-matching, a difference-image
+  pixel check and published community tools, and it measures its own sensitivity by
+  injection-recovery. Its outputs are planet candidates, never confirmed planets.
+authors:
+  - family-names: Anastasiadis
+    given-names: Foivos
+repository-code: "https://github.com/anastasiadisfoivos-hub/planet-hunter"
+license: MIT
+keywords:
+  - exoplanets
+  - TESS
+  - transit search
+  - planet candidates
+  - vetting
+  - astronomy

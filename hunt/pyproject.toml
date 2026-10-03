@@ -1,0 +1,61 @@
+[project]
+name = "hunt"
+version = "0.1.0"
+description = "planet-hunter PLANET FINDER: systematic TESS search for new planet candidates (candidates, never planets)"
+readme = "README.md"
+authors = [
+    { name = "Foivos Anastasiadis", email = "anastasiadis.foivos@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "hunter",
+    "skyfaint",
+    "astropy>=8.0.1",
+    "astroquery>=0.4.11",
+    "lightkurve>=2.6.0",
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.3",
+    "requests>=2.34.2",
+    "scipy>=1.18.1",
+    "transitleastsquares>=1.32",
+    "wotan>=1.10",
+    "setuptools>=84.0.0",
+    "tess-point>=0.9.5.post1",
+]
+
+[project.scripts]
+hunt = "hunt.cli:main"
+
+[tool.uv]
+# The search server is Linux arm64 (Oracle Ampere); CI is Linux x86_64. batman-package 2.5.3 (through
+# transitleastsquares) has no Linux arm64 wheel and no sdist, and 2.5.2's sdist builds against numpy 1 headers
+# (oldest-supported-numpy), which fail to import under numpy 2. On Linux arm64 it is built from upstream's
+# 2.5.3 source at a pinned commit, whose build requires numpy >= 2; elsewhere the 2.5.3 wheels are used.
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+override-dependencies = [
+    "batman-package @ git+https://github.com/lkreidberg/batman@3c69c4381d9785cd4d06e898c2cdf83b22ffb365 ; sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "batman-package==2.5.3 ; sys_platform != 'linux' or platform_machine != 'aarch64'",
+]
+
+[tool.uv.sources]
+hunter = { path = "../pipeline", editable = true }
+skyfaint = { path = "../faint", editable = true }
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+markers = ["deep: all-sector real-data proofs (TOI-813, TOI-2180); several minutes each"]
+filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]

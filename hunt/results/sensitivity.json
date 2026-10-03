@@ -1,0 +1,2060 @@
+{
+ "created_at": "2026-09-27T18:34:34+00:00",
+ "definition": {
+  "detected": "the search returned a signal within 1% of the injected period, in phase with it (long periods and singles: or a single / duo dip on the injected transits)",
+  "recovered": "detected, and the signal passed every cut (SNR >= 10, SDE >= 9, >= 3 transits) and every vetting check, so it would have become a candidate (single / duo: the dip cuts and checks; a duo must list the injected period among its surviving aliases)",
+  "injection": "box-shaped transit multiplied into the real, stitched light curve before detrending; radius and period log-uniform within each bin; impact parameter uniform 0-0.7; duration from the star's TIC density",
+  "quiet_star": "its own search found no signal passing SNR >= 10, SDE >= 9 and >= 3 transits, and no single or duo candidate",
+  "grids": {
+   "grid": "HUNT's periodic grid, 0.5-15 d",
+   "long_period": "30-400 d, every transit injected",
+   "single": "one transit of a 100-1000 d planet"
+  }
+ },
+ "grid": {
+  "radius_edges_rearth": [
+   1.0,
+   2.0,
+   3.0,
+   4.0,
+   6.0,
+   8.0,
+   11.0,
+   15.0
+  ],
+  "period_edges_d": [
+   0.5,
+   1.0,
+   2.0,
+   4.0,
+   7.0,
+   10.0,
+   15.0
+  ]
+ },
+ "n_stars": 24,
+ "n_injections": 28,
+ "overall_recovery_fraction": 1.0,
+ "bins": [
+  {
+   "radius_rearth": [
+    1.0,
+    2.0
+   ],
+   "period_d": [
+    0.5,
+    1.0
+   ],
+   "n_injected": 2,
+   "n_detected": 2,
+   "n_recovered": 2,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    1.0,
+    2.0
+   ],
+   "period_d": [
+    1.0,
+    2.0
+   ],
+   "n_injected": 2,
+   "n_detected": 2,
+   "n_recovered": 2,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    1.0,
+    2.0
+   ],
+   "period_d": [
+    2.0,
+    4.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    1.0,
+    2.0
+   ],
+   "period_d": [
+    4.0,
+    7.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    1.0,
+    2.0
+   ],
+   "period_d": [
+    7.0,
+    10.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    1.0,
+    2.0
+   ],
+   "period_d": [
+    10.0,
+    15.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    2.0,
+    3.0
+   ],
+   "period_d": [
+    0.5,
+    1.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    2.0,
+    3.0
+   ],
+   "period_d": [
+    1.0,
+    2.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    2.0,
+    3.0
+   ],
+   "period_d": [
+    2.0,
+    4.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    2.0,
+    3.0
+   ],
+   "period_d": [
+    4.0,
+    7.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    2.0,
+    3.0
+   ],
+   "period_d": [
+    7.0,
+    10.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    2.0,
+    3.0
+   ],
+   "period_d": [
+    10.0,
+    15.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    3.0,
+    4.0
+   ],
+   "period_d": [
+    0.5,
+    1.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    3.0,
+    4.0
+   ],
+   "period_d": [
+    1.0,
+    2.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    3.0,
+    4.0
+   ],
+   "period_d": [
+    2.0,
+    4.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    3.0,
+    4.0
+   ],
+   "period_d": [
+    4.0,
+    7.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    3.0,
+    4.0
+   ],
+   "period_d": [
+    7.0,
+    10.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    3.0,
+    4.0
+   ],
+   "period_d": [
+    10.0,
+    15.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    4.0,
+    6.0
+   ],
+   "period_d": [
+    0.5,
+    1.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    4.0,
+    6.0
+   ],
+   "period_d": [
+    1.0,
+    2.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    4.0,
+    6.0
+   ],
+   "period_d": [
+    2.0,
+    4.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    4.0,
+    6.0
+   ],
+   "period_d": [
+    4.0,
+    7.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    4.0,
+    6.0
+   ],
+   "period_d": [
+    7.0,
+    10.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    4.0,
+    6.0
+   ],
+   "period_d": [
+    10.0,
+    15.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    6.0,
+    8.0
+   ],
+   "period_d": [
+    0.5,
+    1.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    6.0,
+    8.0
+   ],
+   "period_d": [
+    1.0,
+    2.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    6.0,
+    8.0
+   ],
+   "period_d": [
+    2.0,
+    4.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    6.0,
+    8.0
+   ],
+   "period_d": [
+    4.0,
+    7.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    6.0,
+    8.0
+   ],
+   "period_d": [
+    7.0,
+    10.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    6.0,
+    8.0
+   ],
+   "period_d": [
+    10.0,
+    15.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    8.0,
+    11.0
+   ],
+   "period_d": [
+    0.5,
+    1.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    8.0,
+    11.0
+   ],
+   "period_d": [
+    1.0,
+    2.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    8.0,
+    11.0
+   ],
+   "period_d": [
+    2.0,
+    4.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    8.0,
+    11.0
+   ],
+   "period_d": [
+    4.0,
+    7.0
+   ],
+   "n_injected": 1,
+   "n_detected": 1,
+   "n_recovered": 1,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "radius_rearth": [
+    8.0,
+    11.0
+   ],
+   "period_d": [
+    7.0,
+    10.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    8.0,
+    11.0
+   ],
+   "period_d": [
+    10.0,
+    15.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    11.0,
+    15.0
+   ],
+   "period_d": [
+    0.5,
+    1.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    11.0,
+    15.0
+   ],
+   "period_d": [
+    1.0,
+    2.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    11.0,
+    15.0
+   ],
+   "period_d": [
+    2.0,
+    4.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    11.0,
+    15.0
+   ],
+   "period_d": [
+    4.0,
+    7.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    11.0,
+    15.0
+   ],
+   "period_d": [
+    7.0,
+    10.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  },
+  {
+   "radius_rearth": [
+    11.0,
+    15.0
+   ],
+   "period_d": [
+    10.0,
+    15.0
+   ],
+   "n_injected": 0,
+   "n_detected": 0,
+   "n_recovered": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  }
+ ],
+ "by_radius": [
+  {
+   "range": [
+    1.0,
+    2.0
+   ],
+   "n_injected": 8,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    2.0,
+    3.0
+   ],
+   "n_injected": 6,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    3.0,
+    4.0
+   ],
+   "n_injected": 6,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    4.0,
+    6.0
+   ],
+   "n_injected": 2,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    6.0,
+    8.0
+   ],
+   "n_injected": 2,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    8.0,
+    11.0
+   ],
+   "n_injected": 4,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    11.0,
+    15.0
+   ],
+   "n_injected": 0,
+   "recovery_fraction": null,
+   "detection_fraction": null
+  }
+ ],
+ "by_period": [
+  {
+   "range": [
+    0.5,
+    1.0
+   ],
+   "n_injected": 6,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    1.0,
+    2.0
+   ],
+   "n_injected": 6,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    2.0,
+    4.0
+   ],
+   "n_injected": 4,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    4.0,
+    7.0
+   ],
+   "n_injected": 4,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    7.0,
+    10.0
+   ],
+   "n_injected": 4,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  },
+  {
+   "range": [
+    10.0,
+    15.0
+   ],
+   "n_injected": 4,
+   "recovery_fraction": 1.0,
+   "detection_fraction": 1.0
+  }
+ ],
+ "long_period": {
+  "n_injections": 48,
+  "overall_recovery_fraction": 0.333,
+  "bins": [
+   {
+    "radius_rearth": [
+     1.0,
+     2.0
+    ],
+    "period_d": [
+     30.0,
+     60.0
+    ],
+    "n_injected": 2,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     1.0,
+     2.0
+    ],
+    "period_d": [
+     60.0,
+     120.0
+    ],
+    "n_injected": 2,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     1.0,
+     2.0
+    ],
+    "period_d": [
+     120.0,
+     240.0
+    ],
+    "n_injected": 2,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     1.0,
+     2.0
+    ],
+    "period_d": [
+     240.0,
+     400.0
+    ],
+    "n_injected": 2,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     2.0,
+     3.0
+    ],
+    "period_d": [
+     30.0,
+     60.0
+    ],
+    "n_injected": 2,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5,
+    "recovered_as": {
+     "periodic": 1,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     2.0,
+     3.0
+    ],
+    "period_d": [
+     60.0,
+     120.0
+    ],
+    "n_injected": 2,
+    "n_detected": 1,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.5,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     2.0,
+     3.0
+    ],
+    "period_d": [
+     120.0,
+     240.0
+    ],
+    "n_injected": 1,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     2.0,
+     3.0
+    ],
+    "period_d": [
+     240.0,
+     400.0
+    ],
+    "n_injected": 1,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     3.0,
+     4.0
+    ],
+    "period_d": [
+     30.0,
+     60.0
+    ],
+    "n_injected": 1,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 1,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     3.0,
+     4.0
+    ],
+    "period_d": [
+     60.0,
+     120.0
+    ],
+    "n_injected": 1,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     3.0,
+     4.0
+    ],
+    "period_d": [
+     120.0,
+     240.0
+    ],
+    "n_injected": 2,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     3.0,
+     4.0
+    ],
+    "period_d": [
+     240.0,
+     400.0
+    ],
+    "n_injected": 2,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     4.0,
+     6.0
+    ],
+    "period_d": [
+     30.0,
+     60.0
+    ],
+    "n_injected": 2,
+    "n_detected": 2,
+    "n_recovered": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 2,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     4.0,
+     6.0
+    ],
+    "period_d": [
+     60.0,
+     120.0
+    ],
+    "n_injected": 2,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     4.0,
+     6.0
+    ],
+    "period_d": [
+     120.0,
+     240.0
+    ],
+    "n_injected": 2,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     4.0,
+     6.0
+    ],
+    "period_d": [
+     240.0,
+     400.0
+    ],
+    "n_injected": 2,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     6.0,
+     8.0
+    ],
+    "period_d": [
+     30.0,
+     60.0
+    ],
+    "n_injected": 2,
+    "n_detected": 2,
+    "n_recovered": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 1,
+     "duo": 1,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     6.0,
+     8.0
+    ],
+    "period_d": [
+     60.0,
+     120.0
+    ],
+    "n_injected": 2,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 1,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     6.0,
+     8.0
+    ],
+    "period_d": [
+     120.0,
+     240.0
+    ],
+    "n_injected": 1,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     6.0,
+     8.0
+    ],
+    "period_d": [
+     240.0,
+     400.0
+    ],
+    "n_injected": 1,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     8.0,
+     11.0
+    ],
+    "period_d": [
+     30.0,
+     60.0
+    ],
+    "n_injected": 1,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     8.0,
+     11.0
+    ],
+    "period_d": [
+     60.0,
+     120.0
+    ],
+    "n_injected": 1,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     8.0,
+     11.0
+    ],
+    "period_d": [
+     120.0,
+     240.0
+    ],
+    "n_injected": 2,
+    "n_detected": 2,
+    "n_recovered": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 2
+    }
+   },
+   {
+    "radius_rearth": [
+     8.0,
+     11.0
+    ],
+    "period_d": [
+     240.0,
+     400.0
+    ],
+    "n_injected": 2,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     11.0,
+     15.0
+    ],
+    "period_d": [
+     30.0,
+     60.0
+    ],
+    "n_injected": 2,
+    "n_detected": 1,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.5,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     11.0,
+     15.0
+    ],
+    "period_d": [
+     60.0,
+     120.0
+    ],
+    "n_injected": 2,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 1,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     11.0,
+     15.0
+    ],
+    "period_d": [
+     120.0,
+     240.0
+    ],
+    "n_injected": 2,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     11.0,
+     15.0
+    ],
+    "period_d": [
+     240.0,
+     400.0
+    ],
+    "n_injected": 2,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   }
+  ],
+  "by_radius": [
+   {
+    "range": [
+     1.0,
+     2.0
+    ],
+    "n_injected": 8,
+    "recovery_fraction": 0.125,
+    "detection_fraction": 0.125
+   },
+   {
+    "range": [
+     2.0,
+     3.0
+    ],
+    "n_injected": 6,
+    "recovery_fraction": 0.167,
+    "detection_fraction": 0.333
+   },
+   {
+    "range": [
+     3.0,
+     4.0
+    ],
+    "n_injected": 6,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5
+   },
+   {
+    "range": [
+     4.0,
+     6.0
+    ],
+    "n_injected": 8,
+    "recovery_fraction": 0.25,
+    "detection_fraction": 0.25
+   },
+   {
+    "range": [
+     6.0,
+     8.0
+    ],
+    "n_injected": 6,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5
+   },
+   {
+    "range": [
+     8.0,
+     11.0
+    ],
+    "n_injected": 6,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.5
+   },
+   {
+    "range": [
+     11.0,
+     15.0
+    ],
+    "n_injected": 8,
+    "recovery_fraction": 0.375,
+    "detection_fraction": 0.5
+   }
+  ],
+  "by_period": [
+   {
+    "range": [
+     30.0,
+     60.0
+    ],
+    "n_injected": 12,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 0.583
+   },
+   {
+    "range": [
+     60.0,
+     120.0
+    ],
+    "n_injected": 12,
+    "recovery_fraction": 0.25,
+    "detection_fraction": 0.333
+   },
+   {
+    "range": [
+     120.0,
+     240.0
+    ],
+    "n_injected": 12,
+    "recovery_fraction": 0.333,
+    "detection_fraction": 0.333
+   },
+   {
+    "range": [
+     240.0,
+     400.0
+    ],
+    "n_injected": 12,
+    "recovery_fraction": 0.25,
+    "detection_fraction": 0.25
+   }
+  ],
+  "grid": {
+   "radius_edges_rearth": [
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    6.0,
+    8.0,
+    11.0,
+    15.0
+   ],
+   "period_edges_d": [
+    30.0,
+    60.0,
+    120.0,
+    240.0,
+    400.0
+   ]
+  },
+  "recovered_as": {
+   "periodic": 5,
+   "duo": 3,
+   "single": 8
+  }
+ },
+ "single_transit": {
+  "n_injections": 20,
+  "overall_recovery_fraction": 0.85,
+  "bins": [
+   {
+    "radius_rearth": [
+     1.0,
+     2.0
+    ],
+    "period_d": [
+     100.0,
+     300.0
+    ],
+    "n_injected": 1,
+    "n_detected": 1,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     1.0,
+     2.0
+    ],
+    "period_d": [
+     300.0,
+     1000.0
+    ],
+    "n_injected": 1,
+    "n_detected": 0,
+    "n_recovered": 0,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 0
+    }
+   },
+   {
+    "radius_rearth": [
+     2.0,
+     3.0
+    ],
+    "period_d": [
+     100.0,
+     300.0
+    ],
+    "n_injected": 1,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     2.0,
+     3.0
+    ],
+    "period_d": [
+     300.0,
+     1000.0
+    ],
+    "n_injected": 1,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     3.0,
+     4.0
+    ],
+    "period_d": [
+     100.0,
+     300.0
+    ],
+    "n_injected": 1,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     3.0,
+     4.0
+    ],
+    "period_d": [
+     300.0,
+     1000.0
+    ],
+    "n_injected": 1,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     4.0,
+     6.0
+    ],
+    "period_d": [
+     100.0,
+     300.0
+    ],
+    "n_injected": 1,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     4.0,
+     6.0
+    ],
+    "period_d": [
+     300.0,
+     1000.0
+    ],
+    "n_injected": 1,
+    "n_detected": 1,
+    "n_recovered": 1,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     6.0,
+     8.0
+    ],
+    "period_d": [
+     100.0,
+     300.0
+    ],
+    "n_injected": 2,
+    "n_detected": 2,
+    "n_recovered": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 2
+    }
+   },
+   {
+    "radius_rearth": [
+     6.0,
+     8.0
+    ],
+    "period_d": [
+     300.0,
+     1000.0
+    ],
+    "n_injected": 2,
+    "n_detected": 2,
+    "n_recovered": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 2
+    }
+   },
+   {
+    "radius_rearth": [
+     8.0,
+     11.0
+    ],
+    "period_d": [
+     100.0,
+     300.0
+    ],
+    "n_injected": 2,
+    "n_detected": 2,
+    "n_recovered": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 2
+    }
+   },
+   {
+    "radius_rearth": [
+     8.0,
+     11.0
+    ],
+    "period_d": [
+     300.0,
+     1000.0
+    ],
+    "n_injected": 2,
+    "n_detected": 2,
+    "n_recovered": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 2
+    }
+   },
+   {
+    "radius_rearth": [
+     11.0,
+     15.0
+    ],
+    "period_d": [
+     100.0,
+     300.0
+    ],
+    "n_injected": 2,
+    "n_detected": 2,
+    "n_recovered": 1,
+    "recovery_fraction": 0.5,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 1
+    }
+   },
+   {
+    "radius_rearth": [
+     11.0,
+     15.0
+    ],
+    "period_d": [
+     300.0,
+     1000.0
+    ],
+    "n_injected": 2,
+    "n_detected": 2,
+    "n_recovered": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0,
+    "recovered_as": {
+     "periodic": 0,
+     "duo": 0,
+     "single": 2
+    }
+   }
+  ],
+  "by_radius": [
+   {
+    "range": [
+     1.0,
+     2.0
+    ],
+    "n_injected": 2,
+    "recovery_fraction": 0.0,
+    "detection_fraction": 0.5
+   },
+   {
+    "range": [
+     2.0,
+     3.0
+    ],
+    "n_injected": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0
+   },
+   {
+    "range": [
+     3.0,
+     4.0
+    ],
+    "n_injected": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0
+   },
+   {
+    "range": [
+     4.0,
+     6.0
+    ],
+    "n_injected": 2,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0
+   },
+   {
+    "range": [
+     6.0,
+     8.0
+    ],
+    "n_injected": 4,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0
+   },
+   {
+    "range": [
+     8.0,
+     11.0
+    ],
+    "n_injected": 4,
+    "recovery_fraction": 1.0,
+    "detection_fraction": 1.0
+   },
+   {
+    "range": [
+     11.0,
+     15.0
+    ],
+    "n_injected": 4,
+    "recovery_fraction": 0.75,
+    "detection_fraction": 1.0
+   }
+  ],
+  "by_period": [
+   {
+    "range": [
+     100.0,
+     300.0
+    ],
+    "n_injected": 10,
+    "recovery_fraction": 0.8,
+    "detection_fraction": 1.0
+   },
+   {
+    "range": [
+     300.0,
+     1000.0
+    ],
+    "n_injected": 10,
+    "recovery_fraction": 0.9,
+    "detection_fraction": 0.9
+   }
+  ],
+  "grid": {
+   "radius_edges_rearth": [
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    6.0,
+    8.0,
+    11.0,
+    15.0
+   ],
+   "period_edges_d": [
+    100.0,
+    300.0,
+    1000.0
+   ]
+  },
+  "recovered_as": {
+   "periodic": 0,
+   "duo": 0,
+   "single": 17
+  },
+  "period_in_range_fraction": 1.0
+ },
+ "n_injections_all_grids": 96,
+ "stars": [
+  {
+   "tic": 224269420,
+   "n_injections": 4,
+   "n_sectors": 5,
+   "baseline_d": 2906.24
+  },
+  {
+   "tic": 123366965,
+   "n_injections": 4,
+   "n_sectors": 6,
+   "baseline_d": 2874.41
+  },
+  {
+   "tic": 165096120,
+   "n_injections": 4,
+   "n_sectors": 6,
+   "baseline_d": 2935.05
+  },
+  {
+   "tic": 62020444,
+   "n_injections": 4,
+   "n_sectors": 6,
+   "baseline_d": 2575.79
+  },
+  {
+   "tic": 218970017,
+   "n_injections": 4,
+   "n_sectors": 5,
+   "baseline_d": 2906.24
+  },
+  {
+   "tic": 229152539,
+   "n_injections": 4,
+   "n_sectors": 10,
+   "baseline_d": 2906.24
+  },
+  {
+   "tic": 139200489,
+   "n_injections": 4,
+   "n_sectors": 8,
+   "baseline_d": 2935.05
+  },
+  {
+   "tic": 120395704,
+   "n_injections": 4,
+   "n_sectors": 5,
+   "baseline_d": 2550.6
+  },
+  {
+   "tic": 79020913,
+   "n_injections": 4,
+   "n_sectors": 6,
+   "baseline_d": 2907.53
+  },
+  {
+   "tic": 24464738,
+   "n_injections": 4,
+   "n_sectors": 5,
+   "baseline_d": 2822.28
+  },
+  {
+   "tic": 122574885,
+   "n_injections": 4,
+   "n_sectors": 6,
+   "baseline_d": 2874.41
+  },
+  {
+   "tic": 169304011,
+   "n_injections": 4,
+   "n_sectors": 5,
+   "baseline_d": 2906.24
+  },
+  {
+   "tic": 231055581,
+   "n_injections": 4,
+   "n_sectors": 8,
+   "baseline_d": 2878.72
+  },
+  {
+   "tic": 331754686,
+   "n_injections": 4,
+   "n_sectors": 7,
+   "baseline_d": 2550.61
+  },
+  {
+   "tic": 234299628,
+   "n_injections": 4,
+   "n_sectors": 9,
+   "baseline_d": 2907.51
+  },
+  {
+   "tic": 456611976,
+   "n_injections": 4,
+   "n_sectors": 6,
+   "baseline_d": 2550.18
+  },
+  {
+   "tic": 234288627,
+   "n_injections": 4,
+   "n_sectors": 11,
+   "baseline_d": 2879.2
+  },
+  {
+   "tic": 144458200,
+   "n_injections": 4,
+   "n_sectors": 7,
+   "baseline_d": 2935.05
+  },
+  {
+   "tic": 424940697,
+   "n_injections": 4,
+   "n_sectors": 6,
+   "baseline_d": 2578.91
+  },
+  {
+   "tic": 74188694,
+   "n_injections": 4,
+   "n_sectors": 7,
+   "baseline_d": 2576.53
+  },
+  {
+   "tic": 143397764,
+   "n_injections": 4,
+   "n_sectors": 4,
+   "baseline_d": 2545.47
+  },
+  {
+   "tic": 311403944,
+   "n_injections": 4,
+   "n_sectors": 7,
+   "baseline_d": 2874.41
+  },
+  {
+   "tic": 207080123,
+   "n_injections": 4,
+   "n_sectors": 6,
+   "baseline_d": 2935.05
+  },
+  {
+   "tic": 143855075,
+   "n_injections": 4,
+   "n_sectors": 6,
+   "baseline_d": 2878.93
+  }
+ ],
+ "skipped_stars": [
+  {
+   "tic": 464515919,
+   "why": "not quiet"
+  },
+  {
+   "tic": 360955814,
+   "why": "not quiet"
+  },
+  {
+   "tic": 197598732,
+   "why": "not quiet"
+  },
+  {
+   "tic": 219979737,
+   "why": "not quiet"
+  },
+  {
+   "tic": 424985902,
+   "why": "not quiet"
+  },
+  {
+   "tic": 238813498,
+   "why": "not quiet"
+  },
+  {
+   "tic": 369953269,
+   "why": "not quiet"
+  },
+  {
+   "tic": 404030766,
+   "why": "not quiet"
+  }
+ ],
+ "note": "Injected on 2026-09-27 with the final search; the single threshold (SES 15, set after the run) and the 26.4-h duration limit are applied to the recorded injections: 1 single at SES 12.8 no longer counts."
+}

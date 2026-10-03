@@ -1,0 +1,363 @@
+/* The monitor (DESIGN.md: The monitor). */
+
+.monitor {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: calc(100dvh - var(--bar-h));
+}
+
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--s-5) var(--s-6);
+  align-items: end;
+  padding-top: var(--s-5);
+  padding-bottom: var(--s-4);
+}
+
+.side {
+  display: grid;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.starHead {
+  display: grid;
+  gap: var(--s-2);
+  min-height: 150px;
+  animation: arrive var(--d-tick) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .starHead,
+  .noteRow {
+    animation: none;
+  }
+}
+
+/* a new star's name: a plain 160ms fade (no blur, DESIGN.md v3) */
+@keyframes arrive {
+  from {
+    opacity: 0;
+  }
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  min-width: 0;
+}
+
+.starName {
+  font-size: var(--t-display) !important;
+  line-height: 0.9 !important;
+  letter-spacing: -0.04em !important;
+  font-weight: var(--w-head) !important;
+  font-variation-settings: "wdth" 100 !important;
+  font-variant-numeric: lining-nums;
+  white-space: nowrap;
+}
+
+/* the star's own colour, as a rule under its name: the accent that means its temperature */
+.starRule {
+  display: block;
+  width: min(100%, 12ch);
+  height: 4px;
+  background: var(--star);
+  outline: 1px solid var(--ink);
+}
+
+.kindWord {
+  font-weight: var(--w-name);
+}
+
+.tic {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-variation-settings: "wdth" 87;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+.starKind {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-4);
+  font-size: var(--t-h3);
+}
+
+.facts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  color: var(--ink-2);
+}
+
+.observed {
+  font-size: var(--t-body);
+  color: var(--ink-2);
+}
+
+.mode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-3);
+}
+
+.modeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  font-variation-settings: "wdth" 87;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  min-height: 44px;
+  padding: 0 12px 0 8px;
+  border: 1.5px solid var(--ink);
+}
+
+.modeTag svg * {
+  stroke: currentColor;
+}
+
+.modeTag[data-mode="live"] {
+  border-color: var(--pen);
+  color: var(--pen);
+}
+
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pen);
+}
+
+.modeLine {
+  font-size: var(--t-body);
+  font-style: italic;
+  color: var(--ink-2);
+}
+
+.controls {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.paper {
+  position: relative;
+  min-height: 360px;
+  border-top: 1px solid var(--grid-strong);
+  border-bottom: 1px solid var(--grid-strong);
+}
+
+.pausedTag {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--gutter);
+  margin: 0;
+  padding: 2px 6px;
+  background: var(--paper);
+  color: var(--ink);
+  pointer-events: none;
+}
+
+.paper:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: -2px;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+
+.paperNote {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0 var(--s-5);
+  text-align: center;
+}
+
+.canvas:focus-visible {
+  outline-offset: -3px;
+}
+
+.foot {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--s-6);
+  padding-top: var(--s-5);
+  padding-bottom: var(--s-6);
+}
+
+.tally {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  align-items: baseline;
+  align-content: start;
+}
+
+.tally .num {
+  font-size: 1.5rem;
+  color: var(--ink);
+}
+
+.footLeft {
+  display: grid;
+  gap: var(--s-5);
+  align-content: start;
+}
+
+.pen {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+  min-height: 3.5em;
+}
+
+.note {
+  font-size: var(--t-body);
+}
+
+.notes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-3);
+}
+
+.noteRow {
+  display: grid;
+  gap: 2px;
+  animation: arrive var(--d-tick) var(--ease-out);
+}
+
+.noteHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+}
+
+.noteHead [data-outcome="candidate"] {
+  color: var(--pen);
+}
+
+.noteHead [data-outcome="known"] {
+  color: var(--known);
+}
+
+.reason {
+  font-size: var(--t-body);
+  color: var(--ink-2);
+  max-width: 68ch;
+}
+
+.more {
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+/* The tick glyph, the same as on the canvas: filled pen, blue with a bar, hollow ink. */
+.tick {
+  position: relative;
+  display: inline-block;
+  width: 10px;
+  height: 9px;
+  flex: none;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: var(--pen);
+}
+
+.tick[data-outcome="known"] {
+  background: var(--known);
+}
+
+.tick[data-outcome="rejected"] {
+  background: var(--ink-3);
+}
+
+.tick[data-outcome="rejected"]::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px 2.2px 2.6px;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: var(--paper);
+}
+
+@media (max-width: 899px) {
+  .head {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}
+
+@media (max-width: 719px) {
+  .head {
+    grid-template-columns: 1fr;
+    padding-top: var(--s-4);
+    gap: var(--s-3);
+  }
+
+  .starHead {
+    min-height: 0;
+  }
+
+  .mode {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: start;
+    align-items: center;
+    text-align: left;
+    gap: var(--s-2) var(--s-3);
+  }
+
+  .controls {
+    flex-basis: 100%;
+    margin-top: 0;
+  }
+
+  .starName {
+    font-size: clamp(2.25rem, 1.2rem + 4.8vw, 3rem) !important;
+  }
+
+  .nameRow {
+    gap: var(--s-3);
+  }
+
+  .nameRow svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .paper {
+    min-height: 0;
+    height: 56dvh;
+  }
+
+  .foot {
+    grid-template-columns: 1fr;
+    gap: var(--s-4);
+  }
+}

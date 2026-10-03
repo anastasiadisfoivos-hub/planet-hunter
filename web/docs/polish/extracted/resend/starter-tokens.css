@@ -1,0 +1,23 @@
+:root {
+  --font-heading: domaine;
+  --font-body: domaine;
+  --space-1: 1px;
+  --space-2: 2px;
+  --space-3: 4px;
+  --space-4: 5px;
+  --space-5: 6px;
+  --space-6: 8px;
+  --space-7: 10px;
+  --space-8: 12px;
+  --space-9: 16px;
+  --space-10: 20px;
+  --space-11: 24px;
+  --space-12: 30px;
+  --space-13: 32px;
+  --space-14: 40px;
+  --space-15: 48px;
+  --space-16: 64px;
+  --space-17: 80px;
+  --space-18: 96px;
+  --space-19: 144px;
+}

@@ -1,0 +1,274 @@
+{
+ "stars/tic100100827.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=24.354460&dec=-45.677790&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around WASP-18",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 24.35446,
+  "dec": -45.67779,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic36734222.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=154.908190&dec=-9.806440&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around WASP-43",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 154.90819,
+  "dec": -9.80644,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic150428135.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=97.095720&dec=-65.578610&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around TOI-700",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 97.09572,
+  "dec": -65.57861,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic219345170.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=74.849252&dec=-49.840045&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around TIC 219345170",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 74.8492522,
+  "dec": -49.8400446,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic29781292.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=65.238051&dec=-68.102643&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around TIC 29781292",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 65.23805051,
+  "dec": -68.10264278,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic257060897.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=227.531957&dec=72.710346&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around TIC 257060897",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 227.53195723,
+  "dec": 72.71034628,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic1129033.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=37.155108&dec=-7.060664&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around TIC 1129033",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 37.15510833,
+  "dec": -7.06066389,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic1167538.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=70.997588&dec=-31.906501&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around TIC 1167538",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 70.9975879,
+  "dec": -31.90650055,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic356016119.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=254.143230&dec=70.027316&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around TIC 356016119",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 254.14323036,
+  "dec": 70.02731624,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic278683844.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=99.238002&dec=-58.015268&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around TIC 278683844",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 99.23800201,
+  "dec": -58.01526814,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic393831507.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FDESI-Legacy-Surveys%2FDR10%2Fcolor&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=187.686475&dec=27.452146&format=jpg",
+  "title": "DESI Legacy Imaging Surveys DR10 colour cutout, 7.2′ around TIC 393831507",
+  "credit": "DESI Legacy Imaging Surveys DR10, colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "Legacy Surveys public data, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 187.68647543,
+  "dec": 27.45214583,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic1003831.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=130.295165&dec=-16.036280&format=jpg",
+  "title": "Pan-STARRS1 DR1 colour cutout, 7.2′ around TIC 1003831",
+  "credit": "Pan-STARRS1 DR1 (PS1 Science Consortium, via MAST/STScI), colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "PS1 public data release, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 130.29516544,
+  "dec": -16.03628039,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic307809773.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=99.294995&dec=17.564815&format=jpg",
+  "title": "Pan-STARRS1 DR1 colour cutout, 7.2′ around TIC 307809773",
+  "credit": "Pan-STARRS1 DR1 (PS1 Science Consortium, via MAST/STScI), colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "PS1 public data release, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 99.29499501,
+  "dec": 17.56481478,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic88863718.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=122.580486&dec=-5.513785&format=jpg",
+  "title": "Pan-STARRS1 DR1 colour cutout, 7.2′ around TIC 88863718",
+  "credit": "Pan-STARRS1 DR1 (PS1 Science Consortium, via MAST/STScI), colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "PS1 public data release, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 122.58048644,
+  "dec": -5.5137852,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic441462736.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=353.033635&dec=-21.801421&format=jpg",
+  "title": "Pan-STARRS1 DR1 colour cutout, 7.2′ around TIC 441462736",
+  "credit": "Pan-STARRS1 DR1 (PS1 Science Consortium, via MAST/STScI), colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "PS1 public data release, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 353.03363479,
+  "dec": -21.80142057,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic459837008.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FPanSTARRS%2FDR1%2Fcolor-z-zg-g&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=65.052681&dec=84.901743&format=jpg",
+  "title": "Pan-STARRS1 DR1 colour cutout, 7.2′ around TIC 459837008",
+  "credit": "Pan-STARRS1 DR1 (PS1 Science Consortium, via MAST/STScI), colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "PS1 public data release, acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 65.05268145,
+  "dec": 84.90174347,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ },
+ "stars/tic22529346.jpg": {
+  "url": "https://alasky.cds.unistra.fr/hips-image-services/hips2fits?hips=CDS%2FP%2FSkymapper-color-IRG&width=768&height=768&fov=0.12&projection=TAN&coordsys=icrs&ra=107.600230&dec=-39.097270&format=jpg",
+  "title": "SkyMapper DR1 colour cutout, 7.2′ around WASP-121",
+  "credit": "SkyMapper Southern Sky Survey DR1 (ANU), colour HiPS by CDS; cut with CDS hips2fits",
+  "licence": "SkyMapper public data (CC BY 4.0), acknowledgement required; HiPS ODbL-1.0 (CDS)",
+  "source": "CDS hips2fits",
+  "width": 768,
+  "height": 768,
+  "archive": true,
+  "ra": 107.60023,
+  "dec": -39.09727,
+  "mark": {
+   "u": 0.5,
+   "v": 0.5
+  }
+ }
+}

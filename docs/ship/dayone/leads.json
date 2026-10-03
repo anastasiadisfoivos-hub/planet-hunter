@@ -1,0 +1,19 @@
+{
+ "note": "The two periodic leads from DEEPHUNT's calibration run (27 Sep 2026), vetted by SHIP: pixels (difference images, every sector) and skyvet (LEO-vetter, TRICERATOPS, Gaia DR3, VSX). A lead that survives goes in as a candidate; these did not.",
+ "leads": [
+  {
+   "tic": 360955814,
+   "period_d": 12.731743,
+   "verdict": "rejected",
+   "summary": "Rejected by vetting: TRICERATOPS gives a 22% chance the dip comes from a nearby star (the limit is 10%); in the SPOC 2-min data the signal is too weak (MES 2.3) and most of it comes from the QLP full-frame sectors 101-104; the dip is not visible in the pixels (difference-image SNR below 5 in all 9 sectors).",
+   "candidate_file": "docs/ship/dayone/vetting/360955814_1.json"
+  },
+  {
+   "tic": 76923707,
+   "period_d": 9.482272,
+   "verdict": "rejected",
+   "summary": "Rejected by vetting: LEO-vetter finds a significant secondary eclipse; TRICERATOPS makes it most likely an eclipsing binary on the neighbour TIC 76923709 (66%); the dip depths disagree between transits; the star is a known rotational variable (ASAS-SN, 25.2 d). Not an alias or timing residual of TOI-181 b, which is found separately and is known.",
+   "candidate_file": "docs/ship/dayone/vetting/76923707_1.json"
+  }
+ ]
+}

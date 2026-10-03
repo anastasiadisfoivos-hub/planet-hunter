@@ -1,0 +1,55 @@
+# The Planet Finder's daily search run (runner/scheduler). Started by planet-hunter.timer at 00:15 UTC and 3 min
+# after every boot; a start on a day whose run is already done exits at once, a start mid-day resumes that day.
+[Unit]
+Description=Planet Finder search run (planet-hunter runner)
+Documentation=https://github.com/anastasiadisfoivos-hub/planet-hunter/tree/main/runner
+Wants=network-online.target
+After=network-online.target
+# a run that keeps failing (e.g. ingest) is retried every 10 min, at most 6 times a day
+StartLimitIntervalSec=1d
+StartLimitBurst=6
+
+[Service]
+Type=exec
+User=planethunter
+Group=planethunter
+# Non-secret settings (repo ref, API URL, workers, split) and, root-only, the secrets.
+EnvironmentFile=/etc/planet-hunter.conf
+EnvironmentFile=/etc/planet-hunter.env
+Environment=PH_HOME=/opt/planet-hunter PH_DATA=/var/lib/planet-hunter HOME=/var/lib/planet-hunter
+Environment=PYTHONPATH=/opt/planet-hunter/repo/runner PYTHONUNBUFFERED=1
+Environment=UV_CACHE_DIR=/var/lib/planet-hunter/cache/uv UV_PYTHON_INSTALL_DIR=/opt/planet-hunter/python
+WorkingDirectory=/opt/planet-hunter/repo/runner
+# pull PH_REPO_REF and refresh changed venvs (skipped when PH_AUTO_UPDATE=0; a failure keeps the old checkout)
+ExecStartPre=-/usr/bin/python3 -m scheduler update --if-enabled
+ExecStart=/usr/bin/python3 -m scheduler run
+TimeoutStartSec=2h
+# SIGTERM: the scheduler stops its stars (retried next start) and exits
+TimeoutStopSec=90
+KillMode=control-group
+Restart=on-failure
+RestartSec=10min
+# busy, but SSH and the system stay responsive
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+MemoryHigh=20G
+MemoryMax=22G
+# logs: journald (journalctl -u planet-hunter)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=planet-hunter
+# hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/planet-hunter /opt/planet-hunter
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target
