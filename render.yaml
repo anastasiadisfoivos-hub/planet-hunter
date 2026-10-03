@@ -13,13 +13,14 @@ services:
     dockerContext: ./api # relative to the repo root
     dockerfilePath: ./api/Dockerfile # relative to the repo root
     healthCheckPath: /healthz
+    # No preDeployCommand: it is for paid plans only. The image runs `python -m api.migrate` itself before
+    # starting (api/Dockerfile), so the tables are created and updated on every deploy.
     autoDeployTrigger: checksPass # deploy a main commit only after its GitHub checks (ci.yml) pass
     envVars:
       # Supabase SESSION pooler URL (IPv4), port 5432, with ?sslmode=require. See docs/DEPLOY.md.
       - key: PH_DATABASE_URL
         sync: false
-      # Long random strings (openssl rand -hex 32). The runner on the Oracle server needs the same
-      # PH_INGEST_TOKEN. PH_ADMIN_TOKEN enables the ExoFOP export; it is optional.
+      # Long random strings (openssl rand -hex 32). The daily search needs the same PH_INGEST_TOKEN. PH_ADMIN_TOKEN enables the ExoFOP export; it is optional.
       - key: PH_ADMIN_TOKEN
         sync: false
       - key: PH_INGEST_TOKEN
@@ -32,7 +33,7 @@ services:
       - key: PH_TRUSTED_PROXY_HOPS
         value: "1"
       - key: PH_ADAPTERS
-        value: fake # the web API never pixel-checks; ingestion runs on the Oracle server
+        value: fake # the web API never pixel-checks; the daily search does, before it posts
       # A small pool: the free instance is small and Supabase free limits connections.
       - key: PH_DB_POOL_MAX
         value: "3"

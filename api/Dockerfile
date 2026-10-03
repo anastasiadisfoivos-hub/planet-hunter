@@ -42,6 +42,8 @@ WORKDIR /home/app
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD python -c "import os,urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/healthz', timeout=4)" || exit 1
+# Migrations first, on every start (Render's pre-deploy command is for paid plans only): idempotent, under an
+# advisory lock, and a failure stops this deploy before it serves (Render keeps the previous one live).
 # Shell form so Render's $PORT is used; exec keeps uvicorn as PID 1 (clean SIGTERM).
 # The client IP comes from PH_TRUSTED_PROXY_HOPS (the app reads X-Forwarded-For itself).
-CMD ["sh", "-c", "exec uvicorn --factory api.app:create_app --host 0.0.0.0 --port \"$PORT\""]
+CMD ["sh", "-c", "python -m api.migrate && exec uvicorn --factory api.app:create_app --host 0.0.0.0 --port \"$PORT\""]

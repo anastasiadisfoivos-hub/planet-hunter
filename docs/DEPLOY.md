@@ -180,22 +180,13 @@ gh run watch "$(gh run list --branch main --workflow ci.yml --limit 1 --json dat
 `ci.yml` must be green: Render deploys `main` only after its checks pass
 (`autoDeployTrigger: checksPass` in `render.yaml`).
 
-### B2. Create the tables in Supabase
+### B2. Create the tables in Supabase: automatic
 
-The API also applies pending migrations on every start (under a Postgres advisory lock, so two
-starts at once are safe). Running them first, on their own, keeps a schema error out of the web
-service's boot and shows what was applied:
-
-```sh
-cd api
-read -rs PH_DATABASE_URL && export PH_DATABASE_URL     # paste the session-pooler URL
-uv run python -m api.migrate
-# -> postgres: applied 0001_init, ..., 0007_monitor_detail; 7 migrations recorded
-uv run python -m api.migrate                              # again: "applied nothing new"
-unset PH_DATABASE_URL
-```
-
-(Same thing without a local checkout: `docker run --rm -e PH_DATABASE_URL planet-hunter-api python -m api.migrate`.)
+Nothing to run. The API's container runs `python -m api.migrate` before it starts serving, on every deploy
+(api/Dockerfile; Render's pre-deploy command is for paid plans only). Migrations are idempotent and run under
+a Postgres advisory lock. A failed migration stops that deploy before it serves, and Render keeps the previous
+deploy live. Render's deploy log shows `postgres: applied 0001_init, ..., 0008_runner; 8 migrations recorded`
+on the first deploy, then `applied nothing new`.
 
 ### B3. Render deploy
 
